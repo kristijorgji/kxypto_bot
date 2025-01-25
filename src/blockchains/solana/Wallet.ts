@@ -1,7 +1,8 @@
-import { Connection, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 
 import { SolanaWalletProviders } from './constants/walletProviders';
 import solanaMnemonicToKeypair from './utils/solanaMnemonicToKeypair';
+import { lamportsToSol } from '../utils/amount';
 
 export default class Wallet {
     private privateKey: string = '';
@@ -22,6 +23,6 @@ export default class Wallet {
     async getBalance(connection: Connection): Promise<number> {
         const balance = await connection.getBalance(new PublicKey(this.address));
 
-        return balance / LAMPORTS_PER_SOL;
+        return lamportsToSol(balance);
     }
 }

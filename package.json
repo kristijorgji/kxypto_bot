@@ -6,23 +6,29 @@
   "scripts": {
     "test": "jest",
     "start": "ts-node -r dotenv/config src/index.ts",
+    "dev:cli": "ts-node src/console/cli.ts",
     "compile": "tsc",
     "lint": "eslint '{src,__tests__}/**/*.ts'",
     "fix": "eslint --fix --ext js,jsx,ts,tsx {src,__tests__}"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
     "@project-serum/anchor": "^0.26.0",
+    "@raydium-io/raydium-sdk": "^1.3.1-beta.58",
     "@raydium-io/raydium-sdk-v2": "^0.1.106-alpha",
     "@solana/web3.js": "^1.98.0",
     "axios": "^1.7.9",
+    "big-json": "^3.2.0",
     "bip39": "^3.1.0",
     "bs58": "^6.0.0",
+    "commander": "^13.1.0",
     "dotenv": "^16.4.7",
     "ed25519-hd-key": "^1.3.0",
     "winston": "^3.17.0"
   },
   "devDependencies": {
     "@kristijorgji/eslint-config-typescript": "^0.0.1",
+    "@types/big-json": "^3.2.5",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.6",
     "jest": "^29.7.0",

@@ -1,29 +1,61 @@
 # crypto_bot
 
-This boilerplate provides you a fully working out of the box project using
+This crypto bot is using
+
 * typescript
 * jest
-* lint and fix tools using my personal best standards from https://www.npmjs.com/package/@kristijorgji/eslint-config-typescript
+* lint and fix tools using my personal best standards
+  from https://www.npmjs.com/package/@kristijorgji/eslint-config-typescript
 * fully debug compatible
 
 # Getting started
-Use this project as `template` project from github or clone it.
 
-run `yarn install` or `npm install`
+1. run `yarn install`
+2. copy `.env.example` into `.env.` and fill in your values
 
-run `yarn start` or `npm run start` and you will see the example console.log output.
+# CLI
 
-Now you are ready to modify `src/index.ts` to have the logic you want plus add remove more code as you wish.
+This project offers a cli for the most frequently needed standalone commands
 
-Have fun
+Run
+
+```shell
+ts-node src/console/cli.ts
+```
+
+to see list of available commands
+
+# Troubleshooting
+
+## How can I find my wallet private key if I have only the recovery phrase
+
+You can run the helper CLI command
+
+**walletInfo:solana**
+
+```shell
+ ts-node src/console/cli.ts walletInfo:solana --recoveryPhrasePath=k --provider=TrustWallet
+```
+
+# Example scripts
+
+The folder `src/examples` contains `standalone` scripts that you can run.
+They use the specified `.env` variables
+
+Example:
+
+```shell
+ts-node src/examples/getWalletBalance.ts
+```
 
 # Environmental variables
 
-This project uses also `dotenv` so you can create `.env` file and specify your variables and will be used by the index file
+This project uses also `dotenv` so you can create `.env` file and specify your variables and will be used by the index
+file
 
 # Package.json scripts
-you can run them by `yarn commmand` or `npm run command`
 
+you can run them by `yarn commmand` or `npm run command`
 
 | Command | Description                                                                                                          |
 |---------|----------------------------------------------------------------------------------------------------------------------|

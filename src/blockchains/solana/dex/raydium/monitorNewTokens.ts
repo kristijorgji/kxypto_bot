@@ -1,18 +1,32 @@
-import fs from 'fs';
-
 import { Connection, PublicKey, TokenBalance } from '@solana/web3.js';
 
-import { storeData } from './utils';
 import { logger } from '../../../../logger';
 
 const rayFee = new PublicKey('7YttLkHDoNj9wyDur5pM1ejNaAvT9X4eqaYcHQqtj2G5');
 const raydiumAuthorityV4Account = '5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1';
 const wrappedSolToken = 'So11111111111111111111111111111111111111112';
 
+export type NewTokenData = {
+    lpSignature: string;
+    creator: string;
+    timestamp: string;
+    baseInfo: {
+        baseAddress: string;
+        baseDecimals: number;
+        baseLpAmount: number;
+    };
+    quoteInfo: {
+        quoteAddress: string;
+        quoteDecimals: number;
+        quoteLpAmount: number;
+    };
+    logs: string[];
+};
+
 export async function monitorNewTokens(
     connection: Connection,
     args: {
-        dataPath: string;
+        onNewToken: (token: NewTokenData) => void;
         verbose?: boolean;
     },
 ) {
@@ -88,7 +102,7 @@ export async function monitorNewTokens(
                         }
                     }
 
-                    const newTokenData = {
+                    const newTokenData: NewTokenData = {
                         lpSignature: signature,
                         creator: signer,
                         timestamp: new Date().toISOString(),
@@ -105,7 +119,7 @@ export async function monitorNewTokens(
                         logs: logs,
                     };
 
-                    await storeData(args.dataPath, newTokenData);
+                    args.onNewToken(newTokenData);
                 } catch (error) {
                     const errorMessage = `error occured in new solana token log callback function, ${JSON.stringify(
                         error,
@@ -116,15 +130,6 @@ export async function monitorNewTokens(
                     if (verbose) {
                         logger.error(errorMessage);
                     }
-
-                    // Save error logs to a separate file
-                    fs.appendFile('errorNewLpsLogs.txt', `${errorMessage}\n`, function (err) {
-                        if (err) {
-                            if (verbose) {
-                                logger.error('error writing errorlogs.txt', err);
-                            }
-                        }
-                    });
                 }
             },
             'confirmed',
@@ -134,14 +139,5 @@ export async function monitorNewTokens(
         if (verbose) {
             logger.error(errorMessage);
         }
-
-        // Save error logs to a separate file
-        fs.appendFile('errorNewLpsLogs.txt', `${errorMessage}\n`, function (err) {
-            if (err) {
-                if (verbose) {
-                    logger.error('error writing errorlogs.txt', err);
-                }
-            }
-        });
     }
 }

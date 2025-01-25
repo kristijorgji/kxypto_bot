@@ -112,3 +112,8 @@ dist
 # stryker temp files
 .stryker-tmp
 reports
+
+.env*
+!.env.example
+build/
+data/

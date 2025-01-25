@@ -1,4 +1,4 @@
-# ts-boilerplate
+# crypto_bot
 
 This boilerplate provides you a fully working out of the box project using
 * typescript

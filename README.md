@@ -13,6 +13,10 @@ This crypto bot is using
 1. run `yarn install`
 2. copy `.env.example` into `.env.` and fill in your values
 
+It is recommended to use fast Solana nodes.
+
+Private ones like https://chainstack.com/ work better
+
 # CLI
 
 This project offers a cli for the most frequently needed standalone commands

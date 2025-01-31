@@ -1,0 +1,70 @@
+{
+  "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+  "tokenName": "OFFICIAL TRUMP",
+  "tokenSymbol": "TRUMP",
+  "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+  "pairCreated": null,
+  "pairLabel": "TRUMP/USDC",
+  "pairAddress": "A8nPhpCJqtqHdqUk35Uj9Hy2YsGXFkCZGuNwvkD3k7VC",
+  "exchange": "Meteora DLMM",
+  "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+  "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+  "exchangeUrl": null,
+  "currentUsdPrice": "25.884858",
+  "currentNativePrice": "0.108959",
+  "totalLiquidityUsd": "599977847.948939",
+  "pricePercentChange": {
+    "5min": 0,
+    "1h": -0.9896385671666696,
+    "4h": -0.9900172833324764,
+    "24h": -4.853428079769177
+  },
+  "liquidityPercentChange": {
+    "5min": 0,
+    "1h": -0.3815962304288364,
+    "4h": -0.38222551227431595,
+    "24h": -1.8964485868545509
+  },
+  "buys": {
+    "5min": 0,
+    "1h": 1,
+    "4h": 15,
+    "24h": 3209
+  },
+  "sells": {
+    "5min": 0,
+    "1h": 52,
+    "4h": 62,
+    "24h": 2912
+  },
+  "totalVolume": {
+    "5min": 0,
+    "1h": 71436.200624,
+    "4h": 72947.697126,
+    "24h": 27473490.431204
+  },
+  "buyVolume": {
+    "5min": 0,
+    "1h": 35.395977,
+    "4h": 772.961654,
+    "24h": 9559492.901024
+  },
+  "sellVolume": {
+    "5min": 0,
+    "1h": 71400.804647,
+    "4h": 72174.735472,
+    "24h": 17913997.53018
+  },
+  "buyers": {
+    "5min": 0,
+    "1h": 1,
+    "4h": 13,
+    "24h": 179
+  },
+  "sellers": {
+    "5min": 0,
+    "1h": 16,
+    "4h": 17,
+    "24h": 265
+  }
+}

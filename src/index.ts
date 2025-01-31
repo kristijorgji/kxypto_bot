@@ -1,9 +1,9 @@
+import { Connection } from '@solana/web3.js';
 import dotenv from 'dotenv';
 
-import { SolanaWalletProviders } from './blockchains/solana/constants/walletProviders';
-import HeliusProvider from './blockchains/solana/providers/helius/HeliusProvider';
-import solanaMnemonicToKeypair from './blockchains/solana/utils/solanaMnemonicToKeypair';
-import { logger } from './logger';
+import BirdEye from './blockchains/solana/providers/birdeye/BirdEye';
+import Moralis from './blockchains/solana/providers/moralis/Moralis';
+import Solana from './blockchains/solana/Solana';
 
 dotenv.config();
 
@@ -12,25 +12,42 @@ dotenv.config();
 })();
 
 async function start() {
-    const tokenMint = '6pqhKDyRwUcC9dPywg4s43HsvWoEvN6NHyKQvhdipump';
-    const heliusConfig = {
-        rpcUrl: process.env.HELIUS_RPC_ENDPOINT as string,
-        apiKey: process.env.HELIUS_API_TOKEN as string,
-    };
+    const tokenMint = '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN';
 
-    const heliusProvider = new HeliusProvider({
-        rpcUrl: process.env.HELIUS_RPC_ENDPOINT as string,
-        apiKey: process.env.HELIUS_API_TOKEN as string,
+    const birdEye = new BirdEye({
+        url: process.env.BIRDEYE_API_ENDPOINT as string,
+        apiKey: process.env.BIRDEYE_API_TOKEN as string,
+    });
+    // const r = await birdEye.getTrades(tokenMint);
+    // console.log(r);
+    const price = await birdEye.getPrice(tokenMint);
+    console.log('price', price);
+
+    const supply = await new Solana().getCirculatingSupply(
+        new Connection(process.env.SOLANA_RPC_ENDPOINT as string, {
+            wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
+        }),
+        tokenMint,
+    );
+    console.log('supply', supply);
+
+    const moralis = new Moralis({
+        apiKey: process.env.MORALIS_API_KEY as string,
     });
 
-    const tokenHolders = await heliusProvider.getTokenHolders(heliusConfig, tokenMint);
-    logger.info(`Token holders for the mint ${tokenMint} are %o`, tokenHolders);
-
-    const walletInfo = await solanaMnemonicToKeypair(process.env.WALLET_MNEMONIC_PHRASE as string, {
-        provider: SolanaWalletProviders.TrustWallet,
+    const trades = await moralis.getTokenTrades({
+        tokenAddress: tokenMint,
     });
+    console.log('trades', trades);
 
-    const walletAssets = await heliusProvider.getAssetsByOwner(heliusConfig, walletInfo.address);
-
-    logger.info('Wallet %o assets are %o', walletInfo.address, walletAssets);
+    const pairs = await moralis.getTokenPairs({
+        tokenAddress: tokenMint,
+    });
+    console.log('pairs', pairs);
+    const pairStats = await moralis.getTokenPairStats(pairs.pairs[0].pairAddress);
+    console.log('pairStats', pairStats);
+    const pairTrades = await moralis.getPairTrades({
+        pairAddress: pairs.pairs[0].pairAddress,
+    });
+    console.log('pairTrades', pairTrades);
 }

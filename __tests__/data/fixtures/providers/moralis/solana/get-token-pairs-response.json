@@ -1,0 +1,1807 @@
+{
+  "pairs": [
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "A8nPhpCJqtqHdqUk35Uj9Hy2YsGXFkCZGuNwvkD3k7VC",
+      "pairLabel": "TRUMP/USDC",
+      "usdPrice": 25.884711,
+      "usdPrice24hrPercentChange": -5.795910794482524,
+      "usdPrice24hrUsdChange": -5.795910794482524,
+      "volume24hrNative": 118903.475293,
+      "volume24hrUsd": 28337790.456373,
+      "liquidityUsd": 599976538.9067751,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 229917507.11943015
+        },
+        {
+          "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "tokenName": "USD Coin",
+          "tokenSymbol": "USDC",
+          "tokenLogo": null,
+          "tokenDecimals": "6",
+          "pairTokenType": "token1",
+          "liquidityUsd": 370059031.787345
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+      "exchangeName": "Raydium CLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/raydium.png",
+      "pairAddress": "GQsPr4RJk9AZkkfWHud7v4MtotcxhaYzZHdsPCg9vNvW",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.160390916,
+      "usdPrice24hrPercentChange": -4.8396201044948715,
+      "usdPrice24hrUsdChange": -4.8396201044948715,
+      "volume24hrNative": 47416.173495238,
+      "volume24hrUsd": 11316005.13442442,
+      "liquidityUsd": 10869337.590937449,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 8522385.02271331
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 2346952.568224139
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C",
+      "exchangeName": "Raydium CPMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/raydium.png",
+      "pairAddress": "HKuJrP5tYQLbEUdjKwjgnHs2957QKjR2iWhJKTtMa1xs",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.152708475,
+      "usdPrice24hrPercentChange": -5.091324678046384,
+      "usdPrice24hrUsdChange": -5.091324678046384,
+      "volume24hrNative": 10656.25301137,
+      "volume24hrUsd": 2543351.535361928,
+      "liquidityUsd": 10161525.04504083,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 5080762.522520415
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 5080762.522520415
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "71HuFmuYAFEFUna2x2R4HJjrFNQHGuagW3gUMFToL9tk",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.08808854,
+      "usdPrice24hrPercentChange": -5.215633593646773,
+      "usdPrice24hrUsdChange": -5.215633593646773,
+      "volume24hrNative": 118724.446245087,
+      "volume24hrUsd": 28310286.071931507,
+      "liquidityUsd": 9831632.780822018,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 7048031.198504314
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 2783601.582317705
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "4CTUHtiHrPHFT4Zc1qNScrposmM7xfupU7EVDWCR7PZw",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.516738228,
+      "usdPrice24hrPercentChange": 2.4642817004476103,
+      "usdPrice24hrUsdChange": 2.4642817004476103,
+      "volume24hrNative": 4599.609277516,
+      "volume24hrUsd": 1104256.690703824,
+      "liquidityUsd": 9467026.491215155,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 7376104.18272806
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 2090922.308487094
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+      "exchangeName": "Raydium CLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/raydium.png",
+      "pairAddress": "CsVe97sDiaXkVfVjiwyYp4zKZXD7TckaRcLVgqbFuUay",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.053028701,
+      "usdPrice24hrPercentChange": -4.88870670419158,
+      "usdPrice24hrUsdChange": -4.88870670419158,
+      "volume24hrNative": 72.448256198,
+      "volume24hrUsd": 17372.182135496,
+      "liquidityUsd": 2337435.844103529,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 1947311.532410539
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 390124.31169299
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+      "exchangeName": "Orca Whirlpool",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/orca.png",
+      "pairAddress": "6nD6d8gG17wakW6Wu5URktBZQp3uxp5orgPa576QXigJ",
+      "pairLabel": "TRUMP/USDC",
+      "usdPrice": 26.082158,
+      "usdPrice24hrPercentChange": -5.38402690208714,
+      "usdPrice24hrUsdChange": -5.38402690208714,
+      "volume24hrNative": 16911.651877007,
+      "volume24hrUsd": 4034779.852319,
+      "liquidityUsd": 2334257.800034793,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 1898317.5051347932
+        },
+        {
+          "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "tokenName": "USD Coin",
+          "tokenSymbol": "USDC",
+          "tokenLogo": null,
+          "tokenDecimals": "6",
+          "pairTokenType": "token1",
+          "liquidityUsd": 435940.2949
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "6XMrsTeFC8gYmVasKaBuVwU4fyAVPJLHd8jno82JBhS5",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.147190002,
+      "usdPrice24hrPercentChange": -4.966053721078085,
+      "usdPrice24hrUsdChange": -4.966053721078085,
+      "volume24hrNative": 5802.974738194,
+      "volume24hrUsd": 1384334.258431213,
+      "liquidityUsd": 1907182.409729148,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 1292129.540685451
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 615052.869043697
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "9d9mb8kooFfaD3SctgZtkxQypkshx6ezhbKio89ixyy2",
+      "pairLabel": "TRUMP/USDC",
+      "usdPrice": 26.200327,
+      "usdPrice24hrPercentChange": -4.5894939559109105,
+      "usdPrice24hrUsdChange": -4.5894939559109105,
+      "volume24hrNative": 2467.8840738474,
+      "volume24hrUsd": 588538.590818,
+      "liquidityUsd": 1378751.12097,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 1309215.858282
+        },
+        {
+          "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "tokenName": "USD Coin",
+          "tokenSymbol": "USDC",
+          "tokenLogo": null,
+          "tokenDecimals": "6",
+          "pairTokenType": "token1",
+          "liquidityUsd": 69535.262688
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+      "exchangeName": "Orca Whirlpool",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/orca.png",
+      "pairAddress": "6KX9iiLFBcwfjq3uMqeeMukaMZt5rQYTsbZZTnxbzsz6",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.088063402,
+      "usdPrice24hrPercentChange": -5.23941901716185,
+      "usdPrice24hrUsdChange": -5.23941901716185,
+      "volume24hrNative": 2001.106231966,
+      "volume24hrUsd": 478294.673837268,
+      "liquidityUsd": 767160.051081011,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 499184.951361498
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 267975.099719513
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "5BJpnniJB9rGPYXrv3k3RvdcUbPbqkbkXNWUefCkwKi",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.134608662,
+      "usdPrice24hrPercentChange": -5.20224626227102,
+      "usdPrice24hrUsdChange": -5.20224626227102,
+      "volume24hrNative": 23132.72964148,
+      "volume24hrUsd": 5518630.025663404,
+      "liquidityUsd": 461881.619907302,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 413951.214101756
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 47930.405805546
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "3ePGnQkER4bwYtrFEPVHBL9HQsJ1JuXSB2oEeDwSSAao",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.091387225,
+      "usdPrice24hrPercentChange": -5.492055133605152,
+      "usdPrice24hrUsdChange": -5.492055133605152,
+      "volume24hrNative": 92.459568804,
+      "volume24hrUsd": 22120.457943898,
+      "liquidityUsd": 397544.814980589,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 334676.178918589
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 62868.636062
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C",
+      "exchangeName": "Raydium CPMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/raydium.png",
+      "pairAddress": "Grub1v4mcDtkBmTmsUPJ1dNbELt3ayB4PkFwFBxmqu74",
+      "pairLabel": "TRUMP/USDC",
+      "usdPrice": 26.133997,
+      "usdPrice24hrPercentChange": -4.9884522092114185,
+      "usdPrice24hrUsdChange": -4.9884522092114185,
+      "volume24hrNative": 241.2398126411,
+      "volume24hrUsd": 57634.331568,
+      "liquidityUsd": 272597.137335,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 136298.568667
+        },
+        {
+          "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "tokenName": "USD Coin",
+          "tokenSymbol": "USDC",
+          "tokenLogo": null,
+          "tokenDecimals": "6",
+          "pairTokenType": "token1",
+          "liquidityUsd": 136298.568668
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "7vNYYn8G9cFXFMM6YZKkbDjaXE1G9XC1MPV2ccFwHLdy",
+      "pairLabel": "TRUMP/USDC",
+      "usdPrice": 26.183104,
+      "usdPrice24hrPercentChange": -5.026047454287052,
+      "usdPrice24hrUsdChange": -5.026047454287052,
+      "volume24hrNative": 39.601236,
+      "volume24hrUsd": 9489.351077,
+      "liquidityUsd": 245861.910473,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 240691.328732
+        },
+        {
+          "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "tokenName": "USD Coin",
+          "tokenSymbol": "USDC",
+          "tokenLogo": null,
+          "tokenDecimals": "6",
+          "pairTokenType": "token1",
+          "liquidityUsd": 5170.581741
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+      "exchangeName": "Raydium CLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/raydium.png",
+      "pairAddress": "6uqNoghWR37pFYnWfSMwv1xEAhPGUJCJe2C8fsB96ro1",
+      "pairLabel": "TRUMP/USDC",
+      "usdPrice": 26.103379,
+      "usdPrice24hrPercentChange": -5.194505160128996,
+      "usdPrice24hrUsdChange": -5.194505160128996,
+      "volume24hrNative": 3060.966097,
+      "volume24hrUsd": 734134.617181,
+      "liquidityUsd": 219727.096036,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 201636.501154
+        },
+        {
+          "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "tokenName": "USD Coin",
+          "tokenSymbol": "USDC",
+          "tokenLogo": null,
+          "tokenDecimals": "6",
+          "pairTokenType": "token1",
+          "liquidityUsd": 18090.594882
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "4VcH2kQJQMwqyz4zUTrev7dunA3Bd7Lukk1mZRcjmCiH",
+      "pairLabel": "TRUMP/USDC",
+      "usdPrice": 26.45597,
+      "usdPrice24hrPercentChange": -3.8824507488737545,
+      "usdPrice24hrUsdChange": -3.8824507488737545,
+      "volume24hrNative": 86.7445299495,
+      "volume24hrUsd": 20733.767145,
+      "liquidityUsd": 202145.7588475732,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 150543.58674157318
+        },
+        {
+          "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "tokenName": "USD Coin",
+          "tokenSymbol": "USDC",
+          "tokenLogo": null,
+          "tokenDecimals": "6",
+          "pairTokenType": "token1",
+          "liquidityUsd": 51602.172106
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "3C5YE97HADPDxZehYq9Cis8AXr9aNyrUsczKzE1nDbW9",
+      "pairLabel": "TRUMP/USDC",
+      "usdPrice": 26.13749,
+      "usdPrice24hrPercentChange": -5.159809093834336,
+      "usdPrice24hrUsdChange": -5.159809093834336,
+      "volume24hrNative": 2199.2860090654,
+      "volume24hrUsd": 526146.856538,
+      "liquidityUsd": 197910.496908,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 170942.221093
+        },
+        {
+          "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "tokenName": "USD Coin",
+          "tokenSymbol": "USDC",
+          "tokenLogo": null,
+          "tokenDecimals": "6",
+          "pairTokenType": "token1",
+          "liquidityUsd": 26968.275815
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+      "exchangeName": "Orca Whirlpool",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/orca.png",
+      "pairAddress": "EdRQgfs2oRyyqsGDNH5XPJKMUDUBdpPcy597ZHdYY7uk",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.562916163,
+      "usdPrice24hrPercentChange": -3.7301525132957125,
+      "usdPrice24hrUsdChange": -3.7301525132957125,
+      "volume24hrNative": 18.843072805,
+      "volume24hrUsd": 4500.237178685,
+      "liquidityUsd": 196393.308056365,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 134895.78638879
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 61497.521667575
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "3DDBu1BGiYTYbCqvKRHJCMQngLNSJCrHffBEFnPUWf2d",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 25.585528998,
+      "usdPrice24hrPercentChange": -6.375220262684074,
+      "usdPrice24hrUsdChange": -6.375220262684074,
+      "volume24hrNative": 0.814560335,
+      "volume24hrUsd": 194.826158103,
+      "liquidityUsd": 180195.861991821,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 154871.194765211
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 25324.66722661
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB",
+      "exchangeName": "Meteora Dynamic AMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "4ZGaDNvLF31pfmyCLbMD4MqiR24VRda3UGmov41y4AvV",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.114303735,
+      "usdPrice24hrPercentChange": -4.688365742141397,
+      "usdPrice24hrUsdChange": -4.688365742141397,
+      "volume24hrNative": 39.800506738,
+      "volume24hrUsd": 9498.895394232,
+      "liquidityUsd": 143688.940725015,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 74393.295827135
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 69295.64489788
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "6hA7gQJzoLYYGocTQ5gzGz4PMZh3fSQYbN6kjpzSAPbm",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.123801188,
+      "usdPrice24hrPercentChange": -4.993063969377334,
+      "usdPrice24hrUsdChange": -4.993063969377334,
+      "volume24hrNative": 427.497972559,
+      "volume24hrUsd": 101946.699132442,
+      "liquidityUsd": 101138.656223484,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 77468.071231281
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 23670.584992203
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+      "exchangeName": "Orca Whirlpool",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/orca.png",
+      "pairAddress": "AbTXfZfd2YnR8w1uv81NzHT4ggmq6jombkAFPcpprnfr",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.569680668,
+      "usdPrice24hrPercentChange": -1.0589633341131066,
+      "usdPrice24hrUsdChange": -1.0589633341131066,
+      "volume24hrNative": 6.157873227,
+      "volume24hrUsd": 1475.147211769,
+      "liquidityUsd": 100190.685338751,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 57179.807839557
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 43010.877499194
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "7LLrF1cVVmE1oBAqTezHPByu3JD5t9X7qcv9jSv6FMzv",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.284224336,
+      "usdPrice24hrPercentChange": -5.078171410590581,
+      "usdPrice24hrUsdChange": -5.078171410590581,
+      "volume24hrNative": 66.563942747,
+      "volume24hrUsd": 15910.496539685,
+      "liquidityUsd": 91476.589253567,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 72910.571155875
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 18566.018097692
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "BsuGEi9qRJHhVDS5gAbrd214LQyN4sEimpK1EpKvpGff",
+      "pairLabel": "TRUMP/USDC",
+      "usdPrice": 26.050784,
+      "usdPrice24hrPercentChange": -5.418822801488575,
+      "usdPrice24hrUsdChange": -5.418822801488575,
+      "volume24hrNative": 256.3861293082,
+      "volume24hrUsd": 61370.020534,
+      "liquidityUsd": 90616.844481,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 77901.791615
+        },
+        {
+          "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "tokenName": "USD Coin",
+          "tokenSymbol": "USDC",
+          "tokenLogo": null,
+          "tokenDecimals": "6",
+          "pairTokenType": "token1",
+          "liquidityUsd": 12715.052866
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "FYPzp13VW5LA5BFCUDzQJdNVs5sCH64MwbFSGMgd7GSk",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 25.865308763,
+      "usdPrice24hrPercentChange": -5.43848139168317,
+      "usdPrice24hrUsdChange": -5.43848139168317,
+      "volume24hrNative": 5.649616464,
+      "volume24hrUsd": 1356.584979282,
+      "liquidityUsd": 78617.187299572,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 46165.701623106
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 32451.485676466
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+      "exchangeName": "Raydium CLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/raydium.png",
+      "pairAddress": "EKmcEiMEExCBEg9Aw7HethY8UGm5KjPgSdhJeK9bQh6j",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.302703928,
+      "usdPrice24hrPercentChange": -3.623711771653218,
+      "usdPrice24hrUsdChange": -3.623711771653218,
+      "volume24hrNative": 15.889923333,
+      "volume24hrUsd": 3798.717104987,
+      "liquidityUsd": 77013.770983318,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 51706.202631408
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 25307.56835191
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+      "exchangeName": "Raydium AMM v4",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/raydium.png",
+      "pairAddress": "uCk125EJf7iCjz43aSdzuyMAT5eii6c5zKVxEnGnosa",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.239859575,
+      "usdPrice24hrPercentChange": -4.749744902579655,
+      "usdPrice24hrUsdChange": -4.749744902579655,
+      "volume24hrNative": 72.358046918,
+      "volume24hrUsd": 17228.781189748,
+      "liquidityUsd": 77010.084948426,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 38548.385179506
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 38461.69976892
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "AEHB6udTR3nGaYmo3hCuAnHuMWUNbsH5ygxtJcRoWwgT",
+      "pairLabel": "TRUMP/USDC",
+      "usdPrice": 26.12578,
+      "usdPrice24hrPercentChange": -4.9799252671693885,
+      "usdPrice24hrUsdChange": -4.9799252671693885,
+      "volume24hrNative": 9.446086,
+      "volume24hrUsd": 2257.214441,
+      "liquidityUsd": 71489.033065,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 51492.598897
+        },
+        {
+          "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "tokenName": "USD Coin",
+          "tokenSymbol": "USDC",
+          "tokenLogo": null,
+          "tokenDecimals": "6",
+          "pairTokenType": "token1",
+          "liquidityUsd": 19996.434168
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "5BXEq1Vq1ZdDQmFempMP6HAtsq2xubcNzP8WwubozEcr",
+      "pairLabel": "TRUMP/USDC",
+      "usdPrice": 26.509701,
+      "usdPrice24hrPercentChange": -3.88053974858259,
+      "usdPrice24hrUsdChange": -3.88053974858259,
+      "volume24hrNative": 39.448238,
+      "volume24hrUsd": 9419.81252,
+      "liquidityUsd": 69753.367606,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 42812.76984
+        },
+        {
+          "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "tokenName": "USD Coin",
+          "tokenSymbol": "USDC",
+          "tokenLogo": null,
+          "tokenDecimals": "6",
+          "pairTokenType": "token1",
+          "liquidityUsd": 26940.597766
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "D6RL6sWrs6khn7AfEyS6dsqqiiqAh4hXC83JtcmEUf6D",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.106347966,
+      "usdPrice24hrPercentChange": -5.757855426468208,
+      "usdPrice24hrUsdChange": -5.757855426468208,
+      "volume24hrNative": 47.764517653,
+      "volume24hrUsd": 11433.522642461,
+      "liquidityUsd": 69081.762481575,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 57329.277973508
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 11752.484508067
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "5vR9dcTqHVLgj4soELkH1g1dax1TnXcDEoWgQ9Gukt2z",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.172092057,
+      "usdPrice24hrPercentChange": -4.949898516507241,
+      "usdPrice24hrUsdChange": -4.949898516507241,
+      "volume24hrNative": 93.050649205,
+      "volume24hrUsd": 22331.844136256,
+      "liquidityUsd": 62551.063756943,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 58854.139791091
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 3696.923965852
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "FALfVaay8UYn8LjahgovfAohpU9U11t9TjDAYhz9zKef",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.016378927,
+      "usdPrice24hrPercentChange": -5.2581646464350715,
+      "usdPrice24hrUsdChange": -5.2581646464350715,
+      "volume24hrNative": 19.859208358,
+      "volume24hrUsd": 4762.862740967,
+      "liquidityUsd": 37164.089472907,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 25919.588449952
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 11244.501022955
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "8jniDHYjz6BuEbnenSMzkCwbe5QQcjJ77Ej4Sf8ZMyYv",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 42.371820825,
+      "usdPrice24hrPercentChange": 0,
+      "usdPrice24hrUsdChange": 0,
+      "volume24hrNative": 0,
+      "volume24hrUsd": 0,
+      "liquidityUsd": 30114.89251178454,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": true,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 26985.132805228364
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 3129.7597065561717
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+      "exchangeName": "Raydium CLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/raydium.png",
+      "pairAddress": "7XzVsjqTebULfkUofTDH5gDdZDmxacPmPuTfHa1n9kuh",
+      "pairLabel": "TRUMP/USDC",
+      "usdPrice": 26.167477,
+      "usdPrice24hrPercentChange": -4.955257832176705,
+      "usdPrice24hrUsdChange": -4.955257832176705,
+      "volume24hrNative": 22.552071,
+      "volume24hrUsd": 5380.595664,
+      "liquidityUsd": 30051.639232,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 18740.07054
+        },
+        {
+          "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "tokenName": "USD Coin",
+          "tokenSymbol": "USDC",
+          "tokenLogo": null,
+          "tokenDecimals": "6",
+          "pairTokenType": "token1",
+          "liquidityUsd": 11311.568692
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "3ExNMgRwW6gsx35swFL4DWjrSxaysqg5KsUV3XqmE5mm",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.514903762,
+      "usdPrice24hrPercentChange": -3.7272870805361715,
+      "usdPrice24hrUsdChange": -3.7272870805361715,
+      "volume24hrNative": 2.89192988,
+      "volume24hrUsd": 693.06703865,
+      "liquidityUsd": 28064.296691478,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 25052.188255674
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 3012.108435804
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "ABez6sUtU8croGPYeLFH4edgJmjGyKxSsEnQnoW9UEnJ",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.096241731,
+      "usdPrice24hrPercentChange": -5.02659708623012,
+      "usdPrice24hrUsdChange": -5.02659708623012,
+      "volume24hrNative": 109.758646225,
+      "volume24hrUsd": 26188.688510469,
+      "liquidityUsd": 25621.681136023,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 20664.741769451
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 4956.939366572
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+      "exchangeName": "Orca Whirlpool",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/orca.png",
+      "pairAddress": "BYUb9Z3CJY4T8QjUQKS1npAsqX8qyoSR22B1GUtFQ45t",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.083598258,
+      "usdPrice24hrPercentChange": -5.03303903272136,
+      "usdPrice24hrUsdChange": -5.03303903272136,
+      "volume24hrNative": 7.475936946,
+      "volume24hrUsd": 1788.794027703,
+      "liquidityUsd": 17780.774582158,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 12835.635073048
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 4945.13950911
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "4xyhkikexZxkJ7eQiPTXYzokVH1UgHGJHceKxZGc9JuW",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.140572332,
+      "usdPrice24hrPercentChange": -5.463097837043741,
+      "usdPrice24hrUsdChange": -5.463097837043741,
+      "volume24hrNative": 175.149747885,
+      "volume24hrUsd": 41769.235850041,
+      "liquidityUsd": 17642.316638013,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 16229.417386415
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 1412.899251598
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "J1EqUQNAgxhzQasB46K4BHtLpNK1cEQSB9upB3oAvQPC",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 25.63138074,
+      "usdPrice24hrPercentChange": -5.7102016209318815,
+      "usdPrice24hrUsdChange": -5.7102016209318815,
+      "volume24hrNative": 0.033813044,
+      "volume24hrUsd": 8.127288509,
+      "liquidityUsd": 17496.376669387566,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 16291.104648318998
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 1205.2720210685682
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "9EYiZy8axRFxXun9mdyq1KepEfnMvdjtBhp8MET7zsci",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 27.414766464,
+      "usdPrice24hrPercentChange": 0,
+      "usdPrice24hrUsdChange": 0,
+      "volume24hrNative": 0,
+      "volume24hrUsd": 0,
+      "liquidityUsd": 17446.98078385463,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": true,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 14340.288371211112
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 3106.692412643515
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "3YdWyqfXpn9g6HR5beki9CJ5GpTh2kMDb84jfoEad8Zn",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.320040422,
+      "usdPrice24hrPercentChange": -4.273714907378147,
+      "usdPrice24hrUsdChange": -4.273714907378147,
+      "volume24hrNative": 11.32190286,
+      "volume24hrUsd": 2713.427068249,
+      "liquidityUsd": 16038.677008389,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 12502.131245216
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 3536.545763173
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "9zDSoj1hm6XEtEqADiJA1FnEjrZpCYERk3uWCdqsRKt4",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.035930587,
+      "usdPrice24hrPercentChange": -5.438277205617627,
+      "usdPrice24hrUsdChange": -5.438277205617627,
+      "volume24hrNative": 4.108146289,
+      "volume24hrUsd": 979.506892064,
+      "liquidityUsd": 15810.961099156,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 9171.695024496
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 6639.26607466
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+      "exchangeName": "Raydium CLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/raydium.png",
+      "pairAddress": "EmMysv3ShyYtyQcoHU71ZNnBq2SmjFscSuvRHYcFcB9e",
+      "pairLabel": "TRUMP/USDC",
+      "usdPrice": 26.365456,
+      "usdPrice24hrPercentChange": -4.408752344963403,
+      "usdPrice24hrUsdChange": -4.408752344963403,
+      "volume24hrNative": 1.327162,
+      "volume24hrUsd": 316.826714,
+      "liquidityUsd": 12332.180108,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 11360.516043
+        },
+        {
+          "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "tokenName": "USD Coin",
+          "tokenSymbol": "USDC",
+          "tokenLogo": null,
+          "tokenDecimals": "6",
+          "pairTokenType": "token1",
+          "liquidityUsd": 971.664065
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "HVf9A9c6x3MvZeq5BTKR1qaZgXYGPe6DiZiEBq7TZZof",
+      "pairLabel": "TRUMP/USDC",
+      "usdPrice": 26.565898,
+      "usdPrice24hrPercentChange": -3.309005927523543,
+      "usdPrice24hrUsdChange": -3.309005927523543,
+      "volume24hrNative": 4.585524,
+      "volume24hrUsd": 1098.690961,
+      "liquidityUsd": 11529.939299,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 6536.113697
+        },
+        {
+          "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "tokenName": "USD Coin",
+          "tokenSymbol": "USDC",
+          "tokenLogo": null,
+          "tokenDecimals": "6",
+          "pairTokenType": "token1",
+          "liquidityUsd": 4993.825602
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "Axp5FVY5XSVZVQu544JozGqcyFg8iB3KwXdpf1qGhemb",
+      "pairLabel": "TRUMP/USDT",
+      "usdPrice": 27.301722,
+      "usdPrice24hrPercentChange": 0,
+      "usdPrice24hrUsdChange": 0,
+      "volume24hrNative": 0,
+      "volume24hrUsd": 0,
+      "liquidityUsd": 10322.683210778981,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+      "inactivePair": true,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 8894.486887778981
+        },
+        {
+          "tokenAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+          "tokenName": "USDT",
+          "tokenSymbol": "USDT",
+          "tokenLogo": null,
+          "tokenDecimals": "6",
+          "pairTokenType": "token1",
+          "liquidityUsd": 1428.196323
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "3uTeNYFX6Pyo7d3rq53H5JjZxi6UP94qR1gAdzg2eHB6",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.685015724,
+      "usdPrice24hrPercentChange": -2.921027650319143,
+      "usdPrice24hrUsdChange": -2.921027650319143,
+      "volume24hrNative": 9.147275359,
+      "volume24hrUsd": 2195.088612056,
+      "liquidityUsd": 9003.673711076,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 6934.441436486
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 2069.23227459
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "5ahKFYk1LUUNTCeqc7ivUyP7LNf86xQmp5SfiGZPHWaL",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.54051224,
+      "usdPrice24hrPercentChange": -2.094505030956077,
+      "usdPrice24hrUsdChange": -2.094505030956077,
+      "volume24hrNative": 0.804287838,
+      "volume24hrUsd": 192.720319861,
+      "liquidityUsd": 8330.559482222,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 4758.832268528
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 3571.727213694
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "HdGTTURpNULzst6x7LFWRuks1ftgKVNBzYHB6iMhvgEe",
+      "pairLabel": "TRUMP/SOL",
+      "usdPrice": 26.120996502,
+      "usdPrice24hrPercentChange": -5.291130744353257,
+      "usdPrice24hrUsdChange": -5.291130744353257,
+      "volume24hrNative": 4.886885905,
+      "volume24hrUsd": 1171.438989583,
+      "liquidityUsd": 7075.961801591,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "So11111111111111111111111111111111111111112",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 4278.380716305
+        },
+        {
+          "tokenAddress": "So11111111111111111111111111111111111111112",
+          "tokenName": "Wrapped SOL",
+          "tokenSymbol": "SOL",
+          "tokenLogo": null,
+          "tokenDecimals": "9",
+          "pairTokenType": "token1",
+          "liquidityUsd": 2797.581085286
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+      "exchangeName": "Raydium CLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/raydium.png",
+      "pairAddress": "4LYn8u6CQr7UrUxycswwEAerxpHcCR4wJTfdJednY35Q",
+      "pairLabel": "TRUMP/USDT",
+      "usdPrice": 26.258579,
+      "usdPrice24hrPercentChange": -4.690494122685869,
+      "usdPrice24hrUsdChange": -4.690494122685869,
+      "volume24hrNative": 22.943522,
+      "volume24hrUsd": 5474.241207,
+      "liquidityUsd": 6624.209386,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 5645.391054
+        },
+        {
+          "tokenAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+          "tokenName": "USDT",
+          "tokenSymbol": "USDT",
+          "tokenLogo": null,
+          "tokenDecimals": "6",
+          "pairTokenType": "token1",
+          "liquidityUsd": 978.818332
+        }
+      ]
+    },
+    {
+      "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "exchangeName": "Meteora DLMM",
+      "exchangeLogo": "https://entities-logos.s3.amazonaws.com/meteora.png",
+      "pairAddress": "4g5Tt5j4sTY5camzDoA9zzbZiVg97CKcfTbC4mPtKN79",
+      "pairLabel": "TRUMP/USDC",
+      "usdPrice": 27.18421,
+      "usdPrice24hrPercentChange": -1.6662884769182928,
+      "usdPrice24hrUsdChange": -1.6662884769182928,
+      "volume24hrNative": 0.001867,
+      "volume24hrUsd": 0.450911,
+      "liquidityUsd": 5824.62123242492,
+      "baseToken": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+      "quoteToken": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "inactivePair": false,
+      "pair": [
+        {
+          "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+          "tokenName": "OFFICIAL TRUMP",
+          "tokenSymbol": "TRUMP",
+          "tokenLogo": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+          "tokenDecimals": "6",
+          "pairTokenType": "token0",
+          "liquidityUsd": 3941.51070042492
+        },
+        {
+          "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "tokenName": "USD Coin",
+          "tokenSymbol": "USDC",
+          "tokenLogo": null,
+          "tokenDecimals": "6",
+          "pairTokenType": "token1",
+          "liquidityUsd": 1883.110532
+        }
+      ]
+    }
+  ],
+  "pageSize": 50,
+  "page": 1,
+  "cursor": "eyJhbGciOiJIUzI1NiJ9.eyJ0YWJsZUluZGV4IjowLCJsYXN0RXZhbHVhdGVkS2V5IjoiIiwicGFnZU51bWJlciI6MSwibGlxdWlkaXR5VXNkIjoiNTgyNC42MjEyMzI0MjQ5MiJ9.-y6Dqo5mk4Qk4fdr88vQl-43PJ-0p2hFS0sKv2aMZbM"
+}

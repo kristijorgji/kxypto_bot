@@ -1,0 +1,3422 @@
+[
+  {
+    "associatedTokenAddress": "EfzVHHpLYFfsTspYFPW5oBzU4dRziP9P2jWm8EQNrmJ4",
+    "mint": "5ENZKJ7oqr6wAhMZQF6KaF6MmN8xAiLXP2r883sTpump",
+    "amountRaw": "5000000000",
+    "amount": "5000",
+    "decimals": 6,
+    "name": "CHA0STORMS",
+    "symbol": "CHA0STORMS"
+  },
+  {
+    "associatedTokenAddress": "GDCPRBnpsJGDz4yZgu8dtwDRKfTyReriph9DRVyKuyXt",
+    "mint": "DeDLqtQBLRtkFRwDTjHfy7fzxVAyNyXsWtfG5zGBDcxS",
+    "amountRaw": "8000000000",
+    "amount": "8",
+    "decimals": 9,
+    "name": "5THSCAPE",
+    "symbol": "5SCAPE"
+  },
+  {
+    "associatedTokenAddress": "2nZdj3LemNx8VTGRNaYduz6Kdj2vhg2QMd7jxX3RFYZh",
+    "mint": "254uDDXRuGvwEtBEdbtUZYWobETkMdsAph67N9TjAQVA",
+    "amountRaw": "5529589",
+    "amount": "5.529589",
+    "decimals": 6,
+    "name": "FEPE",
+    "symbol": "FEPE"
+  },
+  {
+    "associatedTokenAddress": "GjhFRG9U9vnW78P4k1YQUgXUHVtWU7bFBVs3phC5XVt",
+    "mint": "G2toRmB94w6qoSSkBjyGTJKG3hBDcrbbeeDi7XmApump",
+    "amountRaw": "12545652693",
+    "amount": "12545.652693",
+    "decimals": 6,
+    "name": "Trinitrotoluene",
+    "symbol": "TNT"
+  },
+  {
+    "associatedTokenAddress": "BwVitay9BeEvNKdb77i5GvVB3Rfok65grFLWZdjP9vLK",
+    "mint": "2Aj5Q6A3B2hEVCngL2ZSD9LD5FMF9B7cnaVksnqf4rVM",
+    "amountRaw": "1887000000000",
+    "amount": "1887",
+    "decimals": 9,
+    "name": "it's time to full port",
+    "symbol": "PORT"
+  },
+  {
+    "associatedTokenAddress": "CGfDFcCa8mW1psxCwVuFo4tWNKfLCKoQHK7fRtypTBkZ",
+    "mint": "4CwDJXfUPjwd5KbwoxjhsAzkK1kTocXoDHWrTKmvkmzE",
+    "amountRaw": "7034349709229",
+    "amount": "7034349.709229",
+    "decimals": 6,
+    "name": "Pengycoin",
+    "symbol": "PENGY"
+  },
+  {
+    "associatedTokenAddress": "D9Mdi1JMMJY9a5ifCKh1Ldk7mECDXf1MQuLdYw3f3fCT",
+    "mint": "q5fZj2AHw6gt5XQbQX3sts4e5e14DaGNARhQGJVFmst",
+    "amountRaw": "129000000",
+    "amount": "129",
+    "decimals": 6,
+    "name": "MONSTER",
+    "symbol": "MNSTR"
+  },
+  {
+    "associatedTokenAddress": "9X5YsNnWWotpTqgdFDdNn9VAURjhhXGwFz5usRv46zyF",
+    "mint": "dTkxifpU8JTYeFheortdWduTvgCaoz8DdXdiT6zidoG",
+    "amountRaw": "225000000",
+    "amount": "225",
+    "decimals": 6,
+    "name": "SOLDOG",
+    "symbol": "DOG"
+  },
+  {
+    "associatedTokenAddress": "A7QnKUHP3xYcRbDGgC74oTJLvSbAR6g1GR5CEAg4wrhZ",
+    "mint": "J9gLk9ofrD95Tc1cSbC1ZKSRgYJUwuLPpV5DfHcbpump",
+    "amountRaw": "25785038082",
+    "amount": "25785.038082",
+    "decimals": 6,
+    "name": "DEGEN SAGE",
+    "symbol": "SAGE"
+  },
+  {
+    "associatedTokenAddress": "5Xp2d383SnCBnYG7iFRZ2CFGbQStdA5ZP14nDrVvCsbn",
+    "mint": "3jDoxkQ2csVoiT2g3EctJT5xsYjHJZfmZr38d7MSpump",
+    "amountRaw": "34000000",
+    "amount": "34",
+    "decimals": 6,
+    "name": "Musk CACTUS CARL",
+    "symbol": "MuskCCARL"
+  },
+  {
+    "associatedTokenAddress": "85D13zCAUrFpGAPAxjXwncGVN25qgh6JnghHKeyYjt2g",
+    "mint": "H1xZ6sNT978Kuy2JKscwMH1wXjVAtDJgKFZeJcoepump",
+    "amountRaw": "8750000000",
+    "amount": "8750",
+    "decimals": 6,
+    "name": "LUCKEGGS",
+    "symbol": "LUCKEGGS"
+  },
+  {
+    "associatedTokenAddress": "HM2XyqCFvHZfcWrwnw2HSeQERe7axB3d8JcWHg8ayGNL",
+    "mint": "FEmhQGs2jFwWWace844ZPHz6KmGnUc4nKNdWX86Lpump",
+    "amountRaw": "85803702202",
+    "amount": "85803.702202",
+    "decimals": 6,
+    "name": "DEGEN SAGE",
+    "symbol": "SAGE"
+  },
+  {
+    "associatedTokenAddress": "Hz3ifFGNwTY22GZQWfAUaBkQTjRorFE9K4ccDJajpWHk",
+    "mint": "69UNidCExPKrLqXkNZEXnM71L33T7ZUCVhqKWEhXbie",
+    "amountRaw": "353000000",
+    "amount": "353",
+    "decimals": 6,
+    "name": "MRBEAST",
+    "symbol": "MRBST"
+  },
+  {
+    "associatedTokenAddress": "8LDd92euRVnanq7QZxYXbacQS2JFQW2pKnG9ApUEcy5b",
+    "mint": "Fh7vykxwQo6Tbu8fxDX2mov6yUgJsVxYvSCwP9Scpump",
+    "amountRaw": "9435203918",
+    "amount": "9435.203918",
+    "decimals": 6,
+    "name": "Zeaxanthin",
+    "symbol": "ZEA"
+  },
+  {
+    "associatedTokenAddress": "66be6x5tT52QLsQfGmnajy2wFKcYLbRLxFchQqtVsVST",
+    "mint": "6hgNt4ANnJzT2Lap9mF5ZBgD8CMg1j4vGxaLcjcVpump",
+    "amountRaw": "29951657648",
+    "amount": "29951.657648",
+    "decimals": 6,
+    "name": "Anthramycin",
+    "symbol": "ANT"
+  },
+  {
+    "associatedTokenAddress": "Ent39y7gQp5jLuLj6bE38xdjLm7KMJ7x7h7yiH56JRjv",
+    "mint": "9cXeeaCi3cW8FhQkwkAL9DTTsxPB79U12S26pBN3qwwm",
+    "amountRaw": "2751000000000000",
+    "amount": "2751000",
+    "decimals": 9,
+    "name": "PUPPY DOGE",
+    "symbol": "PUPG"
+  },
+  {
+    "associatedTokenAddress": "FQTG9NQxdEEm1ZFBwYKimBj6pz1iWMWM2rThsRxmmq8a",
+    "mint": "F1GUPKTzrcQAt2nGPMCHJgE3aCbTk5fuw9zJtPi5pump",
+    "amountRaw": "41542283694",
+    "amount": "41542.283694",
+    "decimals": 6,
+    "name": "Capsaicin",
+    "symbol": "CAP"
+  },
+  {
+    "associatedTokenAddress": "AfaYGPUkmgdHPQdS4BmTUZJpDj76wowkvXE1k2u427Dv",
+    "mint": "9nQKC2fKKKViVk6FWoj4erq3qbmkf37TjrFkiDBA1pDk",
+    "amountRaw": "1500000000",
+    "amount": "1500",
+    "decimals": 6,
+    "name": "JaeCoin",
+    "symbol": "JAE"
+  },
+  {
+    "associatedTokenAddress": "GDjMzzgNAQSiEAzKS4qPovPyJaJCfw3EpW1om5SgJCNk",
+    "mint": "3GSze9KsTwmPus64xnveQbzdHUq22fLEhLESoCNYpump",
+    "amountRaw": "18522406874",
+    "amount": "18522.406874",
+    "decimals": 6,
+    "name": "🐶",
+    "symbol": "🐶"
+  },
+  {
+    "associatedTokenAddress": "GeEKFWJRAHSB4SVfEhScehHtNVjRbLnfAdhJQJTMwpuM",
+    "mint": "6YJhRK7VRTuK85dftrxELxsLrWggNsAm7BtrsKaZpump",
+    "amountRaw": "9032054242",
+    "amount": "9032.054242",
+    "decimals": 6,
+    "name": "Monensin",
+    "symbol": "MON"
+  },
+  {
+    "associatedTokenAddress": "E9B1uFtmKtFBgCrYgczen6aprH8trfnfAEMD84KVvTRf",
+    "mint": "6fDocYThAwhc91s2PNiH1MG2EVdjFjT7SpQnXmF4pump",
+    "amountRaw": "10096748080",
+    "amount": "10096.74808",
+    "decimals": 6,
+    "name": "AIMIND",
+    "symbol": "AIM"
+  },
+  {
+    "associatedTokenAddress": "5hYJZSBxEHjEumfKwGooaKQ5B9YBaNgVaH6pdPdSwwdm",
+    "mint": "Di9pyxMssDzKCQsLLowc5Wy1ECkzpZnUfbNJzBTtpump",
+    "amountRaw": "5000000000",
+    "amount": "5000",
+    "decimals": 6,
+    "name": "NEONSCULL",
+    "symbol": "NEONSCULL"
+  },
+  {
+    "associatedTokenAddress": "Fm8ZobrhoJH8g2ELC3fU2FUBBcBsjNKw8pGDcXUV81oX",
+    "mint": "EgHKWDAF8gnzHVYU39X2QZczRC5xPHyvLse2FtbBFxML",
+    "amountRaw": "5197330000000",
+    "amount": "5197330",
+    "decimals": 6,
+    "name": "$_._$",
+    "symbol": "$_._$"
+  },
+  {
+    "associatedTokenAddress": "6YoQfEkQsZAG9ZRYz2Ng7iyjQkY8KjaYGxEzDqDjqX6X",
+    "mint": "8e175vFGAp6e1seC9kxAos9qQgT6JTcXSUZ4F6pmoon",
+    "amountRaw": "877000000000",
+    "amount": "877",
+    "decimals": 9,
+    "name": "BULLISH",
+    "symbol": "BULLISH"
+  },
+  {
+    "associatedTokenAddress": "4r7o2BR5XRg1ihGjp87nzto1dSg2mc8gcyLgDtpHazpp",
+    "mint": "J5pmFqKBbV8ivXdBza5ugg7QDckLcFpRTqCAhqDJnEQd",
+    "amountRaw": "249217855",
+    "amount": "249.217855",
+    "decimals": 6,
+    "name": "Dogeking",
+    "symbol": "DOGEKING"
+  },
+  {
+    "associatedTokenAddress": "BCyQFWbg8F3zQaJGchpeX4YDU4TaU5NYRFv6CVgL6W5d",
+    "mint": "HcF9D9tHKv6v3dvjRKgH7C7uEiefzCkMHJBbF7J3pump",
+    "amountRaw": "4895000000",
+    "amount": "4895",
+    "decimals": 6,
+    "name": "HELAXUS",
+    "symbol": "HELAXUS"
+  },
+  {
+    "associatedTokenAddress": "H97zSNQwDgyU9bVofsfzhsyUnfVUPnna5STWdswLiT9B",
+    "mint": "88D9oRLCb9vKzArfGCiuSdyDRE8DWMWFhFfZobwdpump",
+    "amountRaw": "5700000000",
+    "amount": "5700",
+    "decimals": 6,
+    "name": "THOUGHTLAND!",
+    "symbol": "THGHTLND!"
+  },
+  {
+    "associatedTokenAddress": "6Bd2y6NuRVQnUWYfD9yxMwzu6uH9MVJV9anJLSHUM9s5",
+    "mint": "46X7j8hWUYp64rotJU2TRbXFkE4ZmJm75vn3FUeSpump",
+    "amountRaw": "20920000000",
+    "amount": "20920",
+    "decimals": 6,
+    "name": "DOKEUS AI",
+    "symbol": "DOKEUS"
+  },
+  {
+    "associatedTokenAddress": "G5tTWwsn7FhaDk2RFFmhsGBLzWkyRQSAjeAgAQaBau53",
+    "mint": "CVtcj1Fu5jrkAorHcwdHMmC51Avk9JWqNN4p1b7VPiuL",
+    "amountRaw": "6900000000",
+    "amount": "6900",
+    "decimals": 6,
+    "name": "Memeify Ai",
+    "symbol": "MemeifyAi"
+  },
+  {
+    "associatedTokenAddress": "9zufrwHMKNKfJmABFSor27HGF3Num5i8tVagjyFhviaj",
+    "mint": "54Ag6i4rTzSvCJEXwrdZbykRwu16WRbxL6ewjzPgWjQ6",
+    "amountRaw": "1098000000000",
+    "amount": "1098",
+    "decimals": 9,
+    "name": "Official Mascot of theHolyYear",
+    "symbol": "LUCE"
+  },
+  {
+    "associatedTokenAddress": "Cz2VsmPg9nBQcfZttaLuhqmStifmrzbcmxD3gxySyR9j",
+    "mint": "429t466875m15r8MTCnxq6gN14UmArttejqf5icKzxbz",
+    "amountRaw": "99000000000",
+    "amount": "99",
+    "decimals": 9,
+    "name": "OpenAI",
+    "symbol": "OpenAI"
+  },
+  {
+    "associatedTokenAddress": "BPCg3M34bs4VkfWjHxcUd8NkAVBbxLAFbLRc1FUA7jB5",
+    "mint": "3Zy2dCjCFyh74DUb4corwPVJ3cCnBzhXCsqik7M6pump",
+    "amountRaw": "6670000000",
+    "amount": "6670",
+    "decimals": 6,
+    "name": "ᏗᎷ",
+    "symbol": "AM"
+  },
+  {
+    "associatedTokenAddress": "7xskbqfhECxKs8zjXpxZQ1KbK2QL4Q3aXatvNe7L8aHW",
+    "mint": "4oYz9ygy1NvxLu73PW61SEg9wXxSzz7n4soy33Um3AoW",
+    "amountRaw": "75000000",
+    "amount": "75",
+    "decimals": 6,
+    "name": "aether collective",
+    "symbol": "aether"
+  },
+  {
+    "associatedTokenAddress": "Exernd2KpgUroz3yqMuhTdBUpCkfZKp9yQgsE4YNxEiM",
+    "mint": "FCdmpNjWHbmuaPnSfKHfQkvk4ppZfsFHkKJcHKiNSFq7",
+    "amountRaw": "10000000000",
+    "amount": "10000",
+    "decimals": 6,
+    "name": "ELON VINE",
+    "symbol": "ELONVINE"
+  },
+  {
+    "associatedTokenAddress": "GntD8eqWTiquoJ4H4FZUgy9mbRv9woqopWRrWbrxUQJh",
+    "mint": "CSzT6dCixhTVbaT5oRr1Mp4gbHepyCkstbR2hcgbpump",
+    "amountRaw": "11701896090",
+    "amount": "11701.89609",
+    "decimals": 6,
+    "name": "The Bull",
+    "symbol": "BULL"
+  },
+  {
+    "associatedTokenAddress": "565EL5vio2h4yjj7p6JvJxqPBqvLXLwnvgNrH88ygXkL",
+    "mint": "Cg55yPjjjFn1z7vJSF7taeu22od7JREHdNPc6HGUpump",
+    "amountRaw": "15938599569",
+    "amount": "15938.599569",
+    "decimals": 6,
+    "name": "Zerumbone",
+    "symbol": "ZBONE"
+  },
+  {
+    "associatedTokenAddress": "GczBenr6VU7TMawHktZSXm9iUij68FiCfvoQnhDucYvj",
+    "mint": "Fk55JQSM1pp8MTHc2ssexB8R1MVn3aQk4TdrSD7Ppump",
+    "amountRaw": "32585095374",
+    "amount": "32585.095374",
+    "decimals": 6,
+    "name": "Orotic acid",
+    "symbol": "ORO"
+  },
+  {
+    "associatedTokenAddress": "DC6WMhwwyqbQb8Fq6iKDPXUNSSdxZQykxrEtkLeSwhND",
+    "mint": "J7ZdCmwgbCkXZLbiJdLycsptw41R6JXHnvNJPijoafim",
+    "amountRaw": "1199000000",
+    "amount": "1199",
+    "decimals": 6,
+    "name": "Justice for Zachxbt",
+    "symbol": "ZACHXBT"
+  },
+  {
+    "associatedTokenAddress": "5meQCd45QwQ1jt7WPaHJTucRZDsVtVjwh9YhZuE6hWiB",
+    "mint": "9LhniHSxsd1tvgRtG132FzQE5oY8A62BwUYHGZyFpump",
+    "amountRaw": "12950000000",
+    "amount": "12950",
+    "decimals": 6,
+    "name": "Jimistos",
+    "symbol": "Jimistos"
+  },
+  {
+    "associatedTokenAddress": "DHW93soz7unnw6wZ3xiJGwRBHxpN9g8r57qkkfVxchcR",
+    "mint": "AzP1FGxCSMUgc4hE3rmpmdf5YCuSJGMQ86y4rYWrCuBv",
+    "amountRaw": "1000000000000",
+    "amount": "1000000",
+    "decimals": 6,
+    "name": "Pepe’s Dog",
+    "symbol": "POG"
+  },
+  {
+    "associatedTokenAddress": "3guN49FBpcYeTtmm5bS5hYKXeDCB4LnwFxhw8F4zYjwj",
+    "mint": "63JFwfc8wqJdxg1PzkaNSvxHT87g1rPtmbpDcTZVpump",
+    "amountRaw": "9264829438",
+    "amount": "9264.829438",
+    "decimals": 6,
+    "name": "Guinea Pig",
+    "symbol": "GPIG"
+  },
+  {
+    "associatedTokenAddress": "AX514wZGAmQeMyxHy1FzhgcEwznqabd6nv5iCh1tQoGF",
+    "mint": "EAtmjd7HdDcLp6bjWa4bzbjsmRp8qEQ8mxfDDfTpEZ8P",
+    "amountRaw": "131491315873",
+    "amount": "131491.315873",
+    "decimals": 6,
+    "name": "KAITO AI",
+    "symbol": "KAITO"
+  },
+  {
+    "associatedTokenAddress": "HYDYoXKbx41WAjSX2YfAn8wueapUv1KRS1TsXT7Y3Vx",
+    "mint": "HKs94UXx72F2HjvB8EYZ1cKsYGExYWthXjbyqAUxpump",
+    "amountRaw": "20000000000",
+    "amount": "20000",
+    "decimals": 6,
+    "name": "PIXY",
+    "symbol": "PIXY"
+  },
+  {
+    "associatedTokenAddress": "DR6sWQpuPeBRginM8FDfJYfBCX7Rgipxwt5AkVYMBFuA",
+    "mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+    "amountRaw": "206097806",
+    "amount": "206.097806",
+    "decimals": 6,
+    "name": "USDT",
+    "symbol": "USDT"
+  },
+  {
+    "associatedTokenAddress": "3cyF9kkYDXm82141h9frPLfu4GDynMptU48QWnqrv2ee",
+    "mint": "71ERQrte6SRJ6unxRshgUKw5aJUbmtMoUcA8WHUegXkC",
+    "amountRaw": "350000000",
+    "amount": "350",
+    "decimals": 6,
+    "name": "Official Trump - Putin",
+    "symbol": "TRUMPUTIN"
+  },
+  {
+    "associatedTokenAddress": "FVauKAQ5oJeSRy3pNbeCCzDkvtpLvqe8616KR3UwHpFh",
+    "mint": "CoscQn9GEHXDK7z9MULF8i4oZdLedeVBLF1xLhxsUeoo",
+    "amountRaw": "999000000000",
+    "amount": "999",
+    "decimals": 9,
+    "name": "Universal Basic Compute",
+    "symbol": "UBC"
+  },
+  {
+    "associatedTokenAddress": "FNmz7bNpUhaF79CVWEzZQZPgsNJjXbEc8eNYCpa36JDB",
+    "mint": "Dd8McpejH422yHGTqQj62TKW1azYjJWFfJwVrqgn6bb5",
+    "amountRaw": "3258881000000000",
+    "amount": "3258881",
+    "decimals": 9,
+    "name": "SANTA CHRISTMUSK",
+    "symbol": "XMUSK"
+  },
+  {
+    "associatedTokenAddress": "J1CpUMUio13q55KRysf2hzxzmsEGCEGVbYdnt2bUyoAD",
+    "mint": "CrMjHuGcQsYEivVJDTtknBjQqw7kceMeYPBbm5Qdpump",
+    "amountRaw": "100000000000",
+    "amount": "100000",
+    "decimals": 6,
+    "name": "Wrapped Fartcoin",
+    "symbol": "WFartcoin"
+  },
+  {
+    "associatedTokenAddress": "DvsqqvaB2veGNXSzef5hECJTzKzWneCmBwLnVzUjFotw",
+    "mint": "3N11sx1yqC6kTkVYQRG1CYKdXs7xmf7p6EPs2c7HFXdB",
+    "amountRaw": "16948875",
+    "amount": "16.948875",
+    "decimals": 6,
+    "name": "Crypto Agent Trading",
+    "symbol": "CATG"
+  },
+  {
+    "associatedTokenAddress": "87QmwhVEk11K4WVPkfe2ebM2p8VVNTU5yTBy7U5Pic1k",
+    "mint": "DdNKKg3FbqkAkaGSbyWeAe5aFcMjyqhwP7nfWUpjaZEj",
+    "amountRaw": "8551716061",
+    "amount": "8551.716061",
+    "decimals": 6,
+    "name": "SOLDIER",
+    "symbol": "SOLDIER"
+  },
+  {
+    "associatedTokenAddress": "7WJYzh64h3NQbsoLuCz32DrdYnJybQU4EYnznervkv9T",
+    "mint": "22B7dh51rjQTboMcguypjzXdhijLVLZqVYaYqbM3pump",
+    "amountRaw": "5606364294",
+    "amount": "5606.364294",
+    "decimals": 6,
+    "name": "Lactucin",
+    "symbol": "LAC"
+  },
+  {
+    "associatedTokenAddress": "2sytrWiapLS6crGggJ4DoicLZtBAp4vxucJKQ19CKD4U",
+    "mint": "A5VAVttojsWhGnzwEXc6uzLwPjohQvMTBqiL3xBtpump",
+    "amountRaw": "3001786131",
+    "amount": "3001.786131",
+    "decimals": 6,
+    "name": "Hypocrellin",
+    "symbol": "HYP"
+  },
+  {
+    "associatedTokenAddress": "76bEw2XdGNCsyPjZc2c6czuZfQT21nQHTrw4L5PhabyF",
+    "mint": "CuAFdQpDA9wkq1ZYpq37YBK2DYAWk3pPp3ZNYYCFm9mv",
+    "amountRaw": "1288000000",
+    "amount": "1288",
+    "decimals": 6,
+    "name": "Z̶A̴I̴L̶G̶O̸",
+    "symbol": "ZAILGO"
+  },
+  {
+    "associatedTokenAddress": "EZo1nFYp6uUjfev6nUoqSDHeAgUgTAKPzjEo85hgnhg4",
+    "mint": "GsTh89ykdDrRGkJGFvg1nYzUJBWkWsQR6rZ7kmuYpump",
+    "amountRaw": "1973483741",
+    "amount": "1973.483741",
+    "decimals": 6,
+    "name": "TrumpBTC",
+    "symbol": "TBTC"
+  },
+  {
+    "associatedTokenAddress": "FGYqzx7ftWnoydiR51RvejYtFgcURSmzifZEa6yZcNTg",
+    "mint": "mVy4SrF7FmFj6MpU74qD9D1dz1bsruqca11aDi5QZiM",
+    "amountRaw": "329000000",
+    "amount": "329",
+    "decimals": 6,
+    "name": "INVADER ZIM",
+    "symbol": "ZIM"
+  },
+  {
+    "associatedTokenAddress": "4kn1ifBaB2zTeh47XxfHEkdL4PKh41DzeALke2QnRcmX",
+    "mint": "GiuztEfjKskGoVTj7X5sY5SB2anGTjccmuJkt9oZpump",
+    "amountRaw": "3870000000",
+    "amount": "3870",
+    "decimals": 6,
+    "name": "Formula1particleacceleratorv2",
+    "symbol": "F1PAV2"
+  },
+  {
+    "associatedTokenAddress": "DHAbRnPspvgdQy9kiS8yW2SX4pZpKiCazQ2MHGDo5Eed",
+    "mint": "4W5Ho8Ui7mDMngRwDNaBCzBZfg5AZZs2Pv3Px1uvpump",
+    "amountRaw": "18202967415",
+    "amount": "18202.967415",
+    "decimals": 6,
+    "name": "ByteCat",
+    "symbol": "BCAT"
+  },
+  {
+    "associatedTokenAddress": "2awrkvo59FM4aR5fjRVwrdCFPbpnKCEfK19zxmMSNZRW",
+    "mint": "Aj5dZQ8ZQvuqKK3uv8zJJzfLLVk47H7FARbxqrEBpump",
+    "amountRaw": "150000000000",
+    "amount": "150000",
+    "decimals": 6,
+    "name": "Good Luck Frog",
+    "symbol": "GLF"
+  },
+  {
+    "associatedTokenAddress": "62tU6M8DuwjGWdQ4Zi7RZp9simrHrjihcmP7cXNk1UwQ",
+    "mint": "C1r2hZdjn1mDAnoRUu9VSVvwWoSAQqUU2JirbSNysmaY",
+    "amountRaw": "4330000",
+    "amount": "4.33",
+    "decimals": 6,
+    "name": "Melania Meme​",
+    "symbol": "MELANIA​"
+  },
+  {
+    "associatedTokenAddress": "GFFJ3KBU6DZPv5nzkSFRnAB7R95RxrFjRFsyyAzqXMyx",
+    "mint": "Ak7CgTDACBGF7cdGbbLX3AkGiqwk8VZw5U8AQcohpump",
+    "amountRaw": "6896314802",
+    "amount": "6896.314802",
+    "decimals": 6,
+    "name": "Diosmin",
+    "symbol": "DIO"
+  },
+  {
+    "associatedTokenAddress": "EkvZ1chNUqAGcugKv5Lk7YzdYtwLpXCbzgnnWFyoF4gm",
+    "mint": "8hW4eW2H9vmNYvu8kwaeD9fSoQht8jFxEcXg64jgpump",
+    "amountRaw": "10000000000",
+    "amount": "10000",
+    "decimals": 6,
+    "name": "Official World Liberty Financial",
+    "symbol": "WLFI"
+  },
+  {
+    "associatedTokenAddress": "7o4Nm9YFkWeGhofdjy1SAYfLaGFdUa25T38uc7ddXtf9",
+    "mint": "Dm5JkBhXqWuPZSmjh2AhvKxLtH9yYfTvYVG49kZpump",
+    "amountRaw": "8929045568",
+    "amount": "8929.045568",
+    "decimals": 6,
+    "name": "Ytterbium trichloride",
+    "symbol": "YTT"
+  },
+  {
+    "associatedTokenAddress": "bhfDCFFDZjD96MzxWzqQNkfbQGQzuZUyWpB1wL3FJib",
+    "mint": "C1fhykUfvb5HzTVNTPpsASrsvwsMsrShxT4EmjD7C1X9",
+    "amountRaw": "250000000000",
+    "amount": "250",
+    "decimals": 9,
+    "name": "OFFICIAL Ivanka Trump",
+    "symbol": "Ivanka"
+  },
+  {
+    "associatedTokenAddress": "8p2ZUbPfg3uRRowKKXpMPzuR8qP8DyzdKf43UJuoWv4k",
+    "mint": "53qm7EjS4DUDzXbgwG2dsMaTieg84eScwYCHCqZnpump",
+    "amountRaw": "1564974086",
+    "amount": "1564.974086",
+    "decimals": 6,
+    "name": "AI AETHER",
+    "symbol": "AER"
+  },
+  {
+    "associatedTokenAddress": "9ZJhNBFR8PJzvnBuLZ8xqHFv5KJ4bb4J7kb9NXrhcKFj",
+    "mint": "E1ASNsLuHZDVYuZw1R6nVesfWdwpei7zxvWc2Vbrpump",
+    "amountRaw": "6500000000",
+    "amount": "6500",
+    "decimals": 6,
+    "name": "VERY IMPORTANT KID COIN",
+    "symbol": "VIKCOIN"
+  },
+  {
+    "associatedTokenAddress": "ApnKoEwXNjajeffyMwxZNxnepv2aKoPamBhM86GHJyDM",
+    "mint": "4m2wuHDWcP36uFZU5H8KxcaGA7guG4bfRWVBnU41pump",
+    "amountRaw": "17435836142",
+    "amount": "17435.836142",
+    "decimals": 6,
+    "name": "Baicalein",
+    "symbol": "BAI"
+  },
+  {
+    "associatedTokenAddress": "2d496fkDnu615Q4UTncDe9DJnVipGtkc3i2h6b2WXBbW",
+    "mint": "4qYxG7aDsZ1SfDes7oMfvP7jn89DJsw74Vtmifwspump",
+    "amountRaw": "6500000000",
+    "amount": "6500",
+    "decimals": 6,
+    "name": "𐌔𐌋𐌀𐌃",
+    "symbol": "SLAD"
+  },
+  {
+    "associatedTokenAddress": "EHwiZ8CpTG7PS6XXX2LVbaS9t6PfNyxcEZyAVugq5eXk",
+    "mint": "9qYCmFewBTX5GmqmNbj2UjAzZXEC9fcqNWxCkuPepump",
+    "amountRaw": "768945",
+    "amount": "0.768945",
+    "decimals": 6,
+    "name": "Ocean Pepe",
+    "symbol": "OceanPepe"
+  },
+  {
+    "associatedTokenAddress": "43A6oGXA8uATbdGEnATXZjBYDnvuUKyPmbaEazHCmiBg",
+    "mint": "4r6ZSZFRb6EFSGadSC8vDCBAjt5ZtcVGcSZzRkJMpump",
+    "amountRaw": "6030815646",
+    "amount": "6030.815646",
+    "decimals": 6,
+    "name": "Fisetin-3-glucoside",
+    "symbol": "F3G"
+  },
+  {
+    "associatedTokenAddress": "3DwGg3w3pEpJxGPeW3Z7NMZ269LGSxj3gDRcSouGPZNU",
+    "mint": "5NQPCbk9WZTV6j26ZnrY4sy75DHh6U7UJXkvHgWMpump",
+    "amountRaw": "16780677019",
+    "amount": "16780.677019",
+    "decimals": 6,
+    "name": "HypeAI",
+    "symbol": "HAI"
+  },
+  {
+    "associatedTokenAddress": "78HZHXMA2Fp8zx8pwUsyTzYZgLVNikQixXDA5aE8pnap",
+    "mint": "Yg8LyNZUs1NL2NkHAnhrw6H6hHRGWL6HJtycxgYzcat",
+    "amountRaw": "107000000",
+    "amount": "107",
+    "decimals": 6,
+    "name": " ACID CAT",
+    "symbol": "ACID"
+  },
+  {
+    "associatedTokenAddress": "2tqYqeALD7GgQngmUr9PB42QN3A17USNHh4eXPzceKD2",
+    "mint": "65FdAVz7c1NkMWuCib1f64vajCcA1PrFfSkgtbtLpump",
+    "amountRaw": "6500000000",
+    "amount": "6500",
+    "decimals": 6,
+    "name": "Samona Smoker",
+    "symbol": "SAMONA"
+  },
+  {
+    "associatedTokenAddress": "HxapiC28xD2inFsw8prfxGJwqxmTMM114Lks2PQ3m67M",
+    "mint": "FnjctcvsoHUW4ACskCyZADJ5d458SWMxsfK1rekRP224",
+    "amountRaw": "36836621275",
+    "amount": "36.836621275",
+    "decimals": 9,
+    "name": "Blade Games",
+    "symbol": "BLADE"
+  },
+  {
+    "associatedTokenAddress": "5fYU91mPScVbXymoeJYNR9pyPpxRDSj22c53NH6H19fz",
+    "mint": "FWfaRWMwDbqnvt9iBwjSVZUt8TEgFgyc7owLPq32SzrG",
+    "amountRaw": "23244515888",
+    "amount": "23244.515888",
+    "decimals": 6,
+    "name": "AIntivirus",
+    "symbol": "Ainti"
+  },
+  {
+    "associatedTokenAddress": "9pYaPALvyddbMhrvyRBETV6UNq4DU4bcG4TawupEcZuD",
+    "mint": "GeN7eYKAZegYVXHwH3snGFRVgUfDNPXt6gYesAtuPo3w",
+    "amountRaw": "11500000000",
+    "amount": "11500",
+    "decimals": 6,
+    "name": "SOLO",
+    "symbol": "SOLOAI"
+  },
+  {
+    "associatedTokenAddress": "6iLtCHLWW5zwKisFnLV541HojQsUDtz2xQqo4fTPcXce",
+    "mint": "DHd3NFu5sx1f1PKeQXjSrqaDkNZCHK81frYR4Stbpump",
+    "amountRaw": "6961220780",
+    "amount": "6961.22078",
+    "decimals": 6,
+    "name": "Cytarabine",
+    "symbol": "CYT"
+  },
+  {
+    "associatedTokenAddress": "8hQFYhRnAYXUxWju5t3SA2Sf35oLq22bfUqY1GVxzciB",
+    "mint": "5om7pXzR9wgt6buAc5EnbJMXS8Sd2BV1UL3XJ2vFuUyx",
+    "amountRaw": "100000000000",
+    "amount": "100",
+    "decimals": 9,
+    "name": "ORBIT",
+    "symbol": "GRIFT"
+  },
+  {
+    "associatedTokenAddress": "AtUC9fBDYVDbvqmrMdLfbgfQmWm4s1EVnTSrq95fq5Zh",
+    "mint": "R4KCj6X5LdLkB4MG8MJcQEcMooCV78oPS67gc3vQtmp",
+    "amountRaw": "339000000",
+    "amount": "339",
+    "decimals": 6,
+    "name": "TRUMPCRAFT",
+    "symbol": "TRUMP"
+  },
+  {
+    "associatedTokenAddress": "5tFgKJAAzBUZHMY3goosfdTCQRh5BJ5hiAmTi1UE89Ns",
+    "mint": "hpdogaHMKaFS1MjT568scJrs7rjwzHqNUPAXWeRaaZU",
+    "amountRaw": "9500000000",
+    "amount": "9500",
+    "decimals": 6,
+    "name": "LORD",
+    "symbol": "LORD"
+  },
+  {
+    "associatedTokenAddress": "BEnA61LjRqPrFcEkd7p4Yuu2XBPiMJ4ZogiD4U9rMvtS",
+    "mint": "4evjLud5WnsvdKkJWahD1EWEn1BbwdhnohBYt8bwiJM5",
+    "amountRaw": "58500000000",
+    "amount": "58.5",
+    "decimals": 9,
+    "name": "Pippin",
+    "symbol": "pippin"
+  },
+  {
+    "associatedTokenAddress": "5DSvo9cnpHaKRWfKa8x9jas9YC69SZqUR4a9qYfTB4FT",
+    "mint": "8pe3LAFVmduUHsjyL4FEXfXMU2nxFF8o2d7KNCAwpump",
+    "amountRaw": "11575000000",
+    "amount": "11575",
+    "decimals": 6,
+    "name": "GIРРЕR",
+    "symbol": "GIРРЕR"
+  },
+  {
+    "associatedTokenAddress": "3MWmSMtv49aKJKVeFNzR73c4vbym3Grra1aPSSaF9Jfa",
+    "mint": "BKnNknAW8KRS8ak6poRMsU82YGcotzzqcarf6chLpump",
+    "amountRaw": "41000000000",
+    "amount": "41000",
+    "decimals": 6,
+    "name": "Obelgix",
+    "symbol": "OBEL"
+  },
+  {
+    "associatedTokenAddress": "Ad4jgDuiMrn2XgZUgNaaH9jBwktiwqQ3ruXANX98rmsN",
+    "mint": "6WskyMVqHgwMPQZe8YCXPFwwo74EWMGLmMZ7mJ9Zpump",
+    "amountRaw": "13720000000",
+    "amount": "13720",
+    "decimals": 6,
+    "name": "Almak",
+    "symbol": "ALMAK"
+  },
+  {
+    "associatedTokenAddress": "JBe6V5YPK6oXENEeW1X5pZYknkg8PJV8pT7gqsjcJS9u",
+    "mint": "8F1vbTnBZbEVUnLWszug7n4JjkaK24pPfgFrMBGepump",
+    "amountRaw": "14138838461",
+    "amount": "14138.838461",
+    "decimals": 6,
+    "name": "Glyceryl",
+    "symbol": "GLY"
+  },
+  {
+    "associatedTokenAddress": "CiqK8zU8Cv1LhtCFfJgdDZHbHToRu33Hsk8crsbW2daL",
+    "mint": "EdTbxgMFXVBmMuCcd8EFp4gD5hDf9VwKYyMoJuuspump",
+    "amountRaw": "11419236850",
+    "amount": "11419.23685",
+    "decimals": 6,
+    "name": "Monosodium glutamate (MSG)",
+    "symbol": "MSG"
+  },
+  {
+    "associatedTokenAddress": "DqupTxkUfk2KEm9SA8XyPbAqqoHAovgMAaPABokNwDHs",
+    "mint": "So11111111111111111111111111111111111111112",
+    "amountRaw": "120968115682",
+    "amount": "120.968115682",
+    "decimals": 9,
+    "name": "Wrapped SOL",
+    "symbol": "SOL"
+  },
+  {
+    "associatedTokenAddress": "59qwBuHhozVzDSQ7tpggNSVxGDD2PWqeNccvFD1obm6Y",
+    "mint": "EuYLhry2LiYWdhAxTWpXYFWhC7Gv84yjW3BSeGYbpump",
+    "amountRaw": "8877000000",
+    "amount": "8877",
+    "decimals": 6,
+    "name": "NetworkAI DAO",
+    "symbol": "NEDAO"
+  },
+  {
+    "associatedTokenAddress": "EBxthJQrX9WEcSYg24BDoCDhNExYpyABBXK3ciiMwuv4",
+    "mint": "CTYXFGDPNHRrxxwpzf4i4kztj4BBdE1iwotLqVnvmoon",
+    "amountRaw": "10000000000000",
+    "amount": "10000",
+    "decimals": 9,
+    "name": "Peer 2 Peer Pro ",
+    "symbol": "P2Ppro"
+  },
+  {
+    "associatedTokenAddress": "CT3ECgBmQSs4cPANbuKieCbbYmYFSou7WKCUddJtfr6s",
+    "mint": "4QzXNHYXmdPootsnTe6mqf9bJrUSSjHecKTtyWW9pump",
+    "amountRaw": "40077351414945",
+    "amount": "40077.351414945",
+    "decimals": 9,
+    "name": "Snoopy",
+    "symbol": "SNOOPY "
+  },
+  {
+    "associatedTokenAddress": "FHaeFy45n2xtFHqEQsMcQhQ9TiVmM2Jr8dcZJ6okgefh",
+    "mint": "7bYtKEQsBFt99MEhyJtquKoEaTd86QoqK4Ae7bSmpump",
+    "amountRaw": "10000000000",
+    "amount": "10000",
+    "decimals": 6,
+    "name": "Harambe",
+    "symbol": "Hara"
+  },
+  {
+    "associatedTokenAddress": "2GwBYS3cujNsvDycYp5hMb47MCJ6AvZRFw6J7QFA4AiZ",
+    "mint": "CE2hQZDQVXQBMieeRvPc8fos5MXTyiCkyh58LJVpkjM7",
+    "amountRaw": "1000000000",
+    "amount": "1000",
+    "decimals": 6,
+    "name": "Whyyoutouzhele",
+    "symbol": "LI"
+  },
+  {
+    "associatedTokenAddress": "2chdP1yjabJSKMydYVG4pK6gyufYeVLabHPnx3X9G9wC",
+    "mint": "cNcJwk2d5QtHJRX3488XbiSiznqsPmGcCt6jKDZLdxT",
+    "amountRaw": "904812873",
+    "amount": "904.812873",
+    "decimals": 6,
+    "name": "ainyx agent",
+    "symbol": "nyx"
+  },
+  {
+    "associatedTokenAddress": "3xDvYs7FYg2LAmhv78nrTfUXE9fHRpdA5NTGHYGkSUgq",
+    "mint": "Ds24ivMiX5s7pmLyVhBNovSewCnoZC5emLw5pWURpump",
+    "amountRaw": "13306439729",
+    "amount": "13306.439729",
+    "decimals": 6,
+    "name": "Flibanserin",
+    "symbol": "FLI"
+  },
+  {
+    "associatedTokenAddress": "AEWKARFLY5P6mQjqMRHJkYohJdxRnGQxq5mqGEhjZ7oa",
+    "mint": "5cVGerH98u2LXMkwpSPNfydGr5JuiAdU7r2257mZpump",
+    "amountRaw": "2482000000",
+    "amount": "2482",
+    "decimals": 6,
+    "name": "Pennies Help",
+    "symbol": "PENISHLP"
+  },
+  {
+    "associatedTokenAddress": "DXSK3Jz6oEAVJMwWoeoh9NRKVUqwGe97HZ1PEk7DcjvG",
+    "mint": "HJ39rRZ6ys22KdB3USxDgNsL7RKiQmsC3yL8AS3Suuku",
+    "amountRaw": "100000000000",
+    "amount": "100",
+    "decimals": 9,
+    "name": "What’s Updog?",
+    "symbol": "UPDOG"
+  },
+  {
+    "associatedTokenAddress": "BYBC4D5S7Bhsx15JYs9Lrr5rZv46cs5Q9EtF4Z1qzyps",
+    "mint": "7WPbknuXsTUuTQTv4zSx7qW6m2CoFqBpJLCUrChC1F3",
+    "amountRaw": "411980000000",
+    "amount": "411.98",
+    "decimals": 9,
+    "name": "HYPER",
+    "symbol": "HYPER"
+  },
+  {
+    "associatedTokenAddress": "FHXtbFf2mupopbQsMT2BVBb4EtaicCiUexuBEceSNKjG",
+    "mint": "xopzLWspwtPNnZiTSQnSQb1w2aymYzRq2LfdXN7apin",
+    "amountRaw": "234000000",
+    "amount": "234",
+    "decimals": 6,
+    "name": "PINGO",
+    "symbol": "PINGO"
+  },
+  {
+    "associatedTokenAddress": "BRJaT1fUkjYDC1wrwe6SFiZon7Nj2u63JLTScnts3tkQ",
+    "mint": "6QiuZ51Cc6aGJCDn9H48Hpfmerhitf7KH3WLQhozpump",
+    "amountRaw": "12000000000",
+    "amount": "12000",
+    "decimals": 6,
+    "name": "Friday The",
+    "symbol": "13th"
+  },
+  {
+    "associatedTokenAddress": "5ESDi2WHBmcXmk8vBMHM2k4a4WEjgaJaC76DsHWZnvZL",
+    "mint": "DRoD2ihCHqN4Cw755WZk1pmYk8G2m6MKgnh88UCpump",
+    "amountRaw": "16370585073",
+    "amount": "16370.585073",
+    "decimals": 6,
+    "name": "NGMI BOT",
+    "symbol": "NGBOT"
+  },
+  {
+    "associatedTokenAddress": "DJ1fnf8NH6QCXi1baHGbSJij7KXA8HS1hChsp1rbaEH5",
+    "mint": "2GWVivuvwWiMCv2CUeuo9JGSXbjjR39WzeNSYgXWpump",
+    "amountRaw": "5633516029",
+    "amount": "5633.516029",
+    "decimals": 6,
+    "name": "Umbelliferone",
+    "symbol": "UMB"
+  },
+  {
+    "associatedTokenAddress": "6GKoR3bTCXoF5Y7bggqST573CUv48H6uvo5dWKkAVpz",
+    "mint": "BBaWiGC3chfWkPLQ73JdjFBK4KVTMLTZC6b5komFboyr",
+    "amountRaw": "150000000000000",
+    "amount": "150000",
+    "decimals": 9,
+    "name": "AngelDogeSolana",
+    "symbol": "ADS"
+  },
+  {
+    "associatedTokenAddress": "7QxMfq9ZNniCCSQveBCiwKCshZagDtR58qjiJ8BKHgfA",
+    "mint": "EtThEiu5hDx2g8ppLXXdJtu2xdqZESswb1LexDK7pump",
+    "amountRaw": "9741437481",
+    "amount": "9741.437481",
+    "decimals": 6,
+    "name": "GNF2133",
+    "symbol": "GNF"
+  },
+  {
+    "associatedTokenAddress": "DWN4u9JuMbR9azQV5DwsNXD3euiemioEVfvCwgHTvWAr",
+    "mint": "3ELYCacfjUXyTk2XuWXS3ZjvLsW9xEyVHxcxPcrZHWRk",
+    "amountRaw": "88000000",
+    "amount": "88",
+    "decimals": 6,
+    "name": "Hyperfy",
+    "symbol": "HYPER"
+  },
+  {
+    "associatedTokenAddress": "2Kh8nvrYiPdcRZTn3HbH79jgXj7sZEe1XFX8iTvfGQme",
+    "mint": "6hkr89HYCqhJRmQ3K9PTMNDWZuhnpg6E29Y47PDspump",
+    "amountRaw": "5000000000",
+    "amount": "5000",
+    "decimals": 6,
+    "name": "₵ⱠɄ₮₮ɆⱤ",
+    "symbol": "CLUTTER"
+  },
+  {
+    "associatedTokenAddress": "2cdPn9uEkDGHffYrKT9Ttnj11N1cNK79LNJa1fSmfYwH",
+    "mint": "cAVLeov7iY49Jt2a3PaFh5Ji4GALUrE7CwpLuhoGwww",
+    "amountRaw": "109000000",
+    "amount": "109",
+    "decimals": 6,
+    "name": "WOLF",
+    "symbol": "WOLF"
+  },
+  {
+    "associatedTokenAddress": "44euTwXMUejA6GdCR9UCETxDSq3wgibE9hHoyKEAsK9T",
+    "mint": "pZwuYaZCQvNoykscgMAPHQNiH9A2hHvSQSaodxdksdg",
+    "amountRaw": "105000000",
+    "amount": "105",
+    "decimals": 6,
+    "name": "SOLDOG",
+    "symbol": "DOG"
+  },
+  {
+    "associatedTokenAddress": "7Rj9aSU8weJihazhL2eZYSrt3ZkztZs8aDoRUpzgHwAF",
+    "mint": "CtaVq7fp5xwYFenGQypqdK97LJhTD72GgRsY8e4Npump",
+    "amountRaw": "1",
+    "amount": "0.000001",
+    "decimals": 6,
+    "name": "Ropirito",
+    "symbol": "Ropirito"
+  },
+  {
+    "associatedTokenAddress": "CK3JuVEtamoE9xhcTvxxHrenqq45ESX3Xoaeztn8SdSb",
+    "mint": "9tR1PBfizLW5KPV6N6CmPJRyi9LXSSnYKYHSZNdapump",
+    "amountRaw": "1842000000",
+    "amount": "1842",
+    "decimals": 6,
+    "name": "Gun",
+    "symbol": "GUN"
+  },
+  {
+    "associatedTokenAddress": "4aqj1ec1XsAEyaDWvS8xuzgjxumLFkKhwGmZJAh3ncTy",
+    "mint": "6ufArhbsrKL8kBibTAbBxXpSQpNMN7LP9MJZv9ospump",
+    "amountRaw": "3163296060",
+    "amount": "3163.29606",
+    "decimals": 6,
+    "name": "MomoAI",
+    "symbol": "MMAI"
+  },
+  {
+    "associatedTokenAddress": "EiVvCWKmuesGfeL9dPtkKVvkQSJeedvSrinmEyxkBmSS",
+    "mint": "GLWZAmoDVHwCJmr8E9Uz8VvMV78UXJZqin6fabYypump",
+    "amountRaw": "1000000000",
+    "amount": "1000",
+    "decimals": 6,
+    "name": "Degen Apes",
+    "symbol": "$Degen"
+  },
+  {
+    "associatedTokenAddress": "21Uadx1zuTbTHVq9P9ovgTxkNfS346W4eam4Jbdd87nz",
+    "mint": "2z3JHdoPxsNmH4G2hZ46kgq3X7MZ9XKW8PeABeTupump",
+    "amountRaw": "5000000000",
+    "amount": "5000",
+    "decimals": 6,
+    "name": "Official Gensler Tribute",
+    "symbol": "GENSLER"
+  },
+  {
+    "associatedTokenAddress": "8xje9TdFfJyWJFtc8B9vihgYU2BAZGyU3pHfVGAwxADu",
+    "mint": "5pB5P6XbMLAqxX4cProGiFg1jWaygyYMuBUMc5VW5uGg",
+    "amountRaw": "636",
+    "amount": "0.000636",
+    "decimals": 6,
+    "name": "Yeehaw ",
+    "symbol": "COW"
+  },
+  {
+    "associatedTokenAddress": "4GLsHoPRzMn7xHSMrBjuH4iYsEj5WZsym4kqGCNFL2WS",
+    "mint": "Bzh3Ya67QRd8BTpXPh4ifoCLkmLYeafwJr7wQFGApump",
+    "amountRaw": "100000000000",
+    "amount": "100000",
+    "decimals": 6,
+    "name": "Official Lost In Cult Mascot",
+    "symbol": "CULTY"
+  },
+  {
+    "associatedTokenAddress": "DfhYc1PgCrdtWLGNhetDjA5UiWQkJkArCfQgG3rbTvNJ",
+    "mint": "4VC7UYqBo9Siw8ZnkPXfw9D3dzYCiVrPDzs9XRtyRJMH",
+    "amountRaw": "5000000000",
+    "amount": "5",
+    "decimals": 9,
+    "name": "Insane Labz ",
+    "symbol": "Labz "
+  },
+  {
+    "associatedTokenAddress": "FUGNAFHdnyFdf5ftChE8zahmtFBQY1x9vyrQAPpp8S87",
+    "mint": "8mw1fix5uonQAZQUbJysJypnfJj4eRuKogco9BLSpump",
+    "amountRaw": "12340087333",
+    "amount": "12340.087333",
+    "decimals": 6,
+    "name": "PumptheDoge",
+    "symbol": "PTDOGE"
+  },
+  {
+    "associatedTokenAddress": "uYbAVQTMxziKkm58AKU4eEveG5iLEKVDAy4rrkNDV6Q",
+    "mint": "46jMNVLjTMt4nFs9niSWhNUydP8BTaXT9YunuYXPGjxu",
+    "amountRaw": "999000000000",
+    "amount": "999",
+    "decimals": 9,
+    "name": "BIOS",
+    "symbol": "BIOS"
+  },
+  {
+    "associatedTokenAddress": "52D64mRHWsB4umT8M8N3GW6puvXVUiekqinZZUkq2q2w",
+    "mint": "Fbycq9tjUEy22kW5jSKtLN1j114hdS1LRqw1SmoNpump",
+    "amountRaw": "725853486",
+    "amount": "725.853486",
+    "decimals": 6,
+    "name": "IQ Doge",
+    "symbol": "IQDOGE"
+  },
+  {
+    "associatedTokenAddress": "4UDJar9BGmkgZN1LMyYCgMKFHXwK2QhXcWYrZxLogWjV",
+    "mint": "C1wGQKTQhoaTiQfoSsc7V1LW5FPsUUvxiNZMy3kDpump",
+    "amountRaw": "5700000000",
+    "amount": "5700",
+    "decimals": 6,
+    "name": "PASSSERAPH",
+    "symbol": "PASSSERAPH"
+  },
+  {
+    "associatedTokenAddress": "PhCP9B7xuYLf93kSuBmRDWN7mHiJch4BppnQQo6BBTn",
+    "mint": "3pGn7g2XrbCJM7bph6sTq6Wb1Aea9LWjZZ8r1r5tsfCn",
+    "amountRaw": "99000000000",
+    "amount": "99",
+    "decimals": 9,
+    "name": "Just a chill guy",
+    "symbol": "CHILLGUY"
+  },
+  {
+    "associatedTokenAddress": "G4VVWVPr41VjgbMWgvuvUneSYGrY4fosczQcvtBxWoRy",
+    "mint": "66fdn16UbjnApRPMSnufeHRjFsEiJk2JDQFzXC8Epump",
+    "amountRaw": "7101680589",
+    "amount": "7101.680589",
+    "decimals": 6,
+    "name": "Fisetin",
+    "symbol": "FIS"
+  },
+  {
+    "associatedTokenAddress": "DufYwd91hLFKDQYLUUoVNVKrcn8VYyAfoYdiCKSA4zg4",
+    "mint": "rujkQNWYyY5gLFWMCnCrNWiLq3dTPzgMc1WTG2dvTFT",
+    "amountRaw": "637000000",
+    "amount": "637",
+    "decimals": 6,
+    "name": "TUFTY AI",
+    "symbol": "TFAI"
+  },
+  {
+    "associatedTokenAddress": "5k9tycvkbhbdRikPpZFVMTqJcpRf7jRr6L2GY2fEWc7U",
+    "mint": "Gabb721S8ZS4V3tVpKBaSv9HWFxbUfygsd3AUeTjpump",
+    "amountRaw": "6101235788",
+    "amount": "6101.235788",
+    "decimals": 6,
+    "name": "My Ai Drawings",
+    "symbol": "MAD"
+  },
+  {
+    "associatedTokenAddress": "DpBs8WvfT1zpQeT6xkQ9BqCUF1b27GyH2U7PAN82j2Ad",
+    "mint": "14U1yHgsxQkakPKf2ejVVYDAejLFMBfpjssRgrLWyzim",
+    "amountRaw": "211000000",
+    "amount": "211",
+    "decimals": 6,
+    "name": "INVADER ZIM",
+    "symbol": "ZIM"
+  },
+  {
+    "associatedTokenAddress": "AhtAWqzyqPX6XyQCUGwN8VqGAvcJL84b12u9R7LDBSSF",
+    "mint": "5nmLs8RwVhTr7u3XvuPFao1ghuabcZjiE3X8rw19Ycaq",
+    "amountRaw": "13426271851641",
+    "amount": "13426271.851641",
+    "decimals": 6,
+    "name": "Large Language Model",
+    "symbol": "LLM"
+  },
+  {
+    "associatedTokenAddress": "FRgBp2yL4HB5kJuGKsq49m7uQBpeX4XMfdGgExkKiajn",
+    "mint": "SHdF5QLD7y4ySVULNDt5aNoTYAqdcvaCPfJGEjeH1Fk",
+    "amountRaw": "4001999920",
+    "amount": "4001.99992",
+    "decimals": 6,
+    "name": "yesnoerror​",
+    "symbol": "YNE​"
+  },
+  {
+    "associatedTokenAddress": "47avzWKyPS5KMJbkdXhjBpLRGrQfsbgy6cTKxhLdiAnB",
+    "mint": "62qTiF64dZPi1dNnaZtFmaybgb2kY5odELfejHGZpump",
+    "amountRaw": "6240000000",
+    "amount": "6240",
+    "decimals": 6,
+    "name": "McDonald Pnut",
+    "symbol": "MP"
+  },
+  {
+    "associatedTokenAddress": "4am5EpfZBNQWZod6uzVZcsiEW5CVNmWjte9QYeMQB5tL",
+    "mint": "BLeKq9x5YzNKqM16QPnoXLLAkp3vqAhKbwWD4r9gpump",
+    "amountRaw": "10000000",
+    "amount": "10",
+    "decimals": 6,
+    "name": "Highest Holder Dog",
+    "symbol": "HHDOG"
+  },
+  {
+    "associatedTokenAddress": "9iXU7NN9w556A46LbZGTf2j429ze6HQJkJLwfEttH1iG",
+    "mint": "Fge2KvnX2zND9rA1ciog4eYyHdLnFYPnEGUzUoTYpump",
+    "amountRaw": "14296062157",
+    "amount": "14296.062157",
+    "decimals": 6,
+    "name": "Ibuprofen",
+    "symbol": "IBU"
+  },
+  {
+    "associatedTokenAddress": "7B7PLbtPNc4b7n4AfKYdbmNcrPc2LJZqisz4oFq99CZ2",
+    "mint": "N91zm5bTV4axMbUEBn2iNXdLtmq7tepcDxQ7URKTmnn",
+    "amountRaw": "187000000",
+    "amount": "187",
+    "decimals": 6,
+    "name": "MONONO BEAR",
+    "symbol": "MONONO"
+  },
+  {
+    "associatedTokenAddress": "G3MHhWFcat5L3xwRx99MYyGvZxCjJE1kSgNHWq1mG2Q6",
+    "mint": "6eBzkkw7Lh2RhrZwXUcAFAbTgP7wmgsvW5MyNSYxpump",
+    "amountRaw": "1000000000",
+    "amount": "1000",
+    "decimals": 6,
+    "name": "TikTokBanCoin",
+    "symbol": "TTBC"
+  },
+  {
+    "associatedTokenAddress": "EKFMZWNWqkjzfw1fBHzqdxW1BF2qAFQh66KBGMqxTP69",
+    "mint": "6zU3gbmAGcRJPfPhvH7Mu8YQ3MFEq5d2SwA1BZrjpump",
+    "amountRaw": "5000000000",
+    "amount": "5000",
+    "decimals": 6,
+    "name": "pianist seal",
+    "symbol": "$PNTSEAL"
+  },
+  {
+    "associatedTokenAddress": "5MUHP8zuPuoWmYqimRjdk62JF5o8pJTACLjaLhZSv6ad",
+    "mint": "3pGa2mNk5hniVXqyGQQvqQmpGMbRB796uvMyz8Kmpump",
+    "amountRaw": "2000000",
+    "amount": "2",
+    "decimals": 6,
+    "name": "Snake",
+    "symbol": "Snake"
+  },
+  {
+    "associatedTokenAddress": "Eshpf7eWK9nJsCAFMTRJX8Jy7BLZF2MimEhm4YknZxkd",
+    "mint": "ciD5VyZXWHdpg5RKEsFgWc5ziFkbZqfD66xqGKWGTRP",
+    "amountRaw": "356000000",
+    "amount": "356",
+    "decimals": 6,
+    "name": "TRMP",
+    "symbol": "TRMP"
+  },
+  {
+    "associatedTokenAddress": "ELhJ8DDTfRGaTnmoqssHka71hHwJbN8NMTfqg6oyVo35",
+    "mint": "ZipEkizEtBzSnUhpsUK1XqykLkD44gBoCQbphvHpump",
+    "amountRaw": "8750000000",
+    "amount": "8750",
+    "decimals": 6,
+    "name": "PINREN",
+    "symbol": "PINREN"
+  },
+  {
+    "associatedTokenAddress": "5W6VwAM4AafXGXY1obUBeBizbTFaKhahmANb2xmUyc1d",
+    "mint": "8yTtuK5a37GCnUUSUy5WtG85zWHEcxpqybzdVCdx3src",
+    "amountRaw": "112207859",
+    "amount": "112.207859",
+    "decimals": 6,
+    "name": "Pixie AI",
+    "symbol": "PIXIEAI"
+  },
+  {
+    "associatedTokenAddress": "FBEk6dET1MYMeUSnCWUmvkBcdeaN6BgdwVJcpsV6b1Vb",
+    "mint": "BQbBQdLDvT8ngDkjEEMncGT4LebftsiKU53c3Rqqpump",
+    "amountRaw": "2064607270",
+    "amount": "2064.60727",
+    "decimals": 6,
+    "name": "N-Acetylcysteine (NAC)",
+    "symbol": "NAC"
+  },
+  {
+    "associatedTokenAddress": "GSF9ZoZsetNTuBqcmZ7k7HX6jKqSrkfiLusAj8HmooCf",
+    "mint": "F7CJrQV7UdbCnei3ufjxPa3XR4P1gTTiDcDLcEwvp3JN",
+    "amountRaw": "14718185024070",
+    "amount": "14718.18502407",
+    "decimals": 9,
+    "name": "Caffeine Cats",
+    "symbol": "CACA"
+  },
+  {
+    "associatedTokenAddress": "J92Qg7knpiAZBWuqNTxZcZaZZiGEs7zYWTH49HnuBhku",
+    "mint": "DmWcJEXBYLK8XpzF5AjtMx7Vxr2JJQUAaR7WUm1Ypump",
+    "amountRaw": "4895000000",
+    "amount": "4895",
+    "decimals": 6,
+    "name": "Yukino",
+    "symbol": "Yukino"
+  },
+  {
+    "associatedTokenAddress": "9NfaC1VgXPgMh478uPnAUkuMqoKMvXswHoSCGh5k2k1C",
+    "mint": "561ch6E6XF1ZRZEH7gkNJn9yKLuCd5Y7hzembxnGmKxu",
+    "amountRaw": "1000000000000",
+    "amount": "1000",
+    "decimals": 9,
+    "name": "Stargate",
+    "symbol": "Stargate"
+  },
+  {
+    "associatedTokenAddress": "Bq48uo53uA1E6udZBWow1j9MnUnZMp93V9jTscJW4xJm",
+    "mint": "4BvRRM9kLDYv8e5L1SutvGe8eH4KttLr7LJ8ZMVwpump",
+    "amountRaw": "8869108362",
+    "amount": "8869.108362",
+    "decimals": 6,
+    "name": "Pulegone",
+    "symbol": "PUL"
+  },
+  {
+    "associatedTokenAddress": "Bar3nP8KHzzP48Jx58b2oZd9Uff3kiMKmpNoFuB7pkWw",
+    "mint": "BrqhQW8pPETLreuF4QPKczjW7rcRdAFooHc5pev7pNPV",
+    "amountRaw": "1000000000000",
+    "amount": "1000",
+    "decimals": 9,
+    "name": "Luigi Mangione",
+    "symbol": "Luigi"
+  },
+  {
+    "associatedTokenAddress": "9wVMSa34p8mcYeQyKnfsGQUoJQgheZRHaQDCk5eAznoG",
+    "mint": "GqJZwTiwLGBfDL1JgpxHmrbeKC4xjt3fXjU2ZKWipump",
+    "amountRaw": "1000000",
+    "amount": "1",
+    "decimals": 6,
+    "name": "Fake BTC",
+    "symbol": "FBTC"
+  },
+  {
+    "associatedTokenAddress": "GQr5WUWZHF3McaajmRKQiJKsUb5epRgjKFV4vyaaxrQU",
+    "mint": "4dcPLUe5in2NghU41igXUeDRpyCB6pVzabYyoXnZpump",
+    "amountRaw": "12675961170",
+    "amount": "12675.96117",
+    "decimals": 6,
+    "name": "Chlorogenic acid",
+    "symbol": "CHL"
+  },
+  {
+    "associatedTokenAddress": "yZf47gqmKStvBrQ1uSZcK2pzdtWs7XCXsb9Mmq56aFV",
+    "mint": "ErKaYxT4szeA8o922xN7NqMrZ7jjf9V8Lo7kcbmupump",
+    "amountRaw": "6858000000",
+    "amount": "6858",
+    "decimals": 6,
+    "name": "MIKA.AI",
+    "symbol": "MIKA.AI"
+  },
+  {
+    "associatedTokenAddress": "BfDg7yGmCVCUZeT8QH4qBnyrZq9eGQyxXqsUcbcFukgx",
+    "mint": "bUBMygLYVGBZn1Mb4viBEPyXHTPCTyB9RiERmzmBBUN",
+    "amountRaw": "378000000",
+    "amount": "378",
+    "decimals": 6,
+    "name": "BUNNY",
+    "symbol": "BUNNY"
+  },
+  {
+    "associatedTokenAddress": "8zR9mWujN4NQWAUrwMyXjXZ61Uo81hCUQVMhAfwukATH",
+    "mint": "BpjmsRCHH7ECT1a7upsC2MUfMQUcGw8mQ6P4WDL9pump",
+    "amountRaw": "4890449086",
+    "amount": "4890.449086",
+    "decimals": 6,
+    "name": "Happy 100k",
+    "symbol": "HY100K"
+  },
+  {
+    "associatedTokenAddress": "FScwqUetKPK8mAzr6qQCmLpWNdq5tKCzsDoKrE2mjKZN",
+    "mint": "227EcBDWLoWZotA9cZ4EeqETdY1XXFtUR2GzEE9qD4M4",
+    "amountRaw": "998000000",
+    "amount": "998",
+    "decimals": 6,
+    "name": "Justice for Pnut and Fred",
+    "symbol": "JUSTICE"
+  },
+  {
+    "associatedTokenAddress": "GCquydB4oxPcTuUnSgkBtm5Mb32YkoTE4hFUe6EdJfU3",
+    "mint": "DPWrxyFLRUVWQZNNDbCJgkMqxA8Y6BH213cxEqKrpump",
+    "amountRaw": "16138084178",
+    "amount": "16138.084178",
+    "decimals": 6,
+    "name": "Cyclododecane",
+    "symbol": "CYC"
+  },
+  {
+    "associatedTokenAddress": "FKYvpSaCi6Gng4c64XrC7PKHfJRVX7AfMZgoh51Xf77H",
+    "mint": "Dw6bXvehG53jgp2iY79jSoDvTpZGeDroLVj93w7bpump",
+    "amountRaw": "10000000000",
+    "amount": "10000",
+    "decimals": 6,
+    "name": "Аnimalio",
+    "symbol": "ANIМАLIO"
+  },
+  {
+    "associatedTokenAddress": "h41VxDB42VNZjkEpmBf1N65DcBcYFypoNC7eAL9fGtp",
+    "mint": "1GtbxFFwGEb7UQ8Cpr4fQemkaWENLRQh8HMEKvH2QB9",
+    "amountRaw": "999000000",
+    "amount": "999",
+    "decimals": 6,
+    "name": "Twitter Coin",
+    "symbol": "TWITTER"
+  },
+  {
+    "associatedTokenAddress": "8pxUZ2pK8CJBntE6B1594gAFDBbqjJ4Esg2kJMseJRzD",
+    "mint": "GFa3nFgreawvmBqeob7GnjPGWmvyQ9zTv797YocWZV66",
+    "amountRaw": "120000000",
+    "amount": "120",
+    "decimals": 6,
+    "name": "Cats on Sativa",
+    "symbol": "CATIVA"
+  },
+  {
+    "associatedTokenAddress": "47AActCPjZPRbQJp6nNSXVw2RBeAtzn3mtShRTUReHUU",
+    "mint": "372FDrQqucCbKp5nzYNuVCEXEPvvLK4jxcUT3yGcpump",
+    "amountRaw": "13590417414",
+    "amount": "13590.417414",
+    "decimals": 6,
+    "name": "AnnAI Coin",
+    "symbol": "ANNAI"
+  },
+  {
+    "associatedTokenAddress": "Fgqct2u2jRj3JtbXP8Q3RR5Ekj3ir3keqmRYgbLXVpw5",
+    "mint": "9phYMW1yWduFZpxJHquGYKFUtrsWiGNLTRc7W7S1pump",
+    "amountRaw": "14881176253",
+    "amount": "14881.176253",
+    "decimals": 6,
+    "name": "Linalool",
+    "symbol": "LINA"
+  },
+  {
+    "associatedTokenAddress": "9Ywjvatd63qSjSwq7UCK5CHoeaLcrpWTQxDnrZat1zQu",
+    "mint": "A55pKvWvHybL3boXuycgDj3TgWH99haEyxoqSWaupump",
+    "amountRaw": "1956921725",
+    "amount": "1956.921725",
+    "decimals": 6,
+    "name": "Orbit S&B-S&Y-L&B-P&M",
+    "symbol": "SBSYLBPM"
+  },
+  {
+    "associatedTokenAddress": "26ZLX69dPazoRVk9hxrzvHJger9MaoHn3EKAFGAkRu9r",
+    "mint": "9P95EdoeqmrtTf1pk5ThHnKyaKJRn3urwXPRF6Nkpump",
+    "amountRaw": "9212426689",
+    "amount": "9212.426689",
+    "decimals": 6,
+    "name": "Atropine",
+    "symbol": "ATR"
+  },
+  {
+    "associatedTokenAddress": "FWe4y1pv8b3KEeNYNe7mqEvCqgmh1eWfKWUaQY44SWoV",
+    "mint": "EbeuDctA1btb9Pcp3P8qNStnbrSrWrZYYei7XP1Epump",
+    "amountRaw": "6982296585",
+    "amount": "6982.296585",
+    "decimals": 6,
+    "name": "OMO-103",
+    "symbol": "OMO"
+  },
+  {
+    "associatedTokenAddress": "2gvbr6pr6PxyRq59NXffB1NmnzBv25hhReESFHLEKz6X",
+    "mint": "DUpz8kaEK17BKPhCdnLaS9GwBLNsqFfgUJuZpAB3T2Lf",
+    "amountRaw": "999000000000",
+    "amount": "999",
+    "decimals": 9,
+    "name": "Alchemist AI",
+    "symbol": "ALCH"
+  },
+  {
+    "associatedTokenAddress": "Gsa229ZEfCsnc2mWPtaxwSqrLMs3K9H4TpX3zYvsBv4p",
+    "mint": "8ArcZQStMEFGq6BHZ9DkdLkkCvn9q6mNRw37D9zfpump",
+    "amountRaw": "4429884480",
+    "amount": "4429.88448",
+    "decimals": 6,
+    "name": "BITCOIN100K",
+    "symbol": "BTC100K"
+  },
+  {
+    "associatedTokenAddress": "CmHGyDve9Ppwd6Vsrpt7WqZ4zJUdYR5fy2AGkBUiDeho",
+    "mint": "3Uo7a9AcuaRxqZd3JX8zkRNKmTCjKxfBxnDRVMnRbnic",
+    "amountRaw": "3447",
+    "amount": "0.003447",
+    "decimals": 6,
+    "name": "Fart AI ",
+    "symbol": "FARTAI"
+  },
+  {
+    "associatedTokenAddress": "Hbuz6a18fALyGs4N9k1tTKjxZ7y22qjr8chrHefuTvQp",
+    "mint": "Dwif8PCqRVXsBvjPN7PeQakFcUyXuh69KDEU3iaePwtm",
+    "amountRaw": "14700000000",
+    "amount": "14700",
+    "decimals": 6,
+    "name": "xHUMAN",
+    "symbol": "xHUMAN"
+  },
+  {
+    "associatedTokenAddress": "FDvFLVxsJeNaBoym86t791pLqHikHuAswmSXZsrjt8kT",
+    "mint": "6WHfHUzrdACgqRSvudFsxJjA8ZWUG8kbwETBtQbPDMpC",
+    "amountRaw": "2000000000",
+    "amount": "2000",
+    "decimals": 6,
+    "name": "Chill Trump",
+    "symbol": "CHUUMP"
+  },
+  {
+    "associatedTokenAddress": "5cpqM2bWDJRb3pZpjLKu5Du9A7xgBN1zS4YXR6cZHRTw",
+    "mint": "5tZCGx98DSZjvx913UPZnv2Dzp3JhgywfkUze7swwzSA",
+    "amountRaw": "653594",
+    "amount": "0.653594",
+    "decimals": 6,
+    "name": "CAIN",
+    "symbol": "CAIN"
+  },
+  {
+    "associatedTokenAddress": "7GxPFR1fmo6PXnS9nJtHpqhTPy9XWRjxLDjaMKMVn1vu",
+    "mint": "UZGZaQStEk2fbEhRTKkSQ2vmcVaLZog3n9sjjCEuTNK",
+    "amountRaw": "285000000",
+    "amount": "285",
+    "decimals": 6,
+    "name": "TANKBYTE",
+    "symbol": "BYTE"
+  },
+  {
+    "associatedTokenAddress": "2BjUg1mwDWcuLYHUAzDX88PwKaMu4GDH6Mt7WaG7RKWW",
+    "mint": "3wCv6wigrZm371teHsqKjJ92aS1b8eE5S1VLT3btpump",
+    "amountRaw": "6120000000",
+    "amount": "6120",
+    "decimals": 6,
+    "name": "TrumpVox",
+    "symbol": "TRUMPVOX"
+  },
+  {
+    "associatedTokenAddress": "3NTD1sbqefvmynEyEX6Y8MFnoThxXvdbNZG19ucw9oGe",
+    "mint": "7ckXEsXjXdjAN1xma2ub2hu6zdWWNNvas3egvm4xtU6e",
+    "amountRaw": "1000000000",
+    "amount": "1000",
+    "decimals": 6,
+    "name": "gooch coin",
+    "symbol": "gooch coin"
+  },
+  {
+    "associatedTokenAddress": "BRJP3crRwxGLts7J7rMHFPrBCAUrKSPnErkLKXBTth8K",
+    "mint": "3TnK7aRYsdiqrPCG6H7hYKAwQjEicjVVV683FQdmpump",
+    "amountRaw": "8750000000",
+    "amount": "8750",
+    "decimals": 6,
+    "name": "DARINA",
+    "symbol": "DARINA"
+  },
+  {
+    "associatedTokenAddress": "Ea7mciMgjRgDtY45JzKjgS9n3qExM9SRkJUpjmnRuTZg",
+    "mint": "A9LRWGF2f6h8t89HXQUd1gH6DDBLE91zsL8ymxPqpump",
+    "amountRaw": "17357857987",
+    "amount": "17357.857987",
+    "decimals": 6,
+    "name": "Troglitazone",
+    "symbol": "ZONE"
+  },
+  {
+    "associatedTokenAddress": "3qbaRsoQyRhZrASDYFdtG3aFAQmFA2FAAhm56hZbFLJt",
+    "mint": "3FDbQDYT32BFjEXwKDqyvMSvHoYhTpw3Ew6bpNpJpump",
+    "amountRaw": "25000000000",
+    "amount": "25000",
+    "decimals": 6,
+    "name": "NAZIELON - DOGE",
+    "symbol": "NAZIELON"
+  },
+  {
+    "associatedTokenAddress": "6ZuTwQ7rTXFe6W7KB9BunjK2fxfzRfyUJH3JEVF5D2EP",
+    "mint": "97XU8nv8t9672uaJECKDvoSuypzYA9a76HLpGVTADvNB",
+    "amountRaw": "50265116076",
+    "amount": "50265.116076",
+    "decimals": 6,
+    "name": "OFFICIAL TRUMP",
+    "symbol": "TRUMP"
+  },
+  {
+    "associatedTokenAddress": "B9TV14574aYZtPU5n9XHcz28aUusTmXomsRj6FyqmZxr",
+    "mint": "BB1j3QD4m8WcKUr7kiHmp7Wv7Emv3Yz1S8zCewwzfE1W",
+    "amountRaw": "10000000000000",
+    "amount": "10000",
+    "decimals": 9,
+    "name": "ThorRealBoss ",
+    "symbol": "THOR"
+  },
+  {
+    "associatedTokenAddress": "DsvZUHcngAfSrcJUrpZJ5wmMDRVcZj1tDktpgN9ERvpA",
+    "mint": "J5H7GWePexAXtqyxWunCMjjbMPeTrckau2FfcZu8pump",
+    "amountRaw": "9411197260",
+    "amount": "9411.19726",
+    "decimals": 6,
+    "name": "Pyrrolysine",
+    "symbol": "PYR"
+  },
+  {
+    "associatedTokenAddress": "7QD4byAXxdSi1aVXwsacDL7eEzVFJMfCXiEidfmk2A2N",
+    "mint": "A45FaLDsgfTcEZCJDdtL4AYEzsw7BAQjvhYVeKdbiYPm",
+    "amountRaw": "105965847",
+    "amount": "105.965847",
+    "decimals": 6,
+    "name": "VINE",
+    "symbol": "VINE"
+  },
+  {
+    "associatedTokenAddress": "DAy4DRB9UNUcHzhomb4SoqBokS7sTBcD78gE3APh9uJj",
+    "mint": "EkMYgLvYcNsdhEwFaAsWdNNbdnporvkPDY3QtUsspump",
+    "amountRaw": "7424514635",
+    "amount": "7424.514635",
+    "decimals": 6,
+    "name": "Anthony",
+    "symbol": "Afro"
+  },
+  {
+    "associatedTokenAddress": "AbNwyVjscfwofxUjPyDzs9RixAQxESaeVeaA6iCCefQE",
+    "mint": "HUK6oML7EnA6CnKF42FfvVGZGUS23f5u2TAmZLawpump",
+    "amountRaw": "5000000000",
+    "amount": "5000",
+    "decimals": 6,
+    "name": "Shark Pengu",
+    "symbol": "SharkPengu"
+  },
+  {
+    "associatedTokenAddress": "Dzd1JjaQqmz6xRJ5NHvZQXDHwrQgTwx7B6wuXtx2zdhq",
+    "mint": "EKAyC3WhDWzK7sNJSVqDSYQNBEYa1WyCmZzrvHWupump",
+    "amountRaw": "23142482813",
+    "amount": "23142.482813",
+    "decimals": 6,
+    "name": "Thymol",
+    "symbol": "THY"
+  },
+  {
+    "associatedTokenAddress": "8Ebqdg2CKfT1JiCw6beJKLSHQM1UFSZYSCBA8cCmzgwT",
+    "mint": "7AwXws1Ckw6wUPWTALkis36cApJhaebMP1X3HaZBXuoG",
+    "amountRaw": "1452000000000",
+    "amount": "1452",
+    "decimals": 9,
+    "name": "Runes Coin",
+    "symbol": "RUNES"
+  },
+  {
+    "associatedTokenAddress": "GEEiGkkKuzDfTBbMYzef9oaV27b9KtMxkKPKFh6few14",
+    "mint": "EZ8NJAaRJ25awW3mKS1ArmyEzhSWsERTiPYGrxLapump",
+    "amountRaw": "13651941029",
+    "amount": "13651.941029",
+    "decimals": 6,
+    "name": "Kainic acid",
+    "symbol": "KAI"
+  },
+  {
+    "associatedTokenAddress": "FNToE35j8YHZMPEX2A7N8v58oUN34Lf1tjLxKB7htYkF",
+    "mint": "FeE4TaaXwTzGdUrSmt5vevJbjQTzb7CUPbLcv6sypump",
+    "amountRaw": "6000000000",
+    "amount": "6000",
+    "decimals": 6,
+    "name": "Trippy",
+    "symbol": "Trippy"
+  },
+  {
+    "associatedTokenAddress": "HJA4CwqAt4G338sT7nrKER975TarBuJ8YuHEKVZxwtz9",
+    "mint": "6CvpG6FDyxAckSyjd2HjrL98W3gjjG85Pewin331pump",
+    "amountRaw": "12490000000",
+    "amount": "12490",
+    "decimals": 6,
+    "name": "JAMBO",
+    "symbol": "JAMBO"
+  },
+  {
+    "associatedTokenAddress": "6Wi6dKspyd5jJJMAuv5v7X5ibDThnES3kjZdFqMDSFnT",
+    "mint": "CPuJc2EM81tCdDxmbatCoKrEppC3DVxhgdKPnUzcpump",
+    "amountRaw": "1000000000",
+    "amount": "1000",
+    "decimals": 6,
+    "name": "Terminal of Train",
+    "symbol": "Y88b"
+  },
+  {
+    "associatedTokenAddress": "Gms3DBDnQM9cpySCGd5J6oPsEvLCUDKh3AB9a9Kcadtz",
+    "mint": "HMdmbv35DvbH7VxWSwXaxE1NNyA34HHhs9Cu9ycZpump",
+    "amountRaw": "2000000",
+    "amount": "2",
+    "decimals": 6,
+    "name": "CHRISMAS DOGE FATHER AI MEME ",
+    "symbol": "DOGE AI "
+  },
+  {
+    "associatedTokenAddress": "GzCxUib2nfKtS9BYxxCHUBU1A1P9ioCcRRWkSCKGTcbo",
+    "mint": "CfsugJZ9KuVkhVa57Zq1LFQx3npPveKPJFiqA5QNadau",
+    "amountRaw": "1000000000",
+    "amount": "1",
+    "decimals": 9,
+    "name": "OFFICIAL TRUMP",
+    "symbol": "TRUMP"
+  },
+  {
+    "associatedTokenAddress": "3tyYdvaSem4L64rhxSNyaXVs5XyLdnMj4gQCytDCToaS",
+    "mint": "AmRvFL7nfnBYb3exeow6bkAoS7kfSaLgXAVWcwh4pump",
+    "amountRaw": "13800000000",
+    "amount": "13800",
+    "decimals": 6,
+    "name": "𝗩𝗘𝗡𝗗𝗘𝗧𝗧𝗔",
+    "symbol": "VNDT"
+  },
+  {
+    "associatedTokenAddress": "ALcsZGBWpXvBPEWNffuuVpAHCzwRJK9kJ6myPzHQLWL6",
+    "mint": "DP68pC5SNTA8ZBskkaSSFoeGWWmhDgzVSVZmAqwYpump",
+    "amountRaw": "21057771613",
+    "amount": "21057.771613",
+    "decimals": 6,
+    "name": "Silibinin",
+    "symbol": "SILI"
+  },
+  {
+    "associatedTokenAddress": "6jXcv9P4cEr5tFBJnBpZmTsH4F9bESA68ZSiJV395Dkh",
+    "mint": "FZP1muRBmSvbmoeo5tGGeLNUX3Fo4QXTPXQBx4csH6VZ",
+    "amountRaw": "1000000000",
+    "amount": "1",
+    "decimals": 9,
+    "name": "BitKuin",
+    "symbol": "BTK"
+  },
+  {
+    "associatedTokenAddress": "ABS4uMVi4WPQfbNyiyD7uDwkSP9Ho5jed6Nv986evkkz",
+    "mint": "8ptRMYbzE4bHY9oM6y5cYpksRYry2nbZXDLa3bDL8UP2",
+    "amountRaw": "100000000",
+    "amount": "100",
+    "decimals": 6,
+    "name": "FRINKCOIN",
+    "symbol": "FRINKCOIN"
+  },
+  {
+    "associatedTokenAddress": "8AZU7ahhrZxmLxrDnL1oXjYchP4aBbe4bM2NRLTht8XB",
+    "mint": "AydZ9f1BnUhfAynrtGdKmaYFSP76ojYVpiQLcgWzQrB",
+    "amountRaw": "45230779",
+    "amount": "45.230779",
+    "decimals": 6,
+    "name": "AI Alchemist",
+    "symbol": "A3A3"
+  },
+  {
+    "associatedTokenAddress": "CecjeYGh5j4t27BzFwLeiKAEoeLW92nUfeFS5xX8rbdL",
+    "mint": "FJg39vsb68dnkHR6GqE5JVA7yD8H6R83BuvJaLLtpump",
+    "amountRaw": "2683107817",
+    "amount": "2683.107817",
+    "decimals": 6,
+    "name": "KUZU",
+    "symbol": "KUZU"
+  },
+  {
+    "associatedTokenAddress": "HZKY1yBDhrgdzmWQMM9Wm7SiWNQxAMsYgXb1zj53NpNm",
+    "mint": "5oyrVU8ynA23wm8AJMLEB5kRNaPaV3JQK5h4dhfhWJV8",
+    "amountRaw": "55000000",
+    "amount": "55",
+    "decimals": 6,
+    "name": "METAVERSE",
+    "symbol": "METAV"
+  },
+  {
+    "associatedTokenAddress": "oCzDqAooQEWZCy3ussvmFxjvZe2adWrvmqcQo4vP3kE",
+    "mint": "34EBTRNxjqZo3CgpQD3aaW3CC69DkP6BQUEx1Dd2pump",
+    "amountRaw": "42000000",
+    "amount": "42",
+    "decimals": 6,
+    "name": "doNONdo-M1a0Shan",
+    "symbol": "dNd10"
+  },
+  {
+    "associatedTokenAddress": "DFEqC1KQwqwgAQnPw3MGvip1LRywLcLNSR9by9pHxWZ7",
+    "mint": "Fr8M26dmC5FEX8c9n5SQJZjfNaS3CFYQi59Cbvekpump",
+    "amountRaw": "14547765145",
+    "amount": "14547.765145",
+    "decimals": 6,
+    "name": "Cantharidin",
+    "symbol": "CAN"
+  },
+  {
+    "associatedTokenAddress": "8va8Rju9uW84KLo3pWN9n5ufKsSAcDwywWKZ6K4pgtFn",
+    "mint": "5WGkdemJNEoAVKveDQdzQmDqTyxCraXGw9ACyrwCEUMS",
+    "amountRaw": "69000000",
+    "amount": "69",
+    "decimals": 6,
+    "name": "Obi PNut Kenobi",
+    "symbol": "OPK"
+  },
+  {
+    "associatedTokenAddress": "6U1kxph4oLscJ43ceV3yznT2DGAhLxaiycpRXrUWnb9K",
+    "mint": "GfKGTHS44guC6tF3nJ2gP6XcKjZzfSNBkXRiPQQF6sCT",
+    "amountRaw": "999000000",
+    "amount": "999",
+    "decimals": 6,
+    "name": "SP00GE",
+    "symbol": "SP00GE"
+  },
+  {
+    "associatedTokenAddress": "9eWPie5K7qdK6KXAfje6PQYvj6tEBzUUMz678zRiZ8VH",
+    "mint": "9EjxMv33gyCYjmMqH1GDSGPxZ5m69CAZdreFwsqu5VCQ",
+    "amountRaw": "999000000000",
+    "amount": "999",
+    "decimals": 9,
+    "name": "Meme Religion",
+    "symbol": "Memeism"
+  },
+  {
+    "associatedTokenAddress": "MBCftJLzPnaBUu4fUQWZ6T9uKKKaS3PWcUx49gM9PCj",
+    "mint": "REALPDBepzv6GbcNvFzAB1UxV8P9bkA38vapAWUqFGM",
+    "amountRaw": "24189088669577",
+    "amount": "24189088.669577",
+    "decimals": 6,
+    "name": "The Real World",
+    "symbol": "TRW"
+  },
+  {
+    "associatedTokenAddress": "CPCJzAhJuEpeZs8iUyU5yYL99CfS2SGkAfQ537M63edh",
+    "mint": "EGxnHK2wfvqgaHuwKRQsmaXajdxcEkKW4jrZgLfpump",
+    "amountRaw": "1315180",
+    "amount": "1.31518",
+    "decimals": 6,
+    "name": "Meme Are Fun",
+    "symbol": "MAF"
+  },
+  {
+    "associatedTokenAddress": "J1uA55nY9ViH6mS7DY5CHSwoPx4emKxL5dkgPeymiHJH",
+    "mint": "AvrDKR5KUm9Mk9B9wZGwenSPjMwzEwSueef2uA2jpump",
+    "amountRaw": "5000000000",
+    "amount": "5000",
+    "decimals": 6,
+    "name": "LOP",
+    "symbol": "LOP"
+  },
+  {
+    "associatedTokenAddress": "HnBczY7p54aZdHuUyGiP9kPC2454XgZymmobTGyQYhtB",
+    "mint": "79yTpy8uwmAkrdgZdq6ZSBTvxKsgPrNqTLvYQBh1pump",
+    "amountRaw": "1",
+    "amount": "0.000001",
+    "decimals": 6,
+    "name": "Dolos The Bully",
+    "symbol": "BULLY"
+  },
+  {
+    "associatedTokenAddress": "9vAAyw1CvoHtszRNgFDGE4UXhZ7sRTL4U3F7Tw3tZpnG",
+    "mint": "CMoN7BWCjKoR7ZAgwimg8KhnWnVHUU6pMZH2dJMsMCKa",
+    "amountRaw": "1",
+    "amount": "1",
+    "decimals": 0,
+    "name": "016",
+    "symbol": "NFTPro"
+  },
+  {
+    "associatedTokenAddress": "47bLDD5jNJK5ebVqBiEQ3N4FPo7oj7Jzdj6qcw8BzWhe",
+    "mint": "CbcED2fW8eC1UyZLzcZkHDhskPN7ityBGcr28ny8Lxsj",
+    "amountRaw": "4900000000",
+    "amount": "4900",
+    "decimals": 6,
+    "name": "AI69Z",
+    "symbol": "AI69Z"
+  },
+  {
+    "associatedTokenAddress": "Aw2Boz4Uot5qwEpfUiNmvE48UrQJqCM9aANCf5iWEiWv",
+    "mint": "CFNqrmn2AC7YC6fZB38dg3MDHcC3UJZWjNfnRLwyvAbn",
+    "amountRaw": "112000000",
+    "amount": "112",
+    "decimals": 6,
+    "name": "THE PENGU KILLER",
+    "symbol": "ORCA"
+  },
+  {
+    "associatedTokenAddress": "7JPb6WyTN7wfrSqrD8QcswrBG1TSszGEcW8G8ojxde7U",
+    "mint": "AFKD9m5QF243rZjW9saA7HS9gJBP4uyPQpSJKLTLpump",
+    "amountRaw": "1884954045",
+    "amount": "1884.954045",
+    "decimals": 6,
+    "name": "Epigallocatechin Gallate",
+    "symbol": "EGCG"
+  },
+  {
+    "associatedTokenAddress": "3qEyAi1Xm6FgWPC7D8Jpscy9sfmewWAxHCJsNvRdhF5S",
+    "mint": "DQnVSRMSh7UkyPntKsVg1CLWY1uGf2VN2GBXfb7annYK",
+    "amountRaw": "1222000000",
+    "amount": "1222",
+    "decimals": 6,
+    "name": "Corporate Audit AI",
+    "symbol": "AUDIT"
+  },
+  {
+    "associatedTokenAddress": "AHidMN9jSejNAuvZwTddmnAJ81E31qotb73X3puXxuS4",
+    "mint": "6Xr9w36WSw1P1iR1tnHToayhaWGkAvyFkfpgjHsspump",
+    "amountRaw": "25000000000",
+    "amount": "25000",
+    "decimals": 6,
+    "name": "Cyborg-D10",
+    "symbol": "D10"
+  },
+  {
+    "associatedTokenAddress": "6tWfoPMX2nFtYdnyvcRT1fPEALALqvcfGkB6RWWhHGHf",
+    "mint": "KXN4uQ9d5XHYCsGAhkSRF2M7DhPLfZhHoGxrPBCEump",
+    "amountRaw": "21311000000",
+    "amount": "21311",
+    "decimals": 6,
+    "name": "SOLIQ AI",
+    "symbol": "SLIQ"
+  },
+  {
+    "associatedTokenAddress": "GfwCUkr1RcUNB4AnCgToWDW5ETwgYavdM12bJeT9uy2o",
+    "mint": "5Juf3fiWL4U3DpdjmYGR3Zf29rxorTax7xLh5Wtfpump",
+    "amountRaw": "17255000000",
+    "amount": "17255",
+    "decimals": 6,
+    "name": "uncenAI",
+    "symbol": "uncenAI"
+  },
+  {
+    "associatedTokenAddress": "2kwfkTcm9DUEjdAKUWFyfydavGpDAxyFagEmXSFoUEet",
+    "mint": "CDuDjPPnKGpoNEhQhd8kaQiEW5S1jDNWjD6d7mcFKM2m",
+    "amountRaw": "36000000000",
+    "amount": "36",
+    "decimals": 9,
+    "name": "bloxburg news",
+    "symbol": "BLXNWS"
+  },
+  {
+    "associatedTokenAddress": "45pjG4opDQCkfeAfiBsufdphQ1HGHpBCjvE24RxUdkLh",
+    "mint": "97pqtLvcxpvSQdqxe2e1qUZcCD9161rc8TfSuGMdpump",
+    "amountRaw": "13420000000",
+    "amount": "13420",
+    "decimals": 6,
+    "name": "Rona AI",
+    "symbol": "RONA"
+  },
+  {
+    "associatedTokenAddress": "FQZb7YpDssg7Qsv5pboxtzYsGftDW4eN8ZnwPRTnEEpN",
+    "mint": "CoRQpMjhBx6AsrzKJJZyzJoH52GoEKShM3CVumyzpump",
+    "amountRaw": "502214636",
+    "amount": "502.214636",
+    "decimals": 6,
+    "name": "wifmas",
+    "symbol": "wifmas"
+  },
+  {
+    "associatedTokenAddress": "3nSd9SwRFZUWRrPb64WpRDHXL9CMTw3RUgfi2j9pRrTB",
+    "mint": "25rR2XKcdmnbCDqCQSoHcGACXbNw2vj8vBhUd9pfnb5T",
+    "amountRaw": "100000000000",
+    "amount": "100000",
+    "decimals": 6,
+    "name": "Zuzu Dog",
+    "symbol": "ZUZU"
+  },
+  {
+    "associatedTokenAddress": "39ccSx47J5FatZQ6XdhmCecDMcMfeSVLYNxeAJACJjHs",
+    "mint": "GkmUbVDjbJV9KupQi8LdnTQNLC4gGPuMB5sGtTYPpump",
+    "amountRaw": "10000000000",
+    "amount": "10000",
+    "decimals": 6,
+    "name": "Silly Snake",
+    "symbol": "SILLY"
+  },
+  {
+    "associatedTokenAddress": "8EPnPFXBSZkHMzZ5UtpjagFJeHovuuNU1mUpRtAgDDCg",
+    "mint": "5ySjuAeo3ABgExYBcnrsZFdUW31K9EAv6cJSjtbppump",
+    "amountRaw": "9098370810",
+    "amount": "9098.37081",
+    "decimals": 6,
+    "name": "AI Nova",
+    "symbol": "AIN"
+  },
+  {
+    "associatedTokenAddress": "FytjLiK94MtPF3YKJ8wPPQFKQT48yDjpDEh36YmvYna1",
+    "mint": "8LhKUTmc4CN4XTxxmc7ysqFXQYk8VuHad3Kct8p1tcsK",
+    "amountRaw": "100000000000",
+    "amount": "100",
+    "decimals": 9,
+    "name": "EMUMU",
+    "symbol": "EMU"
+  },
+  {
+    "associatedTokenAddress": "AvBgrw9Rh2AVZLWjurFhNzir9DSDVzUsaTPvyRUxNBWH",
+    "mint": "4CTdNpLcanuojrAYCXuGBbNu8eCbtHyn2oM6Dizapump",
+    "amountRaw": "6110000000",
+    "amount": "6110",
+    "decimals": 6,
+    "name": "MelaniaAi16z",
+    "symbol": "Melania"
+  },
+  {
+    "associatedTokenAddress": "25KFuMPytgw6KUszJsbA38d8ZqaLNMGc7FvX9598YzNY",
+    "mint": "5f6L3S2G88H8hCYBUZEgcGvxGsTLgB6UTGe4FpjrKSJy",
+    "amountRaw": "1000000000000",
+    "amount": "1000000",
+    "decimals": 6,
+    "name": "American Pepe",
+    "symbol": "APEPE"
+  },
+  {
+    "associatedTokenAddress": "F8mn7TK6kaBXTWbnK1nv9JCrnGYKXJ7DZcdciCpkw46U",
+    "mint": "6ueBRuVJDP6tuFoD8Nmfj3Ho9Qx2GTADFREjnd2Epump",
+    "amountRaw": "7000000000",
+    "amount": "7000",
+    "decimals": 6,
+    "name": "PUMP&TRUMP",
+    "symbol": "PTRUMP"
+  },
+  {
+    "associatedTokenAddress": "BDKnsJfJ8Axw4hnRGXjXmYazK7ubX2mmYzqACP4876gR",
+    "mint": "231Y5yfc5aeajFfqaM5P9WvwqSiMG5CyuwSib9Pbpump",
+    "amountRaw": "10000000",
+    "amount": "10",
+    "decimals": 6,
+    "name": "Grimace",
+    "symbol": "GRIMACE"
+  },
+  {
+    "associatedTokenAddress": "3Pmx748vYPi91itatnBYGA86e7jkJtW9nJJyb4ANN4Dc",
+    "mint": "2pJFKuidG6tLA11r9em912KMF3NURuh73EuWuowQr3F6",
+    "amountRaw": "420690000",
+    "amount": "420.69",
+    "decimals": 6,
+    "name": "ParodyMaximus",
+    "symbol": "PARODY"
+  },
+  {
+    "associatedTokenAddress": "6AZ2kxjBjDZvLq3kHq5xKNfuo1UxZXibqE638jZSpzDf",
+    "mint": "8aJiHkXbVZX4yRGo8wf8XS6kUKQB7LZFySq7f6ozpump",
+    "amountRaw": "11192000000",
+    "amount": "11192",
+    "decimals": 6,
+    "name": "FaloAI",
+    "symbol": "Falo"
+  },
+  {
+    "associatedTokenAddress": "HcAEd1D6eKJB3HdKRvP7i6zcb5UviSYLD84vGwrSnZQq",
+    "mint": "AcV2T3mwLUqMiiqcsafVm35zwPQkmLrfRtaW3716Fzvi",
+    "amountRaw": "1000000000",
+    "amount": "1000",
+    "decimals": 6,
+    "name": "rexwifhat",
+    "symbol": "REXHAT"
+  },
+  {
+    "associatedTokenAddress": "HSMuLyDrBS8pp7EEj91pUrfxaKRyodmTqbG6tD4FFrrb",
+    "mint": "DKXEJ429TVfvxNcVKrSFvtcbFFosanpN6hBnrPmfpump",
+    "amountRaw": "9925703500",
+    "amount": "9925.7035",
+    "decimals": 6,
+    "name": "GODIN",
+    "symbol": "DIN"
+  },
+  {
+    "associatedTokenAddress": "73xgQWEPXBie4Y7itu1vSatXgZ7n4KV9zWYQTh29WJ1H",
+    "mint": "4Qt1SN9euDE1hw88mwPRbfNWey7u6uwJkb49TSMPXiyC",
+    "amountRaw": "1000000",
+    "amount": "1",
+    "decimals": 6,
+    "name": "thinking of mars",
+    "symbol": "mars"
+  },
+  {
+    "associatedTokenAddress": "64DcTq1XfQXiU1m97zPoLixmu3GPyCjdzZ38EvtEybAc",
+    "mint": "HTULgS1wsXzUFmXDa1pcMq63eSpfyN6g5fn1aDDJpump",
+    "amountRaw": "11850000000",
+    "amount": "11850",
+    "decimals": 6,
+    "name": "AMAZONKA",
+    "symbol": "AMAZONKA"
+  },
+  {
+    "associatedTokenAddress": "2TSnL2GCr11CWJvtaYyUpm9WspQWkezJiCEWuCVSfJVg",
+    "mint": "3megkNYh5tNvUPJ6sP91vYS4v8tqJx4Crd8oojf4CitL",
+    "amountRaw": "270465978",
+    "amount": "270.465978",
+    "decimals": 6,
+    "name": "EYE AI",
+    "symbol": "EYEAI"
+  },
+  {
+    "associatedTokenAddress": "DSVeYEQTF2P1mdPjLEZusV6roYhrHx9U4qwGRa1sKGCK",
+    "mint": "AprKRj7GyTQfBTTxUaWwVKKtvSL1sdrGpZ492JWC6P5m",
+    "amountRaw": "1998000000000",
+    "amount": "1998",
+    "decimals": 9,
+    "name": "AGiXT",
+    "symbol": "AGiXT"
+  },
+  {
+    "associatedTokenAddress": "Gt5vVPQik4RGdDaPzwECEWo9VCNAfGDJtQ8BDKaKS7eU",
+    "mint": "GMajNYKEMQH2bG63f9zouPJCJZZi6mAKBH2bz75KWFA",
+    "amountRaw": "650000000",
+    "amount": "650",
+    "decimals": 6,
+    "name": "WOLFINA",
+    "symbol": "WLFN"
+  },
+  {
+    "associatedTokenAddress": "JBqaB2d9NXnHw6crQ7u3S8uZnMKeq6T2j4dhkfQDdFkm",
+    "mint": "H9ysM5pbzth8caAw1YNTRhzXUzwELkSnY9sFaP9kpump",
+    "amountRaw": "6500000000",
+    "amount": "6500",
+    "decimals": 6,
+    "name": "47TRUMP",
+    "symbol": "47TRUMP"
+  },
+  {
+    "associatedTokenAddress": "4rzReZ2bvASpLrS3mBkGsQ2RfgXzUUh2ZcD91L1BN28L",
+    "mint": "2b43cvX9Z2gDcSgEfu2EzCjjaxBvLTgTrcmmCReopump",
+    "amountRaw": "7120000000",
+    "amount": "7120",
+    "decimals": 6,
+    "name": "Niky Yuku",
+    "symbol": "NY"
+  },
+  {
+    "associatedTokenAddress": "u2y3Lag9hoGBENodhjxXGL8zPPbdbx1k2o7LU2Au2LP",
+    "mint": "4GvrQNQsUREJJ97fxK6qCXoRkifxz9Co4KvPufyspump",
+    "amountRaw": "1000000000",
+    "amount": "1000",
+    "decimals": 6,
+    "name": "together we will make it",
+    "symbol": "friends"
+  },
+  {
+    "associatedTokenAddress": "Fg8eeytZ1LYn7FAcX1EBDHWJEvBRuQQem7f9v8zVftmT",
+    "mint": "676QVL7XAx85WPnTzop5E3zEpEgBRQ8JSCodhyJApump",
+    "amountRaw": "1378272729",
+    "amount": "1378.272729",
+    "decimals": 6,
+    "name": "an apology Hodlers",
+    "symbol": "APH"
+  },
+  {
+    "associatedTokenAddress": "FhBEUNUmFsNnprJbtYD4N7qojiuDDivMCQdm7GNPJdZ3",
+    "mint": "5UyiXgw1TdijL6Lq5bRdJUg8AdQxECyUPqpyfisq8Zxq",
+    "amountRaw": "2997000000000",
+    "amount": "2997",
+    "decimals": 9,
+    "name": "Hasbulla's Cat",
+    "symbol": "BARSIK"
+  },
+  {
+    "associatedTokenAddress": "9ihS3DDkSgbp2uzrft3Mn6onQPUBBmN9PJ146rHD8zzZ",
+    "mint": "6MKJCEwMczrueA12g13KZBiR1G4s772sCq6D4Rszpump",
+    "amountRaw": "18457000000",
+    "amount": "18457",
+    "decimals": 6,
+    "name": "UZI",
+    "symbol": "UZI"
+  },
+  {
+    "associatedTokenAddress": "CzD4jn9ksSDQ3Np2pm71j1xvViybeMr8ZRdYTvjHHjQk",
+    "mint": "9oZoMw6fwgSY5S8y2aujxfCogzXY25xQMFxbr2hPpump",
+    "amountRaw": "11182000000",
+    "amount": "11182",
+    "decimals": 6,
+    "name": "JAMES THE LOBSTER",
+    "symbol": "JAMES"
+  },
+  {
+    "associatedTokenAddress": "FdnKQnutfiJMj3vpevGxh875fRbC3UaTYhkoew3yGSe8",
+    "mint": "EmpaJ6uzUXUnT9wEjwjXNXLMUDf4EGdEvzqcPSBy1f53",
+    "amountRaw": "108336954",
+    "amount": "108.336954",
+    "decimals": 6,
+    "name": "The Dep Of Government Efficiency",
+    "symbol": "D.O.G.E"
+  },
+  {
+    "associatedTokenAddress": "8QvmKrKJ4LY26Y39t44hdHD3g3Vquq3gfrgksz8qDNSb",
+    "mint": "8vwcHbD56mDKUBLx4vndnUEu1GZjG5vJwg1QXc36pump",
+    "amountRaw": "3870000000",
+    "amount": "3870",
+    "decimals": 6,
+    "name": "DEADB0YS",
+    "symbol": "DEADB0YS"
+  },
+  {
+    "associatedTokenAddress": "62v6Ng8vEgT79wG5j2BPT4hZihToeBC86SGWnnwzudwD",
+    "mint": "DU16Ea8MidPg8GcDYhCBx88THwYXSDiAXDnGA7xfe1HA",
+    "amountRaw": "250000000",
+    "amount": "250",
+    "decimals": 6,
+    "name": "OiiaOiia",
+    "symbol": "OIIA"
+  },
+  {
+    "associatedTokenAddress": "6qhDptUog6JZBMvWwhCBB761eUuRk6GfXGGkxZkqfSTJ",
+    "mint": "CrrBQnAJ28gnjF25qiMKaAEXmv3HutqED32daNf1pump",
+    "amountRaw": "12124000000",
+    "amount": "12124",
+    "decimals": 6,
+    "name": "GREENPIAI ",
+    "symbol": "GREENPIAI"
+  },
+  {
+    "associatedTokenAddress": "C8oR3tugB6ppmu1q5sdDthts3v2GCqCTwTKGFKgn2to2",
+    "mint": "6aPX4qNDY32eMUUzj6e1pgjmYaRRYW6JFVAhPn5Bpump",
+    "amountRaw": "5741191286",
+    "amount": "5741.191286",
+    "decimals": 6,
+    "name": "Lock It",
+    "symbol": "LOCK"
+  },
+  {
+    "associatedTokenAddress": "8EzUgKtzxffUEycqgzBaCyK9eVx2YY4vy7ikzmPUpgtY",
+    "mint": "Fy9zd48jHmSxRJ4kmTqEyz81VuwMtfbdXVy965Bt8VzT",
+    "amountRaw": "7000000000",
+    "amount": "7",
+    "decimals": 9,
+    "name": "Happy Turkey",
+    "symbol": "TURKEY"
+  },
+  {
+    "associatedTokenAddress": "BxmxL3dvc2ana1j6ZNGNG5KNozsK7QCe6PbiH6MFQ799",
+    "mint": "BAupRTjY3mLBZ3pQ9aDsupYt5BH1Z27Gdzn6k3h8LR8i",
+    "amountRaw": "2653521895614896",
+    "amount": "2653521895.614896",
+    "decimals": 6,
+    "name": "DeepSeek",
+    "symbol": "Deep"
+  },
+  {
+    "associatedTokenAddress": "BWdFJp1r7LaSVtm4KRU3R2XfaZABKCCTmYJFkdXVMEJj",
+    "mint": "C44QEKvni2HaFTBnNfby33FbsQAJ3LoGcM7mA2HHrKCQ",
+    "amountRaw": "14927803232",
+    "amount": "14927.803232",
+    "decimals": 6,
+    "name": "Bucillamine",
+    "symbol": "BUC"
+  },
+  {
+    "associatedTokenAddress": "EwLYNscqq9GdZdUHfiS6zX67c1xehEnGw6SJZ6bnGLDZ",
+    "mint": "bNj2WEK1RbNyYohsQ3uCdXdSjdzHQj9NuSGwJmnjump",
+    "amountRaw": "13710000000",
+    "amount": "13710",
+    "decimals": 6,
+    "name": "XIIICOIN",
+    "symbol": "XIII"
+  },
+  {
+    "associatedTokenAddress": "BkXFG3n68QD6r9XeR5exSLu9gTeqg3AV1ubbdPfmzVVf",
+    "mint": "tQmu4yFbtLDrwAWrnUk4NX12SXswosmT3CuimdEdtrp",
+    "amountRaw": "104000000",
+    "amount": "104",
+    "decimals": 6,
+    "name": "TRUMPCRAFT",
+    "symbol": "TRUMP"
+  },
+  {
+    "associatedTokenAddress": "Hi1us5ktJ2mf4ieTd3u84Q7vWcGoQyLhfB8csD2k1n2f",
+    "mint": "PLXzC3DW91tRVx6czaeCtj9zy8P9YxdBA4TwNpcpMRB",
+    "amountRaw": "1065000000",
+    "amount": "1065",
+    "decimals": 6,
+    "name": "MRBEAST",
+    "symbol": "MRBST"
+  },
+  {
+    "associatedTokenAddress": "HiE5xYrBK6S1Gc4e4EwT5PQyAdsvozHUBwBi59dYWfus",
+    "mint": "gtZmpQcmgrLeXAYAx8b5avCmTe43UWiSZgJYb2mSTRP",
+    "amountRaw": "122000000",
+    "amount": "122",
+    "decimals": 6,
+    "name": "TRMP",
+    "symbol": "TRMP"
+  },
+  {
+    "associatedTokenAddress": "GxiGWK8nTr9M8MCVFNtyqyBrtJv5qq9d835wjNSDq4pR",
+    "mint": "uPtSVTWfZSb6QbAfbeBnNzLGHtP3Sk8C8wGRDkaLmon",
+    "amountRaw": "1083000000",
+    "amount": "1083",
+    "decimals": 6,
+    "name": "SOLDOG",
+    "symbol": "DOG"
+  },
+  {
+    "associatedTokenAddress": "u3iAmKTaGwmxJ6CxRMiyuNhzYHZ1cdGeMqxeUZHGZrB",
+    "mint": "dJDEKRytP4Y2WAAxLeTM1ThzWyarUjdzC9o4sm7cxiV",
+    "amountRaw": "28500000000",
+    "amount": "28.5",
+    "decimals": 9,
+    "name": "jelly-my-jelly",
+    "symbol": "jellyjelly"
+  },
+  {
+    "associatedTokenAddress": "Cs9BZPpLjKat9xwam1T1SDSpxNnbkWnobsuv2KD6mCmp",
+    "mint": "FDq3ajkwgjwfcVyWbznzcrevau6ZZ3FSVbVuh4hnpump",
+    "amountRaw": "1000000000",
+    "amount": "1000",
+    "decimals": 6,
+    "name": "Ohh lama",
+    "symbol": "Ohhcoin"
+  },
+  {
+    "associatedTokenAddress": "DWeFNBY3VdrHgbDMi87JJ5fYAtGNRVkRWgsYospHiS8M",
+    "mint": "F4Tph9ggvRQ2Yg5pBM8ifai5jHoMVBdYiVmYCBTmpump",
+    "amountRaw": "40960000",
+    "amount": "40.96",
+    "decimals": 6,
+    "name": "2025",
+    "symbol": "2025"
+  },
+  {
+    "associatedTokenAddress": "DWEAf9UVRrjghdAneFBZgNGmLX5KdZcNvX4t2BV5YUa7",
+    "mint": "FrVqKZKwxT4zHWufUqvwfqH3jmP7WWSKMykMpkPXpump",
+    "amountRaw": "4444000000",
+    "amount": "4444",
+    "decimals": 6,
+    "name": "Baby Trump",
+    "symbol": "BabyTrump"
+  },
+  {
+    "associatedTokenAddress": "CqQ16xegF5MXt5Uq2xahU5hMgTDiny9jS8e75SyAwter",
+    "mint": "5P2pEMb9dDXY5ZhDNX3oGTTmsmWT8Ep3nowxWrajgRRV",
+    "amountRaw": "12645160",
+    "amount": "1264516",
+    "decimals": 1,
+    "name": "Peace Love Unity Respect",
+    "symbol": "PLUR"
+  },
+  {
+    "associatedTokenAddress": "9aiPmzvPEYLN6eCWWepJ5TDAF88a7MbPtwqMpdhFWHr4",
+    "mint": "7mSU5ZJsYsm3CPf2gzfYAWXE6CghFw86k7vjkpsYznzP",
+    "amountRaw": "268800",
+    "amount": "0.2688",
+    "decimals": 6,
+    "name": "SOL.X",
+    "symbol": "SOL.X"
+  },
+  {
+    "associatedTokenAddress": "5Ssg25ELvQMCikfocnUbH5PS2TSE9VpdPFfFqmuag5gm",
+    "mint": "WHT2o5aFsVxyvGhe5DAb5sRLwiEngYSJeV3qPaLpump",
+    "amountRaw": "10000000",
+    "amount": "10",
+    "decimals": 6,
+    "name": "Trump's inauguration Countdown",
+    "symbol": "TRUMP"
+  },
+  {
+    "associatedTokenAddress": "9NbXW1zFM79x1REaEQP6P9S46rLXs2pTcWtvjmKGB5bd",
+    "mint": "DJHeehWNsan7h5hjNEpv3BrKgSBCuhog64u5nH13pump",
+    "amountRaw": "14150000000",
+    "amount": "14150",
+    "decimals": 6,
+    "name": "Agent Aeiva",
+    "symbol": "AEIVA"
+  },
+  {
+    "associatedTokenAddress": "GzDkNJKuWygAwykL7fDiZFX1qXZ8Q55bi7iu1u7Kmt5P",
+    "mint": "91qn8MFKG9CFXCM51GFLAUeYKNpdgjQ5mHst1yQcpump",
+    "amountRaw": "14222045836",
+    "amount": "14222.045836",
+    "decimals": 6,
+    "name": "Boron nitride",
+    "symbol": "BOON"
+  },
+  {
+    "associatedTokenAddress": "BqruNxoSePykvrwjdVqcdSEDoqmauAQS94WJteTFdUKH",
+    "mint": "UxyfjnqSXu5HJAApL43svhhuzS1HUZLvV33oQsTrmcs",
+    "amountRaw": "109000000",
+    "amount": "109",
+    "decimals": 6,
+    "name": "MICKEY MOUSE",
+    "symbol": "MOUSE"
+  },
+  {
+    "associatedTokenAddress": "21ntuFPYbV4pZVGpQBk35yssQzyWryzsGKcrGfd3QiBc",
+    "mint": "5dbQVJTk47oszzXwbbPprLJxzxFDosX8UYXg99twpump",
+    "amountRaw": "3693553287",
+    "amount": "3693.553287",
+    "decimals": 6,
+    "name": "Thioflavin T (ThT)",
+    "symbol": "THT"
+  },
+  {
+    "associatedTokenAddress": "9P4HDVaBUPfgMEcaZ6h3ToV76FxeyKgzj6Hp1H5tFV4F",
+    "mint": "63Dx5U1yyfYmy3HrncenMTdGCP6CjVCkaAac1BFsUCzJ",
+    "amountRaw": "21523908",
+    "amount": "21.523908",
+    "decimals": 6,
+    "name": "MELANIA",
+    "symbol": "MELANIA"
+  },
+  {
+    "associatedTokenAddress": "8tyDAnEPQHqggiSmMTrjpqjj9GnEnBDNnS5jEmGfK7AB",
+    "mint": "aVHSSiHsqhUbQaZfA9wqj4ULV6EwvuDkmXak5jA3ump",
+    "amountRaw": "122000000",
+    "amount": "122",
+    "decimals": 6,
+    "name": "SOLDREAM",
+    "symbol": "DREAM"
+  },
+  {
+    "associatedTokenAddress": "BMMRjMXWcxN1bSwNHdnxj7g28KBWZRaqw7KcRNV7gUuE",
+    "mint": "J6rq7i4N6KvE3Sre8oC7Dw3gmTD4Wa1cnYGFntGyJSZZ",
+    "amountRaw": "1998000000",
+    "amount": "1998",
+    "decimals": 6,
+    "name": " STONKS",
+    "symbol": "STONKS"
+  },
+  {
+    "associatedTokenAddress": "FqMTUywyoEE7b9wtcupzdcvum8en5QFzU4uZvun1wqq2",
+    "mint": "3uUhaX3B225aGyKPmiXv9rCWWh7UwgeHwpE4tRy6uL4j",
+    "amountRaw": "8345255307",
+    "amount": "8345.255307",
+    "decimals": 6,
+    "name": "Gaboro",
+    "symbol": "GAB"
+  },
+  {
+    "associatedTokenAddress": "AYxXQ3kSRPGUrC8FttNnkEunenSZqXrgHxEAyqVKg5Yk",
+    "mint": "FqpJT8ZBgXfyTfWUYHPWNiZsygJ9PFWq6bNfDBerpump",
+    "amountRaw": "5000000000",
+    "amount": "5000",
+    "decimals": 6,
+    "name": "ɢօɖ'ֆ ֆօʊʟ",
+    "symbol": "GodsSoul"
+  },
+  {
+    "associatedTokenAddress": "2dx8tJ6cVmaBFNugvAsPKk4Md7NSvtm6mBSeyQqrsW83",
+    "mint": "8upv6CdS3th3C1Posi9eoD34fBuRAS7Cgw1djU8RUQMu",
+    "amountRaw": "1000000000",
+    "amount": "1000",
+    "decimals": 6,
+    "name": "FAPCOIN",
+    "symbol": "FAPCOIN"
+  },
+  {
+    "associatedTokenAddress": "8v9DgBYMyWnA2GtAVkhe1WBcGUKQZrAe2KUky3E635Qa",
+    "mint": "DyrgRebJfoodN4XjJtbVtXuUMTRPY8EhmonsjRDQpump",
+    "amountRaw": "100000000000",
+    "amount": "100",
+    "decimals": 9,
+    "name": "Strategic Doge Reserve",
+    "symbol": "SDR"
+  },
+  {
+    "associatedTokenAddress": "vwtXkMQ9Wo4cuBxh9f5HNBhySzvpD7hsNKPErubeyt8",
+    "mint": "2V7TUgyok4Qsj7aisFkkG4eLHKSujq1sp9hXsooR8j5v",
+    "amountRaw": "1000000000000000",
+    "amount": "1000000",
+    "decimals": 9,
+    "name": "OPENCRAM",
+    "symbol": "OPCR"
+  },
+  {
+    "associatedTokenAddress": "HhtXt4rQznmEJLW5wG4C1QLNgY1cP5XQAp4hDY5C6P4s",
+    "mint": "3vRQtfSDGnjxX61hiVgsp2QEHswHwRqmdFmEYQn87YBU",
+    "amountRaw": "99000000",
+    "amount": "99",
+    "decimals": 6,
+    "name": "MORTY",
+    "symbol": "morty"
+  },
+  {
+    "associatedTokenAddress": "EQ7SKYQAcrDQ9a5gW9GhNBSApWJXEPjNEtivqCA9QfPG",
+    "mint": "4iBofNmuVTUewVhhCtQ2P8Ny5X4iaYi843f45bKa2Nfw",
+    "amountRaw": "999000000000",
+    "amount": "999",
+    "decimals": 9,
+    "name": "TMC Corp",
+    "symbol": "TMC"
+  },
+  {
+    "associatedTokenAddress": "4qTnjFyY7TtoES2pdkicz961qRHXZUmXDEp3rEEgjpWu",
+    "mint": "5ibCL2FBfLwxLcP3mBaFDKYRaoJjLJTFBQj6AQrRFTD9",
+    "amountRaw": "30660000000",
+    "amount": "30.66",
+    "decimals": 9,
+    "name": "Butthole",
+    "symbol": "Butthole"
+  },
+  {
+    "associatedTokenAddress": "DB1LKAoFTdhU45xPW4iVgTQvLwJJHV7AWq1Y5nj6JT1f",
+    "mint": "9RNxmdKMWxmDGrA7bYFXAyt1DRokCtipPCxT9LUMpump",
+    "amountRaw": "9316340641",
+    "amount": "9316.340641",
+    "decimals": 6,
+    "name": "Adenosine triphosphate ",
+    "symbol": "ATP"
+  },
+  {
+    "associatedTokenAddress": "BdE1WQJZkEo8pNiRktu8HypuRYFewWJEEzZGhmSTMLrh",
+    "mint": "AtddN8vCd1QK6GsV7YoF9hyBx9yjVmqWZue7nrh3pump",
+    "amountRaw": "5000000000",
+    "amount": "5000",
+    "decimals": 6,
+    "name": "Ayanami",
+    "symbol": "AYANAMI"
+  },
+  {
+    "associatedTokenAddress": "FaHwKFsHkamNgZbEDgWHvnGmLRZ4oNvJwS5uZUAkpuWU",
+    "mint": "FVdVHh8FkdiGTrg27ou9CDrsqedhoLj1Ydj1ZJWpump",
+    "amountRaw": "26510000000",
+    "amount": "26510",
+    "decimals": 6,
+    "name": "KUDAl AI",
+    "symbol": "KUDAl"
+  },
+  {
+    "associatedTokenAddress": "Fya2p8dJahEpE7rgGn2pf3NhfJeJm7zNvhVYT8mfrcby",
+    "mint": "zD3sj6vt5UbUeGVkV9r6Kohb62vAR3ZWGiyLoCiftmp",
+    "amountRaw": "213000000",
+    "amount": "213",
+    "decimals": 6,
+    "name": "TRUMPCRAFT",
+    "symbol": "TRUMP"
+  },
+  {
+    "associatedTokenAddress": "DHdWkvfhqsq2zf7SoNpTCF2DsGYYggwEeir4WxnZbUiM",
+    "mint": "BjANwGcw89smLfxc5mdQzDzFvneQ6m7d62p2AjG2p6xs",
+    "amountRaw": "1000000000000",
+    "amount": "10000",
+    "decimals": 8,
+    "name": "MagicEdem",
+    "symbol": "ME"
+  },
+  {
+    "associatedTokenAddress": "4ZRRqzLH3WSUSQBFcPUpMsXwVBUzEhmVZu7b8fJUCYKs",
+    "mint": "EwFXQN4pGpoPoaAooJjTHnb9ET2yAebD5hmcm8bmVWag",
+    "amountRaw": "4255531793",
+    "amount": "4255.531793",
+    "decimals": 6,
+    "name": "Shape Virtuals",
+    "symbol": "shape"
+  },
+  {
+    "associatedTokenAddress": "69nragdHRpETQ8xYVx4RHBa2i991tbbhY99MBwv4V1Ri",
+    "mint": "GfMbckC62U9vNwsJYAqp5knZDq3UQ9Qvi2pMWyERPVYM",
+    "amountRaw": "171810000",
+    "amount": "171.81",
+    "decimals": 6,
+    "name": "alon",
+    "symbol": "ALON"
+  },
+  {
+    "associatedTokenAddress": "E3iaVV7WjMALDPuQoYzKU15hbjYgfLU1ZvJgWSJcgnsB",
+    "mint": "Dr17sHZf8e1khieA9KvsDj6q39MSeRWSNSfn27GAPTMD",
+    "amountRaw": "2000000000",
+    "amount": "2000",
+    "decimals": 6,
+    "name": "DinoShiba",
+    "symbol": "SHINO"
+  },
+  {
+    "associatedTokenAddress": "3EwKQPSfhuBQ8kPst5KrC2oJeugpg6548VD41ubGvy86",
+    "mint": "9wMcmb5HjT5SkKJZyPVm7Bm1MbmoYWMdk3NXQwLRpump",
+    "amountRaw": "11400000000",
+    "amount": "11400",
+    "decimals": 6,
+    "name": "The Return Of Trump",
+    "symbol": "TheDon"
+  },
+  {
+    "associatedTokenAddress": "6BaUNRS3N3hHx8RX575p1R3NhDhZSFWqFD2Zgigpd3Vk",
+    "mint": "8P4v9beE3eLdJXK59p9U3NkNc71irkHMZQntkvGepump",
+    "amountRaw": "10366000000",
+    "amount": "10366",
+    "decimals": 6,
+    "name": "𝙴𝚏𝚏𝚎𝚌𝚝",
+    "symbol": "EFFECT"
+  },
+  {
+    "associatedTokenAddress": "61f7eSDcxebham2josCyF9P5wu8MdECe9NVGj9rxhZNG",
+    "mint": "HyD4y2dhuokBg91bzxUH9GF1ssqPiwnRZY9CTxSYGwYf",
+    "amountRaw": "393840000",
+    "amount": "393.84",
+    "decimals": 6,
+    "name": "DeepSeek",
+    "symbol": "Seek"
+  },
+  {
+    "associatedTokenAddress": "4FaQTErhA3gPyBooc5qmpQxTgV6tZi2taBYYhG6gojLG",
+    "mint": "6oY1hBtHjNoTdfoaZvqNDstcbstk7y1577DbaYb8x49P",
+    "amountRaw": "71420000",
+    "amount": "71.42",
+    "decimals": 6,
+    "name": "Vine Coin",
+    "symbol": "VINE"
+  },
+  {
+    "associatedTokenAddress": "63EmxAgA7ZMdKiJw8aq7hFLXpn52b61qq2TniBcMSHA9",
+    "mint": "6wq2Gf33AsEqQeQdMrtpwR3RmJjtLHKYFHYth6Djpump",
+    "amountRaw": "13341898476",
+    "amount": "13341.898476",
+    "decimals": 6,
+    "name": "Botopotamus",
+    "symbol": "BTP"
+  },
+  {
+    "associatedTokenAddress": "5dbE2qHT7hw2YkENcdm5AysqFtjWUf8Wbzv5DLY3fnVA",
+    "mint": "73fAGMCQC7zDrUJGCLqUS2WT63hzEks429NEQt7UZE1m",
+    "amountRaw": "999000000000",
+    "amount": "999",
+    "decimals": 9,
+    "name": "GRINCH",
+    "symbol": "GRINCH"
+  },
+  {
+    "associatedTokenAddress": "5rCuPtTYsBbfJM6pBmcjLo8yGnCPzKNnF8yMCH5S3eB5",
+    "mint": "HmiHr32xKeRURqpLatKExiZo5Ak7E7ZmVR8axQ69pump",
+    "amountRaw": "69420000000",
+    "amount": "69420",
+    "decimals": 6,
+    "name": "xebidaih",
+    "symbol": "xeb"
+  },
+  {
+    "associatedTokenAddress": "Hwp8f7VMSt13h1KYsSQRjxZCegMwgwNffAErcDeoKHWX",
+    "mint": "8UraE19chsRdqEXBirQ8ApGKPsxHZozBfiujf6Qspump",
+    "amountRaw": "18986057491",
+    "amount": "18986.057491",
+    "decimals": 6,
+    "name": "Fumaric acid",
+    "symbol": "FUM"
+  },
+  {
+    "associatedTokenAddress": "CcRWtCcwfxJD2KAZsk6qM1dErXypXbMwhAvDfbk79ieN",
+    "mint": "B3DWEUG2zhKTtCwuixfcV6yd5yiLHVBCL4KmjBpiBEfg",
+    "amountRaw": "2500000000000000",
+    "amount": "2500000",
+    "decimals": 9,
+    "name": "SumoSloth",
+    "symbol": "SUMO"
+  },
+  {
+    "associatedTokenAddress": "DsaaiswSdGHNgMD8QjB3LiXrWcrwCVjuBTY5JRnttjJG",
+    "mint": "3JSTAVfPEQUAS9nijznEVuZnu4xMjZcKjzd4DzqnTkRG",
+    "amountRaw": "3000000000000",
+    "amount": "3000",
+    "decimals": 9,
+    "name": "Pippin",
+    "symbol": "pippin"
+  },
+  {
+    "associatedTokenAddress": "A7hwHt4PqA3G7paWqN4bwSXwEbjkmFHCGeRMZhTGz9nM",
+    "mint": "AXzueZQiCjJStGPuGTYt1jyJdG7pcSwjVorWmpN9vm1i",
+    "amountRaw": "10000000",
+    "amount": "10",
+    "decimals": 6,
+    "name": "FROX",
+    "symbol": "FROX"
+  },
+  {
+    "associatedTokenAddress": "F35DfVDcu5eJGHuDUmfSB5jANzZvZux6Z9MPmksefGDj",
+    "mint": "9RaTXuen9SWFMwuSAvLZonmcyuHYiWQ6nCb26neJpump",
+    "amountRaw": "16237575065",
+    "amount": "16237.575065",
+    "decimals": 6,
+    "name": "Galactose",
+    "symbol": "GALA"
+  },
+  {
+    "associatedTokenAddress": "D1CfFqKbtqZMDWzfPpzQCeEpUgV8NtFG9resxwTFQRWN",
+    "mint": "8uAxTdezvknsB32DpYJCtJAAuAvuZG3vqDVsJ6xppump",
+    "amountRaw": "35433000000",
+    "amount": "35433",
+    "decimals": 6,
+    "name": "Dark Mode Capital",
+    "symbol": "DARK"
+  },
+  {
+    "associatedTokenAddress": "6QTb5u535Mq7uPuBvDPvkbWR7KnVvKyaWNe2xrgTJMb4",
+    "mint": "ecbrCZ296PSEQb2APYY32a8a9gBBW6xvpX2kkb6pump",
+    "amountRaw": "2763000000",
+    "amount": "2763",
+    "decimals": 6,
+    "name": "ItsOurGame",
+    "symbol": "IOG"
+  },
+  {
+    "associatedTokenAddress": "HZqE3T9psyVdzSye9WJNubcuPi6yerXCL3yxiHfuvFU9",
+    "mint": "2ocRmgxFPnfvTJzT8mMTJDFDSFq5BmXFPRRPdEf3WT9r",
+    "amountRaw": "100000000000000",
+    "amount": "100000",
+    "decimals": 9,
+    "name": "Clones Coin",
+    "symbol": "clones"
+  },
+  {
+    "associatedTokenAddress": "E4GMDqxaw4QXPWreH1PS2y15QUQmMSKBVpXuJjC4RLtH",
+    "mint": "7d7ekkNqGHC8MukadXMoHDzaBsudLFQrSa96UumeXZ5A",
+    "amountRaw": "999000000000",
+    "amount": "999",
+    "decimals": 9,
+    "name": "MIST",
+    "symbol": "霞"
+  },
+  {
+    "associatedTokenAddress": "4g7NCEWCbGE4YTTTBTpPMqX7qwpVGJYDjzgDBNDsGPsr",
+    "mint": "HrCh8G77C9BqWytjFUJhKzL24gxaFxTq2kGibh23pump",
+    "amountRaw": "14494614977",
+    "amount": "14494.614977",
+    "decimals": 6,
+    "name": "Squid Game Hub",
+    "symbol": "SGH"
+  },
+  {
+    "associatedTokenAddress": "9FGgmEg7gfbGpdw2UK5WRcXtgyQP6MwQ8rqhLocZUiCo",
+    "mint": "E1sxHbecrdKxrLtzK8KCoQ7JeWMw4hNfZcjF1qowv5wk",
+    "amountRaw": "150000000000000",
+    "amount": "150000000",
+    "decimals": 6,
+    "name": "Tik Tok Toe",
+    "symbol": "TOE"
+  },
+  {
+    "associatedTokenAddress": "4AEosMwsLGiJWjGnAad7NC2awBN3aZd4EsS6yDNSf9zL",
+    "mint": "9XpFnhg3cEf18ckDdJTpjnT6MrrbW92hU1R7Stnzpump",
+    "amountRaw": "14208350449",
+    "amount": "14208.350449",
+    "decimals": 6,
+    "name": "Huperzine A ",
+    "symbol": "HUP"
+  },
+  {
+    "associatedTokenAddress": "9recQkpQbfAkaU6ooFpe6sPsCuLqyXSDZcTXj9K2TGGZ",
+    "mint": "5RMCXQTfcMxp2o1CU84deFhQ8duWEwfjrbhegCRcpump",
+    "amountRaw": "3041284970",
+    "amount": "3041.28497",
+    "decimals": 6,
+    "name": "LEO",
+    "symbol": "LEO"
+  },
+  {
+    "associatedTokenAddress": "BgL6AAekzSnD4gddrnsUZUA7zK6MnNJPd51o4MnqDKds",
+    "mint": "4ccF7FpjTFZBWRZogCftU5aLd5NQMgJpyvrfDfwp2hEu",
+    "amountRaw": "5018725000",
+    "amount": "5018.725",
+    "decimals": 6,
+    "name": "Alpha",
+    "symbol": "ALPHA"
+  },
+  {
+    "associatedTokenAddress": "Cszgh7y468RHZFLr97qBn3mEzML9RLd8LDbWoEqYLTTZ",
+    "mint": "DYAymqdrZzvZN3mkuK2TAQqpkyyqfuwB2Hph9qGxpump",
+    "amountRaw": "10257169054",
+    "amount": "10257.169054",
+    "decimals": 6,
+    "name": "Cyclobutadiene",
+    "symbol": "CYC"
+  },
+  {
+    "associatedTokenAddress": "3Enzvt1QgxTwpt6MDaw8pKbvq9aNmGbesMEYZgSVwq95",
+    "mint": "9JKVWpzsisamMoVwVzGVbNeNyREvyqq2A3yJ14oepump",
+    "amountRaw": "1000000000",
+    "amount": "1000",
+    "decimals": 6,
+    "name": "World Of Bikers",
+    "symbol": "WOB"
+  },
+  {
+    "associatedTokenAddress": "B55faj2yvHN5rbNA7Eu6qteVu3kruKDTP7QENaNDk3im",
+    "mint": "CjPas4WVwbcJ11HVii21Zt6yMB5UtQvp8tD8r4vPDj9z",
+    "amountRaw": "786000000000",
+    "amount": "786",
+    "decimals": 9,
+    "name": "Alpha",
+    "symbol": "ALPHA"
+  },
+  {
+    "associatedTokenAddress": "DjG5DEvoDTVE1DQ3qDkZFD49bVafP2H8wwVjacPd5GGr",
+    "mint": "BwBrJ2WKAFDpfFmV2vusc5iq1DzFBDfkcheCPVsLpump",
+    "amountRaw": "16245614782",
+    "amount": "16245.614782",
+    "decimals": 6,
+    "name": "Meta X Style",
+    "symbol": "MTX"
+  },
+  {
+    "associatedTokenAddress": "44A3tRzYpjRT1PNsETWqG4cnaHH9cajBS5EhiALrZTbZ",
+    "mint": "5C51aPiEqxWuFWyg5oUHNG4K5xGj7pQKrJDcykvYpump",
+    "amountRaw": "8636534908",
+    "amount": "8636.534908",
+    "decimals": 6,
+    "name": "AmliAI",
+    "symbol": "ALI"
+  },
+  {
+    "associatedTokenAddress": "HLpRKhPr8dS1GyF1iQ1vJG2rWK5rDZGfgJtZu8vJ5fEK",
+    "mint": "77NGrusMdxv4Fgu9szDbxkskECQBbDFk2tGcjYbMpump",
+    "amountRaw": "6000000000",
+    "amount": "6000",
+    "decimals": 6,
+    "name": "AKANE · AI · AGENT",
+    "symbol": "AKANE"
+  },
+  {
+    "associatedTokenAddress": "3eNP2xxiD9yFWfxsdpFVFjreTU5Wecp3pMfktyJmrzH6",
+    "mint": "7nmNad9z3ZFp1ac63P75cJMcGL43LtxZVEJpx8iusHSS",
+    "amountRaw": "400000000",
+    "amount": "400",
+    "decimals": 6,
+    "name": "Santa AI",
+    "symbol": "SANTAI"
+  },
+  {
+    "associatedTokenAddress": "EsiDTeSQEhWdC3sQDn92byuwmXMhD46yeYhfGqBY4SiU",
+    "mint": "HBjUTpbqnV1zhJHCvFLw9x3YL9TXydBrUzWQmfG1pump",
+    "amountRaw": "12343802438",
+    "amount": "12343.802438",
+    "decimals": 6,
+    "name": "Gossypol",
+    "symbol": "GOS"
+  },
+  {
+    "associatedTokenAddress": "Fss5LHyZ5cqqa8Yfez4nYwXfpm5GuKUz9tknux8bSd9w",
+    "mint": "EoyA2TAFUjGDLNtmUQNQ2Sn2HX69wiGyC6Rf27RZpump",
+    "amountRaw": "7450000000",
+    "amount": "7450",
+    "decimals": 6,
+    "name": "MEI",
+    "symbol": "MEI"
+  },
+  {
+    "associatedTokenAddress": "zzA4urgq7Xzx4mi4ciZbhDPTwVnhbpB562cLaSe3EeY",
+    "mint": "4vH8XEDMmDhuzhNPPgzeKWkuRJWosmz9VAVMzqyBpump",
+    "amountRaw": "11864344693",
+    "amount": "11864.344693",
+    "decimals": 6,
+    "name": "Ergothioneine",
+    "symbol": "ERG"
+  },
+  {
+    "associatedTokenAddress": "DUUqbM2ZJdGGPbM7jhn2Z5RQ1DyLMFaHW3w8qptrtU1A",
+    "mint": "829mVfaJrE8wTqv8ymtzotNXsRDUvyWmMaACximjpump",
+    "amountRaw": "12052232613",
+    "amount": "12052.232613",
+    "decimals": 6,
+    "name": "Leucovorin",
+    "symbol": "LEU"
+  },
+  {
+    "associatedTokenAddress": "4srCTGk7N7UumZg1h7tCPMx7WmL2LBqbA2QUPbDC5tHY",
+    "mint": "3UmhxsHvh35zeDtKazW4w8UCcBYq3qXuFDkcbxNQpump",
+    "amountRaw": "1000000",
+    "amount": "1",
+    "decimals": 6,
+    "name": "Unity Software",
+    "symbol": "U"
+  },
+  {
+    "associatedTokenAddress": "622pyihDTNMLUMJoFC7fa61bCC5CUP6qTf7KGdg2qoVk",
+    "mint": "FEWuxmJD2Dv586YhW5qmxZC3crdqmWVqUxH81rSApump",
+    "amountRaw": "642246000",
+    "amount": "642.246",
+    "decimals": 6,
+    "name": "ethKILLERs.com",
+    "symbol": "ETHKILLERS"
+  },
+  {
+    "associatedTokenAddress": "2WFRmWCbTV2JBC3zYGJE8zLgnmhCefeR6yK52ZwVxwyK",
+    "mint": "7EHCuoXY8PBPiSVR9aLQnaX4MPXqUw5HjabCvQFYSSb5",
+    "amountRaw": "999000000",
+    "amount": "999",
+    "decimals": 6,
+    "name": "it's time to full port",
+    "symbol": "PORT"
+  },
+  {
+    "associatedTokenAddress": "5MxbcLcJagzd6DZkZw8MC18MnSXnqgqttX8P4LjVEMUo",
+    "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "amountRaw": "92882",
+    "amount": "0.092882",
+    "decimals": 6,
+    "name": "USD Coin",
+    "symbol": "USDC"
+  },
+  {
+    "associatedTokenAddress": "3ZzShpKGLaDk9EWW7yZ64WvTUEemwQKnG3Mmu82gwqdc",
+    "mint": "4RMSVsGaambvk3hCU9eGRexFKg1hhKX2zLjK9Zj5pump",
+    "amountRaw": "3828612573",
+    "amount": "3828.612573",
+    "decimals": 6,
+    "name": "Piracetam",
+    "symbol": "PIR"
+  },
+  {
+    "associatedTokenAddress": "4A8UroZG2E86uj4mLoR8LuKJrfsQMvpN57ztKdb1p4DY",
+    "mint": "FBiyJx7vVg5UttebKFFHJKzvjbcKy81nYEHHr7CDpump",
+    "amountRaw": "13710000000",
+    "amount": "13710",
+    "decimals": 6,
+    "name": "Frosty",
+    "symbol": "Frosty"
+  },
+  {
+    "associatedTokenAddress": "34fx1o2BWcc2cVoZ2S2PYs71a7XsoakhpUM6JKJVYjzn",
+    "mint": "ivNykMDjn9aXdXAHYz6z3q1yikDj3aT48n96T6opump",
+    "amountRaw": "30940899316",
+    "amount": "30.940899316",
+    "decimals": 9,
+    "name": "JOE ROGAN",
+    "symbol": "JOE ROGAN"
+  },
+  {
+    "associatedTokenAddress": "5LEnaBJ2WW5huBQSpD3RyqMBxEvWcu7xVtZUNKFUPtLn",
+    "mint": "CN3mhQLycThLybv46GCJMP6xn2Cu6FmDnVaSd3Sqf7uz",
+    "amountRaw": "10000000000",
+    "amount": "10000",
+    "decimals": 6,
+    "name": "KiK",
+    "symbol": "KiK"
+  },
+  {
+    "associatedTokenAddress": "H6Tpb5DrJW59wsC2GZcijxxEVdbiCa2GCnMjgb7ejC1G",
+    "mint": "8s5qcDT9xBFZJdDyqmFUudnQYter79pJ5LfDYnnapump",
+    "amountRaw": "5000000000",
+    "amount": "5000",
+    "decimals": 6,
+    "name": "Black Moon Rising",
+    "symbol": "BMR"
+  },
+  {
+    "associatedTokenAddress": "7aJDVikgGRkXykNBfjuagKTCVWKeXiu2sFARFyFWJipQ",
+    "mint": "LMFzmYL6y1FX8HsEmZ6yNKNzercBmtmpg2ZoLwuUboU",
+    "amountRaw": "40000000000",
+    "amount": "40",
+    "decimals": 9,
+    "name": "Lamas Finance",
+    "symbol": "LMF"
+  },
+  {
+    "associatedTokenAddress": "5Bq7gXaTUgRU53YUbpYiHbzhodtiXJ5eFifhppEztUWG",
+    "mint": "9J5dhatiCeDtxEUj2g4pQtckvEyNiDwzL9ypmeCL7bTA",
+    "amountRaw": "22000000",
+    "amount": "22",
+    "decimals": 6,
+    "name": "OFFICIAL TRUMP",
+    "symbol": "TRUMP"
+  },
+  {
+    "associatedTokenAddress": "BGVLkaR7SLPQSMqkkzF55Zd39dKL6UyRgDjRVdWDa3LS",
+    "mint": "7efb9hgsWqHcJrgmSujzL5KTyodWkCGNjnrJKU2bpump",
+    "amountRaw": "6915414195",
+    "amount": "6915.414195",
+    "decimals": 6,
+    "name": "𝕏Mas bae",
+    "symbol": "XBAE"
+  },
+  {
+    "associatedTokenAddress": "BmXsM5uiwGm2aJ4Cwezrexjk3DF6R7nGYUWWZdegi8iW",
+    "mint": "EjRX3ueeQVQrJUdFLX6kCohsRUKfHtD314Uga66WdoG",
+    "amountRaw": "341000000",
+    "amount": "341",
+    "decimals": 6,
+    "name": "SOLDOG",
+    "symbol": "DOG"
+  },
+  {
+    "associatedTokenAddress": "8KQ9fDA1g8cHR8r7AB82rfiCW1w73Qes1HDrGcHXDEMR",
+    "mint": "CQM6b2sTbQKmC5Lcz5GogVNnhcNctF3WUmeTzqwrpump",
+    "amountRaw": "6969000000",
+    "amount": "6969",
+    "decimals": 6,
+    "name": "normie",
+    "symbol": "normie"
+  },
+  {
+    "associatedTokenAddress": "GJiQx5mTvgfQWiePoEcTz767w32Hhtgh5zVSfnLgF2oK",
+    "mint": "HnFrSEaRJ6QjWJdncQMthUDHFbbAm3kkCFmcAPsVMQoe",
+    "amountRaw": "18000000",
+    "amount": "18",
+    "decimals": 6,
+    "name": "OFFICIAL TRUMP",
+    "symbol": "TRUMP"
+  },
+  {
+    "associatedTokenAddress": "5wybUiYVB5CVP2n3nbywzsUJiFTB8E6VxSqReYWoCWqz",
+    "mint": "BNRx1ktoVZdnDtZzNdMaSfZXFWn6NpxcEjT6Jn4Rpump",
+    "amountRaw": "6020316012",
+    "amount": "6020.316012",
+    "decimals": 6,
+    "name": "SR9009",
+    "symbol": "SR9009"
+  },
+  {
+    "associatedTokenAddress": "5y8geu3YA8Zzkb2A37CG3JHgwWKUB9GRTt4hf4LMpvKP",
+    "mint": "C7CWzvD2WQtB7xTEEC3wCKGerj6KdZMoS97UGnP9gHFE",
+    "amountRaw": "107169439260",
+    "amount": "107.16943926",
+    "decimals": 9,
+    "name": "OFFICIAL BARRON",
+    "symbol": "BARRON"
+  },
+  {
+    "associatedTokenAddress": "9QaRVyomNuC14daNecJVD7EN9HCTQyiyLfaEgRtdyEvb",
+    "mint": "E4sxoon9gEg9RVstz8ZsgLAQG3wvCSY9kug2WFTJHdjs",
+    "amountRaw": "4016246100",
+    "amount": "4016.2461",
+    "decimals": 6,
+    "name": "STREAMING TILL 50 MILLION",
+    "symbol": "FIFTY"
+  },
+  {
+    "associatedTokenAddress": "Ffh1MXACzghWufFVZpHDQQFGZZ35D3MVCMHDmcdeCyZA",
+    "mint": "8mGWYbG4exDAfmG1za6KFUTQy82CbvEmcrBYHiS7YLSV",
+    "amountRaw": "999000000000",
+    "amount": "999",
+    "decimals": 9,
+    "name": "Eliza",
+    "symbol": "ELIZA"
+  },
+  {
+    "associatedTokenAddress": "5vHYWohsisdXM7aDpRc5H4nop5NHgPvLmQEyRx3KYhVt",
+    "mint": "8Kcj1uUGyKKdXmo1MBWv3K6tpj5BWLhBLLy6W9Lrmoon",
+    "amountRaw": "1000000000000",
+    "amount": "1000",
+    "decimals": 9,
+    "name": "ZELDA Coin AI",
+    "symbol": "ZeldaCoin"
+  },
+  {
+    "associatedTokenAddress": "CEY6KdLLhFUZ8XKKKRVZCcryGfxTJx9d7Ays8JedcCBL",
+    "mint": "6cJ5GPBwpZWh9UUHTBrNd86zjJt2SXHotmRuBktZoHLe",
+    "amountRaw": "999000000000",
+    "amount": "999",
+    "decimals": 9,
+    "name": "LIMBO",
+    "symbol": "LIMBO"
+  },
+  {
+    "associatedTokenAddress": "7j6nm16WJ6nX75udT3d5vsX524w23eeNvxMTEuPtr4Xs",
+    "mint": "8QAszn4FdpnU7PUegPevN6NmS9776mvG3E2moFdgpump",
+    "amountRaw": "42719000000",
+    "amount": "42719",
+    "decimals": 6,
+    "name": "BTFDCOIN",
+    "symbol": "BTFD"
+  },
+  {
+    "associatedTokenAddress": "EVKNpQTBadiYymGonjJqhtuNFAzG2qYgGsKKgTLcyir6",
+    "mint": "zvF4QVbMLfecgJnWWwVtA2yBPZdub7ZswsXYXw2cppp",
+    "amountRaw": "104000000",
+    "amount": "104",
+    "decimals": 6,
+    "name": "PIP",
+    "symbol": "PIP"
+  },
+  {
+    "associatedTokenAddress": "5e5UJK9YTPEKnWfWUqDAgUGPW5r1ihsxh4uaopMGFPGe",
+    "mint": "HWP7XaZBsVd1CuwsRAVcq2f5RTQLNFNPdNiTnr1B3T7z",
+    "amountRaw": "33000000000",
+    "amount": "33",
+    "decimals": 9,
+    "name": "Universal Basic Compute",
+    "symbol": "UBC"
+  },
+  {
+    "associatedTokenAddress": "A96xnHnLoxNBKTbikc9KgXeYVTTthYg8SscwANWvvnCt",
+    "mint": "8XUCKV4HfNYq9fhP9gGkZGvdoJStr2AKigWGSLPYpump",
+    "amountRaw": "100000000000",
+    "amount": "100000",
+    "decimals": 6,
+    "name": "Soldier.ai",
+    "symbol": "SAI"
+  },
+  {
+    "associatedTokenAddress": "CuvA8jkwkTCKf1YsGirtRd76YqguBrUh5XCyZBvk9xBt",
+    "mint": "5AsDNsjGypCyDht3moUUKTVRnZ7Nu2LiupnVP5GV7piv",
+    "amountRaw": "1000000000",
+    "amount": "1000",
+    "decimals": 6,
+    "name": "PumpIt",
+    "symbol": "PumpIt"
+  },
+  {
+    "associatedTokenAddress": "9A52SHZg2dfm5yuxLaJQYe7MYFGNqkpF1YC5KySRFVTV",
+    "mint": "9GTrg7aoDeXNyibDR5vNA45oY49vyxSGoDtMGhjeZZWU",
+    "amountRaw": "1000000000000",
+    "amount": "1000",
+    "decimals": 9,
+    "name": "JUSTICE FOR DOG KILLED BY COP",
+    "symbol": "MAXI"
+  },
+  {
+    "associatedTokenAddress": "AeVLkGkPmWWZVEN2xTJRk5jfoHmoDDRC5mN5pAdgTNBk",
+    "mint": "6AsPKWuKgD26dS4dcbmp8JouXLvxm3bFuhcwhjgM9aKA",
+    "amountRaw": "999000000000",
+    "amount": "999",
+    "decimals": 9,
+    "name": "Vine Coin",
+    "symbol": "VINE"
+  },
+  {
+    "associatedTokenAddress": "APV1cP82hE5YcjKaqzqpGoFza25LCrKotUytwfNzftkw",
+    "mint": "9hdmUKtms44YdUkPm6MvmtHbT39NeNpD6PUPjWsTpump",
+    "amountRaw": "100000000000",
+    "amount": "100000",
+    "decimals": 6,
+    "name": "PeiDay",
+    "symbol": "PEII"
+  },
+  {
+    "associatedTokenAddress": "9Ps5L6RiGXbja8YpJYeactmaCgrvUgZBRzQJXgUAwGUu",
+    "mint": "2DCkxjNEqtKDGu4jvnAFjnhNmmKAaieKVUBfVGvnm2x7",
+    "amountRaw": "999000000000",
+    "amount": "999",
+    "decimals": 9,
+    "name": "Z̶A̴I̴L̶G̶O",
+    "symbol": "ZAILGO"
+  },
+  {
+    "associatedTokenAddress": "BULGfkDJ8MPZUNPviP1jhwfaXnGu9JRbkZGMx9vwXBUv",
+    "mint": "78WvLciom68SyDhxWacg381osRTHgpbwaidmMcYEpump",
+    "amountRaw": "21204000000",
+    "amount": "21204",
+    "decimals": 6,
+    "name": "Catoff",
+    "symbol": "CATOFFAI"
+  },
+  {
+    "associatedTokenAddress": "3wTvk67Zu1ueH2dM5DGbqewKvbAZ7fhGdRn82NC1cZVJ",
+    "mint": "p5UXrK5a3y42canbGv5gdT6nsJZKaPCPayXDamvDbun",
+    "amountRaw": "76000000",
+    "amount": "76",
+    "decimals": 6,
+    "name": "BUNNY",
+    "symbol": "BUNNY"
+  },
+  {
+    "associatedTokenAddress": "9V19khWugSsSoGaSzTuSJ2UTG4WEyoaNuxvaLXjTyNwK",
+    "mint": "Bt7mtUr6LhqeAdjHwjCXZUXfLiUoAEKKjLPwieEu1Jsu",
+    "amountRaw": "999000000000",
+    "amount": "999",
+    "decimals": 9,
+    "name": "dog with apple in mouth",
+    "symbol": "APPLE"
+  },
+  {
+    "associatedTokenAddress": "EayZw3UA7BXuXgTnJJgQyYFwvJHDGpJL3bo11v15YDzN",
+    "mint": "2rYmanefN8uCQuHyrujudcY8ji8QGPwiYyz9hHvaoVSH",
+    "amountRaw": "1000000000",
+    "amount": "1000",
+    "decimals": 6,
+    "name": "METAVERSE",
+    "symbol": "METAV"
+  },
+  {
+    "associatedTokenAddress": "6gsCx2NAbZgb6EQ3K8pP3t2abz1eMyDWwev8PF86AUCd",
+    "mint": "CtrHnS8rRxA6gYVbki5viHBARC2fkhx1SyXtS7nBbZu",
+    "amountRaw": "1399000000",
+    "amount": "1399",
+    "decimals": 6,
+    "name": "Vine Coin",
+    "symbol": "VINE"
+  },
+  {
+    "associatedTokenAddress": "DPqUdkL8b6qUkKHRZYV3ingRnBrQMVkvGF1AtvaUMd3o",
+    "mint": "GaZ6En5JWWR7u7dqnpvRr5tk56XRV3KRtZwdeuR3pump",
+    "amountRaw": "1000000000",
+    "amount": "1000",
+    "decimals": 6,
+    "name": "Principals Network",
+    "symbol": "PNET"
+  },
+  {
+    "associatedTokenAddress": "8UDcFCHMuNHGr8MS7EAd98aRRdW8wWbT32ZffN5iYGpa",
+    "mint": "E99fN4tCRb1tQphXK1DU7prXji6hMzxETyPNJro19Fwz",
+    "amountRaw": "160000000",
+    "amount": "160",
+    "decimals": 6,
+    "name": "CatSolHat",
+    "symbol": "SOLCAT"
+  },
+  {
+    "associatedTokenAddress": "FdqFx5xcQHwTj93TLUQ3gA6aSekQeo7RPYMxw6Uf3M6V",
+    "mint": "DYafBMz7i7HfXh13d9aBigGcfCoeGTtj4RMgi9wupump",
+    "amountRaw": "12000000000",
+    "amount": "12000",
+    "decimals": 6,
+    "name": "Lithium Defi",
+    "symbol": "LITHIUM"
+  },
+  {
+    "associatedTokenAddress": "29ZmdLK84swdkMFShLWmSokQbQiiYxCA3EtYEvT8A81F",
+    "mint": "Cd89A1iMaDSvgJcV8esNCWr2bD9ZQ3sC8Bp9wUMQpump",
+    "amountRaw": "6123000000",
+    "amount": "6123",
+    "decimals": 6,
+    "name": "𝔹𝕝𝕒𝕕𝕖",
+    "symbol": "BLADE"
+  },
+  {
+    "associatedTokenAddress": "ENDM1YK5i3e32Xf9cnsQNLK3cma4PNBWyd12hvM9QpaB",
+    "mint": "DtzWkRZPzdrgXWDKDaDLD2pKYn6PYxGdi2KBnm5JeaCQ",
+    "amountRaw": "46000000",
+    "amount": "46",
+    "decimals": 6,
+    "name": "FLOCKY",
+    "symbol": "FLOCKY"
+  },
+  {
+    "associatedTokenAddress": "H8TS92CkEsr5PmtLhrF15wrUf6dB9HjzUZyKvRLBHqwU",
+    "mint": "rG19j9jSirQx4oSzvgnhWoSbBuzQEPcVu31w2jFpump",
+    "amountRaw": "8888000000",
+    "amount": "8888",
+    "decimals": 6,
+    "name": "enchanted golden apple",
+    "symbol": "Apple"
+  },
+  {
+    "associatedTokenAddress": "B7JoNaPXxjgtRxRZ695pkSifqnvgaiic5DLJkDNHmkxu",
+    "mint": "5BTZdo5r7J6wC3xSCRgcq8e19SEWN8bB3YA5wvLKt3T7",
+    "amountRaw": "999000000",
+    "amount": "999",
+    "decimals": 6,
+    "name": "h2w6gm6jz",
+    "symbol": "h2w6gm6jz"
+  },
+  {
+    "associatedTokenAddress": "AoCqDdHY8JS6Aktpa8BDmWff5KRQQnsbBSWy5MUv3W4z",
+    "mint": "gyv5koYKmKMjceTprUCswnFRWyrD1GX2LvxQfTQXbun",
+    "amountRaw": "291000000",
+    "amount": "291",
+    "decimals": 6,
+    "name": "BUNNY",
+    "symbol": "BUNNY"
+  },
+  {
+    "associatedTokenAddress": "7w5VNqYQ4UW42sJosgYJSqHRwiXsXf2ibHQd3ni545Wc",
+    "mint": "5ZFhn1zur3y6Y4YxQmSGFE1jCZ51q52Y68ZVsJhepump",
+    "amountRaw": "10000000000",
+    "amount": "10000",
+    "decimals": 6,
+    "name": "Spacekayak AI",
+    "symbol": "Spacekayak"
+  },
+  {
+    "associatedTokenAddress": "EoE5dZLNFDPfpgAvmWLnLZEBhTqkD7fXKn6i2osj3NxA",
+    "mint": "6mvoSNnCgus51EsHUusyoaBZdkYgFYriL1AU6g14rjPR",
+    "amountRaw": "99000000000",
+    "amount": "99",
+    "decimals": 9,
+    "name": "Official Mascot of theHolyYear",
+    "symbol": "LUCE"
+  },
+  {
+    "associatedTokenAddress": "GQfZqGA3S7Vd8vFvAR89AVhW6SvPsisNB39z9FDAm48x",
+    "mint": "8o8S4RcRmp4SSsgP41p6BiYtS38akswZwwyvcoSQSAUr",
+    "amountRaw": "1000000000000",
+    "amount": "1000",
+    "decimals": 9,
+    "name": "MOHAWKFOOT",
+    "symbol": "MHKFT"
+  },
+  {
+    "associatedTokenAddress": "EY8E6MWfY9YGFHBjqJU9537TPFW1gA4WuPqBX31AppYw",
+    "mint": "GVWtgCSgUpxeJnRYztFWBia6xAFN8PmSBM5YCxLzpump",
+    "amountRaw": "55000000",
+    "amount": "55",
+    "decimals": 6,
+    "name": "Protect",
+    "symbol": "Protect"
+  },
+  {
+    "associatedTokenAddress": "HtMzKFJbhpNwTfovePPTC45xArHvkmTHooLA2Sfn57aB",
+    "mint": "3crvHZsZTRjY4ABGtVtYkhRKw2dUWTPZSBBdhxDG1Lpx",
+    "amountRaw": "2222000000",
+    "amount": "2222",
+    "decimals": 6,
+    "name": "METAVERSE​",
+    "symbol": "METAV​"
+  },
+  {
+    "associatedTokenAddress": "C5oPy8bNoB9cpLvzHhdfQgmbP6kBX56iMr1u1ATP6xFq",
+    "mint": "6GBTAuhBo4C2NZG7fPi7aichRaVKJtrr5hbfGPoz4jeA",
+    "amountRaw": "1000000000000",
+    "amount": "1000",
+    "decimals": 9,
+    "name": "Pepe The King Prawn",
+    "symbol": "Prawn"
+  },
+  {
+    "associatedTokenAddress": "BZEntsFGTUB5ZF93Gk1wQ6XGGoWzMvc4cjBvewfvJF3k",
+    "mint": "9YX6TR6X6gCmMhyVyZ43WX5hW6NahNXUqGm8d4wdxQKW",
+    "amountRaw": "100000000000",
+    "amount": "100",
+    "decimals": 9,
+    "name": "Golden Dog",
+    "symbol": "GDOG"
+  },
+  {
+    "associatedTokenAddress": "3PNPFgfvQ2A5ZXQvtZUEFHwPPqtbny6f3USP9yWWxef6",
+    "mint": "3UfknvCm4No13GHBPwNvXqJt9kroZcPv3psWswqpzixt",
+    "amountRaw": "2500000000",
+    "amount": "2500",
+    "decimals": 6,
+    "name": "Turtle Pepe",
+    "symbol": "TUPE"
+  },
+  {
+    "associatedTokenAddress": "Gea5i5TJWUdJJSgYSRxjapKzPaw856bXEa3t19DGFTgU",
+    "mint": "Lb3KuoAStXZdiS7JmhEQKZrU336NUdoWHMDx6A59TkP",
+    "amountRaw": "25123420",
+    "amount": "25.12342",
+    "decimals": 6,
+    "name": "Pato",
+    "symbol": "PATO"
+  },
+  {
+    "associatedTokenAddress": "DHx6oJi25ffWY5bDTy6ijtmaML9qiGYBCQ4sXQfmtcoc",
+    "mint": "2pKkWmp2xwTPJz79Hit41tV4sxmpfWa57yvLyb6fpump",
+    "amountRaw": "100000000000",
+    "amount": "100000",
+    "decimals": 6,
+    "name": "The DON’T Coin",
+    "symbol": "DONT"
+  },
+  {
+    "associatedTokenAddress": "Exi7Py9CXfEi1KsCQYo2j29Uudpksi4WnC68khUvvRdv",
+    "mint": "6J8NBGcivNmP65RRE45pjmBTAqevzxzrFEH4wQv1atKB",
+    "amountRaw": "66200000",
+    "amount": "66.2",
+    "decimals": 6,
+    "name": "Vine Coin",
+    "symbol": "VINE"
+  },
+  {
+    "associatedTokenAddress": "8ujcT2Fx2q9zJTpNojT2ZAf9CJyjtoq9kWw4CqCzarSP",
+    "mint": "CQvsG2A7agnkrBEBhNxx8LweaELeXjjgZAf2ycFNpump",
+    "amountRaw": "5700000000",
+    "amount": "5700",
+    "decimals": 6,
+    "name": "LINSA",
+    "symbol": "LINSA"
+  },
+  {
+    "associatedTokenAddress": "DPxDFe5X8LWFPHBUi8zL15gXR6i7s2B74Qwdzmr3BtPg",
+    "mint": "JCe4cq9bqL1238wfFjfFQ316PrS2sASKkesLYEyCpump",
+    "amountRaw": "100000000",
+    "amount": "100",
+    "decimals": 6,
+    "name": "Minidoge",
+    "symbol": "Minidoge"
+  },
+  {
+    "associatedTokenAddress": "2NPAynq8ZcG6ZpXMAhpgaJKEViUaaGdYxWscY36zXYDQ",
+    "mint": "8Koxx9NGGxXJcQrxsueqGB2bfP6FJ7LdZ9CnimZWmKSA",
+    "amountRaw": "200000000",
+    "amount": "200",
+    "decimals": 6,
+    "name": "ALON",
+    "symbol": "ALON"
+  },
+  {
+    "associatedTokenAddress": "HVnkGLuHshfkFWy1dKtKgC73SgvVN8RbXPaneZJeocyp",
+    "mint": "7EUaS3yDoUKfyP8u8smj47sENcP6UnG2WWgW8waYhhUg",
+    "amountRaw": "200000000000",
+    "amount": "200",
+    "decimals": 9,
+    "name": "YEGY",
+    "symbol": "YEGY"
+  },
+  {
+    "associatedTokenAddress": "Eu1mo4YQmhSjcnCXaAzLmeW1QxSD77phBYPvD1gXDMvf",
+    "mint": "GWnR983hBNWkGkaauz2BvcELZXudxxL4TxkY5vwbKkiJ",
+    "amountRaw": "164050780000000",
+    "amount": "164050.78",
+    "decimals": 9,
+    "name": "MOONWAVE",
+    "symbol": "WAVEAI🔋"
+  },
+  {
+    "associatedTokenAddress": "HfTpjKqBbUceM6VHmx7ySqerbuAGp4TU9WN8hF7zf11",
+    "mint": "9AK9N7GEPzHNdfqbMnJoKGpVbgUbihLyczfYp6yQJF7x",
+    "amountRaw": "12000000000",
+    "amount": "12000",
+    "decimals": 6,
+    "name": "☑ Genopets - Play To Earn",
+    "symbol": "$GENO"
+  },
+  {
+    "associatedTokenAddress": "EXePfasHYgHy8vc92YaVKqYH8ZKtMV1aNxYS3wJJP6tQ",
+    "mint": "HRJxfyFtjpv7L6WoDV216pGoHCcWs46AzsmSuDaepump",
+    "amountRaw": "12415301431",
+    "amount": "12415.301431",
+    "decimals": 6,
+    "name": "Nicotine",
+    "symbol": "NICO"
+  },
+  {
+    "associatedTokenAddress": "Gkt8hPvT1M1Sr8siWtat2w4XN9wRmFHayBrZbGmotVXM",
+    "mint": "8rKAtA5byATxD1Hv5evy9G4YFE2VhA1qhAi7oVABJryY",
+    "amountRaw": "7500000000000",
+    "amount": "7500",
+    "decimals": 9,
+    "name": "New Years Doge",
+    "symbol": "NYE"
+  },
+  {
+    "associatedTokenAddress": "6f1tPLxeez62jp1Pz1BG7F3nGAn1ebJUZEZqeJiuSfQ1",
+    "mint": "GR5AJW95t89HJFzoFUyziiTuEDwJ38G2YXin5Uekpump",
+    "amountRaw": "13400000000",
+    "amount": "13400",
+    "decimals": 6,
+    "name": "BULLYGANG",
+    "symbol": "BG"
+  },
+  {
+    "associatedTokenAddress": "J6VFnuJSX3QFwrKzZbvVZsZxv9G5gmEjN5XYYFVnuGVx",
+    "mint": "8Bda3Ei51unPvTax1dxyLZXuQkQ9cC4xnGwWyBRspump",
+    "amountRaw": "11042045126",
+    "amount": "11042.045126",
+    "decimals": 6,
+    "name": "Zanamivir",
+    "symbol": "ZAN"
+  },
+  {
+    "associatedTokenAddress": "JgSM9ZUfWhokbBGMPncaiV9gfZ4nda33g5fdnw4x7Hj",
+    "mint": "AHWEemGkseVuuuig7gamyzYCJJqJ8rf9tQkeiffRpump",
+    "amountRaw": "10000000000",
+    "amount": "10000",
+    "decimals": 6,
+    "name": "Chippi Twins",
+    "symbol": "CHIPPI"
+  },
+  {
+    "associatedTokenAddress": "6C4WqJvEsj9hABG86rNeEMhNhhefEMETbDnAVFbXQNz5",
+    "mint": "HMdKyf7UhtBnmxbuGNzDMZnTSMvUCuP1NwWtUWEupump",
+    "amountRaw": "5600000000",
+    "amount": "5600",
+    "decimals": 6,
+    "name": "Donmalone",
+    "symbol": "Donmalone"
+  },
+  {
+    "associatedTokenAddress": "DAsGNq1ULSRkyLwKbsykiyKzDbCHb3vhAoQpneQaMDCV",
+    "mint": "5hmJneWncvKkd2BUkoNssdTanXcap4vQi7RvW5Rypump",
+    "amountRaw": "6508390784",
+    "amount": "6508.390784",
+    "decimals": 6,
+    "name": "Radiant AI",
+    "symbol": "RAC"
+  },
+  {
+    "associatedTokenAddress": "HTqYAUmuiZbg8SCadpVV4wPosfHoF3GtvJ9DgkyBgUwE",
+    "mint": "hn9T4ZGUN9e6vLEmirMHJZabc59LrVqFnSnb9z9Pbad",
+    "amountRaw": "46000000",
+    "amount": "46",
+    "decimals": 6,
+    "name": "LEGO BAD",
+    "symbol": "LBAD"
+  },
+  {
+    "associatedTokenAddress": "AqZ4r3joFAE5rRXzhAyKz5RC33yn6trjCu3nJBy83Cq1",
+    "mint": "GFKJqQtEBLqGXcLJTfMPmkmUptiMJqegxwhHVHkjpump",
+    "amountRaw": "15156867130",
+    "amount": "15156.86713",
+    "decimals": 6,
+    "name": "Pterostilbene",
+    "symbol": "PTE"
+  },
+  {
+    "associatedTokenAddress": "9TFRUtYpGnPFjhe48QhvsX1d2cPbP8HwCA7avhUWGUoU",
+    "mint": "zmkR4aUeqVj28eePK3hjyPGwZ6jP9unnf2KQQbGtwfn",
+    "amountRaw": "492000000",
+    "amount": "492",
+    "decimals": 6,
+    "name": "WOLFINA",
+    "symbol": "WLFN"
+  },
+  {
+    "associatedTokenAddress": "DUugj1F9qNvx98gGPD6nJh5LhFaYuZhegDtzC7ngt3o",
+    "mint": "9mCGdt1eFiVi9DnCYqS6xvrkRgHYz2AXsrXcptKb5LSe",
+    "amountRaw": "1998000000000",
+    "amount": "1998",
+    "decimals": 9,
+    "name": "Gen Z Quant",
+    "symbol": "Quant"
+  },
+  {
+    "associatedTokenAddress": "HpejrYJJpjiQzewpKTF9WpEKDqu8FRwzKH5HGhxx8Su8",
+    "mint": "83xejQ2QoHWD47REppszZPbvkzHUyem5SSkjyXBFieoC",
+    "amountRaw": "10000",
+    "amount": "0.00001",
+    "decimals": 9,
+    "name": "BabyPOES",
+    "symbol": "BABYPOES"
+  }
+]

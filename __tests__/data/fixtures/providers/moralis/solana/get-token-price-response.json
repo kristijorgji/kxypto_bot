@@ -1,0 +1,13 @@
+{
+  "tokenAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+  "pairAddress": "71HuFmuYAFEFUna2x2R4HJjrFNQHGuagW3gUMFToL9tk",
+  "exchangeName": "Meteora DLMM",
+  "exchangeAddress": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+  "nativePrice": {
+    "value": "100655127",
+    "symbol": "WSOL",
+    "name": "Wrapped Solana",
+    "decimals": 9
+  },
+  "usdPrice": 22.758444053
+}

@@ -7,6 +7,38 @@ type CursorPaginatedResponse<T> = {
     result: T[];
 };
 
+type GetTokenPriceResponse = {
+    nativeBalance: {
+        lamports: string;
+        solana: string;
+    };
+    tokens: {
+        associatedTokenAddress: string;
+        mint: string;
+        amountRaw: string;
+        amount: string;
+        decimals: 6;
+        name: string;
+        symbol: string;
+    }[];
+    nfts: unknown[];
+};
+
+type GetOhlcvByPairAddressResponse = CursorPaginatedResponse<{
+    timestamp: string; // ex '2025-01-31T23:58:35.000Z'
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+    trades: number;
+}> & {
+    pairAddress: string;
+    tokenAddress: string;
+    timeframe: string;
+    currency: string;
+};
+
 type TokenType = 'token0' | 'token1';
 
 type ExchangeName = 'Meteora DLMM' | 'Orca Whirlpool' | 'Raydium CLMM' | 'Raydium CPMM' | string;
@@ -146,6 +178,35 @@ type GetPairTradesResponse = {
     }[];
 };
 
+type GetWalletTokenSwapsResponse = CursorPaginatedResponse<Swap>;
+
+type GetWalletTokenBalances = {
+    associatedTokenAddress: string;
+    mint: string;
+    amountRaw: string;
+    amount: string;
+    decimals: number;
+    name: string;
+    symbol: string;
+}[];
+
+type GetWalletPortfolioResponse = {
+    nativeBalance: {
+        lamports: string;
+        solana: string;
+    };
+    tokens: {
+        associatedTokenAddress: string;
+        mint: string;
+        amountRaw: string;
+        amount: string;
+        decimals: 6;
+        name: string;
+        symbol: string;
+    }[];
+    nfts: unknown[];
+};
+
 export default class Moralis {
     private readonly reqConfig: AxiosRequestConfig;
 
@@ -162,6 +223,46 @@ export default class Moralis {
         } as AxiosRequestConfig;
     }
 
+    /**
+     * Gets the token price (usd and native) for a given contract address and network.
+     * Fetches the price information for the DEX pair with the highest liquidity
+     * @see https://docs.moralis.com/web3-data-api/solana/reference/price/get-sol-token-price?network=mainnet&address=SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt
+     */
+    async getTokenPrice({ tokenAddress }: { tokenAddress: string }): Promise<GetTokenPriceResponse> {
+        return (
+            await axios.get(`https://solana-gateway.moralis.io/token/mainnet/${tokenAddress}/price`, this.reqConfig)
+        ).data as GetTokenPriceResponse;
+    }
+
+    async getOhlcvByPairAddress(
+        pairAddress: string,
+        args: Record<string, unknown> & {
+            cursor?: string | null;
+            limit?: number;
+            timeframe: string; // 1s, 1h
+            fromDate: string; // The starting date (format in seconds or datestring accepted by momentjs), ex: 2024-11-25
+            toDate: string;
+            currency: string;
+        },
+    ): Promise<GetOhlcvByPairAddressResponse> {
+        const params: Record<string, string | number> = {
+            order: 'DESC',
+        };
+
+        for (const key in args) {
+            if (args[key] !== undefined && args[key] !== null) {
+                params[key] = args[key] as string | number;
+            }
+        }
+
+        return (
+            await axios.get(`https://solana-gateway.moralis.io/token/mainnet/pairs/${pairAddress}/ohlcv`, {
+                ...this.reqConfig,
+                params: params,
+            })
+        ).data as GetOhlcvByPairAddressResponse;
+    }
+
     async getTokenPairs({
         tokenAddress,
         cursor,
@@ -170,26 +271,23 @@ export default class Moralis {
         cursor?: string | null;
     }): Promise<GetTokenPairsResponse> {
         return (
-            await axios.get<GetTokenPairsResponse>(
-                `https://solana-gateway.moralis.io/token/mainnet/${tokenAddress}/pairs`,
-                {
-                    ...this.reqConfig,
-                    params: {
-                        limit: 50,
-                        ...(cursor
-                            ? {
-                                  cursor: cursor,
-                              }
-                            : {}),
-                    },
+            await axios.get(`https://solana-gateway.moralis.io/token/mainnet/${tokenAddress}/pairs`, {
+                ...this.reqConfig,
+                params: {
+                    limit: 50,
+                    ...(cursor
+                        ? {
+                              cursor: cursor,
+                          }
+                        : {}),
                 },
-            )
+            })
         ).data as GetTokenPairsResponse;
     }
 
     async getTokenPairStats(pairAddress: string): Promise<PairStats> {
         return (
-            await axios.get<PairStats>(
+            await axios.get(
                 `https://solana-gateway.moralis.io/token/mainnet/pairs/${pairAddress}/stats`,
                 this.reqConfig,
             )
@@ -204,21 +302,18 @@ export default class Moralis {
         cursor?: string | null;
     }): Promise<CursorPaginatedResponse<Swap>> {
         return (
-            await axios.get<CursorPaginatedResponse<Swap>>(
-                `https://solana-gateway.moralis.io/token/mainnet/${tokenAddress}/swaps`,
-                {
-                    ...this.reqConfig,
-                    params: {
-                        order: 'DESC',
-                        limit: 50,
-                        ...(cursor
-                            ? {
-                                  cursor: cursor,
-                              }
-                            : {}),
-                    },
+            await axios.get(`https://solana-gateway.moralis.io/token/mainnet/${tokenAddress}/swaps`, {
+                ...this.reqConfig,
+                params: {
+                    order: 'DESC',
+                    limit: 50,
+                    ...(cursor
+                        ? {
+                              cursor: cursor,
+                          }
+                        : {}),
                 },
-            )
+            })
         ).data as CursorPaginatedResponse<Swap>;
     }
 
@@ -230,20 +325,67 @@ export default class Moralis {
         cursor?: string | null;
     }): Promise<GetPairTradesResponse> {
         return (
-            await axios.get<GetPairTradesResponse>(
-                `https://solana-gateway.moralis.io/token/mainnet/pairs/${pairAddress}/swaps`,
-                {
-                    ...this.reqConfig,
-                    params: {
-                        order: 'DESC',
-                        ...(cursor
-                            ? {
-                                  cursor: cursor,
-                              }
-                            : {}),
-                    },
+            await axios.get(`https://solana-gateway.moralis.io/token/mainnet/pairs/${pairAddress}/swaps`, {
+                ...this.reqConfig,
+                params: {
+                    order: 'DESC',
+                    ...(cursor
+                        ? {
+                              cursor: cursor,
+                          }
+                        : {}),
                 },
-            )
+            })
         ).data as GetPairTradesResponse;
+    }
+
+    async getWalletTokenSwaps({
+        walletAddress,
+        transactionTypes,
+        limit,
+        cursor,
+    }: {
+        walletAddress: string;
+        transactionTypes?: TransactionType;
+        limit?: number;
+        cursor?: string | null;
+    }): Promise<GetWalletTokenSwapsResponse> {
+        const params: Record<string, string | number> = {
+            order: 'DESC',
+        };
+
+        if (cursor) {
+            params.cursor = cursor;
+        }
+
+        if (limit) {
+            params.limit = limit;
+        }
+
+        if (transactionTypes) {
+            params.transactionTypes = transactionTypes;
+        }
+
+        return (
+            await axios.get(`https://solana-gateway.moralis.io/account/mainnet/${walletAddress}/swaps`, {
+                ...this.reqConfig,
+                params: params,
+            })
+        ).data as GetWalletTokenSwapsResponse;
+    }
+
+    async getWalletTokenBalances({ walletAddress }: { walletAddress: string }): Promise<GetWalletTokenBalances> {
+        return (
+            await axios.get(`https://solana-gateway.moralis.io/account/mainnet/${walletAddress}/tokens`, this.reqConfig)
+        ).data as GetWalletTokenBalances;
+    }
+
+    async getWalletPortfolio({ walletAddress }: { walletAddress: string }): Promise<GetWalletPortfolioResponse> {
+        return (
+            await axios.get(
+                `https://solana-gateway.moralis.io/account/mainnet/${walletAddress}/portfolio`,
+                this.reqConfig,
+            )
+        ).data as GetWalletPortfolioResponse;
     }
 }

@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest",
     "start": "ts-node -r dotenv/config src/index.ts",
-    "example": "ts-node -r dotenv/config src/examples/getTokenHoldersViaHelius.ts",
+    "example": "ts-node -r dotenv/config src/examples/pumpfun.ts",
     "dev:cli": "ts-node src/console/cli.ts",
     "compile": "tsc",
     "lint": "eslint '{src,__tests__}/**/*.ts'",
@@ -18,6 +18,7 @@
     "@project-serum/anchor": "^0.26.0",
     "@raydium-io/raydium-sdk": "^1.3.1-beta.58",
     "@raydium-io/raydium-sdk-v2": "^0.1.106-alpha",
+    "@solana/spl-token": "^0.4.12",
     "@solana/web3.js": "^1.98.0",
     "axios": "^1.7.9",
     "big-json": "^3.2.0",

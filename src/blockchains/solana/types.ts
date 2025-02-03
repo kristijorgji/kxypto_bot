@@ -1,3 +1,8 @@
+export enum TransactionMode {
+    Simulation,
+    Execution,
+}
+
 export type TokenHolder = {
     address: string;
     amount: number;

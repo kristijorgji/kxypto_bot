@@ -22,7 +22,8 @@ describe(Pumpfun.name, () => {
         const onNewTokenFn = jest.fn();
 
         pumpfun = new Pumpfun({
-            solanaWebsocketUrl: process.env.SOLANA_WSS_ENDPOINT as string,
+            rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
+            wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
         });
 
         await pumpfun.listenForPumpFunTokens(onNewTokenFn);

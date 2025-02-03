@@ -5,12 +5,21 @@ export default class HeliusProvider {
     // eslint-disable-next-line no-useless-constructor
     constructor(private readonly config: HeliusConfig) {}
 
-    async getTokenHolders(config: HeliusConfig, token: string): Promise<TokenHolder[]> {
+    async getTokenHolders({
+        tokenAddress,
+        maxToFetch,
+    }: {
+        tokenAddress: string;
+        maxToFetch?: number;
+    }): Promise<TokenHolder[]> {
+        const batchSize = 1000;
+        let totalCount = 0;
         let page = 1;
         const allOwners = new Set<TokenHolder>();
 
-        while (true) {
-            const response = await fetch(`${config.rpcUrl}/?api-key=${config.apiKey}`, {
+        // eslint-disable-next-line no-unmodified-loop-condition
+        while (!maxToFetch || totalCount < maxToFetch) {
+            const response = await fetch(`${this.config.rpcUrl}/?api-key=${this.config.apiKey}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -21,8 +30,10 @@ export default class HeliusProvider {
                     id: '421',
                     params: {
                         page: page,
-                        limit: 1000,
-                        mint: token,
+                        limit: maxToFetch
+                            ? Math.min(maxToFetch, Math.min(batchSize, maxToFetch - totalCount))
+                            : batchSize,
+                        mint: tokenAddress,
                     },
                 }),
             });
@@ -33,6 +44,7 @@ export default class HeliusProvider {
             }
 
             data.result.token_accounts.forEach(account => {
+                totalCount++;
                 allOwners.add({
                     address: account.owner,
                     amount: account.amount,

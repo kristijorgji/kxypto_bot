@@ -20,12 +20,8 @@ async function start() {
         apiKey: process.env.HELIUS_API_TOKEN as string,
     });
 
-    const tokenHolders = await heliusProvider.getTokenHolders(
-        {
-            rpcUrl: process.env.HELIUS_RPC_ENDPOINT as string,
-            apiKey: process.env.HELIUS_API_TOKEN as string,
-        },
-        tokenMint,
-    );
+    const tokenHolders = await heliusProvider.getTokenHolders({
+        tokenAddress: tokenMint,
+    });
     logger.info(`Token holders for the mint ${tokenMint} are %o`, tokenHolders);
 }

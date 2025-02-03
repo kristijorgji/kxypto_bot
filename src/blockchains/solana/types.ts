@@ -42,3 +42,21 @@ export type Asset = {
         freeze_authority: string;
     };
 };
+
+export type WssMessage = {
+    jsonrpc: '2.0';
+    method: string;
+    params: {
+        result: {
+            context: {
+                slot: number;
+            };
+            value: {
+                signature: string;
+                err: null;
+                logs?: string[];
+            };
+        };
+        subscription: number;
+    };
+};

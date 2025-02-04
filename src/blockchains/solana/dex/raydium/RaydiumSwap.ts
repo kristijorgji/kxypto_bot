@@ -13,8 +13,17 @@ import {
     TokenAmount,
     jsonInfo2PoolKeys,
 } from '@raydium-io/raydium-sdk';
-import { Connection, Keypair, PublicKey, Transaction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
-import bs58 from 'bs58';
+import {
+    Connection,
+    PublicKey,
+    RpcResponseAndContext,
+    SimulatedTransactionResponse,
+    Transaction,
+    TransactionMessage,
+    VersionedTransaction,
+} from '@solana/web3.js';
+
+import { solanaPrivateKeyToKeypair } from '../../utils/solanaPrivateKeyToKeypair';
 
 class RaydiumSwap {
     allPoolKeysJson: LiquidityPoolJsonInfo[] = [];
@@ -23,7 +32,7 @@ class RaydiumSwap {
 
     constructor(rpcUrl: string, walletPrivateKey: string) {
         this.connection = new Connection(rpcUrl, { commitment: 'confirmed' });
-        this.wallet = new Wallet(Keypair.fromSecretKey(Uint8Array.from(bs58.decode(walletPrivateKey))));
+        this.wallet = new Wallet(solanaPrivateKeyToKeypair(walletPrivateKey));
     }
 
     /**
@@ -31,7 +40,7 @@ class RaydiumSwap {
      * @async
      * @returns {Promise<void>}
      */
-    async loadPoolKeys(liquidityFile: string) {
+    loadPoolKeys = async (liquidityFile: string): Promise<void> => {
         let liquidityJson;
         if (liquidityFile.startsWith('http')) {
             const liquidityJsonResp = await fetch(liquidityFile);
@@ -44,7 +53,7 @@ class RaydiumSwap {
         }
 
         this.allPoolKeysJson = [...(liquidityJson?.official ?? []), ...(liquidityJson?.unOfficial ?? [])];
-    }
+    };
 
     /**
      * Finds pool information for the given token pair.
@@ -52,7 +61,7 @@ class RaydiumSwap {
      * @param {string} mintB - The mint address of the second token.
      * @returns {LiquidityPoolKeys | null} The liquidity pool keys if found, otherwise null.
      */
-    findPoolInfoForTokens(mintA: string, mintB: string) {
+    findPoolInfoForTokens = (mintA: string, mintB: string): LiquidityPoolKeys | null => {
         const poolData = this.allPoolKeysJson.find(
             i => (i.baseMint === mintA && i.quoteMint === mintB) || (i.baseMint === mintB && i.quoteMint === mintA),
         );
@@ -62,14 +71,14 @@ class RaydiumSwap {
         }
 
         return jsonInfo2PoolKeys(poolData) as LiquidityPoolKeys;
-    }
+    };
 
     /**
      * Retrieves token accounts owned by the wallet.
      * @async
      * @returns {Promise<TokenAccount[]>} An array of token accounts.
      */
-    async getOwnerTokenAccounts() {
+    getOwnerTokenAccounts = async (): Promise<TokenAccount[]> => {
         const walletTokenAccount = await this.connection.getTokenAccountsByOwner(this.wallet.publicKey, {
             programId: TOKEN_PROGRAM_ID,
         });
@@ -79,7 +88,7 @@ class RaydiumSwap {
             programId: i.account.owner,
             accountInfo: SPL_ACCOUNT_LAYOUT.decode(i.account.data),
         }));
-    }
+    };
 
     /**
      * Builds a swap transaction.
@@ -143,16 +152,15 @@ class RaydiumSwap {
      * Sends a versioned transaction.
      * @async
      * @param {VersionedTransaction} tx - The versioned transaction to send.
+     * @param maxRetries
      * @returns {Promise<string>} The transaction ID.
      */
-    async sendVersionedTransaction(tx: VersionedTransaction, maxRetries?: number) {
-        const txid = await this.connection.sendTransaction(tx, {
+    sendVersionedTransaction = async (tx: VersionedTransaction, maxRetries?: number): Promise<string> => {
+        return await this.connection.sendTransaction(tx, {
             skipPreflight: true,
             maxRetries: maxRetries,
         });
-
-        return txid;
-    }
+    };
 
     /**
      * Simulates a versioned transaction.
@@ -160,18 +168,18 @@ class RaydiumSwap {
      * @param {VersionedTransaction} tx - The versioned transaction to simulate.
      * @returns {Promise<any>} The simulation result.
      */
-    async simulateVersionedTransaction(tx: VersionedTransaction) {
-        const txid = await this.connection.simulateTransaction(tx);
-
-        return txid;
-    }
+    simulateVersionedTransaction = async (
+        tx: VersionedTransaction,
+    ): Promise<RpcResponseAndContext<SimulatedTransactionResponse>> => {
+        return await this.connection.simulateTransaction(tx);
+    };
 
     /**
      * Gets a token account by owner and mint address.
      * @param {PublicKey} mint - The mint address of the token.
      * @returns {TokenAccount} The token account.
      */
-    getTokenAccountByOwnerAndMint(mint: PublicKey) {
+    static getTokenAccountByOwnerAndMint(mint: PublicKey): TokenAccount {
         return {
             programId: TOKEN_PROGRAM_ID,
             pubkey: PublicKey.default,

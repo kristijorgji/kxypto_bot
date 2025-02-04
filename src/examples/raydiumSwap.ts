@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 
-import TokenMints from '../blockchains/constants/TokenMints';
+import { SolanaTokenMints } from '../blockchains/constants/SolanaTokenMints';
 import { SolanaWalletProviders } from '../blockchains/solana/constants/walletProviders';
 import { swap } from '../blockchains/solana/dex/raydium/swap';
 import { MainnetData, trimMainnetJson } from '../blockchains/solana/dex/raydium/trimMainnet';
@@ -21,8 +21,8 @@ async function start() {
     const trimmedLiquidityFilePath = './data/raydium/trimmed_mainnet.json';
     trimMainnetJson({
         mainnetData: swapPool,
-        tokenAAddress: TokenMints.Solana,
-        tokenBAddress: TokenMints.USDC,
+        tokenAAddress: SolanaTokenMints.SOL,
+        tokenBAddress: SolanaTokenMints.USDC,
         outputPath: trimmedLiquidityFilePath,
     });
 

@@ -1,11 +1,11 @@
-import { Connection, Keypair } from '@solana/web3.js';
-import bs58 from 'bs58';
+import { Connection } from '@solana/web3.js';
 import dotenv from 'dotenv';
 
-import TokenMints from '../blockchains/constants/TokenMints';
+import { SolanaTokenMints } from '../blockchains/constants/SolanaTokenMints';
 import { SolanaWalletProviders } from '../blockchains/solana/constants/walletProviders';
 import swap from '../blockchains/solana/dex/jupiter/swap';
 import solanaMnemonicToKeypair from '../blockchains/solana/utils/solanaMnemonicToKeypair';
+import { solanaPrivateKeyToKeypair } from '../blockchains/solana/utils/solanaPrivateKeyToKeypair';
 import { getTokenDecimals } from '../blockchains/solana/utils/tokens';
 import { logger } from '../logger';
 
@@ -26,10 +26,10 @@ async function start() {
         wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
     });
 
-    const r = await swap(connection, Keypair.fromSecretKey(Uint8Array.from(bs58.decode(walletInfo.privateKey))), {
-        inputMint: TokenMints.USDC,
-        outputMint: TokenMints.Solana,
-        amount: 25.259 * 10 ** (await getTokenDecimals(connection, TokenMints.USDC)),
+    const r = await swap(connection, solanaPrivateKeyToKeypair(walletInfo.privateKey), {
+        inputMint: SolanaTokenMints.USDC,
+        outputMint: SolanaTokenMints.SOL,
+        amount: 25.259 * 10 ** (await getTokenDecimals(connection, SolanaTokenMints.USDC)),
         slippagePercentage: 10,
     });
 

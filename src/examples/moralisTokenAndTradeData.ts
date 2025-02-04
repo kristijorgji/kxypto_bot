@@ -1,8 +1,7 @@
-import { Connection } from '@solana/web3.js';
 import dotenv from 'dotenv';
 
 import Moralis from '../blockchains/solana/providers/moralis/Moralis';
-import Solana from '../blockchains/solana/Solana';
+import SolanaAdapter from '../blockchains/solana/SolanaAdapter';
 import { getDateSecondsAgo } from '../utils/time';
 
 dotenv.config();
@@ -17,12 +16,10 @@ dotenv.config();
 async function start() {
     const tokenMint = '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN';
 
-    const supply = await new Solana().getCirculatingSupply(
-        new Connection(process.env.SOLANA_RPC_ENDPOINT as string, {
-            wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
-        }),
-        tokenMint,
-    );
+    const supply = await new SolanaAdapter({
+        rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
+        wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
+    }).getCirculatingSupply(tokenMint);
     console.log('supply', supply);
 
     const moralis = new Moralis({

@@ -52,33 +52,27 @@ async function start() {
         logger.info('Will snipe new pumpfun token %s %s', data.name, `https://pump.fun/coin/${tokenMint}`);
 
         try {
-            await pumpfun.buy({
+            const inSol = 0.005;
+            const buyRes = await pumpfun.buy({
                 transactionMode: TransactionMode.Execution,
                 payerPrivateKey: walletInfo.privateKey,
                 tokenMint: tokenMint,
-                solIn: 0.01,
+                solIn: inSol,
                 slippageDecimal: 0.5,
                 priorityFeeInSol: 0.002,
             });
 
-            logger.info('Sleeping 12s for things to calm down and store in blockchain');
-            await sleep(12000);
+            logger.info('Bought successfully %s amountRaw for %s sol', buyRes.boughtAmountRaw, inSol);
 
-            const portfolio = await moralis.getWalletPortfolio({
-                walletAddress: walletInfo.address,
-            });
-            const tokenInPortfolio = portfolio.tokens.find(e => e.mint === tokenMint);
-            logger.info('Will sell all amount of token %o', tokenInPortfolio);
-
-            logger.info('Sleeping 2s');
-            await sleep(2000);
+            logger.info('Sleeping 5s then selling');
+            await sleep(5000);
 
             await pumpfun.sell({
                 transactionMode: TransactionMode.Execution,
                 payerPrivateKey: walletInfo.privateKey,
                 tokenMint: tokenMint,
                 slippageDecimal: 0.5,
-                tokenBalance: parseFloat(tokenInPortfolio!.amount) * 10 ** tokenInPortfolio!.decimals,
+                tokenBalance: buyRes.boughtAmountRaw,
                 priorityFeeInSol: 0.002,
             });
         } catch (e) {
@@ -100,6 +94,10 @@ async function start() {
             if (!token.mint.endsWith('pump')) {
                 continue;
             }
+
+            logger.info(
+                `Will sell ${token.name}, https://pump.fun/coin/${token.mint} amount ${token.amount} before multiplying with decimals`,
+            );
 
             await pumpfun.sell({
                 transactionMode: TransactionMode.Execution,

@@ -8,6 +8,16 @@ export type TokenHolder = {
     amount: number;
 };
 
+export type TokenInWalletFullInfo = {
+    associatedTokenAddress: string; // this account holds token of this type only for the associated owner
+    mint: string;
+    name: string;
+    symbol: string;
+    amountRaw: string;
+    amount: string;
+    decimals: number;
+};
+
 export type Asset = {
     id: string;
     interface: 'FungibleToken' | 'NonFungibleToken';

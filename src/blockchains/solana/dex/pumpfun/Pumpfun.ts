@@ -133,9 +133,9 @@ export default class Pumpfun {
                 logger.error(`WebSocket error: ${error}`);
             });
 
-            this.ws!.on('close', async () => {
+            this.ws!.on('close', async (code, reason) => {
                 if (this.listeningToNewTokens) {
-                    logger.debug('Connection closed. Reconnecting in 5 seconds...');
+                    logger.debug(`Connection closed, code ${code}, reason ${reason}. Reconnecting in 5 seconds...`);
                     await setTimeout(() => {
                         this.listenForPumpFunTokens(onNewToken);
                     }, 5000);
@@ -176,7 +176,10 @@ export default class Pumpfun {
         solIn: number;
         priorityFeeInSol?: number;
         slippageDecimal?: number;
-    }) {
+    }): Promise<{
+        signature: string;
+        boughtAmountRaw: number;
+    }> {
         const connection = new Connection(this.config.rpcEndpoint, 'confirmed');
 
         const payer = await getKeyPairFromPrivateKey(payerPrivateKey);
@@ -246,15 +249,26 @@ export default class Pumpfun {
             payer.publicKey,
             priorityFeeInSol,
         );
+
         if (transactionMode === TransactionMode.Execution) {
             const signature = await sendAndConfirmTransaction(connection, transaction, [payer], {
                 skipPreflight: true,
                 preflightCommitment: 'confirmed',
             });
             logger.info(`Buy transaction confirmed: https://solscan.io/tx/${signature}`);
-        } else if (transactionMode === TransactionMode.Simulation) {
+
+            return {
+                signature: signature,
+                boughtAmountRaw: tokenOut,
+            };
+        } else {
             const simulatedResult = await connection.simulateTransaction(transaction);
             logger.info(simulatedResult);
+
+            return {
+                signature: '_simulation_',
+                boughtAmountRaw: tokenOut,
+            };
         }
     }
 

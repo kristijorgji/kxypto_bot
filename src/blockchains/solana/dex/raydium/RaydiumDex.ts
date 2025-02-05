@@ -25,12 +25,18 @@ import {
 
 import { solanaPrivateKeyToKeypair } from '../../utils/solanaPrivateKeyToKeypair';
 
-class RaydiumSwap {
+export type RaydiumDexConfig = {
+    rpcUrl: string;
+    walletPrivateKey: string;
+    liquidityFile: string;
+};
+
+class RaydiumDex {
     allPoolKeysJson: LiquidityPoolJsonInfo[] = [];
     connection: Connection;
     wallet: Wallet;
 
-    constructor(rpcUrl: string, walletPrivateKey: string) {
+    constructor({ rpcUrl, walletPrivateKey }: RaydiumDexConfig) {
         this.connection = new Connection(rpcUrl, { commitment: 'confirmed' });
         this.wallet = new Wallet(solanaPrivateKeyToKeypair(walletPrivateKey));
     }
@@ -49,7 +55,7 @@ class RaydiumSwap {
             }
             liquidityJson = await liquidityJsonResp.json();
         } else {
-            liquidityJson = JSON.parse(fs.readFileSync(liquidityFile, 'utf-8'));
+            liquidityJson = JSON.parse(await fs.promises.readFile(liquidityFile, 'utf-8'));
         }
 
         this.allPoolKeysJson = [...(liquidityJson?.official ?? []), ...(liquidityJson?.unOfficial ?? [])];
@@ -238,4 +244,4 @@ class RaydiumSwap {
     }
 }
 
-export default RaydiumSwap;
+export default RaydiumDex;

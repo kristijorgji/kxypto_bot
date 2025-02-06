@@ -12,7 +12,7 @@ async function start() {
     const tokens = await new SolanaAdapter({
         rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
         wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
-    }).getTokenAccountsByOwner('8MqRTAQnjhDYH7TWS1b1DjFog4CLZfySWE5cZeotG2VW', {
+    }).getAccountTokens('8MqRTAQnjhDYH7TWS1b1DjFog4CLZfySWE5cZeotG2VW', {
         fetchInParallel: false,
     });
 

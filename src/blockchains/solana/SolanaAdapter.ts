@@ -2,10 +2,10 @@ import { deserializeMetadata } from '@metaplex-foundation/mpl-token-metadata';
 import { SPL_ACCOUNT_LAYOUT } from '@raydium-io/raydium-sdk';
 import { getMint } from '@solana/spl-token';
 import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
+import axios from 'axios';
 
 import { TOKEN_METADATA_PROGRAM_ID, TOKEN_PROGRAM_ID } from './constants/core';
-import { TokenInWalletFullInfo } from './types';
-import { logger } from '../../logger';
+import { IfpsMetadata, TokenHolder, TokenInWalletFullInfo } from './types';
 
 export default class SolanaAdapter {
     private readonly connection: Connection;
@@ -21,13 +21,51 @@ export default class SolanaAdapter {
     }
 
     /**
+     * @see https://solana.stackexchange.com/a/15386/34703
+     * This will work fine for tokens with up to 1-10k holders but have doubts for tokens like Trump
+     * with hundred thousand holders. For large cap trading Moralis and providers are more fit atm as they
+     * offer limits and pagination as well
+     */
+    async getTokenHolders({ tokenMint }: { tokenMint: string }): Promise<TokenHolder[]> {
+        /**
+         * Filter to only accounts with length 165, which is the fixed length that token accounts have.
+         * This way we get rid of accounts that are owned by the token program but aren't token accounts.
+         */
+        const tokenAccSize = 165;
+        const accounts = await this.connection.getProgramAccounts(TOKEN_PROGRAM_ID, {
+            dataSlice: { offset: 64, length: 8 },
+            filters: [{ dataSize: tokenAccSize }, { memcmp: { offset: 0, bytes: tokenMint } }],
+        });
+
+        // Filter out zero balance accounts
+        const nonZero = accounts.filter(acc => !acc.account.data.equals(Buffer.from([0, 0, 0, 0, 0, 0, 0, 0])));
+
+        const parsed: TokenHolder[] = [];
+        for (const acc of nonZero) {
+            const accData = acc.account.data;
+            const balance = accData.readBigUInt64LE();
+            parsed.push({
+                address: acc.pubkey.toBase58(),
+                // @ts-ignore
+                amount: parseInt(balance),
+            });
+        }
+
+        return parsed;
+    }
+
+    async getBalance(walletAddress: string) {
+        return await this.connection.getBalance(new PublicKey(walletAddress));
+    }
+
+    /**
      * This will get all SPL tokens of the given wallet
      * and enrich them with the metadata and other information
      * This uses many concurrent calls if you have a lot of token accounts!
      * You can use fetchInParallel=false
      * or just pay for an RPC Node with high limits
      */
-    async getTokenAccountsByOwner(
+    async getAccountTokens(
         walletAddress: string,
         args?: {
             fetchInParallel?: boolean;
@@ -39,44 +77,46 @@ export default class SolanaAdapter {
             programId: TOKEN_PROGRAM_ID,
         });
 
+        const nonZeroTokenAccounts: {
+            associatedTokenAddress: string;
+            mint: PublicKey;
+            amountRaw: number;
+        }[] = [];
+        for (const associatedTokenAccount of walletTokenAccounts.value as Readonly<{
+            account: AccountInfo<Buffer>;
+            pubkey: PublicKey;
+        }>[]) {
+            const accountInfo = SPL_ACCOUNT_LAYOUT.decode(associatedTokenAccount.account.data as Buffer);
+            const amount = Number(accountInfo.amount.toString());
+            if (amount === 0) {
+                continue;
+            }
+
+            nonZeroTokenAccounts.push({
+                associatedTokenAddress: associatedTokenAccount.pubkey.toBase58(),
+                mint: accountInfo.mint,
+                amountRaw: amount,
+            });
+        }
+
         if (args?.fetchInParallel ?? true) {
-            return (
-                await Promise.all(
-                    (walletTokenAccounts.value as Readonly<{ account: AccountInfo<Buffer>; pubkey: PublicKey }>[]).map(
-                        async value => {
-                            try {
-                                logger.info(`Fetching ${value}`);
-                                return await this.parseWalletTokenData(value);
-                            } catch (e) {
-                                logger.error('Error fetching token full associated data %o', e);
-                                return null;
-                            }
-                        },
-                    ),
-                )
-            ).filter(value => value !== null) as TokenInWalletFullInfo[];
+            return await Promise.all(nonZeroTokenAccounts.map(this.parseWalletTokenData.bind(this)));
         } else {
             const data: TokenInWalletFullInfo[] = [];
-            for (const account of walletTokenAccounts.value as Readonly<{
-                account: AccountInfo<Buffer>;
-                pubkey: PublicKey;
-            }>[]) {
-                try {
-                    data.push(await this.parseWalletTokenData(account));
-                } catch (e) {
-                    logger.error('Error fetching token full associated data %o', e);
-                }
+            for (const account of nonZeroTokenAccounts) {
+                data.push(await this.parseWalletTokenData(account));
             }
 
             return data;
         }
     }
 
-    private async parseWalletTokenData(
-        associatedTokenAccount: Readonly<{ account: AccountInfo<Buffer>; pubkey: PublicKey }>,
-    ): Promise<TokenInWalletFullInfo> {
-        const accountInfo = SPL_ACCOUNT_LAYOUT.decode(associatedTokenAccount.account.data as Buffer);
-        const mint = new PublicKey(accountInfo.mint); // Extract mint address
+    private async parseWalletTokenData(info: {
+        associatedTokenAddress: string;
+        mint: PublicKey;
+        amountRaw: number;
+    }): Promise<TokenInWalletFullInfo> {
+        const mint = new PublicKey(info.mint); // Extract mint address
 
         // Fetch mint info to get decimals
         /**
@@ -89,19 +129,28 @@ export default class SolanaAdapter {
         // TODO can cache this information as it almost never changes, only if authority has permission
         const metadata = await this.getTokenMetadata(mint);
 
-        // Extract raw amount and adjust it based on decimals
-        // @ts-ignore
-        const amountRaw: string = accountInfo.amount.toString();
-        const amount = (Number(amountRaw) / Math.pow(10, decimals)).toFixed(decimals);
+        const amount = (info.amountRaw / Math.pow(10, decimals)).toFixed(decimals);
+
+        let ipfsMetadata: IfpsMetadata | undefined;
+        if (metadata.uri.length > 0) {
+            const getIpfsMetaRes = await axios.get<IfpsMetadata>(metadata.uri, {
+                headers: {
+                    // Without user agent you may get forbidden error
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0',
+                },
+            });
+            ipfsMetadata = getIpfsMetaRes.data as IfpsMetadata;
+        }
 
         return {
-            associatedTokenAddress: associatedTokenAccount.pubkey.toBase58() as string,
+            associatedTokenAddress: info.associatedTokenAddress,
             mint: mint.toBase58(),
             name: metadata.name,
             symbol: metadata.symbol,
-            amountRaw: amountRaw,
+            amountRaw: info.amountRaw,
             amount: amount,
             decimals: decimals,
+            ifpsMetadata: ipfsMetadata,
         };
     }
 

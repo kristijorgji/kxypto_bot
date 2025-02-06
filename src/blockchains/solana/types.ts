@@ -8,14 +8,26 @@ export type TokenHolder = {
     amount: number;
 };
 
+export type IfpsMetadata = {
+    nane: string;
+    symbol: string;
+    description: string;
+    showName?: boolean;
+    image: string;
+    createdOn: string;
+    twitter?: string;
+    website?: string;
+};
+
 export type TokenInWalletFullInfo = {
     associatedTokenAddress: string; // this account holds token of this type only for the associated owner
     mint: string;
     name: string;
     symbol: string;
-    amountRaw: string;
+    amountRaw: number;
     amount: string;
     decimals: number;
+    ifpsMetadata?: IfpsMetadata;
 };
 
 export type Asset = {

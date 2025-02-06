@@ -1291,6 +1291,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/bn.js@^5.1.6":
+  version "5.1.6"
+  resolved "https://registry.yarnpkg.com/@types/bn.js/-/bn.js-5.1.6.tgz#9ba818eec0c85e4d3c679518428afdf611d03203"
+  integrity sha512-Xh8vSwUeMKeYYrj3cX4lGQgFSF/N03r+tv4AiLl1SucqV+uTQpxRcnM8AkXKHwYP9ZPXOYXRr2KPXpVlIvqh9w==
+  dependencies:
+    "@types/node" "*"
+
 "@types/connect@^3.4.33":
   version "3.4.38"
   resolved "https://registry.yarnpkg.com/@types/connect/-/connect-3.4.38.tgz#5ba7f3bc4fbbdeaff8dded952e5ff2cc53f8d858"
@@ -1358,6 +1365,13 @@
   version "12.20.55"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.20.55.tgz#c329cbd434c42164f846b909bd6f85b5537f6240"
   integrity sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==
+
+"@types/opossum@^8.1.8":
+  version "8.1.8"
+  resolved "https://registry.yarnpkg.com/@types/opossum/-/opossum-8.1.8.tgz#79f138118d699348f80bbe4b4285995563bed8fe"
+  integrity sha512-FTpWfHcpMgdLIdaTpL1D/nTlIH03T62RIQfzmwdEDAndYJwHDdUTkBvgXhaVp/zN74woiWEyb6DSNuZHPt1gmA==
+  dependencies:
+    "@types/node" "*"
 
 "@types/semver@^7.3.12":
   version "7.5.8"
@@ -4445,6 +4459,11 @@ onetime@^5.1.2:
   integrity sha512-kbpaSSGJTWdAY5KPVeMOKXSrPtr8C8C7wodJbcsd51jRnmD+GZu8Y0VoU6Dm5Z4vWr0Ig/1NKuWRKf7j5aaYSg==
   dependencies:
     mimic-fn "^2.1.0"
+
+opossum@^8.4.0:
+  version "8.4.0"
+  resolved "https://registry.yarnpkg.com/opossum/-/opossum-8.4.0.tgz#d4f5a3a326ed841e9e5288148886d94048bacc30"
+  integrity sha512-YYamqKu48bZCSTJKSWLLO4SSk8tKN2Gg2z1sJZVzHJYVObMO/xQpIzAh6re9HCMHRdB1dJvBjJH18DW7xYOicg==
 
 optionator@^0.9.3:
   version "0.9.4"

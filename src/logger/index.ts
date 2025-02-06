@@ -10,7 +10,13 @@ export const logger = createLogger({
         }),
         format.errors({ stack: true }),
         format.splat(),
-        ...(IS_CLI_MODE ? [format.cli()] : [format.json()]),
+        ...(IS_CLI_MODE
+            ? [
+                  format.printf(({ timestamp, level, message, stack }) => {
+                      return `${timestamp} [${level.toUpperCase()}]: ${stack || message}`;
+                  }),
+              ]
+            : [format.json()]),
     ),
     transports: [new transports.Console(), new transports.File({ filename: 'app.log' })],
 });

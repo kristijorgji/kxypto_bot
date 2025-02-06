@@ -1,14 +1,21 @@
+import { AnchorProvider, Program, Wallet } from '@coral-xyz/anchor';
+import { SPL_ACCOUNT_LAYOUT } from '@raydium-io/raydium-sdk';
 import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } from '@solana/spl-token';
 import {
+    AccountInfo,
     AccountMeta,
     Connection,
+    GetProgramAccountsResponse,
+    Keypair,
     LAMPORTS_PER_SOL,
     PublicKey,
+    RpcResponseAndContext,
     Transaction,
     TransactionInstruction,
     sendAndConfirmTransaction,
 } from '@solana/web3.js';
 import axios from 'axios';
+import BN from 'bn.js';
 import bs58 from 'bs58';
 import WebSocket, { MessageEvent } from 'ws';
 
@@ -22,13 +29,15 @@ import {
     SYSTEM_PROGRAM_ID,
     TOKEN_PROGRAM_ID,
 } from './constants';
+import IDL from './data/pump_idl.json';
 import { NewPumpFunTokenData } from './types';
 import { logger } from '../../../../logger';
 import { bufferFromUInt64 } from '../../../../utils/data';
+import { sleep } from '../../../../utils/functions';
 import { TransactionMode, WssMessage } from '../../types';
 import { createTransaction, getKeyPairFromPrivateKey } from '../../utils/helpers';
 
-type PumpFunCoinData = {
+export type PumpFunCoinData = {
     mint: string;
     name: string;
     symbol: string;
@@ -202,7 +211,11 @@ export default class Pumpfun {
             tokenAccount = tokenAccountAddress;
         }
 
-        const coinData = await this.getCoinDataWithRetries(tokenMint);
+        // todo can find a way to improve this and not rely on the frontend api
+        const coinData = await this.getCoinDataWithRetries(tokenMint, {
+            maxRetries: 2,
+            sleepMs: 200,
+        });
 
         const solInLamports = solIn * LAMPORTS_PER_SOL;
         const tokenOut = Math.floor((solInLamports * coinData.virtual_token_reserves) / coinData.virtual_sol_reserves);
@@ -309,7 +322,11 @@ export default class Pumpfun {
             tokenAccount = tokenAccountAddress;
         }
 
-        const coinData = await this.getCoinDataWithRetries(tokenMint);
+        // todo can find a way to improve this and not rely on the frontend api
+        const coinData = await this.getCoinDataWithRetries(tokenMint, {
+            maxRetries: 2,
+            sleepMs: 200,
+        });
 
         const minSolOutput = Math.floor(
             (tokenBalance! * (1 - slippageDecimal) * coinData.virtual_sol_reserves) / coinData.virtual_token_reserves,
@@ -363,7 +380,21 @@ export default class Pumpfun {
         }
     }
 
-    private async getCoinDataWithRetries(tokenMint: string): Promise<PumpFunCoinData> {
+    /**
+     * A helper function to retry as needed because this frontend api is
+     * buggy and fails with 500 status code often
+     * Use only for the initial data and optional data, can't rely on for realtime info
+     */
+    async getCoinDataWithRetries(
+        tokenMint: string,
+        {
+            maxRetries = 3,
+            sleepMs = 0,
+        }: {
+            maxRetries: number;
+            sleepMs: number;
+        },
+    ): Promise<PumpFunCoinData> {
         let coinData: PumpFunCoinData | undefined;
         let retries = 0;
         do {
@@ -371,14 +402,89 @@ export default class Pumpfun {
                 coinData = await this.getCoinData(tokenMint);
             } catch (e) {
                 logger.error(`failed to fetch coin data on retry ${retries}, error: %s`, (e as Error).message);
+                if (sleepMs > 0) {
+                    await sleep(sleepMs);
+                }
             }
-        } while (!coinData && retries++ < 3);
+        } while (!coinData && retries++ < maxRetries);
 
         if (!coinData) {
             throw new Error(`Could not fetch coinData for mint ${tokenMint}`);
         }
 
         return coinData;
+    }
+
+    /**
+     * This method makes 2 RPC calls toward the Solana connection
+     */
+    async getEstTokenPriceInSol(tokenBondingCurve: string): Promise<number | null> {
+        const tokenBondingCurvePk = new PublicKey(tokenBondingCurve);
+        const connection = new Connection(this.config.rpcEndpoint);
+
+        // @ts-ignore
+        const r: [RpcResponseAndContext<GetProgramAccountsResponse>, number] = await Promise.all([
+            connection.getTokenAccountsByOwner(tokenBondingCurvePk, {
+                programId: TOKEN_PROGRAM_ID,
+            }),
+            connection.getBalance(tokenBondingCurvePk),
+        ]);
+
+        const bcTokenAccounts = r[0].value as Readonly<{
+            account: AccountInfo<Buffer>;
+            pubkey: PublicKey;
+        }>[];
+
+        // Bonding curve account is not setup yet by Pumpfun or you are providing wrong account!
+        if (bcTokenAccounts.length === 0) {
+            return null;
+        }
+
+        if (bcTokenAccounts.length > 1) {
+            throw new Error('A pumpfun bonding curve account must hold only its own token');
+        }
+
+        const accountInfo = SPL_ACCOUNT_LAYOUT.decode(bcTokenAccounts[0].account.data as Buffer);
+        // @ts-ignore
+        const tokenAmountRaw = parseInt(accountInfo.amount.toString());
+
+        const data = {
+            tokenAmount: tokenAmountRaw,
+            solAmount: r[1],
+        };
+
+        return data.solAmount / data.tokenAmount;
+    }
+
+    /**
+     * WIP - To be done, but not very important for now as can be calculated by market cap toward limit of 100k usd
+     * Based on the link below
+     * @see https://solana.stackexchange.com/a/18013/34703
+     */
+    async bondingCurveProgress({ mintAddress, userPrivateKey }: { mintAddress: string; userPrivateKey: string }) {
+        const pumpSwapPID = new PublicKey(PUMP_FUN_PROGRAM);
+
+        const userWallet = new Wallet(Keypair.fromSecretKey(bs58.decode(userPrivateKey)));
+
+        const conn = new Connection(this.config.rpcEndpoint, { commitment: 'finalized' });
+        const provider = new AnchorProvider(conn, userWallet, { commitment: 'processed' });
+        // @ts-ignore
+        const program = new Program(IDL, pumpSwapPID, provider);
+
+        const [bondingCurve] = PublicKey.findProgramAddressSync(
+            [Buffer.from('bonding-curve'), new PublicKey(mintAddress).toBytes()],
+            pumpSwapPID,
+        );
+        // @ts-ignore
+        const data = await program.account.bondingCurve.fetch(bondingCurve);
+        // We multiply by 1000_000 as coin have value in 6 decimals
+        const reservedTokens = new BN(206900000).mul(new BN(1000_000));
+        const initialRealTokenReserves = data.tokenTotalSupply.sub(reservedTokens);
+        const bondingCurveProgress = new BN(100).sub(
+            data.realTokenReserves.mul(new BN(100)).div(initialRealTokenReserves),
+        );
+
+        return bondingCurveProgress.toString(10);
     }
 
     async getCoinData(tokenMint: string): Promise<PumpFunCoinData> {

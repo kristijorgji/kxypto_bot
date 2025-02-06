@@ -61,10 +61,18 @@ You can run the helper CLI command
 The folder `src/examples` contains `standalone` scripts that you can run.
 They use the specified `.env` variables
 
+# Standalone scripts
+
+The folder `src/scripts` contains `standalone` scripts that you can run.
+
+The difference between the example script is that these scripts here have a clear purpose and are useful, not just
+demonstrative
+They use the specified `.env` variables
+
 Example:
 
 ```shell
-ts-node src/examples/getWalletBalance.ts
+ts-node src/scripts/pumpfun-bot.ts
 ```
 
 # Environmental variables

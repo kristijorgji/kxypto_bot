@@ -1,3 +1,5 @@
+export type WalletInfo = { privateKey: string; address: string };
+
 export enum TransactionMode {
     Simulation,
     Execution,

@@ -1,18 +1,17 @@
 import dotenv from 'dotenv';
-import CircuitBreaker from 'opossum';
 
 import { SolanaWalletProviders } from '../blockchains/solana/constants/walletProviders';
+import { pumpCoinDataToInitialCoinData } from '../blockchains/solana/dex/pumpfun/mappers/mappers';
 import Pumpfun from '../blockchains/solana/dex/pumpfun/Pumpfun';
 import {
-    PumpFunCoinData,
+    NewPumpFunTokenData,
     PumpfunBuyResponse,
     PumpfunInitialCoinData,
-    PumpfunTokenStats,
+    PumpfunTokenBcStats,
 } from '../blockchains/solana/dex/pumpfun/types';
 import SolanaAdapter from '../blockchains/solana/SolanaAdapter';
-import { TokenHolder, TransactionMode } from '../blockchains/solana/types';
+import { TokenHolder, TransactionMode, WalletInfo } from '../blockchains/solana/types';
 import solanaMnemonicToKeypair from '../blockchains/solana/utils/solanaMnemonicToKeypair';
-import { CircuitBreakerError } from '../core/types';
 import { logger } from '../logger';
 import { sleep } from '../utils/functions';
 
@@ -21,6 +20,9 @@ dotenv.config();
 (async () => {
     await start();
 })();
+
+const BUY_MONITOR_WAIT_PERIOD_MS = 2000;
+const SELL_MONITOR_WAIT_PERIOD_MS = 500;
 
 async function start() {
     const pumpfun = new Pumpfun({
@@ -37,179 +39,224 @@ async function start() {
         provider: SolanaWalletProviders.TrustWallet,
     });
 
-    const maxTokensToSnipe = 1;
-    let snipped = 0;
+    const maxTokensToProcess = 1;
+    let processed = 0;
 
     await pumpfun.listenForPumpFunTokens(async tokenData => {
-        if (snipped >= maxTokensToSnipe) {
+        if (processed >= maxTokensToProcess) {
             logger.info(
-                `Returning and stopping listener as we snipped already maximum specified tokens ${maxTokensToSnipe}`,
+                `Returning and stopping listener as we processed already maximum specified tokens ${maxTokensToProcess}`,
             );
             pumpfun.stopListeningToNewTokens();
             return;
         }
-        snipped++;
+        processed++;
 
-        const tokenMint = tokenData.mint;
-
-        logger.info('New token was created: %s, %s', tokenData.name, `https://pump.fun/coin/${tokenMint}`);
-
-        let initialCoinData: PumpfunInitialCoinData;
-        try {
-            initialCoinData = coinDataToInitialCoinData(
-                await pumpfun.getCoinDataWithRetries(tokenMint, {
-                    maxRetries: 3,
-                    sleepMs: 200,
-                }),
-            );
-        } catch (e) {
-            logger.warn('Failed to fetch full token initial data, will use our own fallback');
-            initialCoinData = await pumpfun.getInitialCoinBaseData(tokenMint);
-        }
-
-        let initialPrice = -1;
-        let initialMarketCap = -1;
-        let devHolding = 0;
-
-        let buyRes: PumpfunBuyResponse | undefined;
-        const buy = false;
-        const sell = false;
-
-        try {
-            while (true) {
-                // @ts-ignore
-                const responses: [PumpFunCoinData | null, TokenHolder[], PumpfunTokenStats] = await Promise.all([
-                    tryToFetchCoinData(tokenMint),
-                    solanaAdapter.getTokenHolders({
-                        tokenMint: tokenMint,
-                    }),
-                    pumpfun.getTokenStats(tokenData.bondingCurve),
-                ]);
-
-                const latestCoinData = responses[0];
-
-                const tokenHolders: TokenHolder[] = responses[1];
-                tokenHolders.sort((a, b) => b.amount - a.amount);
-
-                const holdersCounts = tokenHolders.length;
-                let topTenHolding = 0;
-                let allHolding = 0;
-                for (let i = 0; i < tokenHolders.length; i++) {
-                    const tokenHolder = tokenHolders[i];
-                    if (tokenHolder.address === initialCoinData.creator) {
-                        devHolding = tokenHolder.amount;
-                    }
-
-                    if (i < 10) {
-                        topTenHolding += tokenHolder.amount;
-                    }
-                    allHolding += tokenHolder.amount;
-                }
-                const topTenHoldingPercentage = (topTenHolding / allHolding) * 100;
-                logger.info('There are %d total holders, top ten holding %s%%', holdersCounts, topTenHoldingPercentage);
-
-                if (initialCoinData.creator) {
-                    const devHoldingPercentage = (devHolding / allHolding) * 100;
-                    logger.info('Dev holds %s%%', devHoldingPercentage);
-                }
-
-                const tokenStats = responses[2];
-                if (initialPrice === -1) {
-                    initialPrice = tokenStats.price;
-                }
-                if (initialMarketCap === -1) {
-                    initialMarketCap = tokenStats.marketCap;
-                }
-
-                const priceDiffFromInitialPercentage = ((tokenStats.price - initialPrice) / initialPrice) * 100;
-                logger.info(
-                    'Price diff %% since start %s in sol now %s',
-                    priceDiffFromInitialPercentage,
-                    tokenStats.price,
-                );
-                logger.info(
-                    'Current marketCap=%s, price=%s, bondingCurveProgress=%s%%',
-                    tokenStats.marketCap,
-                    tokenStats.price,
-                    tokenStats.bondingCurveProgress,
-                );
-
-                if (latestCoinData) {
-                    const percentageDiffInMarketCap =
-                        ((latestCoinData.market_cap - initialMarketCap) / initialMarketCap) * 100;
-                    logger.info('Current vs initial market cap % difference: %s%%', percentageDiffInMarketCap);
-                }
-
-                await sleep(1000);
-            }
-
-            // eslint-disable-next-line no-unreachable
-            if (buy) {
-                const inSol = 0.005;
-                buyRes = await pumpfun.buy({
-                    transactionMode: TransactionMode.Execution,
-                    payerPrivateKey: walletInfo.privateKey,
-                    tokenMint: tokenMint,
-                    solIn: inSol,
-                    slippageDecimal: 0.5,
-                    priorityFeeInSol: 0.002,
-                });
-
-                logger.info('Bought successfully %s amountRaw for %s sol', buyRes!.boughtAmountRaw, inSol);
-            }
-
-            if (sell && buyRes) {
-                await pumpfun.sell({
-                    transactionMode: TransactionMode.Execution,
-                    payerPrivateKey: walletInfo.privateKey,
-                    tokenMint: tokenMint,
-                    slippageDecimal: 0.5,
-                    tokenBalance: buyRes!.boughtAmountRaw,
-                    priorityFeeInSol: 0.002,
-                });
-            }
-        } catch (e) {
-            console.error(e);
-        }
+        await handleNewToken(pumpfun, solanaAdapter, {
+            tokenData: tokenData,
+            walletInfo: walletInfo,
+        });
     });
+}
 
-    /**
-     * The hacky frontend api of pumpfun is faulty and fails often with 500
-     * @param tokenMint
-     */
-    async function tryToFetchCoinData(tokenMint: string): Promise<PumpFunCoinData | null> {
-        const maxTimeMs = 700;
-        try {
-            return await new CircuitBreaker(() => pumpfun.getCoinData(tokenMint), {
-                timeout: maxTimeMs,
-            }).fire();
-        } catch (err) {
-            if (CircuitBreaker.isOurError(err as Error)) {
-                if ((err as CircuitBreakerError).code === 'ETIMEDOUT') {
-                    logger.warn(`tryToFetchCoinData circuit breaker timeout at ${maxTimeMs}ms`);
-                } else {
-                    throw err;
-                }
-            }
+async function handleNewToken(
+    pumpfun: Pumpfun,
+    solanaAdapter: SolanaAdapter,
+    {
+        tokenData,
+        walletInfo,
+    }: {
+        tokenData: NewPumpFunTokenData;
+        walletInfo: WalletInfo;
+    },
+) {
+    const tokenMint = tokenData.mint;
 
-            return null;
+    logger.info('Handling newly created token: %s, %s', tokenData.name, `https://pump.fun/coin/${tokenMint}`);
+
+    let initialCoinData: PumpfunInitialCoinData;
+    try {
+        initialCoinData = pumpCoinDataToInitialCoinData(
+            await pumpfun.getCoinDataWithRetries(tokenMint, {
+                maxRetries: 4,
+                sleepMs: 250,
+            }),
+        );
+    } catch (e) {
+        logger.warn('Failed to fetch full token initial data, will use our own fallback');
+        initialCoinData = await pumpfun.getInitialCoinBaseData(tokenMint);
+    }
+
+    let sleepIntervalMs = BUY_MONITOR_WAIT_PERIOD_MS; // sleep interval between fetching new stats, price, holders etc. We can keep it higher before buying to save RPC calls and reduce when want to sell and monitor faster
+    const maxWaitMs = 3 * 60 * 1000; // don't waste time on this token anymore if there is no increase until this time is reached
+    const startTimestamp = Date.now();
+    let initialPrice = -1;
+    let initialMarketCap = -1;
+    let buyPosition:
+        | {
+              timestamp: number;
+              amountRaw: number;
+              priceInSol: number;
+          }
+        | undefined;
+
+    let buyRes: PumpfunBuyResponse | undefined;
+    let buy = false;
+    let sell = false;
+    const history: {
+        timestamp: number;
+        price: number;
+        marketCap: number;
+        holdersCount: number;
+    }[] = [];
+
+    while (true) {
+        // @ts-ignore
+        const [tokenHolders, { marketCap, price, bondingCurveProgress }]: [TokenHolder[], PumpfunTokenBcStats] =
+            await Promise.all([
+                solanaAdapter.getTokenHolders({
+                    tokenMint: tokenMint,
+                }),
+                pumpfun.getTokenBondingCurveStats(tokenData.bondingCurve),
+            ]);
+
+        const elapsedMonitoring = Date.now() - startTimestamp;
+
+        const { holdersCounts, devHoldingPercentage, topTenHoldingPercentage } = await calculateHoldersStats({
+            tokenHolders: tokenHolders,
+            creator: initialCoinData.creator,
+        });
+
+        history.push({
+            timestamp: Date.now(),
+            price: price,
+            marketCap: marketCap,
+            holdersCount: holdersCounts,
+        });
+
+        if (initialPrice === -1) {
+            initialPrice = price;
         }
+        if (initialMarketCap === -1) {
+            initialMarketCap = marketCap;
+        }
+
+        const priceDiffFromInitialPercentage = ((price - initialPrice) / initialPrice) * 100;
+        const percentageDiffInMarketCap = ((marketCap - initialMarketCap) / initialMarketCap) * 100;
+
+        logger.info(
+            'There are %d total holders, top ten holding %s%%, dev holding %s%%',
+            holdersCounts,
+            topTenHoldingPercentage,
+            devHoldingPercentage,
+        );
+        logger.info('Price diff %% since start %s in sol now %s', priceDiffFromInitialPercentage, price);
+        logger.info(
+            'Current marketCap=%s, price=%s, bondingCurveProgress=%s%%',
+            marketCap,
+            price,
+            bondingCurveProgress,
+        );
+        logger.info('Current vs initial market cap % difference: %s%%', percentageDiffInMarketCap);
+
+        if (!buyPosition && holdersCounts > 10) {
+            buy = true;
+        }
+
+        if (!buyPosition && elapsedMonitoring >= maxWaitMs) {
+            logger.info(
+                'Stopped monitoring token %s. We waited %s seconds and did not pump',
+                tokenMint,
+                elapsedMonitoring,
+            );
+
+            return;
+        }
+
+        if (buyPosition) {
+            if (price - buyPosition.priceInSol > 0.07) {
+                sell = true;
+            }
+        }
+
+        // eslint-disable-next-line no-unreachable
+        if (buy) {
+            const inSol = 0.005;
+            buyRes = await pumpfun.buy({
+                transactionMode: TransactionMode.Execution,
+                payerPrivateKey: walletInfo.privateKey,
+                tokenMint: tokenMint,
+                tokenBondingCurve: initialCoinData.bondingCurve,
+                tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
+                solIn: inSol,
+                slippageDecimal: 0.5,
+                priorityFeeInSol: 0.002,
+            });
+            buyPosition = {
+                timestamp: Date.now(),
+                amountRaw: buyRes.boughtAmountRaw,
+                priceInSol: inSol,
+            };
+            sleepIntervalMs = SELL_MONITOR_WAIT_PERIOD_MS;
+
+            logger.info('Bought successfully %s amountRaw for %s sol', buyRes!.boughtAmountRaw, inSol);
+        }
+
+        if (sell && buyPosition) {
+            await pumpfun.sell({
+                transactionMode: TransactionMode.Execution,
+                payerPrivateKey: walletInfo.privateKey,
+                tokenMint: tokenMint,
+                tokenBondingCurve: initialCoinData.bondingCurve,
+                tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
+                slippageDecimal: 0.5,
+                tokenBalance: buyPosition.amountRaw,
+                priorityFeeInSol: 0.002,
+            });
+            logger.info('We sold successfully');
+
+            return;
+        }
+
+        await sleep(sleepIntervalMs);
     }
 }
 
-function coinDataToInitialCoinData(coinData: PumpFunCoinData): PumpfunInitialCoinData {
+async function calculateHoldersStats({
+    tokenHolders,
+    creator,
+}: {
+    tokenHolders: TokenHolder[];
+    creator?: string;
+}): Promise<{
+    holdersCounts: number;
+    devHoldingPercentage: number;
+    topTenHoldingPercentage: number;
+}> {
+    tokenHolders.sort((a, b) => b.amount - a.amount);
+    let devHolding = -1;
+
+    const holdersCounts = tokenHolders.length;
+    let topTenHolding = 0;
+    let allHolding = 0;
+    for (let i = 0; i < tokenHolders.length; i++) {
+        const tokenHolder = tokenHolders[i];
+        if (tokenHolder.address === creator) {
+            devHolding = tokenHolder.amount;
+        }
+
+        if (i < 10) {
+            topTenHolding += tokenHolder.amount;
+        }
+        allHolding += tokenHolder.amount;
+    }
+
+    const topTenHoldingPercentage = (topTenHolding / allHolding) * 100;
+    const devHoldingPercentage = devHolding === -1 ? -1 : (devHolding / allHolding) * 100;
+
     return {
-        mint: coinData.mint,
-        creator: coinData.creator,
-        createdTimestamp: coinData.created_timestamp,
-        bondingCurve: coinData.bonding_curve,
-        associatedBondingCurve: coinData.associated_bonding_curve,
-        name: coinData.name,
-        symbol: coinData.symbol,
-        description: coinData.description,
-        image: coinData.image_uri,
-        twitter: coinData.twitter,
-        telegram: coinData.telegram,
-        website: coinData.website,
+        holdersCounts,
+        devHoldingPercentage,
+        topTenHoldingPercentage,
     };
 }

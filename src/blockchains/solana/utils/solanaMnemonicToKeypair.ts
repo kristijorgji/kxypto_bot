@@ -6,6 +6,7 @@ import bs58 from 'bs58';
 import * as ed25519 from 'ed25519-hd-key';
 
 import { SolanaWalletProviders, solanaDerivationPaths } from '../constants/walletProviders';
+import { WalletInfo } from '../types';
 
 /**
  * Converts a mnemonic phrase to a Base58 private key and Solana wallet address.
@@ -16,7 +17,7 @@ export default async function solanaMnemonicToKeypair(
     config: {
         provider: keyof typeof SolanaWalletProviders;
     },
-): Promise<{ privateKey: string; address: string }> {
+): Promise<WalletInfo> {
     if (!bip39.validateMnemonic(mnemonic)) {
         throw new Error('Invalid mnemonic phrase');
     }

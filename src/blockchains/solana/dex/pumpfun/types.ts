@@ -7,7 +7,13 @@ export type NewPumpFunTokenData = {
     user: string;
 };
 
-export type PumpfunTokenStats = { marketCap: number; price: number; bondingCurveProgress: number };
+export type PumpfunTokenBcStats = {
+    marketCap: number;
+    price: number;
+    bondingCurveProgress: number;
+    virtualSolReserves: number;
+    virtualTokenReserves: number;
+};
 
 export type PumpfunInitialCoinData = {
     mint: string;
@@ -62,4 +68,8 @@ export type PumpFunCoinData = {
 export type PumpfunBuyResponse = {
     signature: string;
     boughtAmountRaw: number;
+};
+
+export type PumpfunSellResponse = {
+    signature: string;
 };

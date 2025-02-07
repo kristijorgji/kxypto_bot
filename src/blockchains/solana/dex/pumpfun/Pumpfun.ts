@@ -13,6 +13,7 @@ import {
 import axios from 'axios';
 import BN from 'bn.js';
 import bs58 from 'bs58';
+import CircuitBreaker from 'opossum';
 import WebSocket, { MessageEvent } from 'ws';
 
 import {
@@ -32,7 +33,8 @@ import {
     PumpFunCoinData,
     PumpfunBuyResponse,
     PumpfunInitialCoinData,
-    PumpfunTokenStats,
+    PumpfunSellResponse,
+    PumpfunTokenBcStats,
 } from './types';
 import { logger } from '../../../../logger';
 import { bufferFromUInt64 } from '../../../../utils/data';
@@ -41,6 +43,11 @@ import { getMetadataPDA } from '../../SolanaAdapter';
 import { TransactionMode, WssMessage } from '../../types';
 import { createTransaction, getKeyPairFromPrivateKey } from '../../utils/helpers';
 import { getTokenIfpsMetadata } from '../../utils/tokens';
+
+type VirtualReserves = {
+    virtualSolReserves: number;
+    virtualTokenReserves: number;
+};
 
 /**
  * @see https://github.dev/bilix-software/solana-pump-fun
@@ -175,6 +182,8 @@ export default class Pumpfun {
         transactionMode,
         payerPrivateKey,
         tokenMint,
+        tokenBondingCurve,
+        tokenAssociatedBondingCurve,
         solIn,
         priorityFeeInSol = Pumpfun.defaultPriorityInSol,
         slippageDecimal = Pumpfun.defaultSlippageDecimal,
@@ -182,17 +191,18 @@ export default class Pumpfun {
         transactionMode: TransactionMode;
         payerPrivateKey: string;
         tokenMint: string;
+        tokenBondingCurve: string;
+        tokenAssociatedBondingCurve: string;
         solIn: number;
         priorityFeeInSol?: number;
         slippageDecimal?: number;
     }): Promise<PumpfunBuyResponse> {
         const payer = await getKeyPairFromPrivateKey(payerPrivateKey);
-        const owner = payer.publicKey;
         const mint = new PublicKey(tokenMint);
 
         const txBuilder = new Transaction();
 
-        const tokenAccountAddress = await getAssociatedTokenAddress(mint, owner, false);
+        const tokenAccountAddress = await getAssociatedTokenAddress(mint, payer.publicKey, false);
 
         const tokenAccountInfo = await this.connection.getAccountInfo(tokenAccountAddress);
 
@@ -206,21 +216,17 @@ export default class Pumpfun {
             tokenAccount = tokenAccountAddress;
         }
 
-        // todo can find a way to improve this and not rely on the frontend api
-        const coinData = await this.getCoinDataWithRetries(tokenMint, {
-            maxRetries: 2,
-            sleepMs: 200,
-        });
+        const { virtualTokenReserves, virtualSolReserves } = await this.getBcReserves(tokenMint, tokenBondingCurve);
 
         const solInLamports = solIn * LAMPORTS_PER_SOL;
-        const tokenOut = Math.floor((solInLamports * coinData.virtual_token_reserves) / coinData.virtual_sol_reserves);
+        const tokenOut = Math.floor((solInLamports * virtualTokenReserves) / virtualSolReserves);
 
         const solInWithSlippage = solIn * (1 + slippageDecimal);
         const maxSolCost = Math.floor(solInWithSlippage * LAMPORTS_PER_SOL);
         const ASSOCIATED_USER = tokenAccount;
-        const USER = owner;
-        const BONDING_CURVE = new PublicKey(coinData.bonding_curve);
-        const ASSOCIATED_BONDING_CURVE = new PublicKey(coinData.associated_bonding_curve);
+        const USER = payer.publicKey;
+        const BONDING_CURVE = new PublicKey(tokenBondingCurve);
+        const ASSOCIATED_BONDING_CURVE = new PublicKey(tokenAssociatedBondingCurve);
 
         const keys: Array<AccountMeta> = [
             { pubkey: GLOBAL, isSigner: false, isWritable: false },
@@ -284,6 +290,8 @@ export default class Pumpfun {
         transactionMode,
         payerPrivateKey,
         tokenMint,
+        tokenBondingCurve,
+        tokenAssociatedBondingCurve,
         tokenBalance,
         priorityFeeInSol = Pumpfun.defaultPriorityInSol,
         slippageDecimal = Pumpfun.defaultSlippageDecimal,
@@ -291,17 +299,18 @@ export default class Pumpfun {
         transactionMode: TransactionMode;
         payerPrivateKey: string;
         tokenMint: string;
+        tokenBondingCurve: string;
+        tokenAssociatedBondingCurve: string;
         tokenBalance: number;
         priorityFeeInSol?: number;
         slippageDecimal?: number;
-    }) {
+    }): Promise<PumpfunSellResponse> {
         const payer = await getKeyPairFromPrivateKey(payerPrivateKey);
-        const owner = payer.publicKey;
         const mint = new PublicKey(tokenMint);
 
         const txBuilder = new Transaction();
 
-        const tokenAccountAddress = await getAssociatedTokenAddress(mint, owner, false);
+        const tokenAccountAddress = await getAssociatedTokenAddress(mint, payer.publicKey, false);
 
         const tokenAccountInfo = await this.connection.getAccountInfo(tokenAccountAddress);
 
@@ -315,24 +324,20 @@ export default class Pumpfun {
             tokenAccount = tokenAccountAddress;
         }
 
-        // todo can find a way to improve this and not rely on the frontend api
-        const coinData = await this.getCoinDataWithRetries(tokenMint, {
-            maxRetries: 2,
-            sleepMs: 200,
-        });
+        const { virtualTokenReserves, virtualSolReserves } = await this.getBcReserves(tokenMint, tokenBondingCurve);
 
         const minSolOutput = Math.floor(
-            (tokenBalance! * (1 - slippageDecimal) * coinData.virtual_sol_reserves) / coinData.virtual_token_reserves,
+            (tokenBalance! * (1 - slippageDecimal) * virtualSolReserves) / virtualTokenReserves,
         );
 
         const keys: Array<AccountMeta> = [
             { pubkey: GLOBAL, isSigner: false, isWritable: false },
             { pubkey: FEE_RECIPIENT, isSigner: false, isWritable: true },
             { pubkey: mint, isSigner: false, isWritable: false },
-            { pubkey: new PublicKey(coinData.bonding_curve), isSigner: false, isWritable: true },
-            { pubkey: new PublicKey(coinData.associated_bonding_curve), isSigner: false, isWritable: true },
+            { pubkey: new PublicKey(tokenBondingCurve), isSigner: false, isWritable: true },
+            { pubkey: new PublicKey(tokenAssociatedBondingCurve), isSigner: false, isWritable: true },
             { pubkey: tokenAccount, isSigner: false, isWritable: true },
-            { pubkey: owner, isSigner: false, isWritable: true },
+            { pubkey: payer.publicKey, isSigner: false, isWritable: true },
             { pubkey: SYSTEM_PROGRAM_ID, isSigner: false, isWritable: false },
             { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
             { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
@@ -367,9 +372,17 @@ export default class Pumpfun {
                 preflightCommitment: 'confirmed',
             });
             logger.info(`Sell transaction confirmed: https://solscan.io/tx/${signature}`);
-        } else if (transactionMode === TransactionMode.Simulation) {
+
+            return {
+                signature: signature,
+            };
+        } else {
             const simulatedResult = await this.connection.simulateTransaction(transaction);
             logger.info(simulatedResult);
+
+            return {
+                signature: '_simulation_',
+            };
         }
     }
 
@@ -410,7 +423,7 @@ export default class Pumpfun {
         return coinData;
     }
 
-    async getTokenStats(tokenBondingCurve: string): Promise<PumpfunTokenStats> {
+    async getTokenBondingCurveStats(tokenBondingCurve: string): Promise<PumpfunTokenBcStats> {
         const tokenBondingCurvePk = new PublicKey(tokenBondingCurve);
 
         const bondingCurveAccountInfo = (await this.connection.getAccountInfo(tokenBondingCurvePk))!;
@@ -432,6 +445,8 @@ export default class Pumpfun {
             marketCap: marketCap,
             price: price,
             bondingCurveProgress: bondingCurveProgress.toNumber(),
+            virtualSolReserves: Number(bondingCurveState.virtual_sol_reserves),
+            virtualTokenReserves: Number(bondingCurveState.virtual_token_reserves),
         };
     }
 
@@ -444,8 +459,7 @@ export default class Pumpfun {
         return bondingCurve;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars,no-unused-vars
-    private getAssociatedBondingCurveAddress(bondingCurveAddress: PublicKey, mintAddress: PublicKey) {
+    public getAssociatedBondingCurveAddress(bondingCurveAddress: PublicKey, mintAddress: PublicKey) {
         const [associatedBondingCurve] = PublicKey.findProgramAddressSync(
             [bondingCurveAddress.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mintAddress.toBuffer()],
             ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -477,6 +491,62 @@ export default class Pumpfun {
         }
 
         throw new Error(`Error fetching coinData ${response.status}`);
+    }
+
+    /**
+     * Trying several ways to get the bonding curve data, this is mandatory to perform a buy or sell
+     */
+    private async getBcReserves(
+        tokenMint: string,
+        tokenBondingCurve: string,
+    ): Promise<{
+        virtualSolReserves: number;
+        virtualTokenReserves: number;
+    }> {
+        const maxTimeoutMs = 1200;
+
+        const [txData, txFromFeApi]: [
+            VirtualReserves | null,
+            VirtualReserves | null,
+            // @ts-ignore
+        ] = await Promise.all([
+            (async () => {
+                try {
+                    const r = await new CircuitBreaker(() => this.getTokenBondingCurveStats(tokenBondingCurve), {
+                        timeout: maxTimeoutMs,
+                    }).fire();
+
+                    return {
+                        virtualSolReserves: r.virtualSolReserves,
+                        virtualTokenReserves: r.virtualTokenReserves,
+                    };
+                } catch (e) {
+                    return null;
+                }
+            })(),
+            (async () => {
+                try {
+                    const r = await new CircuitBreaker(() => this.getCoinData(tokenMint), {
+                        timeout: maxTimeoutMs,
+                    }).fire();
+
+                    return {
+                        virtualSolReserves: r.virtual_sol_reserves,
+                        virtualTokenReserves: r.virtual_token_reserves,
+                    };
+                } catch (_) {
+                    return null;
+                }
+            })(),
+        ]);
+
+        if (txData === null && txFromFeApi === null) {
+            throw new Error(
+                `Could not fetch bondingCurve sol and token reserves for mint ${tokenMint}, bc: ${tokenBondingCurve}`,
+            );
+        }
+
+        return txData ?? txFromFeApi!;
     }
 }
 

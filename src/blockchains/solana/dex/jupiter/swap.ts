@@ -2,6 +2,7 @@ import { Connection, Keypair, VersionedTransaction } from '@solana/web3.js';
 import axios from 'axios';
 
 import { logger } from '../../../../logger';
+import { percentageToBps } from '../../../utils/amount';
 
 /**
  * https://station.jup.ag/docs/apis/swap-api
@@ -85,8 +86,4 @@ export default async function swap(
         signature: signature,
         solscanUrl: `https://solscan.io/tx/${signature}`,
     };
-}
-
-function percentageToBps(percentage: number): number {
-    return percentage * 100;
 }

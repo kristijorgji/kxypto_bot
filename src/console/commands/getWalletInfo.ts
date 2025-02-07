@@ -25,5 +25,5 @@ export default async function getWalletInfo(args: {
 
     fs.writeFileSync(fullStoragePath, JSON.stringify(info, null, 2));
 
-    logger.info(`Your wallet info are stored at: ${fullStoragePath}`);
+    logger.info(`Your wallet infos are stored at: ${fullStoragePath}`);
 }

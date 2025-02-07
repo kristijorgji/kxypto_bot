@@ -3,6 +3,7 @@ import { SPL_ACCOUNT_LAYOUT } from '@raydium-io/raydium-sdk';
 import { getMint } from '@solana/spl-token';
 import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
 
+import { logger } from '../../logger';
 import { TOKEN_METADATA_PROGRAM_ID, TOKEN_PROGRAM_ID } from './constants/core';
 import { IfpsMetadata, TokenHolder, TokenInWalletFullInfo } from './types';
 import { getTokenIfpsMetadata } from './utils/tokens';

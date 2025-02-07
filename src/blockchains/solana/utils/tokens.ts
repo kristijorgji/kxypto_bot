@@ -1,4 +1,7 @@
 import { Connection, ParsedAccountData, PublicKey } from '@solana/web3.js';
+import axios from 'axios';
+
+import { IfpsMetadata } from '../types';
 
 /**
  * TODO Store in DB this cache info
@@ -14,4 +17,15 @@ export async function getTokenDecimals(connection: Connection, mintAddress: stri
     const mintData = mintAccountInfo.value.data as ParsedAccountData;
 
     return mintData.parsed.info.decimals;
+}
+
+export async function getTokenIfpsMetadata(uri: string): Promise<IfpsMetadata> {
+    return (
+        await axios.get(uri, {
+            headers: {
+                // Without user agent you may get forbidden error
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0',
+            },
+        })
+    ).data as IfpsMetadata;
 }

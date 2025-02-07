@@ -2,10 +2,10 @@ import { deserializeMetadata } from '@metaplex-foundation/mpl-token-metadata';
 import { SPL_ACCOUNT_LAYOUT } from '@raydium-io/raydium-sdk';
 import { getMint } from '@solana/spl-token';
 import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
-import axios from 'axios';
 
 import { TOKEN_METADATA_PROGRAM_ID, TOKEN_PROGRAM_ID } from './constants/core';
 import { IfpsMetadata, TokenHolder, TokenInWalletFullInfo } from './types';
+import { getTokenIfpsMetadata } from './utils/tokens';
 
 export default class SolanaAdapter {
     private readonly connection: Connection;
@@ -133,13 +133,7 @@ export default class SolanaAdapter {
 
         let ipfsMetadata: IfpsMetadata | undefined;
         if (metadata.uri.length > 0) {
-            const getIpfsMetaRes = await axios.get<IfpsMetadata>(metadata.uri, {
-                headers: {
-                    // Without user agent you may get forbidden error
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0',
-                },
-            });
-            ipfsMetadata = getIpfsMetaRes.data as IfpsMetadata;
+            ipfsMetadata = await getTokenIfpsMetadata(metadata.uri);
         }
 
         return {
@@ -154,7 +148,7 @@ export default class SolanaAdapter {
         };
     }
 
-    private async getTokenMetadata(mint: PublicKey): Promise<{
+    public async getTokenMetadata(mint: PublicKey): Promise<{
         name: string;
         symbol: string;
         uri: string;
@@ -181,7 +175,7 @@ export default class SolanaAdapter {
 }
 
 // Function to get Metadata PDA (Program Derived Address)
-async function getMetadataPDA(mint: PublicKey): Promise<PublicKey> {
+export async function getMetadataPDA(mint: PublicKey): Promise<PublicKey> {
     return (
         await PublicKey.findProgramAddress(
             [Buffer.from('metadata'), TOKEN_METADATA_PROGRAM_ID.toBuffer(), mint.toBuffer()],

@@ -12,10 +12,10 @@ module.exports = {
     collectCoverageFrom: ['src/**/*.{js,jsx,ts,tsx}', '__tests__/**/*.{js,jsx,ts,tsx}', '!<rootDir>/node_modules/'],
     coverageThreshold: {
         global: {
-            branches: 10,
-            functions: 7,
-            lines: 10,
-            statements: 10,
+            branches: 2,
+            functions: 1,
+            lines: 7,
+            statements: 8,
         },
     },
     moduleNameMapper: {

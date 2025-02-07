@@ -9,13 +9,14 @@ export type TokenHolder = {
 };
 
 export type IfpsMetadata = {
-    nane: string;
+    name: string;
     symbol: string;
     description: string;
     showName?: boolean;
     image: string;
     createdOn: string;
     twitter?: string;
+    telegram?: string;
     website?: string;
 };
 

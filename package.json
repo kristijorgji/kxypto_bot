@@ -6,12 +6,13 @@
   "scripts": {
     "test": "jest",
     "start": "ts-node -r dotenv/config src/index.ts",
+    "example:pumpfun": "ts-node -r dotenv/config src/examples/pumpfun.ts",
+    "example:raydium": "ts-node -r dotenv/config src/examples/raydium.ts",
     "dev:cli": "ts-node src/console/cli.ts",
     "compile": "tsc",
     "lint": "eslint '{src,__tests__}/**/*.ts'",
     "fix": "eslint --fix --ext js,jsx,ts,tsx {src,__tests__}",
     "prepare": "husky",
-    "example": "ts-node -r dotenv/config src/examples/pumpfun.ts",
     "pumpfun-bot": "ts-node -r dotenv/config src/scripts/pumpfun-bot.ts"
   },
   "dependencies": {

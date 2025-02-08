@@ -7,3 +7,7 @@ export function solToLamports(solAmount: number): number {
 export function lamportsToSol(lamports: number): number {
     return lamports / LAMPORTS_PER_SOL;
 }
+
+export function percentageToBps(percentage: number): number {
+    return percentage * 100;
+}

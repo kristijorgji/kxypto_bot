@@ -19,6 +19,14 @@ export async function getTokenDecimals(connection: Connection, mintAddress: stri
     return mintData.parsed.info.decimals;
 }
 
+export async function calculateTokenAmount(
+    amount: number,
+    mintAddress: string,
+    connection: Connection,
+): Promise<number> {
+    return amount * 10 ** (await getTokenDecimals(connection, mintAddress));
+}
+
 export async function getTokenIfpsMetadata(uri: string): Promise<IfpsMetadata> {
     return (
         await axios.get(uri, {

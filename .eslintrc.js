@@ -1,3 +1,3 @@
 module.exports = {
-  extends: ['@kristijorgji/eslint-config-typescript'],
+    extends: ['@kristijorgji/eslint-config-typescript'],
 };

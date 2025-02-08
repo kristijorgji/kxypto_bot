@@ -5,7 +5,7 @@ import { computeSwap } from './computeSwap';
 import { TransactionResult, executeTransactions } from './executeTransactions';
 import { getOrCreateWalletTokenAccounts } from './getOrCreateWalletTokenAccounts';
 import { getSwapTransactions } from './getSwapTransactions';
-import { SolanaTokenMints } from '../../../constants/SolanaTokenMints';
+import { SolanaTokenMints } from '../../constants/SolanaTokenMints';
 import { TransactionMode } from '../../types';
 
 export type RaydiumSwapConfig = {

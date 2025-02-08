@@ -1,13 +1,13 @@
 import { Connection } from '@solana/web3.js';
 import dotenv from 'dotenv';
 
-import { SolanaTokenMints } from '../blockchains/constants/SolanaTokenMints';
+import { SolanaTokenMints } from '../blockchains/solana/constants/SolanaTokenMints';
 import { SolanaWalletProviders } from '../blockchains/solana/constants/walletProviders';
 import { swap } from '../blockchains/solana/dex/raydium/swap';
 import { TransactionMode } from '../blockchains/solana/types';
 import solanaMnemonicToKeypair from '../blockchains/solana/utils/solanaMnemonicToKeypair';
 import { solanaPrivateKeyToKeypair } from '../blockchains/solana/utils/solanaPrivateKeyToKeypair';
-import { calculateTokenAmount } from '../blockchains/solana/utils/tokens';
+import { calculateTokenRawAmount } from '../blockchains/solana/utils/tokens';
 import { logger } from '../logger';
 
 dotenv.config();
@@ -30,7 +30,10 @@ async function start() {
 
         const swapResults = await swap({
             connection: connection,
-            inputAmount: await calculateTokenAmount(0.01, SolanaTokenMints.WSOL, connection),
+            inputAmount: await calculateTokenRawAmount(connection, {
+                mintAddress: SolanaTokenMints.WSOL,
+                amount: 0.01,
+            }),
             inputMint: SolanaTokenMints.WSOL,
             outputMint: SolanaTokenMints.USDC,
             slippageInPercent: 1,

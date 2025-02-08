@@ -19,7 +19,7 @@ export async function getTokenDecimals(connection: Connection, mintAddress: stri
     return mintData.parsed.info.decimals;
 }
 
-export async function tokenAmountInLamports(
+export async function calculateTokenAmount(
     amount: number,
     mintAddress: string,
     connection: Connection,

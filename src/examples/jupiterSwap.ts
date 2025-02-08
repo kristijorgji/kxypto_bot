@@ -6,7 +6,7 @@ import { SolanaWalletProviders } from '../blockchains/solana/constants/walletPro
 import swap from '../blockchains/solana/dex/jupiter/swap';
 import solanaMnemonicToKeypair from '../blockchains/solana/utils/solanaMnemonicToKeypair';
 import { solanaPrivateKeyToKeypair } from '../blockchains/solana/utils/solanaPrivateKeyToKeypair';
-import { tokenAmountInLamports } from '../blockchains/solana/utils/tokens';
+import { calculateTokenAmount } from '../blockchains/solana/utils/tokens';
 import { logger } from '../logger';
 
 dotenv.config();
@@ -29,7 +29,7 @@ async function start() {
     const r = await swap(connection, solanaPrivateKeyToKeypair(walletInfo.privateKey), {
         inputMint: SolanaTokenMints.USDC,
         outputMint: SolanaTokenMints.WSOL,
-        amount: await tokenAmountInLamports(25.259, SolanaTokenMints.USDC, connection),
+        amount: await calculateTokenAmount(25.259, SolanaTokenMints.USDC, connection),
         slippagePercentage: 10,
     });
 

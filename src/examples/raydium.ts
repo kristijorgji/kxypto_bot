@@ -7,7 +7,7 @@ import { swap } from '../blockchains/solana/dex/raydium/swap';
 import { TransactionMode } from '../blockchains/solana/types';
 import solanaMnemonicToKeypair from '../blockchains/solana/utils/solanaMnemonicToKeypair';
 import { solanaPrivateKeyToKeypair } from '../blockchains/solana/utils/solanaPrivateKeyToKeypair';
-import { tokenAmountInLamports } from '../blockchains/solana/utils/tokens';
+import { calculateTokenAmount } from '../blockchains/solana/utils/tokens';
 import { logger } from '../logger';
 
 dotenv.config();
@@ -30,7 +30,7 @@ async function start() {
 
         const swapResults = await swap({
             connection: connection,
-            inputAmount: await tokenAmountInLamports(0.01, SolanaTokenMints.WSOL, connection),
+            inputAmount: await calculateTokenAmount(0.01, SolanaTokenMints.WSOL, connection),
             inputMint: SolanaTokenMints.WSOL,
             outputMint: SolanaTokenMints.USDC,
             slippageInPercent: 1,

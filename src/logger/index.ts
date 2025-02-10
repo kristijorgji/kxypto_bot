@@ -12,7 +12,15 @@ export const logger = createLogger({
         format.splat(),
         ...(IS_CLI_MODE
             ? [
-                  format.printf(({ timestamp, level, message, stack }) => {
+                  format.printf(({ timestamp, level, message, stack, ...rest }) => {
+                      if (Object.prototype.hasOwnProperty.call(rest, 'contextMap')) {
+                          if ((rest as { contextMap: { tokenMint?: string } }).contextMap?.tokenMint) {
+                              const tokenMint = (rest as { contextMap: { tokenMint: string } }).contextMap.tokenMint;
+
+                              return `${timestamp} [${level.toUpperCase()}][${tokenMint}]: ${stack || message}`;
+                          }
+                      }
+
                       return `${timestamp} [${level.toUpperCase()}]: ${stack || message}`;
                   }),
               ]

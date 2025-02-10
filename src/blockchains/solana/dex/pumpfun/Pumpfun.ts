@@ -276,8 +276,9 @@ export default class Pumpfun {
                 boughtAmountRaw: tokenOut,
             };
         } else {
-            const simulatedResult = await this.connection.simulateTransaction(transaction);
-            logger.info(simulatedResult);
+            // running the simulation incur fees so skipping for now
+            // const simulatedResult = await this.connection.simulateTransaction(transaction);
+            // logger.info(simulatedResult);
 
             return {
                 signature: '_simulation_',
@@ -375,13 +376,16 @@ export default class Pumpfun {
 
             return {
                 signature: signature,
+                minSolOutput: minSolOutput,
             };
         } else {
-            const simulatedResult = await this.connection.simulateTransaction(transaction);
-            logger.info(simulatedResult);
+            // running the simulation incur fees so skipping for now
+            // const simulatedResult = await this.connection.simulateTransaction(transaction);
+            // logger.info(simulatedResult);
 
             return {
                 signature: '_simulation_',
+                minSolOutput: minSolOutput,
             };
         }
     }

@@ -72,4 +72,5 @@ export type PumpfunBuyResponse = {
 
 export type PumpfunSellResponse = {
     signature: string;
+    minSolOutput: number;
 };

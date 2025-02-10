@@ -5,6 +5,7 @@ import { SolanaWalletProviders } from '../blockchains/solana/constants/walletPro
 import { pumpCoinDataToInitialCoinData } from '../blockchains/solana/dex/pumpfun/mappers/mappers';
 import Pumpfun from '../blockchains/solana/dex/pumpfun/Pumpfun';
 import { PumpfunInitialCoinData } from '../blockchains/solana/dex/pumpfun/types';
+import { formPumpfunTokenUrl } from '../blockchains/solana/dex/pumpfun/utils';
 import SolanaAdapter from '../blockchains/solana/SolanaAdapter';
 import { TransactionMode } from '../blockchains/solana/types';
 import solanaMnemonicToKeypair from '../blockchains/solana/utils/solanaMnemonicToKeypair';
@@ -48,7 +49,7 @@ async function start() {
 
         const tokenMint = data.mint;
 
-        logger.info('Will snipe new pumpfun token %s %s', data.name, `https://pump.fun/coin/${tokenMint}`);
+        logger.info('Will snipe new pumpfun token %s %s', data.name, formPumpfunTokenUrl(tokenMint));
 
         let initialCoinData: PumpfunInitialCoinData;
         try {
@@ -113,7 +114,9 @@ async function start() {
             }
 
             logger.info(
-                `Will sell ${token.name}, https://pump.fun/coin/${token.mint} amount ${token.amount} before multiplying with decimals`,
+                `Will sell ${token.name}, ${formPumpfunTokenUrl(token.mint)} amount ${
+                    token.amount
+                } before multiplying with decimals`,
             );
 
             const mintAddress = new PublicKey(token.mint);

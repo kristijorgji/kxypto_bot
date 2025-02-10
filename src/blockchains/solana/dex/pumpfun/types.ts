@@ -1,3 +1,5 @@
+import { SolTransactionDetails } from '../../types';
+
 export type NewPumpFunTokenData = {
     name: string;
     symbol: string;
@@ -68,9 +70,12 @@ export type PumpFunCoinData = {
 export type PumpfunBuyResponse = {
     signature: string;
     boughtAmountRaw: number;
+    txDetails: SolTransactionDetails;
 };
 
 export type PumpfunSellResponse = {
     signature: string;
-    minSolOutput: number;
+    soldRawAmount: number;
+    minLamportsOutput: number;
+    txDetails: SolTransactionDetails;
 };

@@ -90,3 +90,11 @@ export type WssMessage = {
         subscription: number;
     };
 };
+
+export type SolTransactionDetails = {
+    grossTransferredLamports: number; // Amount before fees
+    netTransferredLamports: number; // Amount after fees
+    baseFeeLamports: number;
+    priorityFeeLamports: number;
+    totalFeeLamports: number;
+};

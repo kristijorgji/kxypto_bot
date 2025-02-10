@@ -14,7 +14,6 @@ import {
 import { formPumpfunTokenUrl } from '../blockchains/solana/dex/pumpfun/utils';
 import SolanaAdapter from '../blockchains/solana/SolanaAdapter';
 import { TokenHolder, TransactionMode, WalletInfo } from '../blockchains/solana/types';
-import { simulateSolanaNetworkFeeInLamports } from '../blockchains/solana/utils/simulations';
 import solanaMnemonicToKeypair from '../blockchains/solana/utils/solanaMnemonicToKeypair';
 import { lamportsToSol, solToLamports } from '../blockchains/utils/amount';
 import { logger } from '../logger';
@@ -26,7 +25,10 @@ dotenv.config();
 type BuyPosition = {
     timestamp: number;
     amountRaw: number;
-    priceInSol: number;
+    netTransferredLamports: number;
+    pumpInSol: number;
+    priceInLamports: number;
+    marketCap: number;
 };
 
 type HistoryEntry = {
@@ -42,7 +44,11 @@ type HistoryEntry = {
 type HandleTokenBoughtResponse = {
     buyPosition: BuyPosition;
     sellPosition?: {
-        lamportsOut: number;
+        grossReceivedLamports: number;
+        netReceivedLamports: number; // this can be negative if the fees are higher than the gross received
+        pumpMinLamportsOutput: number;
+        priceInLamports: number;
+        marketCap: number;
         reason: string;
     };
     history: HistoryEntry[];
@@ -78,6 +84,8 @@ async function start() {
     const walletInfo = await solanaMnemonicToKeypair(process.env.WALLET_MNEMONIC_PHRASE as string, {
         provider: SolanaWalletProviders.TrustWallet,
     });
+
+    logger.info(`Started with balance ${lamportsToSol(await solanaAdapter.getBalance(walletInfo.address))} SOL`);
 
     await listen();
 
@@ -136,21 +144,21 @@ async function start() {
                         const t = handleRes as HandleTokenBoughtResponse;
                         if (t.sellPosition) {
                             lamportsBalance +=
-                                t.sellPosition.lamportsOut -
-                                solToLamports(t.buyPosition.priceInSol) -
-                                simulateSolanaNetworkFeeInLamports() -
-                                simulateSolanaNetworkFeeInLamports();
+                                t.sellPosition.netReceivedLamports + t.buyPosition.netTransferredLamports;
                             logger.info(`Simulated new balance: ${lamportsToSol(lamportsBalance)}`);
                         }
                     }
                 }
-
-                if (maxTokensToProcessInParallel && processed === maxTokensToProcessInParallel) {
-                    await listen();
-                }
             } catch (e) {
                 logger.error('Failed handling pump token %s', tokenData.mint);
                 logger.error(e);
+            }
+
+            if (maxTokensToProcessInParallel && processed === maxTokensToProcessInParallel) {
+                logger.info(
+                    `Processed ${processed} = maxTokensToProcessInParallel ${maxTokensToProcessInParallel} and will start to listen again`,
+                );
+                return await listen();
             }
         });
     }
@@ -282,7 +290,7 @@ async function handlePumpToken(
         }
 
         if (buyPosition) {
-            if (price - buyPosition.priceInSol >= 0.025) {
+            if (price * buyPosition.amountRaw - Math.abs(buyPosition.netTransferredLamports) >= solToLamports(0.025)) {
                 sell = {
                     reason: 'AT_PROFIT',
                 };
@@ -292,7 +300,7 @@ async function handlePumpToken(
         // eslint-disable-next-line no-unreachable
         if (!buyPosition && buy) {
             // TODO calculate dynamically based on the situation
-            const inSol = 0.001;
+            const inSol = 0.2;
             const buyRes = await pumpfun.buy({
                 transactionMode: simulate ? TransactionMode.Simulation : TransactionMode.Execution,
                 payerPrivateKey: walletInfo.privateKey,
@@ -306,11 +314,19 @@ async function handlePumpToken(
             buyPosition = {
                 timestamp: Date.now(),
                 amountRaw: buyRes.boughtAmountRaw,
-                priceInSol: inSol,
+                netTransferredLamports: buyRes.txDetails.netTransferredLamports,
+                pumpInSol: inSol,
+                priceInLamports: price,
+                marketCap: marketCap,
             };
             sleepIntervalMs = SELL_MONITOR_WAIT_PERIOD_MS;
 
-            logger.info('Bought successfully %s amountRaw for %s sol', buyRes!.boughtAmountRaw, inSol);
+            logger.info(
+                'Bought successfully %s amountRaw for %s sol. txDetails %o',
+                buyRes!.boughtAmountRaw,
+                inSol,
+                buyRes.txDetails,
+            );
         }
 
         if (sell && buyPosition) {
@@ -324,12 +340,22 @@ async function handlePumpToken(
                 tokenBalance: buyPosition.amountRaw,
                 priorityFeeInSol: 0.002,
             });
-            logger.info('We sold successfully at minSol=%s', sellRes.minSolOutput);
+            logger.info(
+                'We sold successfully %s amountRaw with reason %s and received net %s sol. txDetails=%o',
+                sellRes.soldRawAmount,
+                sell.reason,
+                lamportsToSol(sellRes.txDetails.netTransferredLamports),
+                sellRes.txDetails,
+            );
 
             return {
                 buyPosition: buyPosition,
                 sellPosition: {
-                    lamportsOut: sellRes.minSolOutput,
+                    grossReceivedLamports: sellRes.txDetails.grossTransferredLamports,
+                    netReceivedLamports: sellRes.txDetails.netTransferredLamports,
+                    pumpMinLamportsOutput: sellRes.minLamportsOutput,
+                    priceInLamports: price,
+                    marketCap: marketCap,
                     reason: sell.reason,
                 },
                 history: history,

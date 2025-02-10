@@ -65,7 +65,8 @@ async function start() {
         }
 
         try {
-            const inSol = 0.005;
+            const inSol = 0.001;
+            logger.info(`Will buy ${inSol} sol`);
             const buyRes = await pumpfun.buy({
                 transactionMode: TransactionMode.Execution,
                 payerPrivateKey: walletInfo.privateKey,
@@ -77,12 +78,17 @@ async function start() {
                 priorityFeeInSol: 0.002,
             });
 
-            logger.info('Bought successfully %s amountRaw for %s sol', buyRes.boughtAmountRaw, inSol);
+            logger.info(
+                'Bought successfully %s amountRaw for %s sol. Full info %o',
+                buyRes.boughtAmountRaw,
+                inSol,
+                buyRes,
+            );
 
             logger.info('Sleeping 5s then selling');
             await sleep(7000);
 
-            await pumpfun.sell({
+            const sellRes = await pumpfun.sell({
                 transactionMode: TransactionMode.Execution,
                 payerPrivateKey: walletInfo.privateKey,
                 tokenMint: tokenMint,
@@ -92,6 +98,8 @@ async function start() {
                 tokenBalance: buyRes.boughtAmountRaw,
                 priorityFeeInSol: 0.002,
             });
+
+            logger.info('Sold successfully %o', sellRes);
         } catch (e) {
             console.error(e);
         }
@@ -123,7 +131,7 @@ async function start() {
             const bondingCurve = await pumpfun.getBondingCurveAddress(mintAddress);
             const associatedBondingCurve = await pumpfun.getAssociatedBondingCurveAddress(bondingCurve, mintAddress);
 
-            await pumpfun.sell({
+            const sellRes = await pumpfun.sell({
                 transactionMode: TransactionMode.Execution,
                 payerPrivateKey: walletInfo.privateKey,
                 tokenMint: token.mint,
@@ -133,7 +141,7 @@ async function start() {
                 priorityFeeInSol: 0.002,
             });
 
-            logger.info('Sell transaction confirmed');
+            logger.info('Sell transaction confirmed. %o', sellRes);
         }
     }
 }

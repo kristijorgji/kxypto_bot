@@ -4,7 +4,6 @@ import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } fr
 import {
     AccountMeta,
     Connection,
-    LAMPORTS_PER_SOL,
     PublicKey,
     Transaction,
     TransactionInstruction,
@@ -39,10 +38,13 @@ import {
 import { logger } from '../../../../logger';
 import { bufferFromUInt64 } from '../../../../utils/data';
 import { sleep } from '../../../../utils/functions';
+import { lamportsToSol, solToLamports } from '../../../utils/amount';
 import { getMetadataPDA } from '../../SolanaAdapter';
 import { TransactionMode, WssMessage } from '../../types';
 import { createTransaction, getKeyPairFromPrivateKey } from '../../utils/helpers';
+import { simulateSolTransactionDetails } from '../../utils/simulations';
 import { getTokenIfpsMetadata } from '../../utils/tokens';
+import { getSolTransactionDetails } from '../../utils/transactions';
 
 type VirtualReserves = {
     virtualSolReserves: number;
@@ -218,11 +220,11 @@ export default class Pumpfun {
 
         const { virtualTokenReserves, virtualSolReserves } = await this.getBcReserves(tokenMint, tokenBondingCurve);
 
-        const solInLamports = solIn * LAMPORTS_PER_SOL;
+        const solInLamports = solToLamports(solIn);
         const tokenOut = Math.floor((solInLamports * virtualTokenReserves) / virtualSolReserves);
 
         const solInWithSlippage = solIn * (1 + slippageDecimal);
-        const maxSolCost = Math.floor(solInWithSlippage * LAMPORTS_PER_SOL);
+        const maxSolCost = Math.floor(solToLamports(solInWithSlippage));
         const ASSOCIATED_USER = tokenAccount;
         const USER = payer.publicKey;
         const BONDING_CURVE = new PublicKey(tokenBondingCurve);
@@ -274,6 +276,7 @@ export default class Pumpfun {
             return {
                 signature: signature,
                 boughtAmountRaw: tokenOut,
+                txDetails: await getSolTransactionDetails(this.connection, signature, payer.publicKey.toBase58()),
             };
         } else {
             // running the simulation incur fees so skipping for now
@@ -283,6 +286,7 @@ export default class Pumpfun {
             return {
                 signature: '_simulation_',
                 boughtAmountRaw: tokenOut,
+                txDetails: simulateSolTransactionDetails(-solInLamports),
             };
         }
     }
@@ -327,7 +331,7 @@ export default class Pumpfun {
 
         const { virtualTokenReserves, virtualSolReserves } = await this.getBcReserves(tokenMint, tokenBondingCurve);
 
-        const minSolOutput = Math.floor(
+        const minLamportsOutput = Math.floor(
             (tokenBalance! * (1 - slippageDecimal) * virtualSolReserves) / virtualTokenReserves,
         );
 
@@ -349,7 +353,7 @@ export default class Pumpfun {
         const data = Buffer.concat([
             bufferFromUInt64('12502976635542562355'),
             bufferFromUInt64(tokenBalance),
-            bufferFromUInt64(minSolOutput),
+            bufferFromUInt64(minLamportsOutput),
         ]);
 
         // @ts-ignore
@@ -376,7 +380,9 @@ export default class Pumpfun {
 
             return {
                 signature: signature,
-                minSolOutput: minSolOutput,
+                soldRawAmount: tokenBalance,
+                minLamportsOutput: minLamportsOutput,
+                txDetails: await getSolTransactionDetails(this.connection, signature, payer.publicKey.toBase58()),
             };
         } else {
             // running the simulation incur fees so skipping for now
@@ -385,7 +391,9 @@ export default class Pumpfun {
 
             return {
                 signature: '_simulation_',
-                minSolOutput: minSolOutput,
+                soldRawAmount: tokenBalance,
+                minLamportsOutput: minLamportsOutput,
+                txDetails: simulateSolTransactionDetails(minLamportsOutput),
             };
         }
     }
@@ -433,7 +441,7 @@ export default class Pumpfun {
         const bondingCurveAccountInfo = (await this.connection.getAccountInfo(tokenBondingCurvePk))!;
         const bondingCurveState = new BondingCurveState(bondingCurveAccountInfo.data as Buffer);
 
-        const marketCap = Number(bondingCurveState.virtual_sol_reserves) / LAMPORTS_PER_SOL;
+        const marketCap = lamportsToSol(Number(bondingCurveState.virtual_sol_reserves));
         // dividing by 10^6 (as pump.fun has value till 6 decimal places)
         const totalCoins = Number(bondingCurveState.virtual_token_reserves) / 10 ** PUMPFUN_TOKEN_DECIMALS;
         const price = marketCap / totalCoins;

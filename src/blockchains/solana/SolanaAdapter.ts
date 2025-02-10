@@ -4,8 +4,9 @@ import { getMint } from '@solana/spl-token';
 import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
 
 import { TOKEN_METADATA_PROGRAM_ID, TOKEN_PROGRAM_ID } from './constants/core';
-import { IfpsMetadata, TokenHolder, TokenInWalletFullInfo } from './types';
+import { IfpsMetadata, SolTransactionDetails, TokenHolder, TokenInWalletFullInfo } from './types';
 import { getTokenIfpsMetadata } from './utils/tokens';
+import { getSolTransactionDetails } from './utils/transactions';
 
 export default class SolanaAdapter {
     private readonly connection: Connection;
@@ -171,6 +172,13 @@ export default class SolanaAdapter {
         } catch (error) {
             throw new Error(`Error decoding metadata for ${mint.toBase58()}: ${(error as Error).message}`);
         }
+    }
+
+    async getSolTransactionDetails(
+        transactionSignature: string,
+        recipientAddress: string,
+    ): Promise<SolTransactionDetails> {
+        return getSolTransactionDetails(this.connection, transactionSignature, recipientAddress);
     }
 }
 

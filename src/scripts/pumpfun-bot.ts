@@ -15,8 +15,10 @@ import { formPumpfunTokenUrl } from '../blockchains/solana/dex/pumpfun/utils';
 import SolanaAdapter from '../blockchains/solana/SolanaAdapter';
 import { TokenHolder, TransactionMode, WalletInfo } from '../blockchains/solana/types';
 import solanaMnemonicToKeypair from '../blockchains/solana/utils/solanaMnemonicToKeypair';
-import { lamportsToSol, solToLamports } from '../blockchains/utils/amount';
+import { lamportsToSol } from '../blockchains/utils/amount';
 import { logger } from '../logger';
+import TrailingStopLoss from '../trading/orders/TrailingStopLoss';
+import TrailingTakeProfit from '../trading/orders/TrailingTakeProfit';
 import { sleep } from '../utils/functions';
 import { ensureDataFolder } from '../utils/storage';
 
@@ -31,6 +33,16 @@ type BuyPosition = {
     marketCap: number;
 };
 
+type SellPosition = {
+    timestamp: number;
+    grossReceivedLamports: number;
+    netReceivedLamports: number; // this can be negative if the fees are higher than the gross received
+    pumpMinLamportsOutput: number;
+    priceInLamports: number;
+    marketCap: number;
+    reason: string;
+};
+
 type HistoryEntry = {
     timestamp: number;
     price: number;
@@ -43,14 +55,7 @@ type HistoryEntry = {
 
 type HandleTokenBoughtResponse = {
     buyPosition: BuyPosition;
-    sellPosition?: {
-        grossReceivedLamports: number;
-        netReceivedLamports: number; // this can be negative if the fees are higher than the gross received
-        pumpMinLamportsOutput: number;
-        priceInLamports: number;
-        marketCap: number;
-        reason: string;
-    };
+    sellPosition?: SellPosition;
     history: HistoryEntry[];
 };
 
@@ -205,11 +210,13 @@ async function handlePumpToken(
     let buy = false;
     let sell:
         | {
-              reason: string;
+              reason: 'DUMPED' | 'TRAILING_STOP_LOSS' | 'TRAILING_TAKE_PROFIT' | 'AT_HARDCODED_PROFIT';
           }
         | undefined;
     const history: HistoryEntry[] = [];
     let buyPosition: BuyPosition | undefined;
+    let trailingStopLoss: TrailingStopLoss | undefined;
+    let trailingTakeProfit: TrailingTakeProfit | undefined;
 
     while (true) {
         // @ts-ignore
@@ -221,7 +228,7 @@ async function handlePumpToken(
                 pumpfun.getTokenBondingCurveStats(tokenData.bondingCurve),
             ]);
 
-        const elapsedMonitoring = Date.now() - startTimestamp;
+        const elapsedMonitoringMs = Date.now() - startTimestamp;
 
         const { holdersCounts, devHoldingPercentage, topTenHoldingPercentage } = await calculateHoldersStats({
             tokenHolders: tokenHolders,
@@ -258,7 +265,10 @@ async function handlePumpToken(
             buy = true;
         }
 
-        if (mcDiffFromInitialPercentage < -6) {
+        if (
+            mcDiffFromInitialPercentage < -6 ||
+            (mcDiffFromInitialPercentage < -5 && holdersCounts <= 3 && elapsedMonitoringMs >= 120 * 1e3)
+        ) {
             if (buyPosition) {
                 logger.info('The token is probably dumped and we will sell at loss, sell=true');
                 sell = {
@@ -276,9 +286,9 @@ async function handlePumpToken(
             }
         }
 
-        if (!buyPosition && elapsedMonitoring >= maxWaitMs) {
+        if (!buyPosition && elapsedMonitoringMs >= maxWaitMs) {
             const reason = `Stopped monitoring token ${tokenMint}. We waited ${
-                elapsedMonitoring / 1000
+                elapsedMonitoringMs / 1000
             } seconds and did not pump`;
             logger.info(reason);
 
@@ -290,9 +300,33 @@ async function handlePumpToken(
         }
 
         if (buyPosition) {
-            if (price * buyPosition.amountRaw - Math.abs(buyPosition.netTransferredLamports) >= solToLamports(0.025)) {
+            const priceDiffPercentageSincePurchase =
+                ((price - buyPosition.priceInLamports) / buyPosition.priceInLamports) * 100;
+            const diffInSol = lamportsToSol(
+                price * buyPosition.amountRaw - Math.abs(buyPosition.netTransferredLamports),
+            );
+
+            logger.info('Price change since purchase %s%%', priceDiffPercentageSincePurchase);
+            logger.info('Estimated sol diff %s', diffInSol);
+
+            if (trailingTakeProfit!.updatePrice(price)) {
                 sell = {
-                    reason: 'AT_PROFIT',
+                    reason: 'TRAILING_TAKE_PROFIT',
+                };
+                logger.info('Triggered trailing take profit at price %s. %o', price, trailingTakeProfit);
+            } else if (!sell && trailingStopLoss!.updatePrice(price)) {
+                sell = {
+                    reason: 'TRAILING_STOP_LOSS',
+                };
+                logger.info(
+                    'Triggered trailing stop loss at price %s with %s%% trailingPercentage and stopPrice %s',
+                    price,
+                    trailingStopLoss!.getTrailingPercentage(),
+                    trailingStopLoss!.getStopPrice(),
+                );
+            } else if (diffInSol >= 0.2) {
+                sell = {
+                    reason: 'AT_HARDCODED_PROFIT',
                 };
             }
         }
@@ -319,6 +353,12 @@ async function handlePumpToken(
                 priceInLamports: price,
                 marketCap: marketCap,
             };
+            trailingStopLoss = new TrailingStopLoss(price, 15);
+            trailingTakeProfit = new TrailingTakeProfit({
+                entryPrice: price,
+                trailingProfitPercentage: 10,
+                trailingStopPercentage: 20,
+            });
             sleepIntervalMs = SELL_MONITOR_WAIT_PERIOD_MS;
 
             logger.info(
@@ -351,6 +391,7 @@ async function handlePumpToken(
             return {
                 buyPosition: buyPosition,
                 sellPosition: {
+                    timestamp: Date.now(),
                     grossReceivedLamports: sellRes.txDetails.grossTransferredLamports,
                     netReceivedLamports: sellRes.txDetails.netTransferredLamports,
                     pumpMinLamportsOutput: sellRes.minLamportsOutput,

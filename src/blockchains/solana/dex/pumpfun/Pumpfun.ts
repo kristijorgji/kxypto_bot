@@ -36,7 +36,7 @@ import {
     PumpfunTokenBcStats,
 } from './types';
 import { logger } from '../../../../logger';
-import { bufferFromUInt64 } from '../../../../utils/data';
+import { bufferFromUInt64, randomInt } from '../../../../utils/data';
 import { sleep } from '../../../../utils/functions';
 import { lamportsToSol, solToLamports } from '../../../utils/amount';
 import { getMetadataPDA } from '../../SolanaAdapter';
@@ -283,6 +283,8 @@ export default class Pumpfun {
             // const simulatedResult = await this.connection.simulateTransaction(transaction);
             // logger.info(simulatedResult);
 
+            await sleep(randomInt(1000, 3600));
+
             return {
                 signature: '_simulation_',
                 boughtAmountRaw: tokenOut,
@@ -388,6 +390,8 @@ export default class Pumpfun {
             // running the simulation incur fees so skipping for now
             // const simulatedResult = await this.connection.simulateTransaction(transaction);
             // logger.info(simulatedResult);
+
+            await sleep(randomInt(1000, 3600));
 
             return {
                 signature: '_simulation_',

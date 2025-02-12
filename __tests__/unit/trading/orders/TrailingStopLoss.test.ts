@@ -1,4 +1,4 @@
-import TrailingStopLoss from '../../../src/trading/orders/TrailingStopLoss';
+import TrailingStopLoss from '../../../../src/trading/orders/TrailingStopLoss';
 
 describe(TrailingStopLoss.name, () => {
     let tsl: TrailingStopLoss;

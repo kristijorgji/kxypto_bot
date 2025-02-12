@@ -32,11 +32,12 @@ import {
     PumpFunCoinData,
     PumpfunBuyResponse,
     PumpfunInitialCoinData,
+    PumpfunListener,
     PumpfunSellResponse,
     PumpfunTokenBcStats,
 } from './types';
 import { logger } from '../../../../logger';
-import { bufferFromUInt64, randomInt } from '../../../../utils/data';
+import { bufferFromUInt64, randomInt } from '../../../../utils/data/data';
 import { sleep } from '../../../../utils/functions';
 import { lamportsToSol, solToLamports } from '../../../utils/amount';
 import { getMetadataPDA } from '../../SolanaAdapter';
@@ -59,7 +60,7 @@ type VirtualReserves = {
  *
  * If confirmation of transactions fails, might need to increase priority fee
  */
-export default class Pumpfun {
+export default class Pumpfun implements PumpfunListener {
     private static readonly defaultPriorityInSol = 0;
     private static readonly defaultSlippageDecimal = 0.25;
 
@@ -72,7 +73,7 @@ export default class Pumpfun {
         this.connection = new Connection(this.config.rpcEndpoint, 'confirmed');
     }
 
-    async listenForPumpFunTokens(onNewToken: (data: NewPumpFunTokenData) => void) {
+    async listenForPumpFunTokens(onNewToken: (data: NewPumpFunTokenData) => void): Promise<void> {
         this.listeningToNewTokens = true;
 
         try {
@@ -149,7 +150,7 @@ export default class Pumpfun {
         }
     }
 
-    stopListeningToNewTokens() {
+    stopListeningToNewTokens(): void {
         this.listeningToNewTokens = false;
         this.ws!.close();
     }

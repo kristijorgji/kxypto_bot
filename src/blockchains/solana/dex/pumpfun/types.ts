@@ -79,3 +79,9 @@ export type PumpfunSellResponse = {
     minLamportsOutput: number;
     txDetails: SolTransactionDetails;
 };
+
+export interface PumpfunListener {
+    listenForPumpFunTokens(onNewToken: (data: NewPumpFunTokenData) => void): Promise<void>;
+
+    stopListeningToNewTokens(): void;
+}

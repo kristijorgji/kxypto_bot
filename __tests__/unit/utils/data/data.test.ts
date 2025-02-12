@@ -1,4 +1,4 @@
-import { randomDecimal, randomInt } from '../../../src/utils/data';
+import { randomDecimal, randomInt } from '../../../../src/utils/data/data';
 
 describe(randomInt.name, () => {
     test('returns a number within the given range', () => {

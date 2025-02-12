@@ -1,4 +1,4 @@
-import { randomDecimal } from '../../../utils/data';
+import { randomDecimal } from '../../../utils/data/data';
 import { lamportsToSol } from '../../utils/amount';
 import { BASE_FEE_LAMPORTS } from '../constants/core';
 import { SolTransactionDetails } from '../types';

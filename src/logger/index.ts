@@ -14,10 +14,16 @@ export const logger = createLogger({
             ? [
                   format.printf(({ timestamp, level, message, stack, ...rest }) => {
                       if (Object.prototype.hasOwnProperty.call(rest, 'contextMap')) {
-                          if ((rest as { contextMap: { tokenMint?: string } }).contextMap?.tokenMint) {
-                              const tokenMint = (rest as { contextMap: { tokenMint: string } }).contextMap.tokenMint;
+                          if (
+                              (rest as { contextMap: { listenerId: string; tokenMint?: string } }).contextMap?.tokenMint
+                          ) {
+                              const { listenerId, tokenMint } = (
+                                  rest as { contextMap: { listenerId: string; tokenMint: string } }
+                              ).contextMap;
 
-                              return `${timestamp} [${level.toUpperCase()}][${tokenMint}]: ${stack || message}`;
+                              return `${timestamp} [${level.toUpperCase()}][${listenerId}][${tokenMint}]: ${
+                                  stack || message
+                              }`;
                           }
                       }
 

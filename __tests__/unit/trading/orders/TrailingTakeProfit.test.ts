@@ -1,4 +1,4 @@
-import TrailingTakeProfit from '../../../src/trading/orders/TrailingTakeProfit';
+import TrailingTakeProfit from '../../../../src/trading/orders/TrailingTakeProfit';
 
 describe(TrailingTakeProfit.name, () => {
     let ttp: TrailingTakeProfit;

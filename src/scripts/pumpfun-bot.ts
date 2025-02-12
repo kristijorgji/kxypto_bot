@@ -19,6 +19,7 @@ import { lamportsToSol } from '../blockchains/utils/amount';
 import { logger } from '../logger';
 import TrailingStopLoss from '../trading/orders/TrailingStopLoss';
 import TrailingTakeProfit from '../trading/orders/TrailingTakeProfit';
+import UniqueRandomIntGenerator from '../utils/data/UniqueRandomIntGenerator';
 import { sleep } from '../utils/functions';
 import { ensureDataFolder } from '../utils/storage';
 
@@ -76,6 +77,8 @@ const BUY_MONITOR_WAIT_PERIOD_MS = 1000;
 const SELL_MONITOR_WAIT_PERIOD_MS = 250;
 
 async function start() {
+    const uniqueRandomIntGenerator = new UniqueRandomIntGenerator();
+
     const pumpfun = new Pumpfun({
         rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
         wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
@@ -95,6 +98,8 @@ async function start() {
     await listen();
 
     async function listen() {
+        const identifier = uniqueRandomIntGenerator.next().toString();
+
         const maxTokensToProcessInParallel: number | null = 1;
         let processed = 0;
         let lamportsBalance = await solanaAdapter.getBalance(walletInfo.address);
@@ -102,7 +107,9 @@ async function start() {
         await pumpfun.listenForPumpFunTokens(async tokenData => {
             if (maxTokensToProcessInParallel && processed >= maxTokensToProcessInParallel) {
                 logger.info(
-                    `Returning and stopping listener as we processed already maximum specified tokens ${maxTokensToProcessInParallel}`,
+                    '[%s] Returning and stopping listener as we processed already maximum specified tokens %d',
+                    identifier,
+                    maxTokensToProcessInParallel,
                 );
                 pumpfun.stopListeningToNewTokens();
                 return;
@@ -111,7 +118,8 @@ async function start() {
 
             try {
                 logger.info(
-                    'Handling newly created token: %s, %s',
+                    '[%s] Handling newly created token: %s, %s',
+                    identifier,
                     tokenData.name,
                     formPumpfunTokenUrl(tokenData.mint),
                 );
@@ -121,6 +129,7 @@ async function start() {
                     solanaAdapter,
                     logger.child({
                         contextMap: {
+                            listenerId: identifier,
                             tokenMint: tokenData.mint,
                         },
                     }),
@@ -150,19 +159,23 @@ async function start() {
                         if (t.sellPosition) {
                             lamportsBalance +=
                                 t.sellPosition.netReceivedLamports + t.buyPosition.netTransferredLamports;
-                            logger.info(`Simulated new balance: ${lamportsToSol(lamportsBalance)}`);
+                            logger.info('[%s] Simulated new balance: %s', identifier, lamportsToSol(lamportsBalance));
                         }
                     }
                 }
             } catch (e) {
-                logger.error('Failed handling pump token %s', tokenData.mint);
+                logger.error('[%s] Failed handling pump token %s', identifier, tokenData.mint);
                 logger.error(e);
             }
 
             if (maxTokensToProcessInParallel && processed === maxTokensToProcessInParallel) {
                 logger.info(
-                    `Processed ${processed} = maxTokensToProcessInParallel ${maxTokensToProcessInParallel} and will start to listen again`,
+                    '[%s] processed %d = maxTokensToProcessInParallel %d. Will return and start listen function again',
+                    identifier,
+                    processed,
+                    maxTokensToProcessInParallel,
                 );
+
                 return await listen();
             }
         });

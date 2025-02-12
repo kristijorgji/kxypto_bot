@@ -3,6 +3,7 @@ import fs from 'fs';
 import dotenv from 'dotenv';
 import { Logger } from 'winston';
 
+import { measureExecutionTime, startApm } from '../apm/apm';
 import { SolanaWalletProviders } from '../blockchains/solana/constants/walletProviders';
 import { pumpCoinDataToInitialCoinData } from '../blockchains/solana/dex/pumpfun/mappers/mappers';
 import Pumpfun from '../blockchains/solana/dex/pumpfun/Pumpfun';
@@ -77,6 +78,7 @@ const BUY_MONITOR_WAIT_PERIOD_MS = 1000;
 const SELL_MONITOR_WAIT_PERIOD_MS = 250;
 
 async function start() {
+    startApm();
     const uniqueRandomIntGenerator = new UniqueRandomIntGenerator();
 
     const pumpfun = new Pumpfun({
@@ -99,12 +101,20 @@ async function start() {
 
     async function listen() {
         const identifier = uniqueRandomIntGenerator.next().toString();
+        logger.info('[%s] - started listen');
 
         const maxTokensToProcessInParallel: number | null = 1;
         let processed = 0;
         let lamportsBalance = await solanaAdapter.getBalance(walletInfo.address);
 
         await pumpfun.listenForPumpFunTokens(async tokenData => {
+            logger.info(
+                '[%s] Received newly created token: %s, %s',
+                identifier,
+                tokenData.name,
+                formPumpfunTokenUrl(tokenData.mint),
+            );
+
             if (maxTokensToProcessInParallel && processed >= maxTokensToProcessInParallel) {
                 logger.info(
                     '[%s] Returning and stopping listener as we processed already maximum specified tokens %d',
@@ -117,13 +127,6 @@ async function start() {
             processed++;
 
             try {
-                logger.info(
-                    '[%s] Handling newly created token: %s, %s',
-                    identifier,
-                    tokenData.name,
-                    formPumpfunTokenUrl(tokenData.mint),
-                );
-
                 const handleRes = await handlePumpToken(
                     pumpfun,
                     solanaAdapter,
@@ -234,12 +237,23 @@ async function handlePumpToken(
     while (true) {
         // @ts-ignore
         const [tokenHolders, { marketCap, price, bondingCurveProgress }]: [TokenHolder[], PumpfunTokenBcStats] =
-            await Promise.all([
-                solanaAdapter.getTokenHolders({
-                    tokenMint: tokenMint,
-                }),
-                pumpfun.getTokenBondingCurveStats(tokenData.bondingCurve),
-            ]);
+            await measureExecutionTime(
+                () =>
+                    Promise.all([
+                        measureExecutionTime(
+                            () =>
+                                solanaAdapter.getTokenHolders({
+                                    tokenMint: tokenMint,
+                                }),
+                            'solanaAdapter.getTokenHolders',
+                        ),
+                        measureExecutionTime(
+                            () => pumpfun.getTokenBondingCurveStats(tokenData.bondingCurve),
+                            'pumpfun.getTokenBondingCurveStats',
+                        ),
+                    ]),
+                'getPumpTokenStats',
+            );
 
         const elapsedMonitoringMs = Date.now() - startTimestamp;
 

@@ -1,0 +1,22 @@
+version: "3.7"
+
+name: crypto_bot
+
+services:
+
+  mysql:
+    image: mysql:8.0.21
+    platform: linux/x86_64
+    ports:
+      - "3311:3306"
+    volumes:
+      - ${DIR_DB}:/var/lib/mysql
+      - ./mysql:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+
+  cache:
+    image: redis:7.2.4
+    ports:
+      - "6321:6379"

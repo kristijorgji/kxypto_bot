@@ -117,3 +117,5 @@ reports
 !.env.example
 build/
 /data/
+
+docker/data/

@@ -4,6 +4,9 @@
 
 1. [Project Overview](#project-overview)
 2. [Getting Started](#getting-started)
+    1. [Dependencies and environment](#dependencies-and-environment)
+    2. [Database setup](#database-setup)
+    3. [Help](#help)
 3. [CLI](#cli)
 4. [Troubleshooting](#troubleshooting)
     1. [How can I find my wallet private key if I have only the recovery phrase](#how-can-i-find-my-wallet-private-key-if-i-have-only-the-recovery-phrase)
@@ -25,12 +28,45 @@ This crypto bot is using
 
 # Getting started
 
+## Dependencies and environment
+
 1. run `yarn install`
 2. copy `.env.example` into `.env.` and fill in your values
 
 It is recommended to use fast Solana nodes.
 
 Private ones like https://chainstack.com/ work better
+
+## Database setup
+
+This project uses `knex` tool for migrating and seeding the database.
+
+You can use the `package.json` commands for creating migrations, seeds or running them.
+
+Ensure the database referred in the `.env` file exists and uses the same credentials and name.
+
+You can create one locally for development purpose by using the attached
+docker-file [docker-compose.yml](docker%2Fdocker-compose.yml)
+
+```shell
+cd docker
+cp .env.example .env
+docker-compose up -d
+```
+
+After you have the database up and running, you can run the migrations:
+
+```shell
+yarn migrate:latest
+```
+
+This will create all the tables
+
+## Help
+
+You can use `Makefile` for common development actions.
+
+There is more knowledge about different domains under [docs](docs).
 
 # CLI
 

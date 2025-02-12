@@ -8,7 +8,7 @@ import { ApmEntry } from '../db/types';
 
 const db = createKnex();
 const batched: ApmEntry[] = [];
-const batchSize = 100;
+const batchSize = 1000;
 
 export function startApm(): void {
     process.on('SIGINT', async () => {

@@ -32,5 +32,5 @@ export const logger = createLogger({
               ]
             : [format.json()]),
     ),
-    transports: [new transports.Console(), new transports.File({ filename: 'app.log' })],
+    transports: [new transports.Console(), new transports.File({ dirname: 'logs', filename: 'app.log' })],
 });

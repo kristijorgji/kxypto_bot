@@ -75,7 +75,7 @@ type HandleNewTokenResponse = HandleTokenBoughtResponse | HandleTokenExitRespons
 
 const SIMULATE = true;
 const BUY_MONITOR_WAIT_PERIOD_MS = 1000;
-const SELL_MONITOR_WAIT_PERIOD_MS = 250;
+const SELL_MONITOR_WAIT_PERIOD_MS = 200;
 
 async function start() {
     startApm();
@@ -101,11 +101,19 @@ async function start() {
 
     async function listen() {
         const identifier = uniqueRandomIntGenerator.next().toString();
-        logger.info('[%s] - started listen');
-
         const maxTokensToProcessInParallel: number | null = 1;
         let processed = 0;
+
+        logger.info(
+            '[%s] - started listen, processed=%s, maxTokensToProcessInParallel=%s',
+            identifier,
+            processed,
+            maxTokensToProcessInParallel,
+        );
+
         let lamportsBalance = await solanaAdapter.getBalance(walletInfo.address);
+
+        logger.info('[%s] - balance %s SOL', lamportsToSol(lamportsBalance));
 
         await pumpfun.listenForPumpFunTokens(async tokenData => {
             logger.info(

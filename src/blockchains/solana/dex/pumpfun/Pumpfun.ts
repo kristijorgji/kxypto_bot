@@ -152,7 +152,11 @@ export default class Pumpfun implements PumpfunListener {
 
     stopListeningToNewTokens(): void {
         this.listeningToNewTokens = false;
-        this.ws!.close();
+        if (this.ws) {
+            this.ws.removeAllListeners();
+            this.ws.close();
+            this.ws = undefined;
+        }
     }
 
     async getInitialCoinBaseData(mint: string): Promise<PumpfunInitialCoinData> {

@@ -419,7 +419,7 @@ export default class Pumpfun implements PumpfunListener {
             sleepMs = 0,
         }: {
             maxRetries: number;
-            sleepMs: number;
+            sleepMs: number | ((retryCount: number) => number);
         },
     ): Promise<PumpFunCoinData> {
         let coinData: PumpFunCoinData | undefined;
@@ -430,7 +430,11 @@ export default class Pumpfun implements PumpfunListener {
                 coinData = await this.getCoinData(tokenMint);
             } catch (e) {
                 error = e as Error;
-                logger.error(`failed to fetch coin data on retry ${retries}, error: %s`, (e as Error).message);
+                sleepMs = typeof sleepMs === 'function' ? sleepMs(retries + 1) : sleepMs;
+                logger.error(
+                    `failed to fetch coin data on retry ${retries}, error: %s. Will retry after sleeping ${sleepMs}`,
+                    (e as Error).message,
+                );
                 if (sleepMs > 0) {
                     await sleep(sleepMs);
                 }

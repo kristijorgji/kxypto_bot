@@ -46,6 +46,15 @@ type SellPosition = {
     reason: string;
 };
 
+type Trade = {
+    buyPosition: BuyPosition;
+    sellPositions: SellPosition[];
+    netPnl: {
+        inLamports: number;
+        inSol: number;
+    };
+};
+
 type HistoryEntry = {
     timestamp: number;
     price: number;
@@ -57,8 +66,7 @@ type HistoryEntry = {
 };
 
 type HandleTokenBoughtResponse = {
-    buyPosition: BuyPosition;
-    sellPosition?: SellPosition;
+    trade: Trade;
     history: HistoryEntry[];
 };
 
@@ -69,6 +77,12 @@ type HandleTokenExitResponse = {
 };
 
 type HandleNewTokenResponse = HandleTokenBoughtResponse | HandleTokenExitResponse;
+
+type HandleTokenReport = {
+    mint: string;
+    name: string;
+    url: string;
+} & HandleNewTokenResponse;
 
 (async () => {
     await start();
@@ -93,7 +107,8 @@ async function start() {
         provider: SolanaWalletProviders.TrustWallet,
     });
 
-    logger.info(`Started with balance ${lamportsToSol(await solanaAdapter.getBalance(walletInfo.address))} SOL`);
+    let balanceInLamports = await solanaAdapter.getBalance(walletInfo.address);
+    logger.info(`Started with balance ${lamportsToSol(balanceInLamports)} SOL`);
 
     await listen();
 
@@ -109,9 +124,9 @@ async function start() {
             maxTokensToProcessInParallel,
         );
 
-        let lamportsBalance = await solanaAdapter.getBalance(walletInfo.address);
+        balanceInLamports = SIMULATE ? balanceInLamports : await solanaAdapter.getBalance(walletInfo.address);
 
-        logger.info('[%s] balance %s SOL', identifier, lamportsToSol(lamportsBalance));
+        logger.info('[%s] balance %s SOL', identifier, lamportsToSol(balanceInLamports));
 
         await pumpfun.listenForPumpFunTokens(async tokenData => {
             logger.info(
@@ -156,20 +171,17 @@ async function start() {
                             name: tokenData.name,
                             url: formPumpfunTokenUrl(tokenData.mint),
                             ...handleRes,
-                        },
+                        } as HandleTokenReport,
                         null,
                         2,
                     ),
                 );
 
                 if (SIMULATE) {
-                    if ((handleRes as HandleTokenBoughtResponse).buyPosition) {
+                    if ((handleRes as HandleTokenBoughtResponse).trade) {
                         const t = handleRes as HandleTokenBoughtResponse;
-                        if (t.sellPosition) {
-                            lamportsBalance +=
-                                t.sellPosition.netReceivedLamports + t.buyPosition.netTransferredLamports;
-                            logger.info('[%s] Simulated new balance: %s', identifier, lamportsToSol(lamportsBalance));
-                        }
+                        balanceInLamports += t.trade.netPnl.inLamports;
+                        logger.info('[%s] Simulated new balance: %s', identifier, lamportsToSol(balanceInLamports));
                     }
                 }
             } catch (e) {
@@ -215,8 +227,8 @@ async function handlePumpToken(
     try {
         initialCoinData = pumpCoinDataToInitialCoinData(
             await pumpfun.getCoinDataWithRetries(tokenMint, {
-                maxRetries: 4,
-                sleepMs: 250,
+                maxRetries: 10,
+                sleepMs: retryCount => (retryCount <= 5 ? 250 : 500),
             }),
         );
     } catch (e) {
@@ -421,16 +433,25 @@ async function handlePumpToken(
                 sellRes.txDetails,
             );
 
+            const sellPosition: SellPosition = {
+                timestamp: Date.now(),
+                grossReceivedLamports: sellRes.txDetails.grossTransferredLamports,
+                netReceivedLamports: sellRes.txDetails.netTransferredLamports,
+                pumpMinLamportsOutput: sellRes.minLamportsOutput,
+                priceInLamports: price,
+                marketCap: marketCap,
+                reason: sell.reason,
+            };
+            const pnlLamports = buyPosition.netTransferredLamports + sellPosition.netReceivedLamports;
+
             return {
-                buyPosition: buyPosition,
-                sellPosition: {
-                    timestamp: Date.now(),
-                    grossReceivedLamports: sellRes.txDetails.grossTransferredLamports,
-                    netReceivedLamports: sellRes.txDetails.netTransferredLamports,
-                    pumpMinLamportsOutput: sellRes.minLamportsOutput,
-                    priceInLamports: price,
-                    marketCap: marketCap,
-                    reason: sell.reason,
+                trade: {
+                    buyPosition: buyPosition,
+                    sellPositions: [sellPosition],
+                    netPnl: {
+                        inLamports: pnlLamports,
+                        inSol: lamportsToSol(pnlLamports),
+                    },
                 },
                 history: history,
             };
@@ -440,6 +461,9 @@ async function handlePumpToken(
     }
 }
 
+/**
+ * Will return -1 devHoldingPercentage if no creator is passed and can't calculate the value
+ */
 async function calculateHoldersStats({
     tokenHolders,
     creator,
@@ -452,7 +476,7 @@ async function calculateHoldersStats({
     topTenHoldingPercentage: number;
 }> {
     tokenHolders.sort((a, b) => b.balance - a.balance);
-    let devHolding = -1;
+    let devHolding = 0;
 
     const holdersCounts = tokenHolders.length;
     let topTenHolding = 0;
@@ -470,7 +494,7 @@ async function calculateHoldersStats({
     }
 
     const topTenHoldingPercentage = (topTenHolding / allHolding) * 100;
-    const devHoldingPercentage = devHolding === -1 ? -1 : (devHolding / allHolding) * 100;
+    const devHoldingPercentage = creator === undefined ? -1 : (devHolding / allHolding) * 100;
 
     return {
         holdersCounts,

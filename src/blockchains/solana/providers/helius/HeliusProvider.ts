@@ -46,8 +46,9 @@ export default class HeliusProvider {
             data.result.token_accounts.forEach(account => {
                 totalCount++;
                 allOwners.add({
-                    address: account.owner,
-                    amount: account.amount,
+                    tokenAccountAddress: account.address,
+                    ownerAddress: account.owner,
+                    balance: account.amount,
                 });
             });
             page++;

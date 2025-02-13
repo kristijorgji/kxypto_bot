@@ -1,10 +1,10 @@
-import { Connection } from '@solana/web3.js';
 import dotenv from 'dotenv';
 
 import { SolanaTokenMints } from '../blockchains/solana/constants/SolanaTokenMints';
 import { SolanaWalletProviders } from '../blockchains/solana/constants/walletProviders';
 import { swap } from '../blockchains/solana/dex/raydium/swap';
 import { TransactionMode } from '../blockchains/solana/types';
+import { solanaConnection } from '../blockchains/solana/utils/connection';
 import solanaMnemonicToKeypair from '../blockchains/solana/utils/solanaMnemonicToKeypair';
 import { solanaPrivateKeyToKeypair } from '../blockchains/solana/utils/solanaPrivateKeyToKeypair';
 import { calculateTokenRawAmount } from '../blockchains/solana/utils/tokens';
@@ -19,18 +19,16 @@ dotenv.config();
 async function start() {
     logger.info('Starting Raydium Swap!');
 
-    const SOLANA_RPC_ENDPOINT = process.env.SOLANA_RPC_ENDPOINT as string;
     const WALLET_MNEMONIC_PHRASE = process.env.WALLET_MNEMONIC_PHRASE as string;
 
     try {
-        const connection = new Connection(SOLANA_RPC_ENDPOINT, 'confirmed');
         const walletInfo = await solanaMnemonicToKeypair(WALLET_MNEMONIC_PHRASE, {
             provider: SolanaWalletProviders.TrustWallet,
         });
 
         const swapResults = await swap({
-            connection: connection,
-            inputAmount: await calculateTokenRawAmount(connection, {
+            connection: solanaConnection,
+            inputAmount: await calculateTokenRawAmount(solanaConnection, {
                 mintAddress: SolanaTokenMints.WSOL,
                 amount: 0.01,
             }),

@@ -8,6 +8,7 @@ import { PumpfunInitialCoinData } from '../blockchains/solana/dex/pumpfun/types'
 import { formPumpfunTokenUrl } from '../blockchains/solana/dex/pumpfun/utils';
 import SolanaAdapter from '../blockchains/solana/SolanaAdapter';
 import { TransactionMode } from '../blockchains/solana/types';
+import { solanaConnection } from '../blockchains/solana/utils/connection';
 import solanaMnemonicToKeypair from '../blockchains/solana/utils/solanaMnemonicToKeypair';
 import { logger } from '../logger';
 import { sleep } from '../utils/functions';
@@ -111,10 +112,7 @@ async function start() {
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars,no-unused-vars
     async function sellAllPumpfunTokens() {
-        const solanaAdapter = await new SolanaAdapter({
-            rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
-            wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
-        });
+        const solanaAdapter = await new SolanaAdapter(solanaConnection);
 
         for (const token of await solanaAdapter.getAccountTokens(walletInfo.address)) {
             if (!token.mint.endsWith('pump') && token.ifpsMetadata?.createdOn !== 'https://pump.fun') {

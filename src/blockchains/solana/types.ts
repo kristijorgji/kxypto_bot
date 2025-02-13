@@ -5,9 +5,26 @@ export enum TransactionMode {
     Execution,
 }
 
+/**
+ * Represents a holder of a specific SPL token on the Solana blockchain.
+ */
 export type TokenHolder = {
-    address: string;
-    amount: number;
+    /**
+     * The unique token account address where the token balance is stored.
+     * Each owner can have multiple token accounts for the same token.
+     */
+    tokenAccountAddress: string;
+
+    /**
+     * The Solana wallet address that owns the token account.
+     * This wallet controls the tokens inside the associated token account.
+     */
+    ownerAddress: string;
+
+    /**
+     * The amount of tokens stored in this specific token account.
+     */
+    balance: number;
 };
 
 export type IfpsMetadata = {

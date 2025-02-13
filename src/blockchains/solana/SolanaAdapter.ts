@@ -9,13 +9,8 @@ import { getTokenIfpsMetadata } from './utils/tokens';
 import { getSolTransactionDetails } from './utils/transactions';
 
 export default class SolanaAdapter {
-    private readonly connection: Connection;
-
-    constructor(config: { rpcEndpoint: string; wsEndpoint: string }) {
-        this.connection = new Connection(config.rpcEndpoint, {
-            wsEndpoint: config.wsEndpoint,
-        });
-    }
+    // eslint-disable-next-line no-useless-constructor
+    constructor(private readonly connection: Connection) {}
 
     async getCirculatingSupply(tokenAddress: string) {
         return await this.connection.getTokenSupply(new PublicKey(tokenAddress));
@@ -23,36 +18,42 @@ export default class SolanaAdapter {
 
     /**
      * @see https://solana.stackexchange.com/a/15386/34703
-     * This will work fine for tokens with up to 1-10k holders but have doubts for tokens like Trump
+     * This will work fine for tokens with up to 1-10k holders but have doubts in tokens like Trump
      * with hundred thousand holders. For large cap trading Moralis and providers are more fit atm as they
      * offer limits and pagination as well
      */
     async getTokenHolders({ tokenMint }: { tokenMint: string }): Promise<TokenHolder[]> {
-        /**
-         * Filter to only accounts with length 165, which is the fixed length that token accounts have.
-         * This way we get rid of accounts that are owned by the token program but aren't token accounts.
-         */
+        // SPL token accounts have a fixed size of 165 bytes.
         const tokenAccSize = 165;
+
+        // Get all accounts owned by the token program that belong to the specified mint.
+        // Filtering on dataSize and the mint field (at offset 0).
         const accounts = await this.connection.getProgramAccounts(TOKEN_PROGRAM_ID, {
-            dataSlice: { offset: 64, length: 8 },
             filters: [{ dataSize: tokenAccSize }, { memcmp: { offset: 0, bytes: tokenMint } }],
         });
 
-        // Filter out zero balance accounts
-        const nonZero = accounts.filter(acc => !acc.account.data.equals(Buffer.from([0, 0, 0, 0, 0, 0, 0, 0])));
+        const tokenHolders: TokenHolder[] = [];
+        for (const acc of accounts) {
+            const data = acc.account.data;
+            // Extract the owner wallet address from bytes 32 to 63.
+            const ownerBuffer = data.slice(32, 64);
 
-        const parsed: TokenHolder[] = [];
-        for (const acc of nonZero) {
-            const accData = acc.account.data;
-            const balance = accData.readBigUInt64LE();
-            parsed.push({
-                address: acc.pubkey.toBase58(),
-                // @ts-ignore
-                amount: parseInt(balance),
+            // Extract the token balance from bytes 64 to 71.
+            const balance = data.readBigUInt64LE(64);
+
+            // Skip token accounts with a zero balance.
+            if (balance === BigInt(0)) {
+                continue;
+            }
+
+            tokenHolders.push({
+                tokenAccountAddress: acc.pubkey.toBase58(),
+                ownerAddress: new PublicKey(ownerBuffer).toBase58(),
+                balance: Number(balance),
             });
         }
 
-        return parsed;
+        return tokenHolders;
     }
 
     async getBalance(walletAddress: string) {

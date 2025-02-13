@@ -1,9 +1,9 @@
 import fs from 'fs';
 
-import { Connection } from '@solana/web3.js';
 import dotenv from 'dotenv';
 
 import { monitorNewTokens } from '../blockchains/solana/dex/raydium/monitorNewTokens';
+import { solanaConnection } from '../blockchains/solana/utils/connection';
 import { logger } from '../logger';
 import { ensureDataFolder } from '../utils/storage';
 
@@ -17,11 +17,7 @@ dotenv.config();
 })();
 
 async function start() {
-    const connection = new Connection(process.env.SOLANA_RPC_ENDPOINT as string, {
-        wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
-    });
-
-    await monitorNewTokens(connection, {
+    await monitorNewTokens(solanaConnection, {
         onNewToken: async newTokenData => {
             logger.info('New RaydiumTokenCreated: %o', newTokenData);
             const newTokensFile = ensureDataFolder('new_solana_tokens.json');

@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 
 import SolanaAdapter from './blockchains/solana/SolanaAdapter';
+import { solanaConnection } from './blockchains/solana/utils/connection';
 
 dotenv.config();
 
@@ -9,12 +10,12 @@ dotenv.config();
 })();
 
 async function start() {
-    const tokens = await new SolanaAdapter({
-        rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
-        wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
-    }).getAccountTokens('8MqRTAQnjhDYH7TWS1b1DjFog4CLZfySWE5cZeotG2VW', {
-        fetchInParallel: false,
-    });
+    const tokens = await new SolanaAdapter(solanaConnection).getAccountTokens(
+        '8MqRTAQnjhDYH7TWS1b1DjFog4CLZfySWE5cZeotG2VW',
+        {
+            fetchInParallel: false,
+        },
+    );
 
     console.log('tokens', tokens);
 }

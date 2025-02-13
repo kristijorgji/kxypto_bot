@@ -1,9 +1,9 @@
-import { Connection } from '@solana/web3.js';
 import dotenv from 'dotenv';
 
 import { SolanaTokenMints } from '../blockchains/solana/constants/SolanaTokenMints';
 import { SolanaWalletProviders } from '../blockchains/solana/constants/walletProviders';
 import swap from '../blockchains/solana/dex/jupiter/swap';
+import { solanaConnection } from '../blockchains/solana/utils/connection';
 import solanaMnemonicToKeypair from '../blockchains/solana/utils/solanaMnemonicToKeypair';
 import { solanaPrivateKeyToKeypair } from '../blockchains/solana/utils/solanaPrivateKeyToKeypair';
 import { calculateTokenRawAmount } from '../blockchains/solana/utils/tokens';
@@ -22,14 +22,11 @@ async function start() {
     const walletInfo = await solanaMnemonicToKeypair(process.env.WALLET_MNEMONIC_PHRASE as string, {
         provider: SolanaWalletProviders.TrustWallet,
     });
-    const connection = new Connection(process.env.SOLANA_RPC_ENDPOINT as string, {
-        wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
-    });
 
-    const r = await swap(connection, solanaPrivateKeyToKeypair(walletInfo.privateKey), {
+    const r = await swap(solanaConnection, solanaPrivateKeyToKeypair(walletInfo.privateKey), {
         inputMint: SolanaTokenMints.USDC,
         outputMint: SolanaTokenMints.WSOL,
-        amount: await calculateTokenRawAmount(connection, {
+        amount: await calculateTokenRawAmount(solanaConnection, {
             mintAddress: SolanaTokenMints.USDC,
             amount: 25.259,
         }),

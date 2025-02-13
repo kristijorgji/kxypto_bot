@@ -15,6 +15,7 @@ import {
 import { formPumpfunTokenUrl } from '../blockchains/solana/dex/pumpfun/utils';
 import SolanaAdapter from '../blockchains/solana/SolanaAdapter';
 import { TokenHolder, TransactionMode, WalletInfo } from '../blockchains/solana/types';
+import { solanaConnection } from '../blockchains/solana/utils/connection';
 import solanaMnemonicToKeypair from '../blockchains/solana/utils/solanaMnemonicToKeypair';
 import { lamportsToSol } from '../blockchains/utils/amount';
 import { logger } from '../logger';
@@ -86,10 +87,7 @@ async function start() {
         wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
     });
 
-    const solanaAdapter = await new SolanaAdapter({
-        rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
-        wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
-    });
+    const solanaAdapter = await new SolanaAdapter(solanaConnection);
 
     const walletInfo = await solanaMnemonicToKeypair(process.env.WALLET_MNEMONIC_PHRASE as string, {
         provider: SolanaWalletProviders.TrustWallet,
@@ -105,7 +103,7 @@ async function start() {
         let processed = 0;
 
         logger.info(
-            '[%s] - started listen, processed=%s, maxTokensToProcessInParallel=%s',
+            '[%s] started listen, processed=%s, maxTokensToProcessInParallel=%s',
             identifier,
             processed,
             maxTokensToProcessInParallel,
@@ -113,7 +111,7 @@ async function start() {
 
         let lamportsBalance = await solanaAdapter.getBalance(walletInfo.address);
 
-        logger.info('[%s] - balance %s SOL', lamportsToSol(lamportsBalance));
+        logger.info('[%s] balance %s SOL', identifier, lamportsToSol(lamportsBalance));
 
         await pumpfun.listenForPumpFunTokens(async tokenData => {
             logger.info(
@@ -181,7 +179,7 @@ async function start() {
 
             if (maxTokensToProcessInParallel && processed === maxTokensToProcessInParallel) {
                 logger.info(
-                    '[%s] processed %d = maxTokensToProcessInParallel %d. Will return and start listen function again',
+                    '[%s] Will return and start listen function again. Processed %d = maxTokensToProcessInParallel %d.',
                     identifier,
                     processed,
                     maxTokensToProcessInParallel,
@@ -453,7 +451,7 @@ async function calculateHoldersStats({
     devHoldingPercentage: number;
     topTenHoldingPercentage: number;
 }> {
-    tokenHolders.sort((a, b) => b.amount - a.amount);
+    tokenHolders.sort((a, b) => b.balance - a.balance);
     let devHolding = -1;
 
     const holdersCounts = tokenHolders.length;
@@ -461,14 +459,14 @@ async function calculateHoldersStats({
     let allHolding = 0;
     for (let i = 0; i < tokenHolders.length; i++) {
         const tokenHolder = tokenHolders[i];
-        if (tokenHolder.address === creator) {
-            devHolding = tokenHolder.amount;
+        if (tokenHolder.ownerAddress === creator) {
+            devHolding = tokenHolder.balance;
         }
 
         if (i < 10) {
-            topTenHolding += tokenHolder.amount;
+            topTenHolding += tokenHolder.balance;
         }
-        allHolding += tokenHolder.amount;
+        allHolding += tokenHolder.balance;
     }
 
     const topTenHoldingPercentage = (topTenHolding / allHolding) * 100;

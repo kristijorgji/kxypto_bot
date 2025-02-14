@@ -7,21 +7,22 @@ type CursorPaginatedResponse<T> = {
     result: T[];
 };
 
-type GetTokenPriceResponse = {
-    nativeBalance: {
-        lamports: string;
-        solana: string;
-    };
-    tokens: {
-        associatedTokenAddress: string;
-        mint: string;
-        amountRaw: string;
-        amount: string;
-        decimals: 6;
-        name: string;
+type TokenType = 'token0' | 'token1';
+
+type ExchangeName = 'Meteora DLMM' | 'Orca Whirlpool' | 'Raydium CLMM' | 'Raydium CPMM' | string;
+
+export type MoralisGetTokenPriceResponse = {
+    tokenAddress: string;
+    pairAddress: string;
+    exchangeName: ExchangeName;
+    exchangeAddress: string;
+    nativePrice: {
+        value: string;
         symbol: string;
-    }[];
-    nfts: unknown[];
+        name: string;
+        decimals: number;
+    };
+    usdPrice: number;
 };
 
 type GetOhlcvByPairAddressResponse = CursorPaginatedResponse<{
@@ -38,10 +39,6 @@ type GetOhlcvByPairAddressResponse = CursorPaginatedResponse<{
     timeframe: string;
     currency: string;
 };
-
-type TokenType = 'token0' | 'token1';
-
-type ExchangeName = 'Meteora DLMM' | 'Orca Whirlpool' | 'Raydium CLMM' | 'Raydium CPMM' | string;
 
 type BoughtSold = {
     address: string;
@@ -228,10 +225,10 @@ export default class Moralis {
      * Fetches the price information for the DEX pair with the highest liquidity
      * @see https://docs.moralis.com/web3-data-api/solana/reference/price/get-sol-token-price?network=mainnet&address=SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt
      */
-    async getTokenPrice({ tokenAddress }: { tokenAddress: string }): Promise<GetTokenPriceResponse> {
+    async getTokenPrice({ tokenAddress }: { tokenAddress: string }): Promise<MoralisGetTokenPriceResponse> {
         return (
             await axios.get(`https://solana-gateway.moralis.io/token/mainnet/${tokenAddress}/price`, this.reqConfig)
-        ).data as GetTokenPriceResponse;
+        ).data as MoralisGetTokenPriceResponse;
     }
 
     async getOhlcvByPairAddress(

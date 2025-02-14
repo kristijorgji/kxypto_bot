@@ -79,6 +79,7 @@ type HandleTokenExitResponse = {
 type HandleNewTokenResponse = HandleTokenBoughtResponse | HandleTokenExitResponse;
 
 type HandleTokenReport = {
+    schemaVersion: string; // our custom reporting schema version, used to filter the data in case we change content of the json report
     mint: string;
     name: string;
     url: string;
@@ -94,6 +95,7 @@ const SELL_MONITOR_WAIT_PERIOD_MS = 200;
 
 async function start() {
     startApm();
+
     const uniqueRandomIntGenerator = new UniqueRandomIntGenerator();
 
     const pumpfun = new Pumpfun({
@@ -167,6 +169,7 @@ async function start() {
                     ensureDataFolder(`pumpfun-stats/${tokenData.mint}.json`),
                     JSON.stringify(
                         {
+                            schemaVersion: '1.00',
                             mint: tokenData.mint,
                             name: tokenData.name,
                             url: formPumpfunTokenUrl(tokenData.mint),

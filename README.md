@@ -108,7 +108,7 @@ They use the specified `.env` variables
 Example:
 
 ```shell
-ts-node src/scripts/pumpfun-bot.ts
+ts-node src/scripts/pumpfun/bot.ts
 ```
 
 # Environmental variables

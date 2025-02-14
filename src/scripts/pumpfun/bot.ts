@@ -1,31 +1,32 @@
 import fs from 'fs';
 
 import dotenv from 'dotenv';
+/* eslint-disable import/first */
+dotenv.config();
 import { Logger } from 'winston';
 
-import { measureExecutionTime, startApm } from '../apm/apm';
-import { SolanaWalletProviders } from '../blockchains/solana/constants/walletProviders';
-import { pumpCoinDataToInitialCoinData } from '../blockchains/solana/dex/pumpfun/mappers/mappers';
-import Pumpfun from '../blockchains/solana/dex/pumpfun/Pumpfun';
+import { measureExecutionTime, startApm } from '../../apm/apm';
+import { SolanaWalletProviders } from '../../blockchains/solana/constants/walletProviders';
+import { pumpCoinDataToInitialCoinData } from '../../blockchains/solana/dex/pumpfun/mappers/mappers';
+import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import {
     NewPumpFunTokenData,
     PumpfunInitialCoinData,
     PumpfunTokenBcStats,
-} from '../blockchains/solana/dex/pumpfun/types';
-import { formPumpfunTokenUrl } from '../blockchains/solana/dex/pumpfun/utils';
-import SolanaAdapter from '../blockchains/solana/SolanaAdapter';
-import { TokenHolder, TransactionMode, WalletInfo } from '../blockchains/solana/types';
-import { solanaConnection } from '../blockchains/solana/utils/connection';
-import solanaMnemonicToKeypair from '../blockchains/solana/utils/solanaMnemonicToKeypair';
-import { lamportsToSol } from '../blockchains/utils/amount';
-import { logger } from '../logger';
-import TrailingStopLoss from '../trading/orders/TrailingStopLoss';
-import TrailingTakeProfit from '../trading/orders/TrailingTakeProfit';
-import UniqueRandomIntGenerator from '../utils/data/UniqueRandomIntGenerator';
-import { sleep } from '../utils/functions';
-import { ensureDataFolder } from '../utils/storage';
-
-dotenv.config();
+} from '../../blockchains/solana/dex/pumpfun/types';
+import { formPumpfunTokenUrl } from '../../blockchains/solana/dex/pumpfun/utils';
+import SolanaAdapter from '../../blockchains/solana/SolanaAdapter';
+import { TokenHolder, TransactionMode, WalletInfo } from '../../blockchains/solana/types';
+import { solanaConnection } from '../../blockchains/solana/utils/connection';
+import solanaMnemonicToKeypair from '../../blockchains/solana/utils/solanaMnemonicToKeypair';
+import { lamportsToSol } from '../../blockchains/utils/amount';
+import { logger } from '../../logger';
+import TakeProfitPercentage from '../../trading/orders/TakeProfitPercentage';
+import TrailingStopLoss from '../../trading/orders/TrailingStopLoss';
+import TrailingTakeProfit from '../../trading/orders/TrailingTakeProfit';
+import UniqueRandomIntGenerator from '../../utils/data/UniqueRandomIntGenerator';
+import { sleep } from '../../utils/functions';
+import { ensureDataFolder } from '../../utils/storage';
 
 type BuyPosition = {
     timestamp: number;
@@ -38,6 +39,7 @@ type BuyPosition = {
 
 type SellPosition = {
     timestamp: number;
+    amountRaw: number;
     grossReceivedLamports: number;
     netReceivedLamports: number; // this can be negative if the fees are higher than the gross received
     pumpMinLamportsOutput: number;
@@ -46,7 +48,7 @@ type SellPosition = {
     reason: string;
 };
 
-type Trade = {
+export type Trade = {
     buyPosition: BuyPosition;
     sellPositions: SellPosition[];
     netPnl: {
@@ -70,15 +72,17 @@ type HandleTokenBoughtResponse = {
     history: HistoryEntry[];
 };
 
+export type HandlePumpTokenExitCode = 'NO_PUMP' | 'DUMPED';
+
 type HandleTokenExitResponse = {
-    exitCode: 'NO_PUMP' | 'DUMPED';
+    exitCode: HandlePumpTokenExitCode;
     exitReason: string;
     history: HistoryEntry[];
 };
 
 type HandleNewTokenResponse = HandleTokenBoughtResponse | HandleTokenExitResponse;
 
-type HandleTokenReport = {
+export type HandlePumpTokenReport = {
     schemaVersion: string; // our custom reporting schema version, used to filter the data in case we change content of the json report
     mint: string;
     name: string;
@@ -169,12 +173,12 @@ async function start() {
                     ensureDataFolder(`pumpfun-stats/${tokenData.mint}.json`),
                     JSON.stringify(
                         {
-                            schemaVersion: '1.00',
+                            schemaVersion: 'take-profit-only',
                             mint: tokenData.mint,
                             name: tokenData.name,
                             url: formPumpfunTokenUrl(tokenData.mint),
                             ...handleRes,
-                        } as HandleTokenReport,
+                        } as HandlePumpTokenReport,
                         null,
                         2,
                     ),
@@ -247,12 +251,13 @@ async function handlePumpToken(
     let buy = false;
     let sell:
         | {
-              reason: 'DUMPED' | 'TRAILING_STOP_LOSS' | 'TRAILING_TAKE_PROFIT' | 'AT_HARDCODED_PROFIT';
+              reason: 'DUMPED' | 'TRAILING_STOP_LOSS' | 'TAKE_PROFIT' | 'TRAILING_TAKE_PROFIT' | 'AT_HARDCODED_PROFIT';
           }
         | undefined;
     const history: HistoryEntry[] = [];
     let buyPosition: BuyPosition | undefined;
     let trailingStopLoss: TrailingStopLoss | undefined;
+    let takeProfitPercentage: TakeProfitPercentage | undefined;
     let trailingTakeProfit: TrailingTakeProfit | undefined;
 
     while (true) {
@@ -357,7 +362,12 @@ async function handlePumpToken(
             logger.info('Price change since purchase %s%%', priceDiffPercentageSincePurchase);
             logger.info('Estimated sol diff %s', diffInSol);
 
-            if (trailingTakeProfit!.updatePrice(price)) {
+            if (takeProfitPercentage && takeProfitPercentage.updatePrice(price)) {
+                sell = {
+                    reason: 'TAKE_PROFIT',
+                };
+                logger.info('Triggered take profit at price %s. %o', price, takeProfitPercentage);
+            } else if (trailingTakeProfit && trailingTakeProfit.updatePrice(price)) {
                 sell = {
                     reason: 'TRAILING_TAKE_PROFIT',
                 };
@@ -402,6 +412,7 @@ async function handlePumpToken(
                 marketCap: marketCap,
             };
             trailingStopLoss = new TrailingStopLoss(price, 15);
+            takeProfitPercentage = new TakeProfitPercentage(price, 15);
             trailingTakeProfit = new TrailingTakeProfit({
                 entryPrice: price,
                 trailingProfitPercentage: 10,
@@ -438,6 +449,7 @@ async function handlePumpToken(
 
             const sellPosition: SellPosition = {
                 timestamp: Date.now(),
+                amountRaw: sellRes.soldRawAmount,
                 grossReceivedLamports: sellRes.txDetails.grossTransferredLamports,
                 netReceivedLamports: sellRes.txDetails.netTransferredLamports,
                 pumpMinLamportsOutput: sellRes.minLamportsOutput,

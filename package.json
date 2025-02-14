@@ -22,7 +22,7 @@
     "lint": "eslint '{src,__tests__}/**/*.ts'",
     "fix": "eslint --fix --ext js,jsx,ts,tsx {src,__tests__}",
     "prepare": "husky",
-    "pumpfun-bot": "ts-node -r dotenv/config src/scripts/pumpfun-bot.ts"
+    "pumpfun-bot": "ts-node -r dotenv/config src/scripts/pumpfun/bot.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",

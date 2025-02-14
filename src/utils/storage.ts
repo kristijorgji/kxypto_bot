@@ -3,6 +3,10 @@ import path from 'path';
 
 import { storageConfig } from '../config/storage';
 
+export function formDataFolder(relPath: string): string {
+    return `${storageConfig.dataPath}/${relPath}`;
+}
+
 /**
  * It creates the folder for storing the data and returns the file name
  */

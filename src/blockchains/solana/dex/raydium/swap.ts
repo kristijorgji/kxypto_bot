@@ -1,9 +1,9 @@
 import { Connection, Keypair } from '@solana/web3.js';
 
 import { calculatePriorityFee } from './calculatePriorityFee';
-import { computeSwap } from './computeSwap';
 import { TransactionResult, executeTransactions } from './executeTransactions';
 import { getOrCreateWalletTokenAccounts } from './getOrCreateWalletTokenAccounts';
+import { getRaydiumQuote } from './getRaydiumQuote';
 import { getSwapTransactions } from './getSwapTransactions';
 import { SolanaTokenMints } from '../../constants/SolanaTokenMints';
 import { TransactionMode } from '../../types';
@@ -38,7 +38,7 @@ export async function swap({
             inputMint,
             outputMint,
         }),
-        computeSwap({
+        getRaydiumQuote({
             inputAmount,
             inputMint,
             outputMint,

@@ -4,7 +4,7 @@ import axios from 'axios';
 import { logger } from '../../../../logger';
 import { percentageToBps } from '../../../utils/amount';
 
-export type ComputeSwapResponse = {
+export type RaydiumQuoteResponse = {
     id: string;
     success: true;
     version: 'V0' | 'V1';
@@ -30,22 +30,22 @@ export type ComputeSwapResponse = {
     };
 };
 
-type ComputeSwapConfig = {
+type RaydiumQuoteConfig = {
     inputMint: string;
     outputMint: string;
     inputAmount: number;
     slippageInPercent: number;
 };
 
-export async function computeSwap({
+export async function getRaydiumQuote({
     inputMint,
     outputMint,
     inputAmount,
     slippageInPercent,
-}: ComputeSwapConfig): Promise<ComputeSwapResponse> {
+}: RaydiumQuoteConfig): Promise<RaydiumQuoteResponse> {
     logger.info(`Computing swap for input mint: ${inputMint}, outputMint: ${outputMint}, inputAmount: ${inputAmount}`);
 
-    const response = await axios.get<ComputeSwapResponse>(`${API_URLS.SWAP_HOST}/compute/swap-base-in`, {
+    const response = await axios.get<RaydiumQuoteResponse>(`${API_URLS.SWAP_HOST}/compute/swap-base-in`, {
         params: {
             inputMint: inputMint,
             outputMint: outputMint,

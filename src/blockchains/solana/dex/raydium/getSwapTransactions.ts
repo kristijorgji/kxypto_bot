@@ -2,8 +2,8 @@ import { API_URLS, TxVersion } from '@raydium-io/raydium-sdk-v2';
 import { Keypair, VersionedTransaction } from '@solana/web3.js';
 import axios from 'axios';
 
-import { ComputeSwapResponse } from './computeSwap';
 import { GetOrCreateTokenAccountsResponse } from './getOrCreateWalletTokenAccounts';
+import { RaydiumQuoteResponse } from './getRaydiumQuote';
 import { logger } from '../../../../logger';
 
 type SwapTransaction = {
@@ -15,7 +15,7 @@ type SwapTransaction = {
 
 export type SwapTransactionConfig = {
     priorityFee: number;
-    swapResponse: ComputeSwapResponse;
+    swapResponse: RaydiumQuoteResponse;
     wallet: Keypair;
     isInputSol: boolean;
     isOutputSol: boolean;

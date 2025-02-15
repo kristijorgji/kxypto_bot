@@ -1,8 +1,8 @@
 import { Connection, Keypair, VersionedTransaction } from '@solana/web3.js';
 import axios from 'axios';
 
+import { getJupiterQuote } from './getJupiterQuote';
 import { logger } from '../../../../logger';
-import { percentageToBps } from '../../../utils/amount';
 
 /**
  * https://station.jup.ag/docs/apis/swap-api
@@ -22,14 +22,13 @@ export default async function swap(
 ) {
     const verbose = config.verbose ?? true;
 
-    const quoteResponse = await axios.get('https://quote-api.jup.ag/v6/quote', {
-        params: {
-            inputMint: config.inputMint,
-            outputMint: config.outputMint,
-            amount: config.amount,
-            slippageBps: percentageToBps(config.slippagePercentage),
-        },
+    const quoteResponse = await getJupiterQuote({
+        inputAmount: config.amount,
+        inputMint: config.inputMint,
+        outputMint: config.outputMint,
+        slippageInPercent: config.slippagePercentage,
     });
+
     if (verbose) {
         logger.verbose('quoteResponse: %o', quoteResponse.data);
     }

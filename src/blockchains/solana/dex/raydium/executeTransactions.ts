@@ -9,15 +9,15 @@ import {
 import { logger } from '../../../../logger';
 import { TransactionMode } from '../../types';
 
-type ExecuteTransactionConfig = {
+export type ExecuteTransactionConfig = {
     connection: Connection;
     swapTransactions: VersionedTransaction[];
     wallet: Keypair;
     transactionMode: TransactionMode;
 };
 
-type ExecutedTransactionResult = {
-    singatureResult: SignatureResult;
+export type ExecutedTransactionResult = {
+    signatureResult: SignatureResult;
     solscanUrl: string;
 };
 
@@ -49,10 +49,10 @@ async function sendAndConfirmTransaction(
         blockhash: blockhash,
     });
 
-    return {
-        singatureResult: confirmation.value,
+    return Promise.resolve({
+        signatureResult: confirmation.value,
         solscanUrl: `https://solscan.io/tx/${signature}`,
-    };
+    });
 }
 
 export async function executeTransactions({

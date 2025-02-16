@@ -1,4 +1,7 @@
-import { Coins, Currencies, getExchangeRate } from '../blockchains/solana/providers/coingecko/getExchangeRate';
+import axios from 'axios';
+
+import CoinGecko from '../blockchains/solana/providers/coingecko/CoinGecko';
+import { Coins, Currencies } from '../blockchains/solana/providers/coingecko/types';
 import { logger } from '../logger';
 
 (async () => {
@@ -9,7 +12,9 @@ import { logger } from '../logger';
  * Example standalone script that gets the exchange rate of a coin
  */
 async function start() {
-    const { coin, currency, rate } = await getExchangeRate({
+    const coinGecko = new CoinGecko(axios.create());
+
+    const { coin, currency, rate } = await coinGecko.getExchangeRate({
         coin: Coins.SOL,
         currency: Currencies.USD,
     });

@@ -25,10 +25,19 @@ async function organizeFiles() {
 
     for (const file of files) {
         const content = JSON.parse(fs.readFileSync(file.fullPath).toString()) as HandlePumpTokenReport;
+
+        const simulation = content.simulation ?? true;
+        const dir = `${pumpfunStatsPath}/${simulation ? 'simulation' : 'real'}`;
+
         const schemaVersion = content?.schemaVersion;
-        let schemaVersionedDir = pumpfunStatsPath;
+        let schemaVersionedDir = dir;
         if (schemaVersion) {
-            schemaVersionedDir = `${pumpfunStatsPath}/${schemaVersion}`;
+            schemaVersionedDir = `${dir}/${schemaVersion}`;
+        }
+
+        const strategy = content?.strategy ?? 'no_strategy';
+        if (strategy) {
+            schemaVersionedDir = `${schemaVersionedDir}/${strategy}`;
         }
 
         let newPath = `${schemaVersionedDir}/${file.name}`;
@@ -38,7 +47,7 @@ async function organizeFiles() {
         }
 
         if (Object.prototype.hasOwnProperty.call(content, 'exitCode')) {
-            newPath = `${schemaVersionedDir}/${(
+            newPath = `${schemaVersionedDir}/no_trade/${(
                 content as { exitCode: HandlePumpTokenExitCode }
             ).exitCode.toLowerCase()}/${file.name}`;
         }

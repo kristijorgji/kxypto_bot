@@ -1,8 +1,11 @@
 {
-  "name": "ts-boilerplate",
-  "description": "ts-boilerplate",
+  "name": "crypto_bot",
+  "description": "A crypto trading bot",
   "author": "Kristi Jorgji",
   "private": true,
+  "engines": {
+    "node": ">= 20.16.0"
+  },
   "scripts": {
     "test": "jest",
     "start": "ts-node -r dotenv/config src/index.ts",

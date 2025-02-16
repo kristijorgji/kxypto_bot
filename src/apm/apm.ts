@@ -37,7 +37,13 @@ export function startApm(): void {
     }, 250);
 }
 
-export async function measureExecutionTime<T>(fn: () => T, functionName: string): Promise<T> {
+export async function measureExecutionTime<T>(
+    fn: () => T,
+    functionName: string,
+    config?: {
+        storeImmediately: boolean;
+    },
+): Promise<T> {
     const start = process.hrtime();
     const unixTimestampInMs = Date.now();
 
@@ -46,12 +52,18 @@ export async function measureExecutionTime<T>(fn: () => T, functionName: string)
     const diff = process.hrtime(start);
     const timeInNs = diff[0] * 1e9 + diff[1];
 
-    batched.push({
+    const apmEntry: ApmEntry = {
         id: uuidv4(),
         name: functionName,
         start_timestamp_ms: unixTimestampInMs,
         execution_time_ns: timeInNs,
-    });
+    };
+
+    if (config?.storeImmediately === true) {
+        await db.table(Tables.Apm).insert(apmEntry);
+    } else {
+        batched.push(apmEntry);
+    }
 
     return result;
 }

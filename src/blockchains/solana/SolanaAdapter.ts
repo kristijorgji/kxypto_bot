@@ -102,6 +102,7 @@ export default class SolanaAdapter {
         }
 
         if (args?.fetchInParallel ?? true) {
+            // @ts-ignore
             return await Promise.all(nonZeroTokenAccounts.map(this.parseWalletTokenData.bind(this)));
         } else {
             const data: TokenInWalletFullInfo[] = [];

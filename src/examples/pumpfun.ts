@@ -1,10 +1,15 @@
 import { PublicKey } from '@solana/web3.js';
 import dotenv from 'dotenv';
 
+import { measureExecutionTime } from '../apm/apm';
 import { SolanaWalletProviders } from '../blockchains/solana/constants/walletProviders';
 import { pumpCoinDataToInitialCoinData } from '../blockchains/solana/dex/pumpfun/mappers/mappers';
 import Pumpfun from '../blockchains/solana/dex/pumpfun/Pumpfun';
-import { PumpfunInitialCoinData } from '../blockchains/solana/dex/pumpfun/types';
+import {
+    PumpfunBuyResponse,
+    PumpfunInitialCoinData,
+    PumpfunSellResponse,
+} from '../blockchains/solana/dex/pumpfun/types';
 import { formPumpfunTokenUrl } from '../blockchains/solana/dex/pumpfun/utils';
 import SolanaAdapter from '../blockchains/solana/SolanaAdapter';
 import { TransactionMode } from '../blockchains/solana/types';
@@ -68,16 +73,21 @@ async function start() {
         try {
             const inSol = 0.001;
             logger.info(`Will buy ${inSol} sol`);
-            const buyRes = await pumpfun.buy({
-                transactionMode: TransactionMode.Execution,
-                payerPrivateKey: walletInfo.privateKey,
-                tokenMint: tokenMint,
-                tokenBondingCurve: initialCoinData.bondingCurve,
-                tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
-                solIn: inSol,
-                slippageDecimal: 0.5,
-                priorityFeeInSol: 0.002,
-            });
+            const buyRes = (await measureExecutionTime(
+                () =>
+                    pumpfun.buy({
+                        transactionMode: TransactionMode.Execution,
+                        payerPrivateKey: walletInfo.privateKey,
+                        tokenMint: tokenMint,
+                        tokenBondingCurve: initialCoinData.bondingCurve,
+                        tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
+                        solIn: inSol,
+                        slippageDecimal: 0.5,
+                        priorityFeeInSol: 0.002,
+                    }),
+                'pumpfun.buy',
+                { storeImmediately: true },
+            )) as unknown as PumpfunBuyResponse;
 
             logger.info(
                 'Bought successfully %s amountRaw for %s sol. Full info %o',
@@ -89,16 +99,21 @@ async function start() {
             logger.info('Sleeping 5s then selling');
             await sleep(7000);
 
-            const sellRes = await pumpfun.sell({
-                transactionMode: TransactionMode.Execution,
-                payerPrivateKey: walletInfo.privateKey,
-                tokenMint: tokenMint,
-                tokenBondingCurve: initialCoinData.bondingCurve,
-                tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
-                slippageDecimal: 0.5,
-                tokenBalance: buyRes.boughtAmountRaw,
-                priorityFeeInSol: 0.002,
-            });
+            const sellRes = (await measureExecutionTime(
+                () =>
+                    pumpfun.sell({
+                        transactionMode: TransactionMode.Execution,
+                        payerPrivateKey: walletInfo.privateKey,
+                        tokenMint: tokenMint,
+                        tokenBondingCurve: initialCoinData.bondingCurve,
+                        tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
+                        slippageDecimal: 0.5,
+                        tokenBalance: buyRes.boughtAmountRaw,
+                        priorityFeeInSol: 0.002,
+                    }),
+                'pumpfun.sell',
+                { storeImmediately: true },
+            )) as unknown as PumpfunSellResponse;
 
             logger.info('Sold successfully %o', sellRes);
         } catch (e) {
@@ -129,15 +144,20 @@ async function start() {
             const bondingCurve = await pumpfun.getBondingCurveAddress(mintAddress);
             const associatedBondingCurve = await pumpfun.getAssociatedBondingCurveAddress(bondingCurve, mintAddress);
 
-            const sellRes = await pumpfun.sell({
-                transactionMode: TransactionMode.Execution,
-                payerPrivateKey: walletInfo.privateKey,
-                tokenMint: token.mint,
-                tokenBondingCurve: bondingCurve.toBase58(),
-                tokenAssociatedBondingCurve: associatedBondingCurve.toBase58(),
-                tokenBalance: token.amountRaw,
-                priorityFeeInSol: 0.002,
-            });
+            const sellRes = (await measureExecutionTime(
+                () =>
+                    pumpfun.sell({
+                        transactionMode: TransactionMode.Execution,
+                        payerPrivateKey: walletInfo.privateKey,
+                        tokenMint: token.mint,
+                        tokenBondingCurve: bondingCurve.toBase58(),
+                        tokenAssociatedBondingCurve: associatedBondingCurve.toBase58(),
+                        tokenBalance: token.amountRaw,
+                        priorityFeeInSol: 0.002,
+                    }),
+                'pumpfun.sell',
+                { storeImmediately: true },
+            )) as unknown as PumpfunSellResponse;
 
             logger.info('Sell transaction confirmed. %o', sellRes);
         }

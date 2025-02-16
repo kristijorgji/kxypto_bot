@@ -11,7 +11,9 @@ import { pumpCoinDataToInitialCoinData } from '../../blockchains/solana/dex/pump
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import {
     NewPumpFunTokenData,
+    PumpfunBuyResponse,
     PumpfunInitialCoinData,
+    PumpfunSellResponse,
     PumpfunTokenBcStats,
 } from '../../blockchains/solana/dex/pumpfun/types';
 import { formPumpfunTokenUrl } from '../../blockchains/solana/dex/pumpfun/utils';
@@ -33,6 +35,8 @@ type BuyPosition = {
     amountRaw: number;
     netTransferredLamports: number;
     pumpInSol: number;
+    pumpTokenOut: number;
+    pumpMaxSolCost: number;
     priceInLamports: number;
     marketCap: number;
 };
@@ -84,6 +88,8 @@ type HandleNewTokenResponse = HandleTokenBoughtResponse | HandleTokenExitRespons
 
 export type HandlePumpTokenReport = {
     schemaVersion: string; // our custom reporting schema version, used to filter the data in case we change content of the json report
+    simulation: boolean;
+    strategy: string; // a brief name of what we are trying to test, ex: take-profit-only
     mint: string;
     name: string;
     url: string;
@@ -94,7 +100,7 @@ export type HandlePumpTokenReport = {
 })();
 
 const SIMULATE = true;
-const BUY_MONITOR_WAIT_PERIOD_MS = 1000;
+const BUY_MONITOR_WAIT_PERIOD_MS = 500;
 const SELL_MONITOR_WAIT_PERIOD_MS = 200;
 
 async function start() {
@@ -173,7 +179,9 @@ async function start() {
                     ensureDataFolder(`pumpfun-stats/${tokenData.mint}.json`),
                     JSON.stringify(
                         {
-                            schemaVersion: 'take-profit-only',
+                            schemaVersion: '1.00',
+                            simulation: SIMULATE,
+                            strategy: 'take-profit-only',
                             mint: tokenData.mint,
                             name: tokenData.name,
                             url: formPumpfunTokenUrl(tokenData.mint),
@@ -393,21 +401,29 @@ async function handlePumpToken(
         if (!buyPosition && buy) {
             // TODO calculate dynamically based on the situation
             const inSol = 0.2;
-            const buyRes = await pumpfun.buy({
-                transactionMode: simulate ? TransactionMode.Simulation : TransactionMode.Execution,
-                payerPrivateKey: walletInfo.privateKey,
-                tokenMint: tokenMint,
-                tokenBondingCurve: initialCoinData.bondingCurve,
-                tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
-                solIn: inSol,
-                slippageDecimal: 0.5,
-                priorityFeeInSol: 0.002,
-            });
+            const buyRes = (await measureExecutionTime(
+                () =>
+                    pumpfun.buy({
+                        transactionMode: simulate ? TransactionMode.Simulation : TransactionMode.Execution,
+                        payerPrivateKey: walletInfo.privateKey,
+                        tokenMint: tokenMint,
+                        tokenBondingCurve: initialCoinData.bondingCurve,
+                        tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
+                        solIn: inSol,
+                        slippageDecimal: 0.5,
+                        priorityFeeInSol: 0.002,
+                    }),
+                `pumpfun.buy${SIMULATE ? '_simulation' : ''}`,
+                { storeImmediately: true },
+            )) as unknown as PumpfunBuyResponse;
+
             buyPosition = {
                 timestamp: Date.now(),
                 amountRaw: buyRes.boughtAmountRaw,
                 netTransferredLamports: buyRes.txDetails.netTransferredLamports,
                 pumpInSol: inSol,
+                pumpMaxSolCost: buyRes.pumpMaxSolCost,
+                pumpTokenOut: buyRes.pumpTokenOut,
                 priceInLamports: price,
                 marketCap: marketCap,
             };
@@ -421,30 +437,35 @@ async function handlePumpToken(
             sleepIntervalMs = SELL_MONITOR_WAIT_PERIOD_MS;
 
             logger.info(
-                'Bought successfully %s amountRaw for %s sol. txDetails %o',
+                'Bought successfully %s amountRaw for %s sol. buyRes=%o',
                 buyRes!.boughtAmountRaw,
                 inSol,
-                buyRes.txDetails,
+                buyRes,
             );
         }
 
         if (sell && buyPosition) {
-            const sellRes = await pumpfun.sell({
-                transactionMode: simulate ? TransactionMode.Simulation : TransactionMode.Execution,
-                payerPrivateKey: walletInfo.privateKey,
-                tokenMint: tokenMint,
-                tokenBondingCurve: initialCoinData.bondingCurve,
-                tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
-                slippageDecimal: 0.5,
-                tokenBalance: buyPosition.amountRaw,
-                priorityFeeInSol: 0.002,
-            });
+            const sellRes = (await measureExecutionTime(
+                () =>
+                    pumpfun.sell({
+                        transactionMode: simulate ? TransactionMode.Simulation : TransactionMode.Execution,
+                        payerPrivateKey: walletInfo.privateKey,
+                        tokenMint: tokenMint,
+                        tokenBondingCurve: initialCoinData.bondingCurve,
+                        tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
+                        slippageDecimal: 0.5,
+                        tokenBalance: buyPosition!.amountRaw,
+                        priorityFeeInSol: 0.002,
+                    }),
+                `pumpfun.sell${SIMULATE ? '_simulation' : ''}`,
+                { storeImmediately: true },
+            )) as unknown as PumpfunSellResponse;
             logger.info(
-                'We sold successfully %s amountRaw with reason %s and received net %s sol. txDetails=%o',
+                'We sold successfully %s amountRaw with reason %s and received net %s sol. sellRes=%o',
                 sellRes.soldRawAmount,
                 sell.reason,
                 lamportsToSol(sellRes.txDetails.netTransferredLamports),
-                sellRes.txDetails,
+                sellRes,
             );
 
             const sellPosition: SellPosition = {

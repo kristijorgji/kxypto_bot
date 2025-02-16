@@ -37,8 +37,9 @@ import {
     PumpfunTokenBcStats,
 } from './types';
 import { logger } from '../../../../logger';
-import { bufferFromUInt64, randomInt } from '../../../../utils/data/data';
+import { bufferFromUInt64 } from '../../../../utils/data/data';
 import { sleep } from '../../../../utils/functions';
+import { computeSimulatedLatencyNs } from '../../../../utils/simulations';
 import { lamportsToSol, solToLamports } from '../../../utils/amount';
 import { getMetadataPDA } from '../../SolanaAdapter';
 import { TransactionMode, WssMessage } from '../../types';
@@ -281,6 +282,8 @@ export default class Pumpfun implements PumpfunListener {
             return {
                 signature: signature,
                 boughtAmountRaw: tokenOut,
+                pumpTokenOut: tokenOut,
+                pumpMaxSolCost: maxSolCost,
                 txDetails: await getSolTransactionDetails(this.connection, signature, payer.publicKey.toBase58()),
             };
         } else {
@@ -288,11 +291,20 @@ export default class Pumpfun implements PumpfunListener {
             // const simulatedResult = await this.connection.simulateTransaction(transaction);
             // logger.info(simulatedResult);
 
-            await sleep(randomInt(1000, 3600));
+            await sleep(
+                computeSimulatedLatencyNs({
+                    minTimeNs: 3036228333,
+                    maxTimeNs: 28021031083,
+                    avgTimeNs: 15406187822.75,
+                    medianTimeNs: 22503762125,
+                }) / 1e6,
+            );
 
             return {
                 signature: '_simulation_',
                 boughtAmountRaw: tokenOut,
+                pumpTokenOut: tokenOut,
+                pumpMaxSolCost: maxSolCost,
                 txDetails: simulateSolTransactionDetails(-solInLamports),
             };
         }
@@ -396,7 +408,14 @@ export default class Pumpfun implements PumpfunListener {
             // const simulatedResult = await this.connection.simulateTransaction(transaction);
             // logger.info(simulatedResult);
 
-            await sleep(randomInt(1000, 3600));
+            await sleep(
+                computeSimulatedLatencyNs({
+                    minTimeNs: 3102956041,
+                    maxTimeNs: 18382920708,
+                    avgTimeNs: 8706733343.75,
+                    medianTimeNs: 7812372459,
+                }) / 1e6,
+            );
 
             return {
                 signature: '_simulation_',

@@ -70,6 +70,8 @@ export type PumpFunCoinData = {
 export type PumpfunBuyResponse = {
     signature: string;
     boughtAmountRaw: number;
+    pumpTokenOut: number;
+    pumpMaxSolCost: number;
     txDetails: SolTransactionDetails;
 };
 

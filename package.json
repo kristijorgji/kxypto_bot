@@ -17,6 +17,8 @@
     "seed:run": "npm run knex:run -- seed:run --debug",
     "example:pumpfun": "ts-node -r dotenv/config src/examples/pumpfun.ts",
     "example:raydium": "ts-node -r dotenv/config src/examples/raydium.ts",
+    "example:exchange_rate": "ts-node -r dotenv/config src/examples/getExchangeRate.ts",
+    "example:wallet_balance": "ts-node -r dotenv/config src/examples/getWalletBalance.ts",
     "dev:cli": "ts-node src/console/cli.ts",
     "compile": "tsc",
     "lint": "eslint '{src,__tests__}/**/*.ts'",

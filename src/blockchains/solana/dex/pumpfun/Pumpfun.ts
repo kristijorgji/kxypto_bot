@@ -291,6 +291,9 @@ export default class Pumpfun implements PumpfunListener {
             // const simulatedResult = await this.connection.simulateTransaction(transaction);
             // logger.info(simulatedResult);
 
+            /**
+             * TODO adjust the values here based on the data with different priority fees
+             */
             await sleep(
                 computeSimulatedLatencyNs({
                     minTimeNs: 3036228333,
@@ -408,6 +411,9 @@ export default class Pumpfun implements PumpfunListener {
             // const simulatedResult = await this.connection.simulateTransaction(transaction);
             // logger.info(simulatedResult);
 
+            /**
+             * TODO adjust the values here based on the data with different priority fees
+             */
             await sleep(
                 computeSimulatedLatencyNs({
                     minTimeNs: 3102956041,

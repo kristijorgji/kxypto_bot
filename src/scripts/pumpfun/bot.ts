@@ -33,6 +33,7 @@ import { ensureDataFolder } from '../../utils/storage';
 type BuyPosition = {
     timestamp: number;
     amountRaw: number;
+    grossReceivedLamports: number;
     netTransferredLamports: number;
     pumpInSol: number;
     pumpTokenOut: number;
@@ -69,6 +70,7 @@ type HistoryEntry = {
     holdersCount: number;
     devHoldingPercentage: number;
     topTenHoldingPercentage: number;
+    _afterResult: boolean; // if this history record was added after we exited or made a trade
 };
 
 type HandleTokenBoughtResponse = {
@@ -102,6 +104,7 @@ export type HandlePumpTokenReport = {
 const SIMULATE = true;
 const BUY_MONITOR_WAIT_PERIOD_MS = 500;
 const SELL_MONITOR_WAIT_PERIOD_MS = 200;
+const MONITOR_PERIOD_AFTER_RESULT_MS = 500;
 
 async function start() {
     startApm();
@@ -181,7 +184,7 @@ async function start() {
                         {
                             schemaVersion: '1.00',
                             simulation: SIMULATE,
-                            strategy: 'take-profit-only',
+                            strategy: 'take_profit_04_s',
                             mint: tokenData.mint,
                             name: tokenData.name,
                             url: formPumpfunTokenUrl(tokenData.mint),
@@ -252,8 +255,10 @@ async function handlePumpToken(
     }
 
     let sleepIntervalMs = BUY_MONITOR_WAIT_PERIOD_MS; // sleep interval between fetching new stats, price, holders etc. We can keep it higher before buying to save RPC calls and reduce when want to sell and monitor faster
-    const maxWaitMs = 3 * 60 * 1000; // don't waste time on this token anymore if there is no increase until this time is reached
+    const maxWaitMs = 4 * 60 * 1e3; // don't waste time on this token anymore if there is no increase until this time is reached
     const startTimestamp = Date.now();
+    const maxWaitMonitorAfterResultMs = 30 * 1e3;
+    let intervalsMonitoredAfterResult = 0;
     let initialMarketCap = -1;
 
     let buy = false;
@@ -267,6 +272,7 @@ async function handlePumpToken(
     let trailingStopLoss: TrailingStopLoss | undefined;
     let takeProfitPercentage: TakeProfitPercentage | undefined;
     let trailingTakeProfit: TrailingTakeProfit | undefined;
+    let result: HandleNewTokenResponse | undefined;
 
     while (true) {
         // @ts-ignore
@@ -304,7 +310,30 @@ async function handlePumpToken(
             holdersCount: holdersCounts,
             devHoldingPercentage: devHoldingPercentage,
             topTenHoldingPercentage: topTenHoldingPercentage,
+            _afterResult: result !== undefined,
         });
+
+        /**
+         * We will continue to monitor for the specified period after are "done" with this particular token
+         * either with exit without trade or with a trade done
+         * These data will serve to further debug and backtest if our decision was correct or not
+         */
+        if (result) {
+            if (intervalsMonitoredAfterResult === 0) {
+                logger.info(
+                    'We have the result already and are going to monitor %s seconds more',
+                    maxWaitMonitorAfterResultMs / 1000,
+                );
+            }
+
+            if (intervalsMonitoredAfterResult * MONITOR_PERIOD_AFTER_RESULT_MS >= maxWaitMonitorAfterResultMs) {
+                return result;
+            }
+
+            intervalsMonitoredAfterResult++;
+            await sleep(MONITOR_PERIOD_AFTER_RESULT_MS);
+            continue;
+        }
 
         if (initialMarketCap === -1) {
             initialMarketCap = marketCap;
@@ -321,7 +350,7 @@ async function handlePumpToken(
         );
         logger.info('Current vs initial market cap % difference: %s%%', mcDiffFromInitialPercentage);
 
-        if (!buyPosition && holdersCounts >= 10 && bondingCurveProgress >= 20) {
+        if (!buyPosition && holdersCounts >= 15 && bondingCurveProgress >= 25 && devHoldingPercentage <= 15) {
             logger.info('We set buy=true because the conditions are met');
             buy = true;
         }
@@ -339,11 +368,12 @@ async function handlePumpToken(
                 const reason = `Stopped monitoring token ${tokenMint} because it was probably dumped and current market cap is less than the initial one`;
                 logger.info(reason);
 
-                return {
+                result = {
                     exitCode: 'DUMPED',
                     exitReason: reason,
                     history: history,
                 };
+                continue;
             }
         }
 
@@ -353,11 +383,12 @@ async function handlePumpToken(
             } seconds and did not pump`;
             logger.info(reason);
 
-            return {
+            result = {
                 exitCode: 'NO_PUMP',
                 exitReason: reason,
                 history: history,
             };
+            continue;
         }
 
         if (buyPosition) {
@@ -400,7 +431,7 @@ async function handlePumpToken(
         // eslint-disable-next-line no-unreachable
         if (!buyPosition && buy) {
             // TODO calculate dynamically based on the situation
-            const inSol = 0.2;
+            const inSol = 0.4;
             const buyRes = (await measureExecutionTime(
                 () =>
                     pumpfun.buy({
@@ -411,7 +442,7 @@ async function handlePumpToken(
                         tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
                         solIn: inSol,
                         slippageDecimal: 0.5,
-                        priorityFeeInSol: 0.002,
+                        priorityFeeInSol: 0.005,
                     }),
                 `pumpfun.buy${SIMULATE ? '_simulation' : ''}`,
                 { storeImmediately: true },
@@ -420,6 +451,7 @@ async function handlePumpToken(
             buyPosition = {
                 timestamp: Date.now(),
                 amountRaw: buyRes.boughtAmountRaw,
+                grossReceivedLamports: buyRes.txDetails.grossTransferredLamports,
                 netTransferredLamports: buyRes.txDetails.netTransferredLamports,
                 pumpInSol: inSol,
                 pumpMaxSolCost: buyRes.pumpMaxSolCost,
@@ -427,13 +459,17 @@ async function handlePumpToken(
                 priceInLamports: price,
                 marketCap: marketCap,
             };
+            /**
+             * The longer the buy transaction takes the more likely price has changed, so need to put limit orders with most closely price to the one used to buy
+             * TODO calculate real buy price based on buyRes details and set up the limits accordingly
+             */
             trailingStopLoss = new TrailingStopLoss(price, 15);
             takeProfitPercentage = new TakeProfitPercentage(price, 15);
-            trailingTakeProfit = new TrailingTakeProfit({
-                entryPrice: price,
-                trailingProfitPercentage: 10,
-                trailingStopPercentage: 20,
-            });
+            // trailingTakeProfit = new TrailingTakeProfit({
+            //     entryPrice: price,
+            //     trailingProfitPercentage: 15,
+            //     trailingStopPercentage: 20,
+            // });
             sleepIntervalMs = SELL_MONITOR_WAIT_PERIOD_MS;
 
             logger.info(
@@ -455,7 +491,7 @@ async function handlePumpToken(
                         tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
                         slippageDecimal: 0.5,
                         tokenBalance: buyPosition!.amountRaw,
-                        priorityFeeInSol: 0.002,
+                        priorityFeeInSol: 0.005,
                     }),
                 `pumpfun.sell${SIMULATE ? '_simulation' : ''}`,
                 { storeImmediately: true },
@@ -480,7 +516,7 @@ async function handlePumpToken(
             };
             const pnlLamports = buyPosition.netTransferredLamports + sellPosition.netReceivedLamports;
 
-            return {
+            result = {
                 trade: {
                     buyPosition: buyPosition,
                     sellPositions: [sellPosition],
@@ -491,6 +527,7 @@ async function handlePumpToken(
                 },
                 history: history,
             };
+            continue;
         }
 
         await sleep(sleepIntervalMs);

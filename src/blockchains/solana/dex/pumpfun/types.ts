@@ -10,8 +10,8 @@ export type NewPumpFunTokenData = {
 };
 
 export type PumpfunTokenBcStats = {
-    marketCap: number;
-    price: number;
+    marketCapInSol: number;
+    priceInSol: number;
     bondingCurveProgress: number;
     virtualSolReserves: number;
     virtualTokenReserves: number;

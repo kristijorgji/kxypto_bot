@@ -44,7 +44,7 @@ import { lamportsToSol, solToLamports } from '../../../utils/amount';
 import { getMetadataPDA } from '../../SolanaAdapter';
 import { TransactionMode, WssMessage } from '../../types';
 import { createTransaction, getKeyPairFromPrivateKey } from '../../utils/helpers';
-import { simulateSolTransactionDetails } from '../../utils/simulations';
+import { simulatePriceWithLowerSlippage, simulateSolTransactionDetails } from '../../utils/simulations';
 import { getTokenIfpsMetadata } from '../../utils/tokens';
 import { getSolTransactionDetails } from '../../utils/transactions';
 
@@ -351,7 +351,9 @@ export default class Pumpfun implements PumpfunListener {
             tokenAccount = tokenAccountAddress;
         }
 
-        const { virtualTokenReserves, virtualSolReserves } = await this.getBcReserves(tokenMint, tokenBondingCurve);
+        const { virtualTokenReserves, virtualSolReserves, priceInSol } = await this.getTokenBondingCurveStats(
+            tokenBondingCurve,
+        );
 
         const minLamportsOutput = Math.floor(
             (tokenBalance! * (1 - slippageDecimal) * virtualSolReserves) / virtualTokenReserves,
@@ -427,7 +429,15 @@ export default class Pumpfun implements PumpfunListener {
                 signature: '_simulation_',
                 soldRawAmount: tokenBalance,
                 minLamportsOutput: minLamportsOutput,
-                txDetails: simulateSolTransactionDetails(minLamportsOutput),
+                txDetails: simulateSolTransactionDetails(
+                    Math.max(
+                        minLamportsOutput,
+                        simulatePriceWithLowerSlippage(
+                            solToLamports(priceInSol * (tokenBalance / 10 ** PUMPFUN_TOKEN_DECIMALS)),
+                            slippageDecimal,
+                        ),
+                    ),
+                ),
             };
         }
     }
@@ -492,8 +502,8 @@ export default class Pumpfun implements PumpfunListener {
         );
 
         return {
-            marketCap: marketCap,
-            price: price,
+            marketCapInSol: marketCap,
+            priceInSol: price,
             bondingCurveProgress: bondingCurveProgress.toNumber(),
             virtualSolReserves: Number(bondingCurveState.virtual_sol_reserves),
             virtualTokenReserves: Number(bondingCurveState.virtual_token_reserves),

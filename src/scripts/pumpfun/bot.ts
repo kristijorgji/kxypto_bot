@@ -23,6 +23,7 @@ import { TokenHolder, TransactionMode, WalletInfo } from '../../blockchains/sola
 import { solanaConnection } from '../../blockchains/solana/utils/connection';
 import solanaMnemonicToKeypair from '../../blockchains/solana/utils/solanaMnemonicToKeypair';
 import { lamportsToSol, solToLamports } from '../../blockchains/utils/amount';
+import PumpfunRepository, { pumpfunRepository } from '../../db/repositories/PumpfunRepository';
 import { logger } from '../../logger';
 import TakeProfitPercentage from '../../trading/orders/TakeProfitPercentage';
 import TrailingStopLoss from '../../trading/orders/TrailingStopLoss';
@@ -185,14 +186,17 @@ async function start() {
 
             try {
                 const handleRes = await handlePumpToken(
-                    pumpfun,
-                    solanaAdapter,
-                    logger.child({
-                        contextMap: {
-                            listenerId: identifier,
-                            tokenMint: tokenData.mint,
-                        },
-                    }),
+                    {
+                        pumpfun: pumpfun,
+                        solanaAdapter: solanaAdapter,
+                        logger: logger.child({
+                            contextMap: {
+                                listenerId: identifier,
+                                tokenMint: tokenData.mint,
+                            },
+                        }),
+                        pumpfunRepository: pumpfunRepository,
+                    },
                     {
                         tokenData: tokenData,
                         walletInfo: walletInfo,
@@ -247,9 +251,17 @@ async function start() {
  * or end without buying if no profitability is found
  */
 async function handlePumpToken(
-    pumpfun: Pumpfun,
-    solanaAdapter: SolanaAdapter,
-    logger: Logger,
+    {
+        pumpfun,
+        solanaAdapter,
+        logger,
+        pumpfunRepository,
+    }: {
+        pumpfun: Pumpfun;
+        solanaAdapter: SolanaAdapter;
+        logger: Logger;
+        pumpfunRepository: PumpfunRepository;
+    },
     {
         tokenData,
         walletInfo,
@@ -274,6 +286,8 @@ async function handlePumpToken(
         logger.warn('Failed to fetch full token initial data, will use our own fallback');
         initialCoinData = await pumpfun.getInitialCoinBaseData(tokenMint);
     }
+
+    await pumpfunRepository.insertToken(initialCoinData);
 
     let sleepIntervalMs = c.buyMonitorWaitPeriodMs; // sleep interval between fetching new stats, price, holders etc. We can keep it higher before buying to save RPC calls and reduce when want to sell and monitor faster
     const startTimestamp = Date.now();

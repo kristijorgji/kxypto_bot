@@ -2,11 +2,10 @@
 
 import { v4 as uuidv4 } from 'uuid';
 
-import { createKnex } from '../db/knex';
+import { db } from '../db/knex';
 import { Tables } from '../db/tables';
 import { ApmEntry } from '../db/types';
 
-const db = createKnex();
 const batched: ApmEntry[] = [];
 const batchSize = 1000;
 

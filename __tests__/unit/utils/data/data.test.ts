@@ -44,7 +44,6 @@ describe(randomDecimal.name, () => {
         [0, 1, 5],
     ])('returns a random number between %f and %f with %d decimals', (min, max, decimals) => {
         const result = randomDecimal(min, max, decimals);
-        console.log(result);
 
         expect(result).toBeGreaterThanOrEqual(min);
         expect(result).toBeLessThanOrEqual(max);

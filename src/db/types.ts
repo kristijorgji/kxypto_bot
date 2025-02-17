@@ -7,3 +7,13 @@ export type ApmEntry = {
     start_timestamp_ms: number;
     execution_time_ns: number;
 };
+
+export type Token<T = Record<string, unknown>> = {
+    chain: 'solana';
+    mint: string;
+    name: string;
+    symbol: string;
+    other: T;
+    createdOn: 'https://pump.fun' | string;
+    token_created_at: Date;
+};

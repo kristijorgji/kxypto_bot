@@ -434,7 +434,7 @@ export default class Pumpfun implements PumpfunListener {
                         minLamportsOutput,
                         simulatePriceWithLowerSlippage(
                             solToLamports(priceInSol * (tokenBalance / 10 ** PUMPFUN_TOKEN_DECIMALS)),
-                            slippageDecimal,
+                            0.125,
                         ),
                     ),
                 ),

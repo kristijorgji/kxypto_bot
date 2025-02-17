@@ -1,6 +1,6 @@
 import { Knex, knex } from 'knex';
 
-export function createKnex(): Knex {
+function createKnex(): Knex {
     return knex({
         client: 'mysql2',
         connection: {
@@ -12,3 +12,8 @@ export function createKnex(): Knex {
         },
     });
 }
+
+/**
+ * Singleton instance of the DB Connection.
+ */
+export const db = createKnex();

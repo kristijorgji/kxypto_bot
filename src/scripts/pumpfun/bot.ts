@@ -113,6 +113,8 @@ export type HandlePumpTokenReport = {
     mint: string;
     name: string;
     url: string;
+    startedAt: Date;
+    endedAt: Date;
 } & HandleNewTokenResponse;
 
 (async () => {
@@ -151,6 +153,7 @@ async function start() {
     await listen(botConfig);
 
     async function listen(c: BotConfig) {
+        const startedAt = new Date();
         const identifier = uniqueRandomIntGenerator.next().toString();
         let processed = 0;
 
@@ -207,12 +210,14 @@ async function start() {
                     ensureDataFolder(`pumpfun-stats/${tokenData.mint}.json`),
                     JSON.stringify(
                         {
-                            schemaVersion: '1.01',
+                            schemaVersion: '1.02',
                             simulation: c.simulate,
-                            strategy: 'take_profit_04_s',
+                            strategy: 'safe_entry_take_profit_04_sol',
                             mint: tokenData.mint,
                             name: tokenData.name,
                             url: formPumpfunTokenUrl(tokenData.mint),
+                            startedAt: startedAt,
+                            endedAt: new Date(),
                             ...handleRes,
                         } as HandlePumpTokenReport,
                         null,
@@ -396,7 +401,13 @@ async function handlePumpToken(
             continue;
         }
 
-        if (!buyPosition && holdersCounts >= 15 && bondingCurveProgress >= 25 && devHoldingPercentage <= 15) {
+        if (
+            !buyPosition &&
+            holdersCounts >= 15 &&
+            bondingCurveProgress >= 25 &&
+            devHoldingPercentage <= 10 &&
+            topTenHoldingPercentage <= 35
+        ) {
             logger.info('We set buy=true because the conditions are met');
             buy = true;
         }

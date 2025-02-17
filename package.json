@@ -9,6 +9,11 @@
   "scripts": {
     "test": "jest",
     "start": "ts-node -r dotenv/config src/index.ts",
+    "dev:cli": "ts-node src/console/cli.ts",
+    "compile": "tsc",
+    "lint": "eslint '{src,__tests__}/**/*.ts'",
+    "fix": "eslint --fix --ext js,jsx,ts,tsx {src,__tests__}",
+    "prepare": "husky",
     "knex:init": "knex init -x ts",
     "knex:run": "knex --knexfile knexfile.ts",
     "migrate:currentVersion": "npm run knex:run -- migrate:currentVersion",
@@ -18,16 +23,12 @@
     "migrate:rollback": "npm run knex:run -- migrate:rollback --all --debug",
     "seed:make": "npm run knex:run -- seed:make --",
     "seed:run": "npm run knex:run -- seed:run --debug",
+    "pumpfun-bot": "ts-node -r dotenv/config src/scripts/pumpfun/bot.ts",
+    "pumpfun-organize": "ts-node -r dotenv/config src/scripts/pumpfun/organize-stats.ts",
     "example:pumpfun": "ts-node -r dotenv/config src/examples/pumpfun.ts",
     "example:raydium": "ts-node -r dotenv/config src/examples/raydium.ts",
     "example:exchange_rate": "ts-node -r dotenv/config src/examples/getExchangeRate.ts",
-    "example:wallet_balance": "ts-node -r dotenv/config src/examples/getWalletBalance.ts",
-    "dev:cli": "ts-node src/console/cli.ts",
-    "compile": "tsc",
-    "lint": "eslint '{src,__tests__}/**/*.ts'",
-    "fix": "eslint --fix --ext js,jsx,ts,tsx {src,__tests__}",
-    "prepare": "husky",
-    "pumpfun-bot": "ts-node -r dotenv/config src/scripts/pumpfun/bot.ts"
+    "example:wallet_balance": "ts-node -r dotenv/config src/examples/getWalletBalance.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",

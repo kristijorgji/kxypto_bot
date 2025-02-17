@@ -95,7 +95,14 @@ You can run the helper CLI command
 # Example scripts
 
 The folder `src/examples` contains `standalone` scripts that you can run.
+
 They use the specified `.env` variables
+
+Example:
+
+```shell
+ts-node src/examples/getExchangeRate.ts
+```
 
 # Standalone scripts
 

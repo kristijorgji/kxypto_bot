@@ -7,7 +7,7 @@ import { Logger } from 'winston';
 
 import { measureExecutionTime, startApm } from '../../apm/apm';
 import { SolanaWalletProviders } from '../../blockchains/solana/constants/walletProviders';
-import { PUMPFUN_TOKEN_DECIMALS } from '../../blockchains/solana/dex/pumpfun/constants';
+import { PUMPFUN_TOKEN_DECIMALS, PUMPFUN_TOKEN_SUPPLY } from '../../blockchains/solana/dex/pumpfun/constants';
 import { pumpCoinDataToInitialCoinData } from '../../blockchains/solana/dex/pumpfun/mappers/mappers';
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import {
@@ -339,7 +339,9 @@ async function handlePumpToken(
 
         const { holdersCounts, devHoldingPercentage, topTenHoldingPercentage } = await calculateHoldersStats({
             tokenHolders: tokenHolders,
+            totalSupply: PUMPFUN_TOKEN_SUPPLY,
             creator: initialCoinData.creator,
+            bondingCurve: initialCoinData.bondingCurve,
         });
 
         history.push({
@@ -603,10 +605,14 @@ async function handlePumpToken(
  */
 async function calculateHoldersStats({
     tokenHolders,
+    totalSupply,
     creator,
+    bondingCurve,
 }: {
     tokenHolders: TokenHolder[];
+    totalSupply: number;
     creator?: string;
+    bondingCurve: string;
 }): Promise<{
     holdersCounts: number;
     devHoldingPercentage: number;
@@ -617,21 +623,27 @@ async function calculateHoldersStats({
 
     const holdersCounts = tokenHolders.length;
     let topTenHolding = 0;
-    let allHolding = 0;
+    let topTenHoldingIndex = 0;
+
     for (let i = 0; i < tokenHolders.length; i++) {
         const tokenHolder = tokenHolders[i];
+
+        if (tokenHolder.ownerAddress === bondingCurve) {
+            // ignore the liquidity pool
+            continue;
+        }
+
         if (tokenHolder.ownerAddress === creator) {
             devHolding = tokenHolder.balance;
         }
 
-        if (i < 10) {
+        if (topTenHoldingIndex++ < 10) {
             topTenHolding += tokenHolder.balance;
         }
-        allHolding += tokenHolder.balance;
     }
 
-    const topTenHoldingPercentage = (topTenHolding / allHolding) * 100;
-    const devHoldingPercentage = creator === undefined ? -1 : (devHolding / allHolding) * 100;
+    const topTenHoldingPercentage = (topTenHolding / totalSupply) * 100;
+    const devHoldingPercentage = creator === undefined ? -1 : (devHolding / totalSupply) * 100;
 
     return {
         holdersCounts,

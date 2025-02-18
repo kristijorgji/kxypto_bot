@@ -12,7 +12,6 @@ import { pumpCoinDataToInitialCoinData } from '../../blockchains/solana/dex/pump
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import {
     NewPumpFunTokenData,
-    PumpfunBuyResponse,
     PumpfunInitialCoinData,
     PumpfunSellResponse,
     PumpfunTokenBcStats,
@@ -300,6 +299,7 @@ async function handlePumpToken(
     let initialMarketCap = -1;
 
     let buy = false;
+    let buyInProgress = false;
     let sell:
         | {
               reason: 'DUMPED' | 'TRAILING_STOP_LOSS' | 'TAKE_PROFIT' | 'TRAILING_TAKE_PROFIT' | 'AT_HARDCODED_PROFIT';
@@ -404,6 +404,7 @@ async function handlePumpToken(
         }
 
         if (
+            !buyInProgress &&
             !buyPosition &&
             holdersCounts >= 15 &&
             bondingCurveProgress >= 25 &&
@@ -415,8 +416,9 @@ async function handlePumpToken(
         }
 
         if (
-            mcDiffFromInitialPercentage < -6 ||
-            (mcDiffFromInitialPercentage < -5 && holdersCounts <= 3 && elapsedMonitoringMs >= 120 * 1e3)
+            !buyInProgress &&
+            (mcDiffFromInitialPercentage < -6 ||
+                (mcDiffFromInitialPercentage < -5 && holdersCounts <= 3 && elapsedMonitoringMs >= 120 * 1e3))
         ) {
             if (buyPosition) {
                 logger.info('The token is probably dumped and we will sell at loss, sell=true');
@@ -436,7 +438,7 @@ async function handlePumpToken(
             }
         }
 
-        if (!buyPosition && elapsedMonitoringMs >= c.maxWaitMs) {
+        if (!buyInProgress && !buyPosition && elapsedMonitoringMs >= c.maxWaitMs) {
             const reason = `Stopped monitoring token ${tokenMint}. We waited ${
                 elapsedMonitoringMs / 1000
             } seconds and did not pump`;
@@ -489,10 +491,12 @@ async function handlePumpToken(
         }
 
         // eslint-disable-next-line no-unreachable
-        if (!buyPosition && buy) {
+        if (!buyInProgress && !buyPosition && buy) {
             // TODO calculate dynamically based on the situation
             const inSol = 0.4;
-            const buyRes = (await measureExecutionTime(
+
+            buyInProgress = true;
+            measureExecutionTime(
                 () =>
                     pumpfun.buy({
                         transactionMode: c.simulate ? TransactionMode.Simulation : TransactionMode.Execution,
@@ -506,44 +510,54 @@ async function handlePumpToken(
                     }),
                 `pumpfun.buy${c.simulate ? '_simulation' : ''}`,
                 { storeImmediately: true },
-            )) as unknown as PumpfunBuyResponse;
+            )
+                .then(buyRes => {
+                    buyPosition = {
+                        timestamp: Date.now(),
+                        amountRaw: buyRes.boughtAmountRaw,
+                        grossReceivedLamports: buyRes.txDetails.grossTransferredLamports,
+                        netTransferredLamports: buyRes.txDetails.netTransferredLamports,
+                        pumpInSol: inSol,
+                        pumpMaxSolCost: buyRes.pumpMaxSolCost,
+                        pumpTokenOut: buyRes.pumpTokenOut,
+                        price: {
+                            inSol: priceInSol,
+                            inLamports: solToLamports(priceInSol),
+                        },
+                        marketCap: marketCapInSol,
+                    };
+                    /**
+                     * The longer the buy transaction takes the more likely price has changed, so need to put limit orders with most closely price to the one used to buy
+                     * TODO calculate real buy price based on buyRes details and set up the limits accordingly
+                     */
+                    trailingStopLoss = new TrailingStopLoss(priceInSol, 15);
+                    takeProfitPercentage = new TakeProfitPercentage(priceInSol, 15);
+                    // trailingTakeProfit = new TrailingTakeProfit({
+                    //     entryPrice: price,
+                    //     trailingProfitPercentage: 15,
+                    //     trailingStopPercentage: 20,
+                    // });
+                    sleepIntervalMs = c.sellMonitorWaitPeriodMs;
 
-            buyPosition = {
-                timestamp: Date.now(),
-                amountRaw: buyRes.boughtAmountRaw,
-                grossReceivedLamports: buyRes.txDetails.grossTransferredLamports,
-                netTransferredLamports: buyRes.txDetails.netTransferredLamports,
-                pumpInSol: inSol,
-                pumpMaxSolCost: buyRes.pumpMaxSolCost,
-                pumpTokenOut: buyRes.pumpTokenOut,
-                price: {
-                    inSol: priceInSol,
-                    inLamports: solToLamports(priceInSol),
-                },
-                marketCap: marketCapInSol,
-            };
-            /**
-             * The longer the buy transaction takes the more likely price has changed, so need to put limit orders with most closely price to the one used to buy
-             * TODO calculate real buy price based on buyRes details and set up the limits accordingly
-             */
-            trailingStopLoss = new TrailingStopLoss(priceInSol, 15);
-            takeProfitPercentage = new TakeProfitPercentage(priceInSol, 15);
-            // trailingTakeProfit = new TrailingTakeProfit({
-            //     entryPrice: price,
-            //     trailingProfitPercentage: 15,
-            //     trailingStopPercentage: 20,
-            // });
-            sleepIntervalMs = c.sellMonitorWaitPeriodMs;
-
-            logger.info(
-                'Bought successfully %s amountRaw for %s sol. buyRes=%o',
-                buyRes!.boughtAmountRaw,
-                inSol,
-                buyRes,
-            );
+                    logger.info(
+                        'Bought successfully %s amountRaw for %s sol. buyRes=%o',
+                        buyRes!.boughtAmountRaw,
+                        inSol,
+                        buyRes,
+                    );
+                })
+                .catch(async e => {
+                    // TODO handle properly and double check if it really failed or was block height transaction timeout
+                    logger.error('Error while buying');
+                    logger.error(e);
+                })
+                .finally(() => {
+                    buyInProgress = false;
+                });
         }
 
         if (sell && buyPosition) {
+            // TODO handle errors, some error might be false negative example block height timeout, sell might be successful but we get error
             const sellRes = (await measureExecutionTime(
                 () =>
                     pumpfun.sell({

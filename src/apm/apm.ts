@@ -37,7 +37,7 @@ export function startApm(): void {
 }
 
 export async function measureExecutionTime<T>(
-    fn: () => T,
+    fn: () => Promise<T>,
     functionName: string,
     config?: {
         storeImmediately: boolean;

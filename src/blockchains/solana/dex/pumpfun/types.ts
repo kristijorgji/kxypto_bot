@@ -19,7 +19,7 @@ export type PumpfunTokenBcStats = {
 
 export type PumpfunInitialCoinData = {
     mint: string;
-    // TODO find a way to fetch these 2 below
+    // TODO find a way to fetch these 2 below natively via Pumpfun.getInitialCoinBaseData
     creator?: string;
     createdTimestamp?: number;
     bondingCurve: string;

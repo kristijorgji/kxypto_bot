@@ -1,7 +1,9 @@
 import fs from 'fs';
 
-import { HandlePumpTokenExitCode, HandlePumpTokenReport, Trade } from './bot';
+import { HandlePumpTokenReport } from './bot';
 import { logger } from '../../logger';
+import { Trade } from '../../trading/bots/blockchains/solana/types';
+import { ExitMonitoringReason } from '../../trading/bots/types';
 import { comparePaths, moveFile, walkDirFilesSyncRecursive } from '../../utils/files';
 import { formDataFolder } from '../../utils/storage';
 
@@ -48,7 +50,7 @@ async function organizeFiles() {
 
         if (Object.prototype.hasOwnProperty.call(content, 'exitCode')) {
             newPath = `${schemaVersionedDir}/no_trade/${(
-                content as { exitCode: HandlePumpTokenExitCode }
+                content as { exitCode: ExitMonitoringReason }
             ).exitCode.toLowerCase()}/${file.name}`;
         }
 

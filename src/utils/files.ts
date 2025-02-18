@@ -47,7 +47,7 @@ export function readBigJson<T>(filePath: string): Promise<T> {
     });
 }
 
-interface FileInfo {
+export interface FileInfo {
     name: string;
     fullPath: string;
     creationTime: Date;

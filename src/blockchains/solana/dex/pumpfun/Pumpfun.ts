@@ -174,6 +174,9 @@ export default class Pumpfun implements PumpfunListener {
 
         return {
             mint: mint,
+            // TODO find a way to fetch these 2 below natively via Pumpfun.getInitialCoinBaseData
+            creator: '_not_implemented_',
+            createdTimestamp: Date.now(),
             bondingCurve: bondingCurveAdddress.toBase58(),
             associatedBondingCurve: associatedBondingCurveAddress.toBase58(),
             name: ipfsMetadata.name,

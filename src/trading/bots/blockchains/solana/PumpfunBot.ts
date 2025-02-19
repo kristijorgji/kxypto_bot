@@ -1,30 +1,17 @@
 import { Logger } from 'winston';
 
-import { BuyPosition, PumpfunBuyPositionMetadata, PumpfunSellPositionMetadata, SellPosition, Trade } from './types';
+import { BotResponse, PumpfunBuyPositionMetadata, PumpfunSellPositionMetadata, TradeTransaction } from './types';
 import { measureExecutionTime } from '../../../../apm/apm';
-import { PUMPFUN_TOKEN_DECIMALS } from '../../../../blockchains/solana/dex/pumpfun/constants';
 import Pumpfun from '../../../../blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunMarketContextProvider from '../../../../blockchains/solana/dex/pumpfun/PumpfunMarketContextProvider';
 import { PumpfunInitialCoinData, PumpfunSellResponse } from '../../../../blockchains/solana/dex/pumpfun/types';
+import { calculatePumpTokenLamportsValue } from '../../../../blockchains/solana/dex/pumpfun/utils';
 import { TransactionMode, WalletInfo } from '../../../../blockchains/solana/types';
 import { lamportsToSol, solToLamports } from '../../../../blockchains/utils/amount';
 import { sleep } from '../../../../utils/functions';
 import { LaunchpadBotStrategy } from '../../../strategies/launchpads/LaunchpadBotStrategy';
 import { HistoryEntry } from '../../launchpads/types';
-import { BotConfig, ExitMonitoringReason, SellReason } from '../../types';
-
-export type HandleTokenBoughtResponse = {
-    trade: Trade;
-    history: HistoryEntry[];
-};
-
-export type HandleTokenExitResponse = {
-    exitCode: ExitMonitoringReason;
-    exitReason: string;
-    history: HistoryEntry[];
-};
-
-export type HandleNewTokenResponse = HandleTokenBoughtResponse | HandleTokenExitResponse;
+import { BotConfig, SellReason } from '../../types';
 
 export default class PumpfunBot {
     private readonly logger: Logger;
@@ -63,7 +50,7 @@ export default class PumpfunBot {
         listenerId: string,
         tokenInfo: PumpfunInitialCoinData,
         strategy: LaunchpadBotStrategy,
-    ): Promise<HandleNewTokenResponse> {
+    ): Promise<BotResponse> {
         const tokenMint = tokenInfo.mint;
         const logger = this.logger.child({
             contextMap: {
@@ -90,7 +77,7 @@ export default class PumpfunBot {
               }
             | undefined;
         const history: HistoryEntry[] = [];
-        let result: HandleNewTokenResponse | undefined;
+        let result: BotResponse | undefined;
 
         while (true) {
             const elapsedMonitoringMs = Date.now() - startTimestamp;
@@ -205,7 +192,7 @@ export default class PumpfunBot {
                         strategy.buyPosition.price.inLamports) *
                     100;
                 const diffInSol = lamportsToSol(
-                    solToLamports(priceInSol * (strategy.buyPosition.amountRaw / 10 ** PUMPFUN_TOKEN_DECIMALS)) -
+                    calculatePumpTokenLamportsValue(strategy.buyPosition.amountRaw, priceInSol) -
                         Math.abs(strategy.buyPosition.netTransferredLamports),
                 );
 
@@ -244,10 +231,13 @@ export default class PumpfunBot {
                     { storeImmediately: true },
                 )
                     .then(buyRes => {
-                        const buyPosition: BuyPosition<PumpfunBuyPositionMetadata> = {
+                        const buyPosition: TradeTransaction<PumpfunBuyPositionMetadata> = {
                             timestamp: Date.now(),
+                            transactionType: 'buy',
+                            subCategory: 'newPosition',
+                            transactionHash: buyRes.signature,
                             amountRaw: buyRes.boughtAmountRaw,
-                            grossReceivedLamports: buyRes.txDetails.grossTransferredLamports,
+                            grossTransferredLamports: buyRes.txDetails.grossTransferredLamports,
                             netTransferredLamports: buyRes.txDetails.netTransferredLamports,
                             price: {
                                 inSol: priceInSol,
@@ -311,34 +301,34 @@ export default class PumpfunBot {
                     sellRes,
                 );
 
-                const sellPosition: SellPosition<PumpfunSellPositionMetadata> = {
+                const sellPosition: TradeTransaction<PumpfunSellPositionMetadata> = {
                     timestamp: Date.now(),
+                    transactionType: 'sell',
+                    subCategory: 'sellAll',
+                    transactionHash: sellRes.signature,
                     amountRaw: sellRes.soldRawAmount,
-                    grossReceivedLamports: sellRes.txDetails.grossTransferredLamports,
-                    netReceivedLamports: sellRes.txDetails.netTransferredLamports,
+                    grossTransferredLamports: sellRes.txDetails.grossTransferredLamports,
+                    netTransferredLamports: sellRes.txDetails.netTransferredLamports,
                     price: {
                         inSol: priceInSol,
                         inLamports: solToLamports(priceInSol),
                     },
                     marketCap: marketCapInSol,
-                    reason: sell.reason,
                     metadata: {
+                        reason: sell.reason,
                         pumpMinLamportsOutput: sellRes.minLamportsOutput,
                     },
                 };
                 strategy.afterSell();
-                const pnlLamports = strategy.buyPosition.netTransferredLamports + sellPosition.netReceivedLamports;
+                const pnlLamports = strategy.buyPosition.netTransferredLamports + sellPosition.netTransferredLamports;
 
                 result = {
-                    trade: {
-                        buyPosition: strategy.buyPosition,
-                        sellPositions: [sellPosition],
-                        netPnl: {
-                            inLamports: pnlLamports,
-                            inSol: lamportsToSol(pnlLamports),
-                        },
-                    },
+                    transactions: [strategy.buyPosition, sellPosition],
                     history: history,
+                    netPnl: {
+                        inLamports: pnlLamports,
+                        inSol: lamportsToSol(pnlLamports),
+                    },
                 };
                 continue;
             }

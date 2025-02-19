@@ -99,7 +99,7 @@ async function runStrategy(
 ): Promise<StrategyBacktestResult> {
     const verbose = config?.verbose ?? false;
     logger.info(
-        'WIll test strategy %s against %d historical data\n%s',
+        'Will test strategy %s against %d historical data\n%s',
         formStrategyId(runConfig.strategy),
         files.length,
         '='.repeat(100),
@@ -109,8 +109,11 @@ async function runStrategy(
     const maxToProcess: number | null = null;
 
     let totalProfitLossLamports = 0;
+    let totalHoldingsValueInLamports = 0;
     let totalRoi = 0;
     let totalTradesCount = 0;
+    let totalBuyTradesCount = 0;
+    let totalSellTradesCount = 0;
 
     for (const file of files) {
         let content: HandlePumpTokenReport;
@@ -139,17 +142,28 @@ async function runStrategy(
             if ((r as BacktestTradeResponse).tradeHistory) {
                 const pr = r as BacktestTradeResponse;
                 if (pr.tradeHistory.length > 0) {
+                    const buysTrades = pr.tradeHistory.filter(e => e.transactionType === 'buy').length;
+                    const saleTrades = pr.tradeHistory.length - buysTrades;
+
                     totalProfitLossLamports += pr.profitLossLamports;
+                    totalHoldingsValueInLamports += pr.holdings.lamportsValue;
                     totalRoi += pr.roi;
                     totalTradesCount += pr.tradeHistory.length;
+                    totalBuyTradesCount += buysTrades;
+                    totalSellTradesCount += saleTrades;
 
                     if (verbose) {
                         logger.info(
                             'Final balance: %s SOL and holdings %s',
                             lamportsToSol(pr.finalBalanceLamports),
-                            pr.holdings,
+                            pr.holdings.amountRaw,
                         );
                         logger.info('Profit/Loss: %s SOL', lamportsToSol(pr.profitLossLamports));
+                        logger.info(
+                            'Holdings amount: %s, value: %s SOL',
+                            pr.holdings.amountRaw,
+                            lamportsToSol(pr.holdings.lamportsValue),
+                        );
                         logger.info('Trades count %d', pr.tradeHistory.length);
                         logger.info('ROI %s%%', pr.roi);
                         logger.info('Max Drawdown: %s%%\n', pr.maxDrawdown);
@@ -175,8 +189,11 @@ async function runStrategy(
     }
 
     logger.info('Total Profit/Loss: %s SOL', lamportsToSol(totalProfitLossLamports));
+    logger.info('Total holdings value: %s SOL', lamportsToSol(totalHoldingsValueInLamports));
     logger.info('Total ROI %s%%', totalRoi);
-    logger.info('Total trades count %d\n', totalTradesCount);
+    logger.info('Total trades count %d', totalTradesCount);
+    logger.info('Total buy trades count %d', totalBuyTradesCount);
+    logger.info('Total sell trades count %d\n', totalSellTradesCount);
 
     return {
         totalPnlInSol: lamportsToSol(totalProfitLossLamports),

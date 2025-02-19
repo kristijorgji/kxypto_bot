@@ -16,10 +16,8 @@ import solanaMnemonicToKeypair from '../../blockchains/solana/utils/solanaMnemon
 import { lamportsToSol } from '../../blockchains/utils/amount';
 import { pumpfunRepository } from '../../db/repositories/PumpfunRepository';
 import { logger } from '../../logger';
-import PumpfunBot, {
-    HandleNewTokenResponse,
-    HandleTokenBoughtResponse,
-} from '../../trading/bots/blockchains/solana/PumpfunBot';
+import PumpfunBot from '../../trading/bots/blockchains/solana/PumpfunBot';
+import { BotResponse, BotTradeResponse } from '../../trading/bots/blockchains/solana/types';
 import { BotConfig } from '../../trading/bots/types';
 import RiseStrategy from '../../trading/strategies/launchpads/RiseStrategy';
 import UniqueRandomIntGenerator from '../../utils/data/UniqueRandomIntGenerator';
@@ -38,7 +36,7 @@ export type HandlePumpTokenReport = {
     url: string;
     startedAt: Date;
     endedAt: Date;
-} & HandleNewTokenResponse;
+} & BotResponse;
 
 (async () => {
     await start();
@@ -135,7 +133,7 @@ async function start() {
                     ensureDataFolder(`pumpfun-stats/${tokenData.mint}.json`),
                     JSON.stringify(
                         {
-                            schemaVersion: '1.03',
+                            schemaVersion: '1.04',
                             simulation: c.simulate,
                             strategy: strategy.name,
                             mint: tokenData.mint,
@@ -151,9 +149,9 @@ async function start() {
                 );
 
                 if (c.simulate) {
-                    if ((handleRes as HandleTokenBoughtResponse).trade) {
-                        const t = handleRes as HandleTokenBoughtResponse;
-                        balanceInLamports += t.trade.netPnl.inLamports;
+                    if ((handleRes as BotTradeResponse).transactions) {
+                        const t = handleRes as BotTradeResponse;
+                        balanceInLamports += t.netPnl.inLamports;
                         logger.info('[%s] Simulated new balance: %s', identifier, lamportsToSol(balanceInLamports));
                     }
                 }

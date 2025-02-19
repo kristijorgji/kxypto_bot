@@ -1,7 +1,9 @@
+import { PUMPFUN_TOKEN_DECIMALS } from './constants';
 import { pumpCoinDataToInitialCoinData } from './mappers/mappers';
 import Pumpfun from './Pumpfun';
 import { PumpfunInitialCoinData } from './types';
 import PumpfunRepository, { pumpfunRepository } from '../../../../db/repositories/PumpfunRepository';
+import { solToLamports } from '../../../utils/amount';
 
 export function formPumpfunTokenUrl(mint: string): string {
     return `https://pump.fun/coin/${mint}`;
@@ -34,4 +36,8 @@ export async function forceGetPumpCoinInitialData(
     }
 
     return initialCoinData;
+}
+
+export function calculatePumpTokenLamportsValue(amountRaw: number, priceInSol: number): number {
+    return solToLamports(priceInSol * (amountRaw / 10 ** PUMPFUN_TOKEN_DECIMALS));
 }

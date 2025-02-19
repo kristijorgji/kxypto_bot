@@ -1,7 +1,7 @@
 import { Logger } from 'winston';
 
 import { LaunchpadBotStrategy } from './LaunchpadBotStrategy';
-import { BuyPosition } from '../../bots/blockchains/solana/types';
+import { TradeTransaction } from '../../bots/blockchains/solana/types';
 import { MarketContext } from '../../bots/launchpads/types';
 import { ShouldExitMonitoringResponse, ShouldSellResponse } from '../../bots/types';
 import TakeProfitPercentage from '../../orders/TakeProfitPercentage';
@@ -24,7 +24,7 @@ export default class StupidSniperStrategy implements LaunchpadBotStrategy {
         maxWaitMs: 4 * 60 * 1e3,
     };
 
-    get buyPosition(): BuyPosition | undefined {
+    get buyPosition(): TradeTransaction | undefined {
         return this._buyPosition;
     }
 
@@ -32,7 +32,7 @@ export default class StupidSniperStrategy implements LaunchpadBotStrategy {
     private takeProfit: TakeProfitPercentage | undefined;
     private trailingTakeProfit: TrailingTakeProfit | undefined;
 
-    private _buyPosition: BuyPosition | undefined;
+    private _buyPosition: TradeTransaction | undefined;
 
     // eslint-disable-next-line no-useless-constructor
     constructor(readonly logger: Logger) {}
@@ -45,7 +45,7 @@ export default class StupidSniperStrategy implements LaunchpadBotStrategy {
         return true;
     }
 
-    afterBuy(buyPrice: number, buyPosition: BuyPosition): void {
+    afterBuy(buyPrice: number, buyPosition: TradeTransaction): void {
         this._buyPosition = buyPosition;
         this.trailingStopLoss = new TrailingStopLoss(buyPrice, 15);
         this.trailingTakeProfit = new TrailingTakeProfit({

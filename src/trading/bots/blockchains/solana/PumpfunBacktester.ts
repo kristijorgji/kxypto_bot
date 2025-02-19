@@ -1,15 +1,10 @@
 import { Logger } from 'winston';
 
-import {
-    BacktestExitResponse,
-    BacktestRunConfig,
-    BacktestTradeResponse,
-    BuyPosition,
-    SellPosition,
-    Trade,
-} from './types';
+import { BacktestExitResponse, BacktestRunConfig, BacktestTradeResponse, TradeTransaction } from './types';
+import { PUMPFUN_TOKEN_DECIMALS } from '../../../../blockchains/solana/dex/pumpfun/constants';
 import { PumpfunInitialCoinData } from '../../../../blockchains/solana/dex/pumpfun/types';
-import { lamportsToSol, solToLamports } from '../../../../blockchains/utils/amount';
+import { calculatePumpTokenLamportsValue } from '../../../../blockchains/solana/dex/pumpfun/utils';
+import { solToLamports } from '../../../../blockchains/utils/amount';
 import { HistoryEntry } from '../../launchpads/types';
 import { SellReason } from '../../types';
 
@@ -23,8 +18,8 @@ export default class PumpfunBacktester {
         history: HistoryEntry[],
     ): Promise<BacktestTradeResponse | BacktestExitResponse> {
         let balanceLamports = initialBalanceLamports;
-        let holdings = 0;
-        const tradeHistory: Trade[] = [];
+        let holdingsRaw = 0;
+        const tradeHistory: TradeTransaction[] = [];
         let peakBalanceLamports = initialBalanceLamports; // Tracks the highest balanceLamports achieved
         let maxDrawdown = 0; // Tracks max drawdown from peak
         const buyAmountLamports = solToLamports(buyAmountSol);
@@ -52,13 +47,16 @@ export default class PumpfunBacktester {
                  * TODO consider fees as well simulate them
                  * fast forward marketContext to next one after interval after simulating possible buy execution time
                  */
-                holdings += buyAmountSol / price;
+                holdingsRaw += (buyAmountSol / price) * 10 ** PUMPFUN_TOKEN_DECIMALS;
                 balanceLamports -= buyAmountLamports;
 
-                const buyPosition: BuyPosition = {
+                const buyPosition: TradeTransaction = {
                     timestamp: Date.now(),
-                    amountRaw: holdings,
-                    grossReceivedLamports: -buyAmountLamports,
+                    transactionType: 'buy',
+                    subCategory: tradeHistory.find(e => e.transactionType === 'buy') ? 'newPosition' : 'accumulation',
+                    transactionHash: Date.now().toString(),
+                    amountRaw: holdingsRaw,
+                    grossTransferredLamports: -buyAmountLamports,
                     netTransferredLamports: -buyAmountLamports,
                     price: {
                         inLamports: solToLamports(price),
@@ -66,14 +64,7 @@ export default class PumpfunBacktester {
                     },
                     marketCap: marketCap,
                 };
-                tradeHistory.push({
-                    buyPosition: buyPosition,
-                    sellPositions: [],
-                    netPnl: {
-                        inLamports: -1,
-                        inSol: -1,
-                    },
-                });
+                tradeHistory.push(buyPosition);
                 strategy.afterBuy(price, buyPosition);
             }
 
@@ -111,34 +102,29 @@ export default class PumpfunBacktester {
                  *  include fee simulation into them
                  *  fast forward history based on simulated execution delay of the sell
                  */
-                const receivedAmountLamports = solToLamports(price * holdings);
+                const receivedAmountLamports = calculatePumpTokenLamportsValue(holdingsRaw, price);
                 balanceLamports += receivedAmountLamports; // Sell all held tokens at current price
-                holdings = 0;
+                holdingsRaw = 0;
 
-                const sellPosition: SellPosition = {
+                tradeHistory.push({
                     timestamp: Date.now(),
-                    amountRaw: holdings,
-                    grossReceivedLamports: receivedAmountLamports,
-                    netReceivedLamports: receivedAmountLamports,
+                    transactionType: 'sell',
+                    subCategory: 'sellAll',
+                    transactionHash: Date.now().toString(),
+                    amountRaw: holdingsRaw,
+                    grossTransferredLamports: receivedAmountLamports,
+                    netTransferredLamports: receivedAmountLamports,
                     price: {
                         inSol: price,
                         inLamports: solToLamports(price),
                     },
                     marketCap: marketCap,
-                    reason: sell.reason,
                     metadata: {
-                        pumpMinLamportsOutput: holdings,
+                        reason: sell.reason,
+                        pumpMinLamportsOutput: holdingsRaw,
                     },
-                };
+                });
 
-                const lastTradeHistoryEntry = tradeHistory[tradeHistory.length - 1];
-                lastTradeHistoryEntry.sellPositions.push(sellPosition);
-                const netPlnInLamports =
-                    lastTradeHistoryEntry.buyPosition.netTransferredLamports + sellPosition.netReceivedLamports;
-                lastTradeHistoryEntry.netPnl = {
-                    inLamports: netPlnInLamports,
-                    inSol: lamportsToSol(netPlnInLamports),
-                };
                 strategy.afterSell();
                 if (onlyOneFullTrade) {
                     break;
@@ -146,7 +132,7 @@ export default class PumpfunBacktester {
             }
 
             // Track peak balanceLamports for drawdown calculation
-            const currentBalanceLamports = balanceLamports + holdings * price;
+            const currentBalanceLamports = balanceLamports + calculatePumpTokenLamportsValue(holdingsRaw, price);
             if (currentBalanceLamports > peakBalanceLamports) {
                 peakBalanceLamports = currentBalanceLamports;
             }
@@ -157,7 +143,7 @@ export default class PumpfunBacktester {
 
         let finalBalanceLamports = initialBalanceLamports;
         for (const trade of tradeHistory) {
-            finalBalanceLamports += trade.netPnl.inLamports;
+            finalBalanceLamports += trade.netTransferredLamports;
         }
         const profitLossLamports = finalBalanceLamports - initialBalanceLamports;
 
@@ -165,7 +151,10 @@ export default class PumpfunBacktester {
             tradeHistory: tradeHistory,
             finalBalanceLamports: finalBalanceLamports,
             profitLossLamports: profitLossLamports,
-            holdings: holdings,
+            holdings: {
+                amountRaw: holdingsRaw,
+                lamportsValue: calculatePumpTokenLamportsValue(holdingsRaw, history[history.length - 1].price),
+            },
             roi: (profitLossLamports / initialBalanceLamports) * 100,
             maxDrawdown: maxDrawdown,
         };

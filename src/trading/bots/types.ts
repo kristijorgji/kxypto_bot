@@ -1,3 +1,7 @@
+export type TransactionType = 'buy' | 'sell';
+
+export type SwapSubCategory = 'accumulation' | 'newPosition' | 'partialSell' | 'sellAll';
+
 export type BotConfig = {
     simulate: boolean;
     afterResultMonitorWaitPeriodMs: number;

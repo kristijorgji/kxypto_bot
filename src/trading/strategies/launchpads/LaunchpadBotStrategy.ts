@@ -1,4 +1,4 @@
-import { BuyPosition } from '../../bots/blockchains/solana/types';
+import { TradeTransaction } from '../../bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
 import { ShouldExitMonitoringResponse, ShouldSellResponse } from '../../bots/types';
 
@@ -13,7 +13,7 @@ export interface LaunchpadBotStrategy {
         maxWaitMs: number; // don't waste time on a token anymore if there is no increase until this time is reached
     };
 
-    get buyPosition(): BuyPosition | undefined;
+    get buyPosition(): TradeTransaction | undefined;
 
     shouldExit(
         context: MarketContext,
@@ -25,7 +25,7 @@ export interface LaunchpadBotStrategy {
 
     shouldBuy(context: MarketContext, history: HistoryEntry[]): boolean;
 
-    afterBuy(buyPrice: number, buyPosition: BuyPosition): void;
+    afterBuy(buyPrice: number, buyPosition: TradeTransaction): void;
 
     shouldSell(context: MarketContext, history: HistoryEntry[]): ShouldSellResponse;
 

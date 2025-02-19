@@ -1,5 +1,6 @@
 import { LaunchpadBotStrategy } from '../../../strategies/launchpads/LaunchpadBotStrategy';
-import { ExitMonitoringReason } from '../../types';
+import { HistoryEntry } from '../../launchpads/types';
+import { ExitMonitoringReason, SellReason, SwapSubCategory, TransactionType } from '../../types';
 
 export type PumpfunBuyPositionMetadata = {
     pumpInSol: number;
@@ -7,10 +8,24 @@ export type PumpfunBuyPositionMetadata = {
     pumpMaxSolCost: number;
 };
 
-export type BuyPosition<T = Record<string, unknown>> = {
+export type PumpfunSellPositionMetadata = {
+    pumpMinLamportsOutput: number;
+    reason: SellReason;
+};
+
+export type TradeTransaction<T = Record<string, unknown>> = {
     timestamp: number;
+    transactionType: TransactionType;
+    subCategory: SwapSubCategory;
+    transactionHash: string;
     amountRaw: number;
-    grossReceivedLamports: number;
+    /**
+     * This will be negative for buy transactions and positive for sale
+     */
+    grossTransferredLamports: number;
+    /**
+     * This can be either positive or negative as it includes the fees as well
+     */
     netTransferredLamports: number;
     price: {
         inLamports: number;
@@ -23,35 +38,22 @@ export type BuyPosition<T = Record<string, unknown>> = {
     metadata?: T;
 };
 
-export type PumpfunSellPositionMetadata = {
-    pumpMinLamportsOutput: number;
-};
-
-export type SellPosition<T = Record<string, unknown>> = {
-    timestamp: number;
-    amountRaw: number;
-    grossReceivedLamports: number;
-    netReceivedLamports: number; // this can be negative if the fees are higher than the gross received
-    price: {
-        inLamports: number;
-        inSol: number;
-    };
-    marketCap: number;
-    reason: string;
-    /**
-     * This is optional for troubleshooting only and should not be used in any logic
-     */
-    metadata?: T;
-};
-
-export type Trade = {
-    buyPosition: BuyPosition;
-    sellPositions: SellPosition[];
+export type BotTradeResponse = {
+    transactions: TradeTransaction[];
+    history: HistoryEntry[];
     netPnl: {
         inLamports: number;
         inSol: number;
     };
 };
+
+export type BotExitResponse = {
+    exitCode: ExitMonitoringReason;
+    exitReason: string;
+    history: HistoryEntry[];
+};
+
+export type BotResponse = BotTradeResponse | BotExitResponse;
 
 export type BacktestExitResponse = {
     exitCode: ExitMonitoringReason;
@@ -59,10 +61,13 @@ export type BacktestExitResponse = {
 };
 
 export type BacktestTradeResponse = {
-    tradeHistory: Trade[];
+    tradeHistory: TradeTransaction[];
     finalBalanceLamports: number;
     profitLossLamports: number;
-    holdings: number;
+    holdings: {
+        amountRaw: number;
+        lamportsValue: number;
+    };
     maxDrawdown: number;
     roi: number;
 };

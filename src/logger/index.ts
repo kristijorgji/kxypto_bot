@@ -32,5 +32,20 @@ export const logger = createLogger({
               ]
             : [format.json()]),
     ),
-    transports: [new transports.Console(), new transports.File({ dirname: 'logs', filename: 'app.log' })],
+    transports: [
+        new transports.Console(),
+        new transports.File({ dirname: 'logs', filename: `app_${getTimestamp()}.log` }),
+    ],
 });
+
+// yyyy-mm-dd-hh-mm-ss
+function getTimestamp(): string {
+    const now = new Date();
+
+    const pad = (num: number) => String(num).padStart(2, '0'); // Ensures two-digit format
+
+    return (
+        `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}` +
+        `-${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`
+    );
+}

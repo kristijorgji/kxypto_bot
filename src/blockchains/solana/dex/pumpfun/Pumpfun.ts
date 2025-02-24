@@ -9,7 +9,7 @@ import {
     TransactionInstruction,
     sendAndConfirmTransaction,
 } from '@solana/web3.js';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import BN from 'bn.js';
 import bs58 from 'bs58';
 import CircuitBreaker from 'opossum';
@@ -307,7 +307,7 @@ export default class Pumpfun implements PumpfunListener {
             );
 
             return {
-                signature: '_simulation_',
+                signature: _generateFakeSimulationTransactionHash(),
                 boughtAmountRaw: tokenOut,
                 pumpTokenOut: tokenOut,
                 pumpMaxSolCost: maxSolCost,
@@ -429,7 +429,7 @@ export default class Pumpfun implements PumpfunListener {
             );
 
             return {
-                signature: '_simulation_',
+                signature: _generateFakeSimulationTransactionHash(),
                 soldRawAmount: tokenBalance,
                 minLamportsOutput: minLamportsOutput,
                 txDetails: simulateSolTransactionDetails(
@@ -467,14 +467,25 @@ export default class Pumpfun implements PumpfunListener {
             try {
                 coinData = await this.getCoinData(tokenMint);
             } catch (e) {
-                error = e as Error;
-                sleepMs = typeof sleepMs === 'function' ? sleepMs(retries + 1) : sleepMs;
-                logger.error(
-                    `failed to fetch coin data on retry ${retries}, error: %s. Will retry after sleeping ${sleepMs}`,
-                    (e as Error).message,
-                );
-                if (sleepMs > 0) {
-                    await sleep(sleepMs);
+                if (e instanceof AxiosError) {
+                    if (e.response?.status === 429) {
+                        logger.info(
+                            'failed to fetch coin data on retry %d, we got back response 429, will retry in 5s',
+                            retries,
+                        );
+                        await sleep(5000);
+                        retries--;
+                    }
+                } else {
+                    sleepMs = typeof sleepMs === 'function' ? sleepMs(retries + 1) : sleepMs;
+                    error = e as Error;
+                    logger.error(
+                        `failed to fetch coin data on retry ${retries}, error: %s. Will retry after sleeping ${sleepMs}`,
+                        (e as Error).message,
+                    );
+                    if (sleepMs > 0) {
+                        await sleep(sleepMs);
+                    }
                 }
             }
         } while (!coinData && retries++ < maxRetries);
@@ -648,4 +659,8 @@ function parseCreateInstruction(data: Buffer): NewPumpFunTokenData | null {
     } catch {
         return null;
     }
+}
+
+function _generateFakeSimulationTransactionHash() {
+    return `_simulation_${Date.now()}`;
 }

@@ -2,6 +2,11 @@ import { LaunchpadBotStrategy } from '../../../strategies/launchpads/LaunchpadBo
 import { HistoryEntry } from '../../launchpads/types';
 import { ExitMonitoringReason, SellReason, SwapSubCategory, TransactionType } from '../../types';
 
+export type SolanaValue = {
+    inLamports: number;
+    inSol: number;
+};
+
 export type PumpfunBuyPositionMetadata = {
     pumpInSol: number;
     pumpTokenOut: number;
@@ -27,10 +32,7 @@ export type TradeTransaction<T = Record<string, unknown>> = {
      * This can be either positive or negative as it includes the fees as well
      */
     netTransferredLamports: number;
-    price: {
-        inLamports: number;
-        inSol: number;
-    };
+    price: SolanaValue;
     marketCap: number;
     /**
      * This is optional for troubleshooting only and should not be used in any logic
@@ -39,12 +41,9 @@ export type TradeTransaction<T = Record<string, unknown>> = {
 };
 
 export type BotTradeResponse = {
+    netPnl: SolanaValue;
     transactions: TradeTransaction[];
     history: HistoryEntry[];
-    netPnl: {
-        inLamports: number;
-        inSol: number;
-    };
 };
 
 export type BotExitResponse = {

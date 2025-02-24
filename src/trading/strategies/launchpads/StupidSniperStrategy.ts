@@ -21,7 +21,7 @@ export default class StupidSniperStrategy implements LaunchpadBotStrategy {
     readonly config = {
         buyMonitorWaitPeriodMs: 500,
         sellMonitorWaitPeriodMs: 200,
-        maxWaitMs: 4 * 60 * 1e3,
+        maxWaitMs: 5 * 60 * 1e3,
     };
 
     get buyPosition(): TradeTransaction | undefined {

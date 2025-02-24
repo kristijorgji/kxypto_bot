@@ -319,17 +319,19 @@ export default class PumpfunBot {
                         pumpMinLamportsOutput: sellRes.minLamportsOutput,
                     },
                 };
-                strategy.afterSell();
+
                 const pnlLamports = strategy.buyPosition.netTransferredLamports + sellPosition.netTransferredLamports;
 
                 result = {
-                    transactions: [strategy.buyPosition, sellPosition],
-                    history: history,
                     netPnl: {
                         inLamports: pnlLamports,
                         inSol: lamportsToSol(pnlLamports),
                     },
+                    transactions: [strategy.buyPosition, sellPosition],
+                    history: history,
                 };
+
+                strategy.afterSell();
                 continue;
             }
 

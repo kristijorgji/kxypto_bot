@@ -9,8 +9,10 @@ import { SolanaWalletProviders } from '../../blockchains/solana/constants/wallet
 import { pumpCoinDataToInitialCoinData } from '../../blockchains/solana/dex/pumpfun/mappers/mappers';
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunMarketContextProvider from '../../blockchains/solana/dex/pumpfun/PumpfunMarketContextProvider';
+import { NewPumpFunTokenData } from '../../blockchains/solana/dex/pumpfun/types';
 import { formPumpfunTokenUrl } from '../../blockchains/solana/dex/pumpfun/utils';
 import SolanaAdapter from '../../blockchains/solana/SolanaAdapter';
+import { WalletInfo } from '../../blockchains/solana/types';
 import { solanaConnection } from '../../blockchains/solana/utils/connection';
 import solanaMnemonicToKeypair from '../../blockchains/solana/utils/solanaMnemonicToKeypair';
 import { lamportsToSol } from '../../blockchains/utils/amount';
@@ -71,7 +73,6 @@ async function start() {
     await listen(listenConfig);
 
     async function listen(c: ListenConfig) {
-        const startedAt = new Date();
         const identifier = uniqueRandomIntGenerator.next().toString();
         let processed = 0;
 
@@ -86,14 +87,7 @@ async function start() {
 
         logger.info('[%s] balance %s SOL', identifier, lamportsToSol(balanceInLamports));
 
-        await pumpfun.listenForPumpFunTokens(async tokenData => {
-            logger.info(
-                '[%s] Received newly created token: %s, %s',
-                identifier,
-                tokenData.name,
-                formPumpfunTokenUrl(tokenData.mint),
-            );
-
+        await pumpfun.listenForPumpFunTokens(async data => {
             if (c.maxTokensToProcessInParallel && processed >= c.maxTokensToProcessInParallel) {
                 logger.info(
                     '[%s] Returning and stopping listener as we processed already maximum specified tokens %d',
@@ -105,59 +99,25 @@ async function start() {
             }
             processed++;
 
-            try {
-                const initialCoinData = pumpCoinDataToInitialCoinData(
-                    await pumpfun.getCoinDataWithRetries(tokenData.mint, {
-                        maxRetries: 10,
-                        sleepMs: retryCount => (retryCount <= 5 ? 250 : 500),
-                    }),
-                );
-                await pumpfunRepository.insertToken(initialCoinData);
-
-                const pumpfunBot = new PumpfunBot({
-                    logger: logger.child({
-                        contextMap: {
-                            listenerId: identifier,
-                        },
-                    }),
-                    pumpfun: pumpfun,
-                    marketContextProvider: marketContextProvider,
-                    walletInfo: walletInfo,
+            const handleRes = await handlePumpToken(
+                {
+                    pumpfun,
+                    marketContextProvider,
+                },
+                {
+                    identifier,
                     config: c,
-                });
+                    walletInfo,
+                    tokenData: data,
+                },
+            );
 
-                const strategy = new RiseStrategy(logger);
-                const handleRes = await pumpfunBot.run(identifier, initialCoinData, strategy);
-
-                await fs.writeFileSync(
-                    ensureDataFolder(`pumpfun-stats/${tokenData.mint}.json`),
-                    JSON.stringify(
-                        {
-                            schemaVersion: '1.04',
-                            simulation: c.simulate,
-                            strategy: strategy.name,
-                            mint: tokenData.mint,
-                            name: tokenData.name,
-                            url: formPumpfunTokenUrl(tokenData.mint),
-                            startedAt: startedAt,
-                            endedAt: new Date(),
-                            ...handleRes,
-                        } as HandlePumpTokenReport,
-                        null,
-                        2,
-                    ),
-                );
-
-                if (c.simulate) {
-                    if ((handleRes as BotTradeResponse).transactions) {
-                        const t = handleRes as BotTradeResponse;
-                        balanceInLamports += t.netPnl.inLamports;
-                        logger.info('[%s] Simulated new balance: %s', identifier, lamportsToSol(balanceInLamports));
-                    }
+            if (c.simulate) {
+                if (handleRes && (handleRes as BotTradeResponse).transactions) {
+                    const t = handleRes as BotTradeResponse;
+                    balanceInLamports += t.netPnl.inLamports;
+                    logger.info('[%s] Simulated new balance: %s', identifier, lamportsToSol(balanceInLamports));
                 }
-            } catch (e) {
-                logger.error('[%s] Failed handling pump token %s', identifier, tokenData.mint);
-                logger.error(e);
             }
 
             if (c.maxTokensToProcessInParallel && processed === c.maxTokensToProcessInParallel) {
@@ -171,5 +131,80 @@ async function start() {
                 return await listen(c);
             }
         });
+    }
+}
+
+async function handlePumpToken(
+    { pumpfun, marketContextProvider }: { pumpfun: Pumpfun; marketContextProvider: PumpfunMarketContextProvider },
+    {
+        identifier,
+        config: c,
+        walletInfo,
+        tokenData,
+    }: {
+        identifier: string;
+        config: ListenConfig;
+        walletInfo: WalletInfo;
+        tokenData: NewPumpFunTokenData;
+    },
+): Promise<BotResponse | null> {
+    const startedAt = new Date();
+
+    logger.info(
+        '[%s] Received newly created token: %s, %s',
+        identifier,
+        tokenData.name,
+        formPumpfunTokenUrl(tokenData.mint),
+    );
+
+    try {
+        const initialCoinData = pumpCoinDataToInitialCoinData(
+            await pumpfun.getCoinDataWithRetries(tokenData.mint, {
+                maxRetries: 10,
+                sleepMs: retryCount => (retryCount <= 5 ? 250 : 500),
+            }),
+        );
+        await pumpfunRepository.insertToken(initialCoinData);
+
+        const pumpfunBot = new PumpfunBot({
+            logger: logger.child({
+                contextMap: {
+                    listenerId: identifier,
+                },
+            }),
+            pumpfun: pumpfun,
+            marketContextProvider: marketContextProvider,
+            walletInfo: walletInfo,
+            config: c,
+        });
+
+        const strategy = new RiseStrategy(logger);
+        const handleRes = await pumpfunBot.run(identifier, initialCoinData, strategy);
+
+        await fs.writeFileSync(
+            ensureDataFolder(`pumpfun-stats/${tokenData.mint}.json`),
+            JSON.stringify(
+                {
+                    schemaVersion: '1.04',
+                    simulation: c.simulate,
+                    strategy: strategy.name,
+                    mint: tokenData.mint,
+                    name: tokenData.name,
+                    url: formPumpfunTokenUrl(tokenData.mint),
+                    startedAt: startedAt,
+                    endedAt: new Date(),
+                    ...handleRes,
+                } as HandlePumpTokenReport,
+                null,
+                2,
+            ),
+        );
+
+        return handleRes;
+    } catch (e) {
+        logger.error('[%s] Failed handling pump token %s', identifier, tokenData.mint);
+        logger.error(e);
+
+        return null;
     }
 }

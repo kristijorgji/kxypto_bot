@@ -54,7 +54,7 @@ export default class PumpfunBacktester {
                     timestamp: Date.now(),
                     transactionType: 'buy',
                     subCategory: tradeHistory.find(e => e.transactionType === 'buy') ? 'newPosition' : 'accumulation',
-                    transactionHash: Date.now().toString(),
+                    transactionHash: _generateFakeBacktestTransactionHash(),
                     amountRaw: holdingsRaw,
                     grossTransferredLamports: -buyAmountLamports,
                     netTransferredLamports: -buyAmountLamports,
@@ -110,7 +110,7 @@ export default class PumpfunBacktester {
                     timestamp: Date.now(),
                     transactionType: 'sell',
                     subCategory: 'sellAll',
-                    transactionHash: Date.now().toString(),
+                    transactionHash: _generateFakeBacktestTransactionHash(),
                     amountRaw: holdingsRaw,
                     grossTransferredLamports: receivedAmountLamports,
                     netTransferredLamports: receivedAmountLamports,
@@ -159,4 +159,8 @@ export default class PumpfunBacktester {
             maxDrawdown: maxDrawdown,
         };
     }
+}
+
+function _generateFakeBacktestTransactionHash() {
+    return `_backtest_${Date.now()}`;
 }

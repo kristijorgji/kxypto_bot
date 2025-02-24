@@ -1,6 +1,7 @@
 import { program } from 'commander';
 
 import getWalletInfo from './commands/getWalletInfo';
+import pumpResultStats from './commands/pumpfun/pumpResultStats';
 
 program.name('crypto_bot CLI').description('Crypto Bot Cli by @kristijorgji').version('0.0.0');
 
@@ -14,6 +15,16 @@ program
             blockchain: 'solana',
             recoveryPhrasePath: args.recoveryPhrasePath,
             provider: args.provider,
+        });
+    });
+
+program
+    .command('pumpfun:results-stats')
+    .description('Will provide the stats for the given json results folder')
+    .requiredOption('--path <string>', 'the path of the pumpfun stats')
+    .action(async args => {
+        await pumpResultStats({
+            path: args.path,
         });
     });
 

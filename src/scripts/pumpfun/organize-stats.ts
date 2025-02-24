@@ -2,7 +2,7 @@ import fs from 'fs';
 
 import { HandlePumpTokenReport } from './bot';
 import { logger } from '../../logger';
-import { BotTradeResponse } from '../../trading/bots/blockchains/solana/types';
+import { BotTradeResponse, SolanaValue } from '../../trading/bots/blockchains/solana/types';
 import { ExitMonitoringReason } from '../../trading/bots/types';
 import { comparePaths, moveFile, walkDirFilesSyncRecursive } from '../../utils/files';
 import { formDataFolder } from '../../utils/storage';
@@ -54,9 +54,7 @@ async function organizeFiles() {
                 (
                     content as unknown as {
                         trade: {
-                            netPnl: {
-                                inLamports: number;
-                            };
+                            netPnl: SolanaValue;
                         };
                     }
                 ).trade.netPnl.inLamports > 0

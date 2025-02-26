@@ -4,7 +4,7 @@ import { BotResponse, PumpfunBuyPositionMetadata, PumpfunSellPositionMetadata, T
 import { measureExecutionTime } from '../../../../apm/apm';
 import Pumpfun from '../../../../blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunMarketContextProvider from '../../../../blockchains/solana/dex/pumpfun/PumpfunMarketContextProvider';
-import { PumpfunInitialCoinData, PumpfunSellResponse } from '../../../../blockchains/solana/dex/pumpfun/types';
+import { PumpfunInitialCoinData } from '../../../../blockchains/solana/dex/pumpfun/types';
 import { calculatePumpTokenLamportsValue } from '../../../../blockchains/solana/dex/pumpfun/utils';
 import { TransactionMode, WalletInfo } from '../../../../blockchains/solana/types';
 import { lamportsToSol, solToLamports } from '../../../../blockchains/utils/amount';
@@ -76,11 +76,13 @@ export default class PumpfunBot {
                   reason: SellReason;
               }
             | undefined;
+        let sellInProgress = false;
         const history: HistoryEntry[] = [];
         let result: BotResponse | undefined;
 
         while (true) {
             const elapsedMonitoringMs = Date.now() - startTimestamp;
+            const actionInProgress = buyInProgress || sellInProgress;
 
             const marketContext = await this.marketContextProvider.get({
                 tokenMint: tokenMint,
@@ -159,12 +161,12 @@ export default class PumpfunBot {
                 continue;
             }
 
-            if (!buyInProgress && !strategy.buyPosition && strategy.shouldBuy(marketContext, history)) {
+            if (!actionInProgress && !strategy.buyPosition && strategy.shouldBuy(marketContext, history)) {
                 logger.info('We set buy=true because the conditions are met');
                 buy = true;
             }
 
-            if (!buyInProgress) {
+            if (!actionInProgress) {
                 const shouldExitRes = strategy.shouldExit(marketContext, history, {
                     elapsedMonitoringMs: elapsedMonitoringMs,
                 });
@@ -208,7 +210,7 @@ export default class PumpfunBot {
             }
 
             // eslint-disable-next-line no-unreachable
-            if (!buyInProgress && !strategy.buyPosition && buy) {
+            if (!actionInProgress && !strategy.buyPosition && buy) {
                 // TODO calculate dynamically based on the situation
                 const inSol = 0.4;
 
@@ -274,9 +276,12 @@ export default class PumpfunBot {
                     });
             }
 
-            if (sell && strategy.buyPosition) {
-                // TODO handle errors, some error might be false negative example block height timeout, sell might be successful but we get error
-                const sellRes = (await measureExecutionTime(
+            if (!actionInProgress && sell && strategy.buyPosition) {
+                logger.info('We will start the sell sellInProgress=true');
+                sellInProgress = true;
+                const sellReason = sell.reason;
+                const buyPosition = strategy.buyPosition;
+                measureExecutionTime(
                     () =>
                         this.pumpfun.sell({
                             transactionMode: this.config.simulate
@@ -292,47 +297,56 @@ export default class PumpfunBot {
                         }),
                     `pumpfun.sell${this.config.simulate ? '_simulation' : ''}`,
                     { storeImmediately: true },
-                )) as unknown as PumpfunSellResponse;
-                logger.info(
-                    'We sold successfully %s amountRaw with reason %s and received net %s sol. sellRes=%o',
-                    sellRes.soldRawAmount,
-                    sell.reason,
-                    lamportsToSol(sellRes.txDetails.netTransferredLamports),
-                    sellRes,
-                );
+                )
+                    .then(sellRes => {
+                        logger.info(
+                            'We sold successfully %s amountRaw with reason %s and received net %s sol. sellRes=%o',
+                            sellRes.soldRawAmount,
+                            sellReason,
+                            lamportsToSol(sellRes.txDetails.netTransferredLamports),
+                            sellRes,
+                        );
 
-                const sellPosition: TradeTransaction<PumpfunSellPositionMetadata> = {
-                    timestamp: Date.now(),
-                    transactionType: 'sell',
-                    subCategory: 'sellAll',
-                    transactionHash: sellRes.signature,
-                    amountRaw: sellRes.soldRawAmount,
-                    grossTransferredLamports: sellRes.txDetails.grossTransferredLamports,
-                    netTransferredLamports: sellRes.txDetails.netTransferredLamports,
-                    price: {
-                        inSol: priceInSol,
-                        inLamports: solToLamports(priceInSol),
-                    },
-                    marketCap: marketCapInSol,
-                    metadata: {
-                        reason: sell.reason,
-                        pumpMinLamportsOutput: sellRes.minLamportsOutput,
-                    },
-                };
+                        const sellPosition: TradeTransaction<PumpfunSellPositionMetadata> = {
+                            timestamp: Date.now(),
+                            transactionType: 'sell',
+                            subCategory: 'sellAll',
+                            transactionHash: sellRes.signature,
+                            amountRaw: sellRes.soldRawAmount,
+                            grossTransferredLamports: sellRes.txDetails.grossTransferredLamports,
+                            netTransferredLamports: sellRes.txDetails.netTransferredLamports,
+                            price: {
+                                inSol: priceInSol,
+                                inLamports: solToLamports(priceInSol),
+                            },
+                            marketCap: marketCapInSol,
+                            metadata: {
+                                reason: sellReason,
+                                pumpMinLamportsOutput: sellRes.minLamportsOutput,
+                            },
+                        };
 
-                const pnlLamports = strategy.buyPosition.netTransferredLamports + sellPosition.netTransferredLamports;
+                        const pnlLamports = buyPosition.netTransferredLamports + sellPosition.netTransferredLamports;
 
-                result = {
-                    netPnl: {
-                        inLamports: pnlLamports,
-                        inSol: lamportsToSol(pnlLamports),
-                    },
-                    transactions: [strategy.buyPosition, sellPosition],
-                    history: history,
-                };
+                        result = {
+                            netPnl: {
+                                inLamports: pnlLamports,
+                                inSol: lamportsToSol(pnlLamports),
+                            },
+                            transactions: [buyPosition, sellPosition],
+                            history: history,
+                        };
 
-                strategy.afterSell();
-                continue;
+                        strategy.afterSell();
+                    })
+                    .catch(async e => {
+                        // TODO handle errors, some error might be false negative example block height timeout, sell might be successful but we get error
+                        logger.error('Error while buying');
+                        logger.error(e);
+                    })
+                    .finally(() => {
+                        sellInProgress = false;
+                    });
             }
 
             await sleep(sleepIntervalMs);

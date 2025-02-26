@@ -491,7 +491,9 @@ export default class Pumpfun implements PumpfunListener {
         } while (!coinData && retries++ < maxRetries);
 
         if (!coinData) {
-            throw new Error(`Could not fetch coinData for mint ${tokenMint}, err: ${error!.message}`);
+            throw new Error(
+                `Could not fetch coinData for mint ${tokenMint}, err: ${error?.message}, ${JSON.stringify(error)}`,
+            );
         }
 
         return coinData;

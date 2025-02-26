@@ -6,11 +6,17 @@ import { SolTransactionDetails } from '../types';
 const minPriorityFeeLamports = solToLamports(0.001);
 const maxPriorityFeeLamports = solToLamports(0.005);
 
-export function simulateSolanaFeesInLamports(): {
+type TransactionFee = {
     priorityFeeLamports: number;
     totalFeeLamports: number;
-} {
-    const priorityFeeLamports = randomDecimal(minPriorityFeeLamports, maxPriorityFeeLamports, 2);
+};
+
+export function simulateSolanaPriorityFeeInLamports(): number {
+    return randomDecimal(minPriorityFeeLamports, maxPriorityFeeLamports, 2);
+}
+
+export function simulateSolanaFeesInLamports(): TransactionFee {
+    const priorityFeeLamports = simulateSolanaPriorityFeeInLamports();
 
     return {
         priorityFeeLamports: priorityFeeLamports,
@@ -18,8 +24,16 @@ export function simulateSolanaFeesInLamports(): {
     };
 }
 
-export function simulateSolTransactionDetails(lamportsValue: number): SolTransactionDetails {
-    const simPriorityFee = simulateSolanaFeesInLamports();
+export function simulateSolTransactionDetails(
+    lamportsValue: number,
+    priorityFeeLamports?: number,
+): SolTransactionDetails {
+    const simPriorityFee: TransactionFee = priorityFeeLamports
+        ? {
+              priorityFeeLamports: priorityFeeLamports,
+              totalFeeLamports: BASE_FEE_LAMPORTS + priorityFeeLamports,
+          }
+        : simulateSolanaFeesInLamports();
 
     return {
         grossTransferredLamports: lamportsValue,
@@ -51,6 +65,19 @@ export function simulatePriceWithLowerSlippage(lamportsPrice: number, slippageDe
     const randomSlippage = Math.random() * slippageDecimal;
 
     const slippageMultiplier = 1 - randomSlippage;
+
+    return lamportsPrice * slippageMultiplier;
+}
+
+/**
+ * It will simulate a price with slippage a random slippage in the range [0, slippageDecimal]
+ * This is used for simulating buy price when market price is going higher
+ */
+export function simulatePriceWithHigherSlippage(lamportsPrice: number, slippageDecimal: number): number {
+    // Generate a random slippage within [0, slippageDecimal]
+    const randomSlippage = Math.random() * slippageDecimal;
+
+    const slippageMultiplier = 1 + randomSlippage;
 
     return lamportsPrice * slippageMultiplier;
 }

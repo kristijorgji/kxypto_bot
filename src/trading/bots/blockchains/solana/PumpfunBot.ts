@@ -9,9 +9,11 @@ import { calculatePumpTokenLamportsValue } from '../../../../blockchains/solana/
 import { TransactionMode, WalletInfo } from '../../../../blockchains/solana/types';
 import { lamportsToSol, solToLamports } from '../../../../blockchains/utils/amount';
 import { sleep } from '../../../../utils/functions';
-import { LaunchpadBotStrategy } from '../../../strategies/launchpads/LaunchpadBotStrategy';
+import LaunchpadBotStrategy from '../../../strategies/launchpads/LaunchpadBotStrategy';
 import { HistoryEntry } from '../../launchpads/types';
 import { BotConfig, SellReason } from '../../types';
+
+const DefaultPriorityFeeSol = 0.005;
 
 export default class PumpfunBot {
     private readonly logger: Logger;
@@ -215,6 +217,8 @@ export default class PumpfunBot {
                 const inSol = 0.4;
 
                 buyInProgress = true;
+                const buyPriorityFeeInSol =
+                    strategy.config.buyPriorityFeeInSol ?? strategy.config.priorityFeeInSol ?? DefaultPriorityFeeSol;
                 measureExecutionTime(
                     () =>
                         this.pumpfun.buy({
@@ -226,10 +230,10 @@ export default class PumpfunBot {
                             tokenBondingCurve: tokenInfo.bondingCurve,
                             tokenAssociatedBondingCurve: tokenInfo.associatedBondingCurve,
                             solIn: inSol,
-                            slippageDecimal: 0.5,
-                            priorityFeeInSol: 0.005,
+                            priorityFeeInSol: buyPriorityFeeInSol,
+                            slippageDecimal: strategy.config.buySlippageDecimal,
                         }),
-                    `pumpfun.buy${this.config.simulate ? '_simulation' : ''}`,
+                    `pumpfun.buy_${buyPriorityFeeInSol}${this.config.simulate ? '_simulation' : ''}`,
                     { storeImmediately: true },
                 )
                     .then(buyRes => {
@@ -281,6 +285,8 @@ export default class PumpfunBot {
                 sellInProgress = true;
                 const sellReason = sell.reason;
                 const buyPosition = strategy.buyPosition;
+                const sellPriorityFeeInSol =
+                    strategy.config.sellPriorityFeeInSol ?? strategy.config.priorityFeeInSol ?? DefaultPriorityFeeSol;
                 measureExecutionTime(
                     () =>
                         this.pumpfun.sell({
@@ -291,11 +297,11 @@ export default class PumpfunBot {
                             tokenMint: tokenMint,
                             tokenBondingCurve: tokenInfo.bondingCurve,
                             tokenAssociatedBondingCurve: tokenInfo.associatedBondingCurve,
-                            slippageDecimal: 0.5,
                             tokenBalance: strategy.buyPosition!.amountRaw,
-                            priorityFeeInSol: 0.005,
+                            priorityFeeInSol: sellPriorityFeeInSol,
+                            slippageDecimal: strategy.config.sellSlippageDecimal,
                         }),
-                    `pumpfun.sell${this.config.simulate ? '_simulation' : ''}`,
+                    `pumpfun.sell_${sellPriorityFeeInSol}${this.config.simulate ? '_simulation' : ''}`,
                     { storeImmediately: true },
                 )
                     .then(sellRes => {

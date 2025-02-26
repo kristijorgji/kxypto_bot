@@ -1,14 +1,15 @@
 import { Logger } from 'winston';
 
-import { LaunchpadBotStrategy } from './LaunchpadBotStrategy';
 import { TradeTransaction } from '../../bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
 import { ShouldExitMonitoringResponse, ShouldSellResponse } from '../../bots/types';
 import TakeProfitPercentage from '../../orders/TakeProfitPercentage';
 import TrailingStopLoss from '../../orders/TrailingStopLoss';
 import TrailingTakeProfit from '../../orders/TrailingTakeProfit';
+import { StrategyConfig } from '../types';
+import LaunchpadBotStrategy from './LaunchpadBotStrategy';
 
-export default class RiseStrategy implements LaunchpadBotStrategy {
+export default class RiseStrategy extends LaunchpadBotStrategy {
     readonly name = 'RiseStrategy';
 
     readonly description = `
@@ -22,6 +23,8 @@ export default class RiseStrategy implements LaunchpadBotStrategy {
         buyMonitorWaitPeriodMs: 500,
         sellMonitorWaitPeriodMs: 200,
         maxWaitMs: 5 * 60 * 1e3,
+        buySlippageDecimal: 0.25,
+        sellSlippageDecimal: 0.25,
     };
 
     get buyPosition(): TradeTransaction | undefined {
@@ -34,8 +37,15 @@ export default class RiseStrategy implements LaunchpadBotStrategy {
 
     private _buyPosition: TradeTransaction | undefined;
 
-    // eslint-disable-next-line no-useless-constructor
-    constructor(readonly logger: Logger) {}
+    constructor(readonly logger: Logger, config?: Partial<StrategyConfig>) {
+        super();
+        if (this.config) {
+            this.config = {
+                ...this.config,
+                ...config,
+            };
+        }
+    }
 
     shouldExit(
         { marketCap, holdersCount }: MarketContext,

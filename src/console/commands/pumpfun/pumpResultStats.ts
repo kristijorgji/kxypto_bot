@@ -36,7 +36,7 @@ export default function pumpResultStats(args: { path: string }) {
         const content = JSON.parse(fs.readFileSync(file.fullPath).toString()) as HandlePumpTokenReport;
 
         if (!(content as BotTradeResponse).netPnl) {
-            logger.info('[Skip file] - %s has no trades', file.fullPath);
+            // logger.info('[Skip file] - %s has no trades', file.fullPath);
             continue;
         }
 

@@ -1,10 +1,12 @@
 import { BASE_FEE_LAMPORTS } from '../../../../../src/blockchains/solana/constants/core';
 import {
+    simulatePriceWithHigherSlippage,
     simulatePriceWithLowerSlippage,
     simulatePriceWithSlippage,
     simulateSolTransactionDetails,
     simulateSolanaFeesInLamports,
 } from '../../../../../src/blockchains/solana/utils/simulations';
+import { solToLamports } from '../../../../../src/blockchains/utils/amount';
 
 describe(simulateSolanaFeesInLamports, () => {
     it('should return priority fee within the expected range', () => {
@@ -49,6 +51,18 @@ describe(simulateSolTransactionDetails.name, () => {
             baseFeeLamports: BASE_FEE_LAMPORTS,
             priorityFeeLamports: actual.priorityFeeLamports,
             totalFeeLamports: actual.totalFeeLamports,
+        });
+    });
+
+    it('should calculate correct netTransferredLamports when we pass priority fees', () => {
+        const actual = simulateSolTransactionDetails(1_000_000, solToLamports(0.035));
+
+        expect(actual).toEqual({
+            grossTransferredLamports: 1_000_000,
+            netTransferredLamports: 1_000_000 - 35_000_000 - BASE_FEE_LAMPORTS,
+            baseFeeLamports: BASE_FEE_LAMPORTS,
+            priorityFeeLamports: 35_000_000,
+            totalFeeLamports: 35_005_000,
         });
     });
 });
@@ -119,6 +133,26 @@ describe(simulatePriceWithLowerSlippage.name, () => {
     it('should return the same price when slippage is 0', () => {
         const lamportsPrice = 1_000_000_000; // 1 SOL
         const result = simulatePriceWithLowerSlippage(lamportsPrice, 0);
+
+        expect(result).toBe(lamportsPrice);
+    });
+});
+
+describe(simulatePriceWithHigherSlippage.name, () => {
+    test.each(simulatePriceWithSlippageCases)('%s', (_, { lamportsPrice, slippageDecimal }) => {
+        const maxExpected = lamportsPrice * (1 + slippageDecimal);
+
+        for (let i = 0; i < 100; i++) {
+            const result = simulatePriceWithHigherSlippage(lamportsPrice, slippageDecimal);
+
+            expect(result).toBeGreaterThanOrEqual(lamportsPrice);
+            expect(result).toBeLessThanOrEqual(maxExpected);
+        }
+    });
+
+    it('should return the same price when slippage is 0', () => {
+        const lamportsPrice = 1_000_000_000; // 1 SOL
+        const result = simulatePriceWithHigherSlippage(lamportsPrice, 0);
 
         expect(result).toBe(lamportsPrice);
     });

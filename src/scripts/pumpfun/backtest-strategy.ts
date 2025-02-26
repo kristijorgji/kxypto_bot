@@ -1,4 +1,3 @@
-import * as crypto from 'crypto';
 import fs from 'fs';
 
 import { createLogger } from 'winston';
@@ -17,7 +16,7 @@ import {
     BacktestTradeResponse,
     StrategyBacktestResult,
 } from '../../trading/bots/blockchains/solana/types';
-import { LaunchpadBotStrategy } from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
+import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
 import RiseStrategy from '../../trading/strategies/launchpads/RiseStrategy';
 import StupidSniperStrategy from '../../trading/strategies/launchpads/StupidSniperStrategy';
 import { FileInfo, walkDirFilesSyncRecursive } from '../../utils/files';
@@ -54,7 +53,10 @@ async function findBestStrategy() {
 
     const strategies: LaunchpadBotStrategy[] = [new RiseStrategy(silentLogger), new StupidSniperStrategy(silentLogger)];
     const results: {
-        strategyId: string;
+        strategy: {
+            id: string;
+            variantConfig: string;
+        };
         result: StrategyBacktestResult;
     }[] = [];
 
@@ -66,7 +68,10 @@ async function findBestStrategy() {
             onlyOneFullTrade: true,
         };
         results.push({
-            strategyId: formStrategyId(strategy),
+            strategy: {
+                id: strategy.identifier,
+                variantConfig: strategy.configVariant,
+            },
             result: await runStrategy(
                 {
                     backtester: backtester,
@@ -80,7 +85,12 @@ async function findBestStrategy() {
 
     results.sort((a, b) => b.result.totalPnlInSol - a.result.totalPnlInSol);
 
-    logger.info('The best strategy is %s', results[0].strategyId);
+    logger.info(
+        'The best strategy is: %s with variant config: %s',
+        results[0].strategy.id,
+        results[0].strategy.variantConfig,
+        results,
+    );
 }
 
 async function runStrategy(
@@ -99,8 +109,9 @@ async function runStrategy(
 ): Promise<StrategyBacktestResult> {
     const verbose = config?.verbose ?? false;
     logger.info(
-        'Will test strategy %s against %d historical data\n%s',
-        formStrategyId(runConfig.strategy),
+        'Will test strategy %s with variant config: %s against %d historical data\n%s',
+        runConfig.strategy.identifier,
+        runConfig.strategy.configVariant,
         files.length,
         '='.repeat(100),
     );
@@ -200,14 +211,4 @@ async function runStrategy(
         totalRoi: totalRoi,
         totalTrades: totalRoi,
     };
-}
-
-function formStrategyId(strategy: LaunchpadBotStrategy): string {
-    return `${strategy.name}_${generateConfigHash(strategy.config)}`;
-}
-
-function generateConfigHash(config: object): string {
-    const jsonString = JSON.stringify(config);
-
-    return crypto.createHash('md5').update(jsonString).digest('hex').slice(0, 8);
 }

@@ -1,4 +1,4 @@
-import { LaunchpadBotStrategy } from '../../../strategies/launchpads/LaunchpadBotStrategy';
+import LaunchpadBotStrategy from '../../../strategies/launchpads/LaunchpadBotStrategy';
 import { HistoryEntry } from '../../launchpads/types';
 import { ExitMonitoringReason, SellReason, SwapSubCategory, TransactionType } from '../../types';
 

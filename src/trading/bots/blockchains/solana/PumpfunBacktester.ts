@@ -2,9 +2,18 @@ import { Logger } from 'winston';
 
 import { BacktestExitResponse, BacktestRunConfig, BacktestTradeResponse, TradeTransaction } from './types';
 import { PUMPFUN_TOKEN_DECIMALS } from '../../../../blockchains/solana/dex/pumpfun/constants';
+import {
+    simulatePumpBuyLatencyMs,
+    simulatePumpSellLatencyMs,
+} from '../../../../blockchains/solana/dex/pumpfun/Pumpfun';
 import { PumpfunInitialCoinData } from '../../../../blockchains/solana/dex/pumpfun/types';
 import { calculatePumpTokenLamportsValue } from '../../../../blockchains/solana/dex/pumpfun/utils';
-import { solToLamports } from '../../../../blockchains/utils/amount';
+import {
+    simulatePriceWithHigherSlippage,
+    simulateSolTransactionDetails,
+    simulateSolanaPriorityFeeInLamports,
+} from '../../../../blockchains/solana/utils/simulations';
+import { lamportsToSol, solToLamports } from '../../../../blockchains/utils/amount';
 import { HistoryEntry } from '../../launchpads/types';
 import { SellReason } from '../../types';
 
@@ -30,7 +39,8 @@ export default class PumpfunBacktester {
               }
             | undefined;
 
-        for (const marketContext of history) {
+        for (let i = 0; i < history.length; i++) {
+            const marketContext = history[i];
             const { price, marketCap } = marketContext;
 
             // no more money for further purchases, and also we have no position
@@ -43,12 +53,18 @@ export default class PumpfunBacktester {
                 !strategy.buyPosition &&
                 strategy.shouldBuy(marketContext, history)
             ) {
-                /**
-                 * TODO consider fees as well simulate them
-                 * fast forward marketContext to next one after interval after simulating possible buy execution time
-                 */
+                const buyInLamports = simulatePriceWithHigherSlippage(
+                    buyAmountLamports,
+                    strategy.config.buySlippageDecimal,
+                );
+                const buyPriorityFeeInSol =
+                    strategy.config.buyPriorityFeeInSol ??
+                    strategy.config.priorityFeeInSol ??
+                    lamportsToSol(simulateSolanaPriorityFeeInLamports());
+                const txDetails = simulateSolTransactionDetails(-buyInLamports, solToLamports(buyPriorityFeeInSol));
+
                 holdingsRaw += (buyAmountSol / price) * 10 ** PUMPFUN_TOKEN_DECIMALS;
-                balanceLamports -= buyAmountLamports;
+                balanceLamports += txDetails.netTransferredLamports;
 
                 const buyPosition: TradeTransaction = {
                     timestamp: Date.now(),
@@ -56,8 +72,8 @@ export default class PumpfunBacktester {
                     subCategory: tradeHistory.find(e => e.transactionType === 'buy') ? 'newPosition' : 'accumulation',
                     transactionHash: _generateFakeBacktestTransactionHash(),
                     amountRaw: holdingsRaw,
-                    grossTransferredLamports: -buyAmountLamports,
-                    netTransferredLamports: -buyAmountLamports,
+                    grossTransferredLamports: txDetails.grossTransferredLamports,
+                    netTransferredLamports: txDetails.netTransferredLamports,
                     price: {
                         inLamports: solToLamports(price),
                         inSol: price,
@@ -66,6 +82,15 @@ export default class PumpfunBacktester {
                 };
                 tradeHistory.push(buyPosition);
                 strategy.afterBuy(price, buyPosition);
+
+                // Simulate time passing by going to the next market context
+                i =
+                    getNextEntryIndex(
+                        history,
+                        i,
+                        marketContext.timestamp + simulatePumpBuyLatencyMs(buyPriorityFeeInSol),
+                    ) - 1;
+                continue;
             }
 
             if (!strategy.buyPosition) {
@@ -96,14 +121,20 @@ export default class PumpfunBacktester {
             }
 
             if (sell && strategy.buyPosition) {
-                /**
-                 * TODO calculate properly
-                 *  gross and net received lamports
-                 *  include fee simulation into them
-                 *  fast forward history based on simulated execution delay of the sell
-                 */
-                const receivedAmountLamports = calculatePumpTokenLamportsValue(holdingsRaw, price);
-                balanceLamports += receivedAmountLamports; // Sell all held tokens at current price
+                const receivedAmountLamports = simulatePriceWithHigherSlippage(
+                    calculatePumpTokenLamportsValue(holdingsRaw, price),
+                    strategy.config.sellSlippageDecimal,
+                );
+                const sellPriorityFeeInSol =
+                    strategy.config.sellPriorityFeeInSol ??
+                    strategy.config.priorityFeeInSol ??
+                    lamportsToSol(simulateSolanaPriorityFeeInLamports());
+                const txDetails = simulateSolTransactionDetails(
+                    receivedAmountLamports,
+                    solToLamports(sellPriorityFeeInSol),
+                );
+
+                balanceLamports += txDetails.netTransferredLamports;
                 holdingsRaw = 0;
 
                 tradeHistory.push({
@@ -112,8 +143,8 @@ export default class PumpfunBacktester {
                     subCategory: 'sellAll',
                     transactionHash: _generateFakeBacktestTransactionHash(),
                     amountRaw: holdingsRaw,
-                    grossTransferredLamports: receivedAmountLamports,
-                    netTransferredLamports: receivedAmountLamports,
+                    grossTransferredLamports: txDetails.grossTransferredLamports,
+                    netTransferredLamports: txDetails.netTransferredLamports,
                     price: {
                         inSol: price,
                         inLamports: solToLamports(price),
@@ -129,6 +160,15 @@ export default class PumpfunBacktester {
                 if (onlyOneFullTrade) {
                     break;
                 }
+
+                // Simulate time passing by going to the next market context
+                i =
+                    getNextEntryIndex(
+                        history,
+                        i,
+                        marketContext.timestamp + simulatePumpSellLatencyMs(sellPriorityFeeInSol),
+                    ) - 1;
+                continue;
             }
 
             // Track peak balanceLamports for drawdown calculation
@@ -159,6 +199,16 @@ export default class PumpfunBacktester {
             maxDrawdown: maxDrawdown,
         };
     }
+}
+
+function getNextEntryIndex(history: HistoryEntry[], currentIndex: number, nextTimestampMs: number): number {
+    for (let j = currentIndex; j < history.length; j++) {
+        if (history[j].timestamp >= nextTimestampMs) {
+            return j;
+        }
+    }
+
+    return currentIndex + 1;
 }
 
 function _generateFakeBacktestTransactionHash() {

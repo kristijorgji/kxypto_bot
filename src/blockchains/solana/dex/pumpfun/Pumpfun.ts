@@ -294,17 +294,7 @@ export default class Pumpfun implements PumpfunListener {
             // const simulatedResult = await this.connection.simulateTransaction(transaction);
             // logger.info(simulatedResult);
 
-            /**
-             * TODO adjust the values here based on the data with different priority fees
-             */
-            await sleep(
-                computeSimulatedLatencyNs({
-                    minTimeNs: 3036228333,
-                    maxTimeNs: 28021031083,
-                    avgTimeNs: 15406187822.75,
-                    medianTimeNs: 22503762125,
-                }) / 1e6,
-            );
+            await sleep(simulatePumpBuyLatencyMs(priorityFeeInSol));
 
             return {
                 signature: _generateFakeSimulationTransactionHash(),
@@ -416,17 +406,7 @@ export default class Pumpfun implements PumpfunListener {
             // const simulatedResult = await this.connection.simulateTransaction(transaction);
             // logger.info(simulatedResult);
 
-            /**
-             * TODO adjust the values here based on the data with different priority fees
-             */
-            await sleep(
-                computeSimulatedLatencyNs({
-                    minTimeNs: 3102956041,
-                    maxTimeNs: 18382920708,
-                    avgTimeNs: 8706733343.75,
-                    medianTimeNs: 7812372459,
-                }) / 1e6,
-            );
+            await sleep(simulatePumpSellLatencyMs(priorityFeeInSol));
 
             return {
                 signature: _generateFakeSimulationTransactionHash(),
@@ -665,4 +645,34 @@ function parseCreateInstruction(data: Buffer): NewPumpFunTokenData | null {
 
 function _generateFakeSimulationTransactionHash() {
     return `_simulation_${Date.now()}`;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function simulatePumpBuyLatencyMs(priorityFeeInSol: number): number {
+    /**
+     * TODO adjust the values here based on the data with different priority fees
+     */
+    return (
+        computeSimulatedLatencyNs({
+            minTimeNs: 3036228333,
+            maxTimeNs: 28021031083,
+            avgTimeNs: 15406187822.75,
+            medianTimeNs: 22503762125,
+        }) / 1e6
+    );
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function simulatePumpSellLatencyMs(priorityFeeInSol: number): number {
+    /**
+     * TODO adjust the values here based on the data with different priority fees
+     */
+    return (
+        computeSimulatedLatencyNs({
+            minTimeNs: 3102956041,
+            maxTimeNs: 18382920708,
+            avgTimeNs: 8706733343.75,
+            medianTimeNs: 7812372459,
+        }) / 1e6
+    );
 }

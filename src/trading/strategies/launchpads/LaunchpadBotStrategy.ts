@@ -1,21 +1,28 @@
+import crypto from 'crypto';
+
 import { TradeTransaction } from '../../bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
 import { ShouldExitMonitoringResponse, ShouldSellResponse } from '../../bots/types';
+import { StrategyConfig } from '../types';
 
-export interface LaunchpadBotStrategy {
-    readonly name: string;
+export default abstract class LaunchpadBotStrategy {
+    abstract readonly name: string;
 
-    readonly description: string;
+    get configVariant(): string {
+        return this.config.variant || '';
+    }
 
-    readonly config: {
-        buyMonitorWaitPeriodMs: number;
-        sellMonitorWaitPeriodMs: number;
-        maxWaitMs: number; // don't waste time on a token anymore if there is no increase until this time is reached
-    };
+    abstract readonly description: string;
 
-    get buyPosition(): TradeTransaction | undefined;
+    abstract readonly config: StrategyConfig;
 
-    shouldExit(
+    get identifier(): string {
+        return formStrategyId(this);
+    }
+
+    abstract get buyPosition(): TradeTransaction | undefined;
+
+    abstract shouldExit(
         context: MarketContext,
         history: HistoryEntry[],
         extra: {
@@ -23,16 +30,26 @@ export interface LaunchpadBotStrategy {
         },
     ): ShouldExitMonitoringResponse;
 
-    shouldBuy(context: MarketContext, history: HistoryEntry[]): boolean;
+    abstract shouldBuy(context: MarketContext, history: HistoryEntry[]): boolean;
 
-    afterBuy(buyPrice: number, buyPosition: TradeTransaction): void;
+    abstract afterBuy(buyPrice: number, buyPosition: TradeTransaction): void;
 
-    shouldSell(context: MarketContext, history: HistoryEntry[]): ShouldSellResponse;
+    abstract shouldSell(context: MarketContext, history: HistoryEntry[]): ShouldSellResponse;
 
-    afterSell(): void;
+    abstract afterSell(): void;
 
     /**
      * This must be always called in order to reuse the strategy with a new asset
      */
-    resetState(): void;
+    abstract resetState(): void;
+}
+
+function formStrategyId(strategy: LaunchpadBotStrategy): string {
+    return `${strategy.name}_${generateConfigHash(strategy.config)}`;
+}
+
+function generateConfigHash(config: object): string {
+    const jsonString = JSON.stringify(config);
+
+    return crypto.createHash('md5').update(jsonString).digest('hex').slice(0, 8);
 }

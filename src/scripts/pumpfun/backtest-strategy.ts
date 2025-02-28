@@ -53,10 +53,7 @@ async function findBestStrategy() {
 
     const strategies: LaunchpadBotStrategy[] = [new RiseStrategy(silentLogger), new StupidSniperStrategy(silentLogger)];
     const results: {
-        strategy: {
-            id: string;
-            variantConfig: string;
-        };
+        strategy: LaunchpadBotStrategy;
         result: StrategyBacktestResult;
     }[] = [];
 
@@ -68,10 +65,7 @@ async function findBestStrategy() {
             onlyOneFullTrade: true,
         };
         results.push({
-            strategy: {
-                id: strategy.identifier,
-                variantConfig: strategy.configVariant,
-            },
+            strategy: strategy,
             result: await runStrategy(
                 {
                     backtester: backtester,
@@ -86,9 +80,10 @@ async function findBestStrategy() {
     results.sort((a, b) => b.result.totalPnlInSol - a.result.totalPnlInSol);
 
     logger.info(
-        'The best strategy is: %s with variant config: %s',
-        results[0].strategy.id,
-        results[0].strategy.variantConfig,
+        'The best strategy is: %s with variant config: %s, config: %o',
+        results[0].strategy.identifier,
+        results[0].strategy.configVariant,
+        results[0].strategy.config,
         results,
     );
 }

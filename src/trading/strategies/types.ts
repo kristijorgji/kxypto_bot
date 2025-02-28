@@ -1,4 +1,6 @@
-export type StrategyConfig = {
+import { MarketContext } from '../bots/launchpads/types';
+
+export type StrategyConfig<C = Record<string, unknown>> = {
     variant?: string;
     buyMonitorWaitPeriodMs: number;
     sellMonitorWaitPeriodMs: number;
@@ -11,4 +13,21 @@ export type StrategyConfig = {
     priorityFeeInSol?: number;
     buyPriorityFeeInSol?: number;
     sellPriorityFeeInSol?: number;
+} & C;
+
+export type IntervalConfig = {
+    min?: number;
+    max?: number;
+};
+
+export type LaunchpadStrategyBuyConfig = Partial<Record<keyof MarketContext, IntervalConfig>>;
+
+export type StrategySellConfig = {
+    trailingStopLossPercentage?: number;
+    stopLossPercentage?: number;
+    takeProfitPercentage?: number;
+    trailingTakeProfit?: {
+        profitPercentage: number;
+        stopPercentage: number;
+    };
 };

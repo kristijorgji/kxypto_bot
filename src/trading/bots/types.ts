@@ -11,6 +11,7 @@ export type BotConfig = {
 export type SellReason =
     | 'DUMPED'
     | 'TRAILING_STOP_LOSS'
+    | 'STOP_LOSS'
     | 'TAKE_PROFIT'
     | 'TRAILING_TAKE_PROFIT'
     | 'AT_HARDCODED_PROFIT';

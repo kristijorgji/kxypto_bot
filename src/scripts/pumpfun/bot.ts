@@ -30,9 +30,21 @@ type ListenConfig = {
 } & BotConfig;
 
 export type HandlePumpTokenReport = {
-    schemaVersion: string; // our custom reporting schema version, used to filter the data in case we change content of the json report
+    /**
+     * This information is used to understand the content of this report
+     * As it changes it is mandatory to document what version we stored for every report
+     */
+    $schema: {
+        version: number;
+        name?: string;
+    };
     simulation: boolean;
-    strategy: string; // a brief name of what we are trying to test, ex: take-profit-only
+    strategy: {
+        id: string;
+        name: string;
+        configVariant: string;
+    };
+    configVariant: string;
     mint: string;
     name: string;
     url: string;
@@ -185,9 +197,15 @@ async function handlePumpToken(
             ensureDataFolder(`pumpfun-stats/${tokenData.mint}.json`),
             JSON.stringify(
                 {
-                    schemaVersion: '1.04',
+                    $schema: {
+                        version: 1.05,
+                    },
                     simulation: c.simulate,
-                    strategy: strategy.name,
+                    strategy: {
+                        id: strategy.identifier,
+                        name: strategy.name,
+                        configVariant: strategy.configVariant,
+                    },
                     mint: tokenData.mint,
                     name: tokenData.name,
                     url: formPumpfunTokenUrl(tokenData.mint),

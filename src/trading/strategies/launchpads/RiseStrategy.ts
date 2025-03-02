@@ -6,7 +6,7 @@ import { ShouldExitMonitoringResponse } from '../../bots/types';
 import { LaunchpadStrategyBuyConfig, StrategyConfig, StrategySellConfig } from '../types';
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
 
-type ConfigExtra = { buy: LaunchpadStrategyBuyConfig; sell: StrategySellConfig };
+export type RiseStrategyConfig = StrategyConfig<{ buy: LaunchpadStrategyBuyConfig; sell: StrategySellConfig }>;
 
 export default class RiseStrategy extends LimitsBasedStrategy {
     readonly name = 'RiseStrategy';
@@ -18,7 +18,7 @@ export default class RiseStrategy extends LimitsBasedStrategy {
         - Use trailing stop loss to lock in profits while allowing for continued growth.
     `;
 
-    readonly config: StrategyConfig<ConfigExtra> = {
+    readonly config: RiseStrategyConfig = {
         buyMonitorWaitPeriodMs: 500,
         sellMonitorWaitPeriodMs: 200,
         maxWaitMs: 5 * 60 * 1e3,
@@ -44,7 +44,7 @@ export default class RiseStrategy extends LimitsBasedStrategy {
         },
     };
 
-    constructor(readonly logger: Logger, config?: Partial<StrategyConfig<ConfigExtra>>) {
+    constructor(readonly logger: Logger, config?: Partial<RiseStrategyConfig>) {
         super(logger);
         if (config) {
             this.config = {

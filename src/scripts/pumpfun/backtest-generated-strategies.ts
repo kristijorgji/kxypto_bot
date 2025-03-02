@@ -1,26 +1,51 @@
+import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from 'winston';
 
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import { solToLamports } from '../../blockchains/utils/amount';
 import { db } from '../../db/knex';
 import { logger } from '../../logger';
-import { logStrategyResult, runStrategy } from '../../trading/backtesting/utils';
+import RiseStrategyConfigGenerator, {
+    StartState,
+} from '../../trading/backtesting/strategies/RiseStrategyConfigGenerator';
+import { logStrategyResult, runStrategy, storeBacktest, storeStrategyResult } from '../../trading/backtesting/utils';
 import PumpfunBacktester from '../../trading/bots/blockchains/solana/PumpfunBacktester';
 import { BacktestRunConfig, StrategyBacktestResult } from '../../trading/bots/blockchains/solana/types';
 import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
 import RiseStrategy from '../../trading/strategies/launchpads/RiseStrategy';
-import StupidSniperStrategy from '../../trading/strategies/launchpads/StupidSniperStrategy';
 import { walkDirFilesSyncRecursive } from '../../utils/files';
 import { formDataFolder } from '../../utils/storage';
 
+const riseStrategyConfigGenerator = new RiseStrategyConfigGenerator();
+
 (async () => {
-    start().finally(() => {
-        db.destroy();
+    ['SIGINT', 'SIGTERM', 'SIGHUP', 'uncaughtException', 'unhandledRejection', 'exit', 'beforeExit'].forEach(event => {
+        process.on(event, async err => {
+            logger.info(`Received event: ${event}`);
+            if (err instanceof Error) {
+                logger.error(err);
+            }
+
+            await cleanup();
+
+            logger.info('riseStrategyConfigGenerator.resumeState=%o', riseStrategyConfigGenerator.resumeState);
+            process.exit(event === 'exit' ? 0 : 1);
+        });
     });
+
+    try {
+        await start();
+    } finally {
+        await cleanup();
+    }
 })();
 
+async function cleanup() {
+    await db.destroy();
+}
+
 /**
- * It will test the provided strategies against the history pumpfun data stored in data/pumpfun-stats
+ * It will test auto generated strategy combinations, backtest them and find the best configuration to use
  */
 async function start() {
     await findBestStrategy();
@@ -28,6 +53,8 @@ async function start() {
 
 async function findBestStrategy() {
     const start = process.hrtime();
+
+    const backtestId = uuidv4();
 
     const pumpfun = new Pumpfun({
         rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
@@ -43,21 +70,45 @@ async function findBestStrategy() {
     const files = walkDirFilesSyncRecursive(pumpfunStatsPath);
     let tested = 0;
 
-    const strategies: LaunchpadBotStrategy[] = [new RiseStrategy(silentLogger), new StupidSniperStrategy(silentLogger)];
+    const baseRunConfig: Omit<BacktestRunConfig, 'strategy'> = {
+        initialBalanceLamports: solToLamports(1),
+        buyAmountSol: 0.4,
+        allowNegativeBalance: false,
+        onlyOneFullTrade: true,
+    };
+
+    await storeBacktest({
+        id: backtestId,
+        config: {
+            data: {
+                path: pumpfunStatsPath,
+                filesCount: files.length,
+            },
+            ...baseRunConfig,
+        },
+    });
+
     const results: {
         strategy: LaunchpadBotStrategy;
         result: StrategyBacktestResult;
     }[] = [];
 
-    const total = strategies.length;
-    logger.info('Will test %d strategies\n', total);
+    const s: StartState = {
+        holdersCount: [5, 30],
+        bondingCurveProgress: [15, 35],
+        devHoldingPercentage: [5, 20],
+        topTenHoldingPercentage: [1, 50],
+        trailingStopLossPercentage: [10, 20],
+        takeProfitPercentage: [10, 25],
+    };
 
-    for (const strategy of strategies) {
+    const total = riseStrategyConfigGenerator.calculateTotalCombinations(s);
+    logger.info('Running backtest %s, will test %d strategies\n', backtestId, total);
+
+    for (const config of riseStrategyConfigGenerator.formStrategies(s)) {
         const runConfig: BacktestRunConfig = {
-            initialBalanceLamports: solToLamports(1),
-            strategy: strategy,
-            buyAmountSol: 0.4,
-            onlyOneFullTrade: true,
+            ...baseRunConfig,
+            strategy: new RiseStrategy(silentLogger, config),
         };
 
         logger.info(
@@ -78,12 +129,13 @@ async function findBestStrategy() {
             files,
         );
         results.push({
-            strategy: strategy,
+            strategy: runConfig.strategy,
             result: sr,
         });
         tested++;
 
         logStrategyResult(logger, sr, tested, total);
+        await storeStrategyResult(backtestId, runConfig.strategy, sr);
     }
 
     results.sort((a, b) => b.result.totalPnlInSol - a.result.totalPnlInSol);

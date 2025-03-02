@@ -79,10 +79,28 @@ export type BacktestRunConfig = {
      * if this is true the simulation will exit after one buy - trade pair
      */
     onlyOneFullTrade: boolean;
+    /**
+     * if this is true the simulation will continue with the next file resetting the initial balance
+     */
+    allowNegativeBalance: boolean;
 };
 
 export type StrategyBacktestResult = {
     totalPnlInSol: number;
+    totalHoldingsValueInSol: number;
     totalRoi: number;
-    totalTrades: number;
+    totalTradesCount: number;
+    totalBuyTradesCount: number;
+    totalSellTradesCount: number;
+    winRatePercentage: number;
+    winsCount: number;
+    /**
+     * This value is calculated relative to the amount used to buy
+     */
+    biggestWinPercentage: number;
+    lossesCount: number;
+    /**
+     * This value is calculated relative to the amount used to buy
+     */
+    biggestLossPercentage: number;
 };

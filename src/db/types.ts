@@ -17,3 +17,8 @@ export type Token<T = Record<string, unknown>> = {
     createdOn: 'https://pump.fun' | string;
     token_created_at: Date;
 };
+
+export type Backtest = {
+    id: string;
+    config: Record<string, unknown>;
+};

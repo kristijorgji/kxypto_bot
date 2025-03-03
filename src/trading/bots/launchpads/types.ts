@@ -11,7 +11,12 @@ export type HistoryEntry = {
     holdersCount: number;
     devHoldingPercentage: number;
     topTenHoldingPercentage: number;
-    _afterResult: boolean; // if this history record was added after we exited or made a trade
+    /**
+     * this will be true if this record was added after an action
+     *  exit
+     *  trade - buy or sell
+     */
+    _afterResult?: boolean;
 };
 
 export type MarketContext = {

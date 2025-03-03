@@ -58,6 +58,7 @@ async function findBestStrategy() {
             strategy: strategy,
             buyAmountSol: 0.4,
             onlyOneFullTrade: true,
+            allowNegativeBalance: false,
         };
 
         logger.info(

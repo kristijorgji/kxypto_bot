@@ -12,7 +12,7 @@ import { logStrategyResult, runStrategy, storeBacktest, storeStrategyResult } fr
 import PumpfunBacktester from '../../trading/bots/blockchains/solana/PumpfunBacktester';
 import { BacktestRunConfig, StrategyBacktestResult } from '../../trading/bots/blockchains/solana/types';
 import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
-import RiseStrategy from '../../trading/strategies/launchpads/RiseStrategy';
+import RiseStrategy, { RiseStrategyConfig } from '../../trading/strategies/launchpads/RiseStrategy';
 import { walkDirFilesSyncRecursive } from '../../utils/files';
 import { formDataFolder } from '../../utils/storage';
 
@@ -73,8 +73,8 @@ async function findBestStrategy() {
     const baseRunConfig: Omit<BacktestRunConfig, 'strategy'> = {
         initialBalanceLamports: solToLamports(1),
         buyAmountSol: 0.4,
-        allowNegativeBalance: false,
         onlyOneFullTrade: true,
+        allowNegativeBalance: false,
     };
 
     await storeBacktest({
@@ -105,10 +105,17 @@ async function findBestStrategy() {
     const total = riseStrategyConfigGenerator.calculateTotalCombinations(s);
     logger.info('Running backtest %s, will test %d strategies\n', backtestId, total);
 
-    for (const config of riseStrategyConfigGenerator.formStrategies(s)) {
+    const baseConfig: Partial<RiseStrategyConfig> = {
+        priorityFeeInSol: 0.005,
+    };
+
+    for (const config of riseStrategyConfigGenerator.formConfigs(s)) {
         const runConfig: BacktestRunConfig = {
             ...baseRunConfig,
-            strategy: new RiseStrategy(silentLogger, config),
+            strategy: new RiseStrategy(silentLogger, {
+                ...baseConfig,
+                ...config,
+            }),
         };
 
         logger.info(

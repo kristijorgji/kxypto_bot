@@ -33,7 +33,7 @@ export default class RiseStrategyConfigGenerator {
         return ranges.reduce((total, range) => total * range.length, 1);
     }
 
-    *formStrategies(s: StartState, resumeState?: EndState): Generator<Partial<RiseStrategyConfig>> {
+    *formConfigs(s: StartState, resumeState?: EndState): Generator<Partial<RiseStrategyConfig>> {
         const startHoldersCount = resumeState?.holdersCount ?? s.holdersCount[0];
         const startBcp = resumeState?.bondingCurveProgress ?? s.bondingCurveProgress[0];
         const startDhp = resumeState?.devHoldingPercentage ?? s.devHoldingPercentage[0];

@@ -3,19 +3,19 @@ process.env.TZ = 'UTC';
 const TS_CONFIG_PATH = './tsconfig.json';
 const SRC_PATH = '<rootDir>';
 
-module.exports = {
+export default {
     testEnvironment: 'node',
     preset: 'ts-jest',
-    setupFilesAfterEnv: ['<rootDir>/jest-setup.js'],
+    setupFilesAfterEnv: ['<rootDir>/jest-setup.ts'],
     testMatch: ['**/__tests__/**/*.test.ts'],
     collectCoverage: true,
     collectCoverageFrom: ['src/**/*.{js,jsx,ts,tsx}', '__tests__/**/*.{js,jsx,ts,tsx}', '!<rootDir>/node_modules/'],
     coverageThreshold: {
         global: {
-            branches: 17,
-            functions: 15,
-            lines: 17,
-            statements: 17,
+            branches: 25,
+            functions: 20,
+            lines: 25,
+            statements: 25,
         },
     },
     moduleNameMapper: {
@@ -23,11 +23,11 @@ module.exports = {
     },
 };
 
-function makeModuleNameMapper(srcPath, tsconfigPath) {
+function makeModuleNameMapper(srcPath: string, tsconfigPath: string) {
     // Get paths from tsconfig
     const { paths } = require(tsconfigPath).compilerOptions;
 
-    const aliases = {};
+    const aliases: Record<string, string> = {};
 
     // Iterate over paths and convert them into moduleNameMapper format
     Object.keys(paths || {}).forEach(item => {

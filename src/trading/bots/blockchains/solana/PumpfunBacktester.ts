@@ -48,19 +48,19 @@ export default class PumpfunBacktester {
                 break;
             }
 
+            const buyInLamports = simulatePriceWithHigherSlippage(
+                buyAmountLamports,
+                strategy.config.buySlippageDecimal,
+            );
+            const buyPriorityFeeInSol =
+                strategy.config.buyPriorityFeeInSol ??
+                strategy.config.priorityFeeInSol ??
+                lamportsToSol(simulateSolanaPriorityFeeInLamports());
             if (
-                balanceLamports > buyAmountLamports &&
+                balanceLamports > buyInLamports + solToLamports(buyPriorityFeeInSol) &&
                 !strategy.buyPosition &&
                 strategy.shouldBuy(marketContext, history)
             ) {
-                const buyInLamports = simulatePriceWithHigherSlippage(
-                    buyAmountLamports,
-                    strategy.config.buySlippageDecimal,
-                );
-                const buyPriorityFeeInSol =
-                    strategy.config.buyPriorityFeeInSol ??
-                    strategy.config.priorityFeeInSol ??
-                    lamportsToSol(simulateSolanaPriorityFeeInLamports());
                 const txDetails = simulateSolTransactionDetails(-buyInLamports, solToLamports(buyPriorityFeeInSol));
 
                 holdingsRaw += (buyAmountSol / price) * 10 ** PUMPFUN_TOKEN_DECIMALS;
@@ -69,7 +69,7 @@ export default class PumpfunBacktester {
                 const buyPosition: TradeTransaction = {
                     timestamp: Date.now(),
                     transactionType: 'buy',
-                    subCategory: tradeHistory.find(e => e.transactionType === 'buy') ? 'newPosition' : 'accumulation',
+                    subCategory: tradeHistory.find(e => e.transactionType === 'buy') ? 'accumulation' : 'newPosition',
                     transactionHash: _generateFakeBacktestTransactionHash(),
                     amountRaw: holdingsRaw,
                     grossTransferredLamports: txDetails.grossTransferredLamports,
@@ -134,9 +134,6 @@ export default class PumpfunBacktester {
                     solToLamports(sellPriorityFeeInSol),
                 );
 
-                balanceLamports += txDetails.netTransferredLamports;
-                holdingsRaw = 0;
-
                 tradeHistory.push({
                     timestamp: Date.now(),
                     transactionType: 'sell',
@@ -155,6 +152,9 @@ export default class PumpfunBacktester {
                         pumpMinLamportsOutput: holdingsRaw,
                     },
                 });
+
+                balanceLamports += txDetails.netTransferredLamports;
+                holdingsRaw = 0;
 
                 strategy.afterSell();
                 if (onlyOneFullTrade) {
@@ -201,14 +201,14 @@ export default class PumpfunBacktester {
     }
 }
 
-function getNextEntryIndex(history: HistoryEntry[], currentIndex: number, nextTimestampMs: number): number {
+export function getNextEntryIndex(history: HistoryEntry[], currentIndex: number, nextTimestampMs: number): number {
     for (let j = currentIndex; j < history.length; j++) {
         if (history[j].timestamp >= nextTimestampMs) {
             return j;
         }
     }
 
-    return currentIndex + 1;
+    return history.length - 1;
 }
 
 function _generateFakeBacktestTransactionHash() {

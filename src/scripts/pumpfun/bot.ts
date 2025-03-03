@@ -44,7 +44,6 @@ export type HandlePumpTokenReport = {
         name: string;
         configVariant: string;
     };
-    configVariant: string;
     mint: string;
     name: string;
     url: string;

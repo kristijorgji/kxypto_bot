@@ -1,11 +1,22 @@
 import { Logger } from 'winston';
 
-import { BotResponse, PumpfunBuyPositionMetadata, PumpfunSellPositionMetadata, TradeTransaction } from './types';
+import {
+    BotExitResponse,
+    BotResponse,
+    BotTradeResponse,
+    PumpfunBuyPositionMetadata,
+    PumpfunSellPositionMetadata,
+    TradeTransaction,
+} from './types';
 import { measureExecutionTime } from '../../../../apm/apm';
 import Pumpfun from '../../../../blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunMarketContextProvider from '../../../../blockchains/solana/dex/pumpfun/PumpfunMarketContextProvider';
 import { PumpfunInitialCoinData } from '../../../../blockchains/solana/dex/pumpfun/types';
-import { calculatePumpTokenLamportsValue } from '../../../../blockchains/solana/dex/pumpfun/utils';
+import {
+    calculatePumpTokenLamportsValue,
+    sellPumpfunTokensWithRetries,
+} from '../../../../blockchains/solana/dex/pumpfun/utils';
+import SolanaAdapter from '../../../../blockchains/solana/SolanaAdapter';
 import { TransactionMode, WalletInfo } from '../../../../blockchains/solana/types';
 import { lamportsToSol, solToLamports } from '../../../../blockchains/utils/amount';
 import { sleep } from '../../../../utils/functions';
@@ -18,6 +29,7 @@ const DefaultPriorityFeeSol = 0.005;
 export default class PumpfunBot {
     private readonly logger: Logger;
     private readonly pumpfun: Pumpfun;
+    private readonly solanaAdapter: SolanaAdapter;
     private readonly marketContextProvider: PumpfunMarketContextProvider;
     private readonly walletInfo: WalletInfo;
     private readonly config: BotConfig;
@@ -27,18 +39,21 @@ export default class PumpfunBot {
     constructor({
         logger,
         pumpfun,
+        solanaAdapter,
         marketContextProvider,
         walletInfo,
         config,
     }: {
         logger: Logger;
         pumpfun: Pumpfun;
+        solanaAdapter: SolanaAdapter;
         marketContextProvider: PumpfunMarketContextProvider;
         walletInfo: WalletInfo;
         config: BotConfig;
     }) {
         this.logger = logger;
         this.pumpfun = pumpfun;
+        this.solanaAdapter = solanaAdapter;
         this.marketContextProvider = marketContextProvider;
         this.walletInfo = walletInfo;
         this.config = config;
@@ -52,6 +67,7 @@ export default class PumpfunBot {
         listenerId: string,
         tokenInfo: PumpfunInitialCoinData,
         strategy: LaunchpadBotStrategy,
+        buyInSol: number | null,
     ): Promise<BotResponse> {
         const tokenMint = tokenInfo.mint;
         const logger = this.logger.child({
@@ -128,8 +144,13 @@ export default class PumpfunBot {
                     intervalsMonitoredAfterResult * this.config.afterResultMonitorWaitPeriodMs >=
                     this.config.maxWaitMonitorAfterResultMs
                 ) {
+                    logger.info(
+                        'Finished handling token - will return the result of type %s',
+                        (result as BotTradeResponse)?.transactions
+                            ? `BotTradeResponse, netPnl=${(result as BotTradeResponse).netPnl.inSol} SOL`
+                            : `BotExitResponse, exitCode=${(result as BotExitResponse).exitCode}`,
+                    );
                     strategy.resetState();
-                    logger.info('Will return the result now');
                     return result;
                 }
 
@@ -143,19 +164,19 @@ export default class PumpfunBot {
 
             const mcDiffFromInitialPercentage = ((marketCapInSol - initialMarketCap) / initialMarketCap) * 100;
 
-            logger.info(
+            logger.debug(
                 'price=%s, marketCap=%s, bondingCurveProgress=%s%%',
                 priceInSol,
                 marketCapInSol,
                 bondingCurveProgress,
             );
-            logger.info(
+            logger.debug(
                 'total holders=%d, top ten holding %s%%, dev holding %s%%',
                 holdersCount,
                 topTenHoldingPercentage,
                 devHoldingPercentage,
             );
-            logger.info('Current vs initial market cap % difference: %s%%', mcDiffFromInitialPercentage);
+            logger.debug('Current vs initial market cap % difference: %s%%', mcDiffFromInitialPercentage);
 
             /**
              * Keep monitoring until max wait time after result is elapsed
@@ -191,7 +212,7 @@ export default class PumpfunBot {
                 }
             }
 
-            if (strategy.buyPosition) {
+            if (!actionInProgress && strategy.buyPosition) {
                 const priceDiffPercentageSincePurchase =
                     ((solToLamports(priceInSol) - strategy.buyPosition.price.inLamports) /
                         strategy.buyPosition.price.inLamports) *
@@ -214,10 +235,15 @@ export default class PumpfunBot {
 
             // eslint-disable-next-line no-unreachable
             if (!actionInProgress && !strategy.buyPosition && buy) {
-                // TODO calculate dynamically based on the situation
-                const inSol = 0.4;
-
+                logger.info('We will start the buy buyInProgress=true');
                 buyInProgress = true;
+
+                const dataAtBuyTime = {
+                    priceInSol: priceInSol,
+                    marketCapInSol: marketCapInSol,
+                };
+                // TODO calculate dynamically based on the situation if it is not provided
+                const inSol = buyInSol ?? 0.4;
                 const buyPriorityFeeInSol =
                     strategy.config.buyPriorityFeeInSol ?? strategy.config.priorityFeeInSol ?? DefaultPriorityFeeSol;
                 measureExecutionTime(
@@ -247,10 +273,10 @@ export default class PumpfunBot {
                             grossTransferredLamports: buyRes.txDetails.grossTransferredLamports,
                             netTransferredLamports: buyRes.txDetails.netTransferredLamports,
                             price: {
-                                inSol: priceInSol,
-                                inLamports: solToLamports(priceInSol),
+                                inSol: dataAtBuyTime.priceInSol,
+                                inLamports: solToLamports(dataAtBuyTime.priceInSol),
                             },
-                            marketCap: marketCapInSol,
+                            marketCap: dataAtBuyTime.marketCapInSol,
                             metadata: {
                                 pumpInSol: inSol,
                                 pumpMaxSolCost: buyRes.pumpMaxSolCost,
@@ -261,7 +287,7 @@ export default class PumpfunBot {
                          * The longer the buy transaction takes the more likely price has changed, so need to put limit orders with most closely price to the one used to buy
                          * TODO calculate real buy price based on buyRes details and set up the limits accordingly
                          */
-                        strategy.afterBuy(priceInSol, buyPosition);
+                        strategy.afterBuy(dataAtBuyTime.priceInSol, buyPosition);
                         sleepIntervalMs = strategy.config.sellMonitorWaitPeriodMs;
 
                         logger.info(
@@ -270,13 +296,35 @@ export default class PumpfunBot {
                             inSol,
                             buyRes,
                         );
+
+                        buyInProgress = false;
                     })
                     .catch(async e => {
                         // TODO handle properly and double check if it really failed or was block height transaction timeout
                         logger.error('Error while buying');
                         logger.error(e);
-                    })
-                    .finally(() => {
+
+                        // TODO check the wallet if the buy was successful and timed out and proceed monitoring normally
+                        // TODO make a proper sell only for this mint if we hold it and get back transaction details to store it into a tradehistory etc
+                        const fallbackSell = async () =>
+                            await sellPumpfunTokensWithRetries({
+                                pumpfun: this.pumpfun,
+                                walletInfo: this.walletInfo,
+                                solanaAdapter: this.solanaAdapter,
+                                mint: tokenMint,
+                                retryConfig: {
+                                    sleepMs: 150,
+                                    maxRetries: 5,
+                                },
+                            });
+                        logger.warn(
+                            'Will sell the token immediately, and try to sell it again after 250ms to make sure is sold',
+                        );
+                        await fallbackSell();
+                        await sleep(250);
+                        logger.warn('Slept 250ms and will try to sell again to ensure any holdings is sold');
+                        await fallbackSell();
+
                         buyInProgress = false;
                     });
             }
@@ -284,8 +332,13 @@ export default class PumpfunBot {
             if (!actionInProgress && sell && strategy.buyPosition) {
                 logger.info('We will start the sell sellInProgress=true');
                 sellInProgress = true;
-                const sellReason = sell.reason;
-                const buyPosition = strategy.buyPosition;
+
+                const dataAtSellTime = {
+                    buyPosition: strategy.buyPosition,
+                    sellReason: sell.reason,
+                    priceInSol: priceInSol,
+                    marketCapInSol: marketCapInSol,
+                };
                 const sellPriorityFeeInSol =
                     strategy.config.sellPriorityFeeInSol ?? strategy.config.priorityFeeInSol ?? DefaultPriorityFeeSol;
                 measureExecutionTime(
@@ -309,7 +362,7 @@ export default class PumpfunBot {
                         logger.info(
                             'We sold successfully %s amountRaw with reason %s and received net %s sol. sellRes=%o',
                             sellRes.soldRawAmount,
-                            sellReason,
+                            dataAtSellTime.sellReason,
                             lamportsToSol(sellRes.txDetails.netTransferredLamports),
                             sellRes,
                         );
@@ -323,24 +376,25 @@ export default class PumpfunBot {
                             grossTransferredLamports: sellRes.txDetails.grossTransferredLamports,
                             netTransferredLamports: sellRes.txDetails.netTransferredLamports,
                             price: {
-                                inSol: priceInSol,
-                                inLamports: solToLamports(priceInSol),
+                                inSol: dataAtSellTime.priceInSol,
+                                inLamports: solToLamports(dataAtSellTime.priceInSol),
                             },
-                            marketCap: marketCapInSol,
+                            marketCap: dataAtSellTime.marketCapInSol,
                             metadata: {
-                                reason: sellReason,
+                                reason: dataAtSellTime.sellReason,
                                 pumpMinLamportsOutput: sellRes.minLamportsOutput,
                             },
                         };
 
-                        const pnlLamports = buyPosition.netTransferredLamports + sellPosition.netTransferredLamports;
+                        const pnlLamports =
+                            dataAtSellTime.buyPosition.netTransferredLamports + sellPosition.netTransferredLamports;
 
                         result = {
                             netPnl: {
                                 inLamports: pnlLamports,
                                 inSol: lamportsToSol(pnlLamports),
                             },
-                            transactions: [buyPosition, sellPosition],
+                            transactions: [dataAtSellTime.buyPosition, sellPosition],
                             history: history,
                         };
 
@@ -348,8 +402,9 @@ export default class PumpfunBot {
                     })
                     .catch(async e => {
                         // TODO handle errors, some error might be false negative example block height timeout, sell might be successful but we get error
-                        logger.error('Error while buying');
+                        logger.error('Error while selling');
                         logger.error(e);
+                        throw e;
                     })
                     .finally(() => {
                         sellInProgress = false;

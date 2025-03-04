@@ -25,8 +25,23 @@ import { BotConfig } from '../../trading/bots/types';
 import RiseStrategy from '../../trading/strategies/launchpads/RiseStrategy';
 import { ensureDataFolder } from '../../utils/storage';
 
-type ListenConfig = {
-    maxTokensToProcessInParallel: number | null; // set to null for no parallel limits
+/**
+ * Configuration options for the bot's processing behavior.
+ */
+type Config = {
+    /**
+     * The maximum number of tokens that can be processed in parallel.
+     * - If set to `null`, there is no limit on parallel processing.
+     * - If set to a number (e.g., `3`), the bot will process up to that many tokens simultaneously.
+     */
+    maxTokensToProcessInParallel: number | null;
+
+    /**
+     * The amount of SOL to use for buying tokens.
+     * - If set to `null`, the bot will dynamically determine the optimal value based on market conditions.
+     * - If set to a number, it specifies a fixed buy-in amount in SOL.
+     */
+    buyInSol: number | null;
 } & BotConfig;
 
 export type HandlePumpTokenReport = {
@@ -51,19 +66,22 @@ export type HandlePumpTokenReport = {
     endedAt: Date;
 } & BotResponse;
 
+const config: Config = {
+    simulate: true,
+    maxTokensToProcessInParallel: 10,
+    afterResultMonitorWaitPeriodMs: 500,
+    maxWaitMonitorAfterResultMs: 30 * 1e3,
+    buyInSol: 0.4,
+};
+
 (async () => {
     await start();
 })();
 
-const listenConfig: ListenConfig = {
-    simulate: true,
-    maxTokensToProcessInParallel: 1,
-    afterResultMonitorWaitPeriodMs: 500,
-    maxWaitMonitorAfterResultMs: 30 * 1e3,
-};
-
 async function start() {
     startApm();
+
+    logger.info('🚀 Bot started with config=%o', config);
 
     const pumpfun = new Pumpfun({
         rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
@@ -79,35 +97,32 @@ async function start() {
     let balanceInLamports = await solanaAdapter.getBalance(walletInfo.address);
     logger.info(`Started with balance ${lamportsToSol(balanceInLamports)} SOL`);
 
-    logger.info('started listen, maxTokensToProcessInParallel=%s', listenConfig.maxTokensToProcessInParallel);
-
-    balanceInLamports = listenConfig.simulate ? balanceInLamports : await solanaAdapter.getBalance(walletInfo.address);
-
-    logger.info('balance %s SOL', lamportsToSol(balanceInLamports));
+    balanceInLamports = config.simulate ? balanceInLamports : await solanaAdapter.getBalance(walletInfo.address);
 
     const pumpfunListener = new PumpfunQueuedListener(
         logger,
         pumpfun,
-        listenConfig.maxTokensToProcessInParallel,
+        config.maxTokensToProcessInParallel,
         async (identifier, data) => {
             const handleRes = await handlePumpToken(
                 {
                     pumpfun,
+                    solanaAdapter,
                     marketContextProvider,
                 },
                 {
                     identifier: identifier.toString(),
-                    config: listenConfig,
+                    config: config,
                     walletInfo: walletInfo,
                     tokenData: data,
                 },
             );
 
-            if (listenConfig.simulate) {
+            if (config.simulate) {
                 if (handleRes && (handleRes as BotTradeResponse).transactions) {
                     const t = handleRes as BotTradeResponse;
                     balanceInLamports += t.netPnl.inLamports;
-                    logger.info('[%s] Simulated new balance: %s', identifier, lamportsToSol(balanceInLamports));
+                    logger.info('[%s] Simulated new balance: %s SOL', identifier, lamportsToSol(balanceInLamports));
                 }
             }
         },
@@ -116,7 +131,11 @@ async function start() {
 }
 
 async function handlePumpToken(
-    { pumpfun, marketContextProvider }: { pumpfun: Pumpfun; marketContextProvider: PumpfunMarketContextProvider },
+    {
+        pumpfun,
+        solanaAdapter,
+        marketContextProvider,
+    }: { pumpfun: Pumpfun; solanaAdapter: SolanaAdapter; marketContextProvider: PumpfunMarketContextProvider },
     {
         identifier,
         config: c,
@@ -124,7 +143,7 @@ async function handlePumpToken(
         tokenData,
     }: {
         identifier: string;
-        config: ListenConfig;
+        config: Config;
         walletInfo: WalletInfo;
         tokenData: NewPumpFunTokenData;
     },
@@ -154,13 +173,29 @@ async function handlePumpToken(
                 },
             }),
             pumpfun: pumpfun,
+            solanaAdapter: solanaAdapter,
             marketContextProvider: marketContextProvider,
             walletInfo: walletInfo,
             config: c,
         });
 
-        const strategy = new RiseStrategy(logger);
-        const handleRes = await pumpfunBot.run(identifier, initialCoinData, strategy);
+        const strategy = new RiseStrategy(logger, {
+            buy: {
+                holdersCount: { min: 5 },
+                bondingCurveProgress: { min: 15 },
+                devHoldingPercentage: { max: 7 },
+                topTenHoldingPercentage: { max: 6 },
+            },
+            sell: { takeProfitPercentage: 23, trailingStopLossPercentage: 10 },
+            variant: 'hc_5_bcp_15_dhp_7_tthp_6_tslp_10_tpp_23',
+            maxWaitMs: 300000,
+            priorityFeeInSol: 0.005,
+            buySlippageDecimal: 0.25,
+            sellSlippageDecimal: 0.25,
+            buyMonitorWaitPeriodMs: 500,
+            sellMonitorWaitPeriodMs: 200,
+        });
+        const handleRes = await pumpfunBot.run(identifier, initialCoinData, strategy, config.buyInSol);
 
         await fs.writeFileSync(
             ensureDataFolder(`pumpfun-stats/${tokenData.mint}.json`),

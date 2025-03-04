@@ -301,7 +301,7 @@ export default class Pumpfun implements PumpfunListener {
                 boughtAmountRaw: tokenOut,
                 pumpTokenOut: tokenOut,
                 pumpMaxSolCost: maxSolCost,
-                txDetails: simulateSolTransactionDetails(-solInLamports),
+                txDetails: simulateSolTransactionDetails(-solInLamports, solToLamports(priorityFeeInSol)),
             };
         }
     }
@@ -420,6 +420,7 @@ export default class Pumpfun implements PumpfunListener {
                             0.125,
                         ),
                     ),
+                    solToLamports(priorityFeeInSol),
                 ),
             };
         }
@@ -442,11 +443,13 @@ export default class Pumpfun implements PumpfunListener {
     ): Promise<PumpFunCoinData> {
         let coinData: PumpFunCoinData | undefined;
         let retries = 0;
-        let error: Error | undefined;
+        let error: Error | AxiosError | undefined;
+
         do {
             try {
                 coinData = await this.getCoinData(tokenMint);
             } catch (e) {
+                error = e as Error | AxiosError;
                 if (e instanceof AxiosError) {
                     if (e.response?.status === 429) {
                         logger.info(
@@ -458,7 +461,6 @@ export default class Pumpfun implements PumpfunListener {
                     }
                 } else {
                     sleepMs = typeof sleepMs === 'function' ? sleepMs(retries + 1) : sleepMs;
-                    error = e as Error;
                     logger.error(
                         `failed to fetch coin data on retry ${retries}, error: %s. Will retry after sleeping ${sleepMs}`,
                         (e as Error).message,
@@ -472,7 +474,7 @@ export default class Pumpfun implements PumpfunListener {
 
         if (!coinData) {
             throw new Error(
-                `Could not fetch coinData for mint ${tokenMint}, err: ${error?.message}, ${JSON.stringify(error)}`,
+                `Could not fetch coinData for mint ${tokenMint} after ${retries - 1} retries, err: ${error?.message}`,
             );
         }
 

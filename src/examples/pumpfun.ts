@@ -1,4 +1,3 @@
-import { PublicKey } from '@solana/web3.js';
 import dotenv from 'dotenv';
 
 import { measureExecutionTime } from '../apm/apm';
@@ -11,9 +10,7 @@ import {
     PumpfunSellResponse,
 } from '../blockchains/solana/dex/pumpfun/types';
 import { formPumpfunTokenUrl } from '../blockchains/solana/dex/pumpfun/utils';
-import SolanaAdapter from '../blockchains/solana/SolanaAdapter';
 import { TransactionMode } from '../blockchains/solana/types';
-import { solanaConnection } from '../blockchains/solana/utils/connection';
 import solanaMnemonicToKeypair from '../blockchains/solana/utils/solanaMnemonicToKeypair';
 import { logger } from '../logger';
 import { sleep } from '../utils/functions';
@@ -37,7 +34,11 @@ async function start() {
         provider: SolanaWalletProviders.TrustWallet,
     });
 
-    // await sellAllPumpfunTokens();
+    // await sellAllPumpfunTokens({
+    //     pumpfun: pumpfun,
+    //     walletInfo: walletInfo,
+    //     solanaAdapter: new SolanaAdapter(solanaConnection),
+    // });
     // return;
 
     const maxTokensToSnipe = 1;
@@ -120,46 +121,4 @@ async function start() {
             console.error(e);
         }
     });
-
-    /**
-     * Just a utility function to sell automatically all tokens of pumpfun from your wallet
-     * To clean up for tests DON'T USE IT without confirming your balances
-     */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars,no-unused-vars
-    async function sellAllPumpfunTokens() {
-        const solanaAdapter = await new SolanaAdapter(solanaConnection);
-
-        for (const token of await solanaAdapter.getAccountTokens(walletInfo.address)) {
-            if (!token.mint.endsWith('pump') && token.ifpsMetadata?.createdOn !== 'https://pump.fun') {
-                continue;
-            }
-
-            logger.info(
-                `Will sell ${token.name}, ${formPumpfunTokenUrl(token.mint)} amount ${
-                    token.amount
-                } before multiplying with decimals`,
-            );
-
-            const mintAddress = new PublicKey(token.mint);
-            const bondingCurve = await pumpfun.getBondingCurveAddress(mintAddress);
-            const associatedBondingCurve = await pumpfun.getAssociatedBondingCurveAddress(bondingCurve, mintAddress);
-
-            const sellRes = (await measureExecutionTime(
-                () =>
-                    pumpfun.sell({
-                        transactionMode: TransactionMode.Execution,
-                        payerPrivateKey: walletInfo.privateKey,
-                        tokenMint: token.mint,
-                        tokenBondingCurve: bondingCurve.toBase58(),
-                        tokenAssociatedBondingCurve: associatedBondingCurve.toBase58(),
-                        tokenBalance: token.amountRaw,
-                        priorityFeeInSol: 0.002,
-                    }),
-                'pumpfun.sell',
-                { storeImmediately: true },
-            )) as unknown as PumpfunSellResponse;
-
-            logger.info('Sell transaction confirmed. %o', sellRes);
-        }
-    }
 }

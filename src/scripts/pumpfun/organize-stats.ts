@@ -37,7 +37,9 @@ async function organizeFiles() {
         }
 
         let path = `${pumpfunStatsPath}/${content.simulation ? 'simulation' : 'real'}/${content.$schema.version}`;
-        path = `${path}/${content.strategy.name}/${content.strategy.configVariant}`;
+        path = `${path}/${content.strategy.name}/${
+            content.strategy.configVariant === '' ? '_' : content.strategy.configVariant
+        }`;
 
         if ((content as BotTradeResponse).netPnl) {
             const tradeType = (content as BotTradeResponse).netPnl.inLamports > 0 ? 'wins' : 'losses';

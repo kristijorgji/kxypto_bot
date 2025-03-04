@@ -11,6 +11,7 @@ import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunMarketContextProvider from '../../blockchains/solana/dex/pumpfun/PumpfunMarketContextProvider';
 import { NewPumpFunTokenData } from '../../blockchains/solana/dex/pumpfun/types';
 import { formPumpfunTokenUrl } from '../../blockchains/solana/dex/pumpfun/utils';
+import PumpfunQueuedListener from '../../blockchains/solana/dex/PumpfunQueuedListener';
 import SolanaAdapter from '../../blockchains/solana/SolanaAdapter';
 import { WalletInfo } from '../../blockchains/solana/types';
 import { solanaConnection } from '../../blockchains/solana/utils/connection';
@@ -22,7 +23,6 @@ import PumpfunBot from '../../trading/bots/blockchains/solana/PumpfunBot';
 import { BotResponse, BotTradeResponse } from '../../trading/bots/blockchains/solana/types';
 import { BotConfig } from '../../trading/bots/types';
 import RiseStrategy from '../../trading/strategies/launchpads/RiseStrategy';
-import UniqueRandomIntGenerator from '../../utils/data/UniqueRandomIntGenerator';
 import { ensureDataFolder } from '../../utils/storage';
 
 type ListenConfig = {
@@ -65,8 +65,6 @@ const listenConfig: ListenConfig = {
 async function start() {
     startApm();
 
-    const uniqueRandomIntGenerator = new UniqueRandomIntGenerator();
-
     const pumpfun = new Pumpfun({
         rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
         wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
@@ -81,68 +79,40 @@ async function start() {
     let balanceInLamports = await solanaAdapter.getBalance(walletInfo.address);
     logger.info(`Started with balance ${lamportsToSol(balanceInLamports)} SOL`);
 
-    await listen(listenConfig);
+    logger.info('started listen, maxTokensToProcessInParallel=%s', listenConfig.maxTokensToProcessInParallel);
 
-    async function listen(c: ListenConfig) {
-        const identifier = uniqueRandomIntGenerator.next().toString();
-        let processed = 0;
+    balanceInLamports = listenConfig.simulate ? balanceInLamports : await solanaAdapter.getBalance(walletInfo.address);
 
-        logger.info(
-            '[%s] started listen, processed=%s, maxTokensToProcessInParallel=%s',
-            identifier,
-            processed,
-            c.maxTokensToProcessInParallel,
-        );
+    logger.info('balance %s SOL', lamportsToSol(balanceInLamports));
 
-        balanceInLamports = c.simulate ? balanceInLamports : await solanaAdapter.getBalance(walletInfo.address);
-
-        logger.info('[%s] balance %s SOL', identifier, lamportsToSol(balanceInLamports));
-
-        await pumpfun.listenForPumpFunTokens(async data => {
-            if (c.maxTokensToProcessInParallel && processed >= c.maxTokensToProcessInParallel) {
-                logger.info(
-                    '[%s] Returning and stopping listener as we processed already maximum specified tokens %d',
-                    identifier,
-                    c.maxTokensToProcessInParallel,
-                );
-                pumpfun.stopListeningToNewTokens();
-                return;
-            }
-            processed++;
-
+    const pumpfunListener = new PumpfunQueuedListener(
+        logger,
+        pumpfun,
+        listenConfig.maxTokensToProcessInParallel,
+        async (identifier, data) => {
             const handleRes = await handlePumpToken(
                 {
                     pumpfun,
                     marketContextProvider,
                 },
                 {
-                    identifier,
-                    config: c,
-                    walletInfo,
+                    identifier: identifier.toString(),
+                    config: listenConfig,
+                    walletInfo: walletInfo,
                     tokenData: data,
                 },
             );
 
-            if (c.simulate) {
+            if (listenConfig.simulate) {
                 if (handleRes && (handleRes as BotTradeResponse).transactions) {
                     const t = handleRes as BotTradeResponse;
                     balanceInLamports += t.netPnl.inLamports;
                     logger.info('[%s] Simulated new balance: %s', identifier, lamportsToSol(balanceInLamports));
                 }
             }
-
-            if (c.maxTokensToProcessInParallel && processed === c.maxTokensToProcessInParallel) {
-                logger.info(
-                    '[%s] Will return and start listen function again. Processed %d = maxTokensToProcessInParallel %d.',
-                    identifier,
-                    processed,
-                    c.maxTokensToProcessInParallel,
-                );
-
-                return await listen(c);
-            }
-        });
-    }
+        },
+    );
+    await pumpfunListener.startListening();
 }
 
 async function handlePumpToken(

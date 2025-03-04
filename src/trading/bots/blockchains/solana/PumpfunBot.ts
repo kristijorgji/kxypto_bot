@@ -129,6 +129,7 @@ export default class PumpfunBot {
                     this.config.maxWaitMonitorAfterResultMs
                 ) {
                     strategy.resetState();
+                    logger.info('Will return the result now');
                     return result;
                 }
 

@@ -7,3 +7,7 @@ export function getDateSecondsAgo(seconds: number): string {
 
     return date.toISOString().split('T')[0];
 }
+
+export function getSecondsDifference(start: Date, end: Date): number {
+    return Math.abs((end.getTime() - start.getTime()) / 1000);
+}

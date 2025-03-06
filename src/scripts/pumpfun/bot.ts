@@ -24,6 +24,7 @@ import { BotResponse, BotTradeResponse } from '../../trading/bots/blockchains/so
 import { BotConfig } from '../../trading/bots/types';
 import RiseStrategy from '../../trading/strategies/launchpads/RiseStrategy';
 import { ensureDataFolder } from '../../utils/storage';
+import { getSecondsDifference } from '../../utils/time';
 
 /**
  * Configuration options for the bot's processing behavior.
@@ -42,6 +43,13 @@ type Config = {
      * - If set to a number, it specifies a fixed buy-in amount in SOL.
      */
     buyInSol: number | null;
+
+    /**
+     * The amount of full trades.
+     * - If set to a number, the bot will process up to maximum 1 full trade (1 buy, 1 sell)
+     * - If set to `null`, the bot will process trades as long as it has enough balance
+     */
+    maxTrades: number | null;
 } & BotConfig;
 
 export type HandlePumpTokenReport = {
@@ -64,6 +72,11 @@ export type HandlePumpTokenReport = {
     url: string;
     startedAt: Date;
     endedAt: Date;
+    elapsedSeconds: number;
+    monitor: {
+        buyTimeframeMs: number;
+        sellTimeframeMs: number;
+    };
 } & BotResponse;
 
 const config: Config = {
@@ -72,6 +85,7 @@ const config: Config = {
     afterResultMonitorWaitPeriodMs: 500,
     maxWaitMonitorAfterResultMs: 30 * 1e3,
     buyInSol: 0.4,
+    maxTrades: null,
 };
 
 (async () => {
@@ -99,6 +113,8 @@ async function start() {
 
     balanceInLamports = config.simulate ? balanceInLamports : await solanaAdapter.getBalance(walletInfo.address);
 
+    let trades = 0;
+
     const pumpfunListener = new PumpfunQueuedListener(
         logger,
         pumpfun,
@@ -117,6 +133,16 @@ async function start() {
                     tokenData: data,
                 },
             );
+
+            if (handleRes && (handleRes as BotTradeResponse).transactions) {
+                trades++;
+            }
+
+            if (config.maxTrades && trades >= config.maxTrades) {
+                logger.info('Exiting - We reached trades %d >= %d maxTrades', trades, config.maxTrades);
+                await pumpfunListener.stopListening();
+                return;
+            }
 
             if (config.simulate) {
                 if (handleRes && (handleRes as BotTradeResponse).transactions) {
@@ -180,14 +206,17 @@ async function handlePumpToken(
         });
 
         const strategy = new RiseStrategy(logger, {
+            variant: 'hc_15_bcp_20_dhp_10_tthp_5_tslp_10_tpp_30',
             buy: {
-                holdersCount: { min: 5 },
-                bondingCurveProgress: { min: 15 },
-                devHoldingPercentage: { max: 7 },
-                topTenHoldingPercentage: { max: 6 },
+                holdersCount: { min: 15 },
+                bondingCurveProgress: { min: 20 },
+                devHoldingPercentage: { max: 10 },
+                topTenHoldingPercentage: { max: 5 },
             },
-            sell: { takeProfitPercentage: 23, trailingStopLossPercentage: 10 },
-            variant: 'hc_5_bcp_15_dhp_7_tthp_6_tslp_10_tpp_23',
+            sell: {
+                takeProfitPercentage: 30,
+                trailingStopLossPercentage: 10,
+            },
             maxWaitMs: 300000,
             priorityFeeInSol: 0.005,
             buySlippageDecimal: 0.25,
@@ -197,12 +226,13 @@ async function handlePumpToken(
         });
         const handleRes = await pumpfunBot.run(identifier, initialCoinData, strategy, config.buyInSol);
 
+        const endedAt = new Date();
         await fs.writeFileSync(
             ensureDataFolder(`pumpfun-stats/${tokenData.mint}.json`),
             JSON.stringify(
                 {
                     $schema: {
-                        version: 1.05,
+                        version: 1.06,
                     },
                     simulation: c.simulate,
                     strategy: {
@@ -214,7 +244,12 @@ async function handlePumpToken(
                     name: tokenData.name,
                     url: formPumpfunTokenUrl(tokenData.mint),
                     startedAt: startedAt,
-                    endedAt: new Date(),
+                    endedAt: endedAt,
+                    elapsedSeconds: getSecondsDifference(startedAt, endedAt),
+                    monitor: {
+                        buyTimeframeMs: strategy.config.buyMonitorWaitPeriodMs,
+                        sellTimeframeMs: strategy.config.sellMonitorWaitPeriodMs,
+                    },
                     ...handleRes,
                 } as HandlePumpTokenReport,
                 null,

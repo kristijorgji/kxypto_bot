@@ -67,7 +67,6 @@ export default class PumpfunBot {
         listenerId: string,
         tokenInfo: PumpfunInitialCoinData,
         strategy: LaunchpadBotStrategy,
-        buyInSol: number | null,
     ): Promise<BotResponse> {
         const tokenMint = tokenInfo.mint;
         const logger = this.logger.child({
@@ -82,7 +81,7 @@ export default class PumpfunBot {
         }
         this.inProgress = true;
 
-        let sleepIntervalMs = strategy.config.buyMonitorWaitPeriodMs; // sleep interval between fetching new stats, price, holders etc. We can keep it higher before buying to save RPC calls and reduce when want to sell and monitor faster
+        let sleepIntervalMs = this.config.buyMonitorWaitPeriodMs; // sleep interval between fetching new stats, price, holders etc. We can keep it higher before buying to save RPC calls and reduce when want to sell and monitor faster
         const startTimestamp = Date.now();
         let intervalsMonitoredAfterResult = 0;
         let initialMarketCap = -1;
@@ -136,13 +135,13 @@ export default class PumpfunBot {
                 if (intervalsMonitoredAfterResult === 0) {
                     logger.info(
                         'We have the result already and are going to monitor %s seconds more',
-                        this.config.maxWaitMonitorAfterResultMs / 1000,
+                        this.config.buyMonitorWaitPeriodMs / 1000,
                     );
                 }
 
                 if (
                     intervalsMonitoredAfterResult * this.config.afterResultMonitorWaitPeriodMs >=
-                    this.config.maxWaitMonitorAfterResultMs
+                    this.config.buyMonitorWaitPeriodMs
                 ) {
                     logger.info(
                         'Finished handling token - will return the result of type %s',
@@ -243,7 +242,7 @@ export default class PumpfunBot {
                     marketCapInSol: marketCapInSol,
                 };
                 // TODO calculate dynamically based on the situation if it is not provided
-                const inSol = buyInSol ?? 0.4;
+                const inSol = this.config.buyInSol ?? 0.4;
                 const buyPriorityFeeInSol =
                     strategy.config.buyPriorityFeeInSol ?? strategy.config.priorityFeeInSol ?? DefaultPriorityFeeSol;
                 measureExecutionTime(
@@ -288,7 +287,7 @@ export default class PumpfunBot {
                          * TODO calculate real buy price based on buyRes details and set up the limits accordingly
                          */
                         strategy.afterBuy(dataAtBuyTime.priceInSol, buyPosition);
-                        sleepIntervalMs = strategy.config.sellMonitorWaitPeriodMs;
+                        sleepIntervalMs = this.config.sellMonitorWaitPeriodMs;
 
                         logger.info(
                             'Bought successfully %s amountRaw for %s sol. buyRes=%o',

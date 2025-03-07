@@ -40,7 +40,7 @@ async function findBestStrategy() {
     const backtester = new PumpfunBacktester(logger);
 
     const pumpfunStatsPath = formDataFolder('pumpfun-stats');
-    const files = walkDirFilesSyncRecursive(pumpfunStatsPath);
+    const files = walkDirFilesSyncRecursive(pumpfunStatsPath).filter(el => el.fullPath.includes('no_trade'));
     let tested = 0;
 
     const strategies: LaunchpadBotStrategy[] = [new RiseStrategy(silentLogger), new StupidSniperStrategy(silentLogger)];

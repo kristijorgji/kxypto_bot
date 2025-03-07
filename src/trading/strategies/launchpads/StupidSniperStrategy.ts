@@ -19,8 +19,6 @@ export default class StupidSniperStrategy extends LimitsBasedStrategy {
     `;
 
     readonly config: StrategyConfig<ConfigExtra> = {
-        buyMonitorWaitPeriodMs: 500,
-        sellMonitorWaitPeriodMs: 200,
         maxWaitMs: 5 * 60 * 1e3,
         buySlippageDecimal: 0.25,
         sellSlippageDecimal: 0.25,

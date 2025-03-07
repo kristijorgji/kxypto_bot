@@ -2,8 +2,6 @@ import { MarketContext } from '../bots/launchpads/types';
 
 export type StrategyConfig<C = Record<string, unknown>> = {
     variant?: string;
-    buyMonitorWaitPeriodMs: number;
-    sellMonitorWaitPeriodMs: number;
     /**
      * don't waste time on a token anymore if there is no increase until this time is reached
      */

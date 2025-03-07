@@ -38,13 +38,6 @@ type Config = {
     maxTokensToProcessInParallel: number | null;
 
     /**
-     * The amount of SOL to use for buying tokens.
-     * - If set to `null`, the bot will dynamically determine the optimal value based on market conditions.
-     * - If set to a number, it specifies a fixed buy-in amount in SOL.
-     */
-    buyInSol: number | null;
-
-    /**
      * The amount of full trades.
      * - If set to a number, the bot will process up to maximum 1 full trade (1 buy, 1 sell)
      * - If set to `null`, the bot will process trades as long as it has enough balance
@@ -82,8 +75,9 @@ export type HandlePumpTokenReport = {
 const config: Config = {
     simulate: true,
     maxTokensToProcessInParallel: 10,
+    buyMonitorWaitPeriodMs: 500,
+    sellMonitorWaitPeriodMs: 250,
     afterResultMonitorWaitPeriodMs: 500,
-    maxWaitMonitorAfterResultMs: 30 * 1e3,
     buyInSol: 0.4,
     maxTrades: null,
 };
@@ -221,10 +215,8 @@ async function handlePumpToken(
             priorityFeeInSol: 0.005,
             buySlippageDecimal: 0.25,
             sellSlippageDecimal: 0.25,
-            buyMonitorWaitPeriodMs: 500,
-            sellMonitorWaitPeriodMs: 200,
         });
-        const handleRes = await pumpfunBot.run(identifier, initialCoinData, strategy, config.buyInSol);
+        const handleRes = await pumpfunBot.run(identifier, initialCoinData, strategy);
 
         const endedAt = new Date();
         await fs.writeFileSync(
@@ -247,8 +239,8 @@ async function handlePumpToken(
                     endedAt: endedAt,
                     elapsedSeconds: getSecondsDifference(startedAt, endedAt),
                     monitor: {
-                        buyTimeframeMs: strategy.config.buyMonitorWaitPeriodMs,
-                        sellTimeframeMs: strategy.config.sellMonitorWaitPeriodMs,
+                        buyTimeframeMs: config.buyMonitorWaitPeriodMs,
+                        sellTimeframeMs: config.sellMonitorWaitPeriodMs,
                     },
                     ...handleRes,
                 } as HandlePumpTokenReport,

@@ -1,5 +1,6 @@
 import { Logger } from 'winston';
 
+import PumpfunBotEventBus from './PumpfunBotEventBus';
 import {
     BotExitResponse,
     BotResponse,
@@ -17,7 +18,8 @@ import {
     sellPumpfunTokensWithRetries,
 } from '../../../../blockchains/solana/dex/pumpfun/utils';
 import SolanaAdapter from '../../../../blockchains/solana/SolanaAdapter';
-import { TransactionMode, WalletInfo } from '../../../../blockchains/solana/types';
+import { TransactionMode } from '../../../../blockchains/solana/types';
+import Wallet from '../../../../blockchains/solana/Wallet';
 import { lamportsToSol, solToLamports } from '../../../../blockchains/utils/amount';
 import { sleep } from '../../../../utils/functions';
 import LaunchpadBotStrategy from '../../../strategies/launchpads/LaunchpadBotStrategy';
@@ -31,32 +33,43 @@ export default class PumpfunBot {
     private readonly pumpfun: Pumpfun;
     private readonly solanaAdapter: SolanaAdapter;
     private readonly marketContextProvider: PumpfunMarketContextProvider;
-    private readonly walletInfo: WalletInfo;
+    private readonly wallet: Wallet;
     private readonly config: BotConfig;
+    private readonly botEventBus: PumpfunBotEventBus;
 
-    private inProgress: boolean = false;
+    private identifier: string = '';
+    private isRunning: boolean = false;
 
     constructor({
         logger,
         pumpfun,
         solanaAdapter,
         marketContextProvider,
-        walletInfo,
+        wallet,
         config,
+        botEventBus,
     }: {
         logger: Logger;
         pumpfun: Pumpfun;
         solanaAdapter: SolanaAdapter;
         marketContextProvider: PumpfunMarketContextProvider;
-        walletInfo: WalletInfo;
+        wallet: Wallet;
         config: BotConfig;
+        botEventBus: PumpfunBotEventBus;
     }) {
+        if (this.config.buyMonitorWaitPeriodMs % this.config.sellMonitorWaitPeriodMs !== 0) {
+            throw new Error('buyMonitorWaitPeriodMs must be a multiple of sellMonitorWaitPeriodMs.');
+        }
+
         this.logger = logger;
         this.pumpfun = pumpfun;
         this.solanaAdapter = solanaAdapter;
         this.marketContextProvider = marketContextProvider;
-        this.walletInfo = walletInfo;
+        this.wallet = wallet;
         this.config = config;
+        this.botEventBus = botEventBus;
+
+        this.botEventBus.onStopBot(() => this.stopBot());
     }
 
     /**
@@ -68,6 +81,7 @@ export default class PumpfunBot {
         tokenInfo: PumpfunInitialCoinData,
         strategy: LaunchpadBotStrategy,
     ): Promise<BotResponse> {
+        this.identifier = listenerId;
         const tokenMint = tokenInfo.mint;
         const logger = this.logger.child({
             contextMap: {
@@ -76,10 +90,10 @@ export default class PumpfunBot {
             },
         });
 
-        if (this.inProgress) {
+        if (this.isRunning) {
             throw new Error('Bot is already running!');
         }
-        this.inProgress = true;
+        this.isRunning = true;
 
         let sleepIntervalMs = this.config.buyMonitorWaitPeriodMs; // sleep interval between fetching new stats, price, holders etc. We can keep it higher before buying to save RPC calls and reduce when want to sell and monitor faster
         const startTimestamp = Date.now();
@@ -97,7 +111,7 @@ export default class PumpfunBot {
         const history: HistoryEntry[] = [];
         let result: BotResponse | undefined;
 
-        while (true) {
+        while (this.isRunning || strategy.buyPosition || sellInProgress || buyInProgress) {
             const elapsedMonitoringMs = Date.now() - startTimestamp;
             const actionInProgress = buyInProgress || sellInProgress;
 
@@ -132,29 +146,26 @@ export default class PumpfunBot {
              * These data will serve to further debug and backtest if our decision was correct or not
              */
             if (result) {
+                const afterResultMonitorWaitPeriodMs = this.config.buyMonitorWaitPeriodMs;
+
                 if (intervalsMonitoredAfterResult === 0) {
                     logger.info(
                         'We have the result already and are going to monitor %s seconds more',
-                        this.config.buyMonitorWaitPeriodMs / 1000,
+                        this.config.maxWaitMonitorAfterResultMs / 1000,
                     );
                 }
 
                 if (
-                    intervalsMonitoredAfterResult * this.config.afterResultMonitorWaitPeriodMs >=
-                    this.config.buyMonitorWaitPeriodMs
+                    intervalsMonitoredAfterResult * afterResultMonitorWaitPeriodMs >=
+                    this.config.maxWaitMonitorAfterResultMs
                 ) {
-                    logger.info(
-                        'Finished handling token - will return the result of type %s',
-                        (result as BotTradeResponse)?.transactions
-                            ? `BotTradeResponse, netPnl=${(result as BotTradeResponse).netPnl.inSol} SOL`
-                            : `BotExitResponse, exitCode=${(result as BotExitResponse).exitCode}`,
-                    );
+                    this.logResult(logger, result);
                     strategy.resetState();
                     return result;
                 }
 
                 intervalsMonitoredAfterResult++;
-                await sleep(this.config.afterResultMonitorWaitPeriodMs);
+                await sleep(afterResultMonitorWaitPeriodMs);
             }
 
             if (initialMarketCap === -1) {
@@ -251,7 +262,7 @@ export default class PumpfunBot {
                             transactionMode: this.config.simulate
                                 ? TransactionMode.Simulation
                                 : TransactionMode.Execution,
-                            payerPrivateKey: this.walletInfo.privateKey,
+                            payerPrivateKey: this.wallet.privateKey,
                             tokenMint: tokenMint,
                             tokenBondingCurve: tokenInfo.bondingCurve,
                             tokenAssociatedBondingCurve: tokenInfo.associatedBondingCurve,
@@ -282,6 +293,7 @@ export default class PumpfunBot {
                                 pumpTokenOut: buyRes.pumpTokenOut,
                             },
                         };
+                        this.botEventBus.tradeExecuted(buyPosition);
                         /**
                          * The longer the buy transaction takes the more likely price has changed, so need to put limit orders with most closely price to the one used to buy
                          * TODO calculate real buy price based on buyRes details and set up the limits accordingly
@@ -308,7 +320,7 @@ export default class PumpfunBot {
                         const fallbackSell = async () =>
                             await sellPumpfunTokensWithRetries({
                                 pumpfun: this.pumpfun,
-                                walletInfo: this.walletInfo,
+                                wallet: this.wallet,
                                 solanaAdapter: this.solanaAdapter,
                                 mint: tokenMint,
                                 retryConfig: {
@@ -346,7 +358,7 @@ export default class PumpfunBot {
                             transactionMode: this.config.simulate
                                 ? TransactionMode.Simulation
                                 : TransactionMode.Execution,
-                            payerPrivateKey: this.walletInfo.privateKey,
+                            payerPrivateKey: this.wallet.privateKey,
                             tokenMint: tokenMint,
                             tokenBondingCurve: tokenInfo.bondingCurve,
                             tokenAssociatedBondingCurve: tokenInfo.associatedBondingCurve,
@@ -384,6 +396,7 @@ export default class PumpfunBot {
                                 pumpMinLamportsOutput: sellRes.minLamportsOutput,
                             },
                         };
+                        this.botEventBus.tradeExecuted(sellPosition);
 
                         const pnlLamports =
                             dataAtSellTime.buyPosition.netTransferredLamports + sellPosition.netTransferredLamports;
@@ -396,6 +409,7 @@ export default class PumpfunBot {
                             transactions: [dataAtSellTime.buyPosition, sellPosition],
                             history: history,
                         };
+                        this.botEventBus.botTradeResponse(result);
 
                         strategy.afterSell();
                     })
@@ -412,5 +426,29 @@ export default class PumpfunBot {
 
             await sleep(sleepIntervalMs);
         }
+
+        logger.info('Bot stopped - will return the current result');
+        result = result ?? {
+            exitCode: 'STOPPED',
+            exitReason: 'The bot was requested to stop',
+            history: history,
+        };
+        this.logResult(logger, result);
+
+        return result;
+    }
+
+    stopBot() {
+        this.logger.info('[%s] Bot is stopping...', this.identifier);
+        this.isRunning = false;
+    }
+
+    private logResult(logger: Logger, result: BotResponse): void {
+        logger.info(
+            'Finished handling token - will return the result of type %s',
+            (result as BotTradeResponse)?.transactions
+                ? `BotTradeResponse, netPnl=${(result as BotTradeResponse).netPnl.inSol} SOL`
+                : `BotExitResponse, exitCode=${(result as BotExitResponse).exitCode}`,
+        );
     }
 }

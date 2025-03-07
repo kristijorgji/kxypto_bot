@@ -4,6 +4,7 @@ import { NewPumpFunTokenData, PumpfunListener } from './pumpfun/types';
 
 export default class PumpfunQueuedListener {
     private isListening = false;
+    private forceStopped = false;
     private inProgress = 0;
     private taskIndex: number = 0;
 
@@ -20,20 +21,25 @@ export default class PumpfunQueuedListener {
     }
 
     async startListening() {
-        if (this.isListening) {
+        if (this.isListening || this.forceStopped) {
             return;
         }
         this.isListening = true;
         this.logger.info('[%s] - Listening for new tokens...', PumpfunQueuedListener.name);
 
         await this.pumpfun.listenForPumpFunTokens(async data => {
+            if (this.forceStopped) {
+                this.logger.info('[%s] - Ignoring new token because forceStopped=true', PumpfunQueuedListener.name);
+                return;
+            }
+
             if (this.maxConcurrent && this.inProgress >= this.maxConcurrent) {
                 this.logger.info(
                     '[%s] - Max tokens in progress %d, stopping listener...',
                     PumpfunQueuedListener.name,
                     this.maxConcurrent,
                 );
-                await this.stopListening();
+                await this.stopListening(false);
                 return;
             }
 
@@ -41,19 +47,28 @@ export default class PumpfunQueuedListener {
 
             this.processToken(this.taskIndex++, data).finally(() => {
                 this.inProgress--;
-                if (!this.isListening && (this.maxConcurrent === null || this.inProgress < this.maxConcurrent)) {
+                if (
+                    !this.forceStopped &&
+                    !this.isListening &&
+                    (this.maxConcurrent === null || this.inProgress < this.maxConcurrent)
+                ) {
                     this.startListening();
                 }
             });
         });
     }
 
-    async stopListening() {
+    async stopListening(force: boolean) {
+        this.forceStopped = force;
         if (!this.isListening) {
             return;
         }
         this.isListening = false;
         await this.pumpfun.stopListeningToNewTokens();
-        this.logger.info('[%s] - Stopped listening.', PumpfunQueuedListener.name);
+        this.logger.info('[%s] - Stopped listening force=%s.', PumpfunQueuedListener.name, force);
+    }
+
+    isDone(): boolean {
+        return !this.isListening && this.forceStopped && this.inProgress === 0;
     }
 }

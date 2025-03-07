@@ -13,16 +13,19 @@ import { NewPumpFunTokenData } from '../../blockchains/solana/dex/pumpfun/types'
 import { formPumpfunTokenUrl } from '../../blockchains/solana/dex/pumpfun/utils';
 import PumpfunQueuedListener from '../../blockchains/solana/dex/PumpfunQueuedListener';
 import SolanaAdapter from '../../blockchains/solana/SolanaAdapter';
-import { WalletInfo } from '../../blockchains/solana/types';
 import { solanaConnection } from '../../blockchains/solana/utils/connection';
-import solanaMnemonicToKeypair from '../../blockchains/solana/utils/solanaMnemonicToKeypair';
+import Wallet from '../../blockchains/solana/Wallet';
 import { lamportsToSol } from '../../blockchains/utils/amount';
+import { db } from '../../db/knex';
 import { pumpfunRepository } from '../../db/repositories/PumpfunRepository';
 import { logger } from '../../logger';
 import PumpfunBot from '../../trading/bots/blockchains/solana/PumpfunBot';
+import PumpfunBotEventBus from '../../trading/bots/blockchains/solana/PumpfunBotEventBus';
+import PumpfunBotsTradeManager from '../../trading/bots/blockchains/solana/PumpfunBotsTradeManager';
 import { BotResponse, BotTradeResponse } from '../../trading/bots/blockchains/solana/types';
 import { BotConfig } from '../../trading/bots/types';
 import RiseStrategy from '../../trading/strategies/launchpads/RiseStrategy';
+import { sleep } from '../../utils/functions';
 import { ensureDataFolder } from '../../utils/storage';
 import { getSecondsDifference } from '../../utils/time';
 
@@ -42,7 +45,14 @@ type Config = {
      * - If set to a number, the bot will process up to maximum 1 full trade (1 buy, 1 sell)
      * - If set to `null`, the bot will process trades as long as it has enough balance
      */
-    maxTrades: number | null;
+    maxFullTrades: number | null;
+
+    /**
+     * Stop bots if this minimum balance is reached
+     * - If set to a number, the bots will stop when this balance or lower is reached
+     * - If set to `null`, the bot will process trades as long as it has enough balance
+     */
+    stopAtMinWalletBalanceLamports: number | null;
 } & BotConfig;
 
 export type HandlePumpTokenReport = {
@@ -77,9 +87,10 @@ const config: Config = {
     maxTokensToProcessInParallel: 10,
     buyMonitorWaitPeriodMs: 500,
     sellMonitorWaitPeriodMs: 250,
-    afterResultMonitorWaitPeriodMs: 500,
+    maxWaitMonitorAfterResultMs: 30 * 1e3,
     buyInSol: 0.4,
-    maxTrades: null,
+    maxFullTrades: null,
+    stopAtMinWalletBalanceLamports: null,
 };
 
 (async () => {
@@ -98,16 +109,19 @@ async function start() {
     const solanaAdapter = new SolanaAdapter(solanaConnection);
     const marketContextProvider = new PumpfunMarketContextProvider(pumpfun, solanaAdapter);
 
-    const walletInfo = await solanaMnemonicToKeypair(process.env.WALLET_MNEMONIC_PHRASE as string, {
+    const wallet = await new Wallet(solanaConnection, {
         provider: SolanaWalletProviders.TrustWallet,
+        mnemonic: process.env.WALLET_MNEMONIC_PHRASE as string,
+    }).init(config.simulate);
+
+    logger.info(`Started with balance ${lamportsToSol(await wallet.getBalanceLamports())} SOL`);
+
+    const botEventBus = new PumpfunBotEventBus();
+    // eslint-disable-next-line no-new
+    new PumpfunBotsTradeManager(logger, botEventBus, wallet, {
+        maxFullTrades: config.maxFullTrades,
+        minWalletBalanceLamports: config.stopAtMinWalletBalanceLamports,
     });
-
-    let balanceInLamports = await solanaAdapter.getBalance(walletInfo.address);
-    logger.info(`Started with balance ${lamportsToSol(balanceInLamports)} SOL`);
-
-    balanceInLamports = config.simulate ? balanceInLamports : await solanaAdapter.getBalance(walletInfo.address);
-
-    let trades = 0;
 
     const pumpfunListener = new PumpfunQueuedListener(
         logger,
@@ -119,35 +133,42 @@ async function start() {
                     pumpfun,
                     solanaAdapter,
                     marketContextProvider,
+                    botEventBus: botEventBus,
                 },
                 {
                     identifier: identifier.toString(),
                     config: config,
-                    walletInfo: walletInfo,
+                    wallet: wallet,
                     tokenData: data,
                 },
             );
 
-            if (handleRes && (handleRes as BotTradeResponse).transactions) {
-                trades++;
-            }
-
-            if (config.maxTrades && trades >= config.maxTrades) {
-                logger.info('Exiting - We reached trades %d >= %d maxTrades', trades, config.maxTrades);
-                await pumpfunListener.stopListening();
-                return;
-            }
-
             if (config.simulate) {
                 if (handleRes && (handleRes as BotTradeResponse).transactions) {
-                    const t = handleRes as BotTradeResponse;
-                    balanceInLamports += t.netPnl.inLamports;
-                    logger.info('[%s] Simulated new balance: %s SOL', identifier, lamportsToSol(balanceInLamports));
+                    logger.info(
+                        '[%s] Simulated new balance: %s SOL',
+                        identifier,
+                        lamportsToSol(await wallet.getBalanceLamports()),
+                    );
                 }
             }
         },
     );
-    await pumpfunListener.startListening();
+
+    botEventBus.onStopBot(async () => {
+        logger.info('bot - onStopBot asking pumpfunQueuedListener to stop');
+        await pumpfunListener.stopListening(true);
+    });
+
+    pumpfunListener.startListening();
+
+    while (!pumpfunListener.isDone()) {
+        await sleep(500);
+    }
+    await sleep(1e4);
+    logger.info('We are done. The listener is force stopped and all items are processed');
+    logger.info('Balance: %s SOL', lamportsToSol(await wallet.getBalanceLamports()));
+    await db.destroy();
 }
 
 async function handlePumpToken(
@@ -155,16 +176,22 @@ async function handlePumpToken(
         pumpfun,
         solanaAdapter,
         marketContextProvider,
-    }: { pumpfun: Pumpfun; solanaAdapter: SolanaAdapter; marketContextProvider: PumpfunMarketContextProvider },
+        botEventBus,
+    }: {
+        pumpfun: Pumpfun;
+        solanaAdapter: SolanaAdapter;
+        marketContextProvider: PumpfunMarketContextProvider;
+        botEventBus: PumpfunBotEventBus;
+    },
     {
         identifier,
         config: c,
-        walletInfo,
+        wallet,
         tokenData,
     }: {
         identifier: string;
         config: Config;
-        walletInfo: WalletInfo;
+        wallet: Wallet;
         tokenData: NewPumpFunTokenData;
     },
 ): Promise<BotResponse | null> {
@@ -195,8 +222,9 @@ async function handlePumpToken(
             pumpfun: pumpfun,
             solanaAdapter: solanaAdapter,
             marketContextProvider: marketContextProvider,
-            walletInfo: walletInfo,
+            wallet: wallet,
             config: c,
+            botEventBus: botEventBus,
         });
 
         const strategy = new RiseStrategy(logger, {

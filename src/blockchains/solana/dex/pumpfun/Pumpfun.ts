@@ -155,7 +155,9 @@ export default class Pumpfun implements PumpfunListener {
         this.listeningToNewTokens = false;
         if (this.ws) {
             this.ws.removeAllListeners();
-            this.ws.close();
+            if (this.ws.readyState === WebSocket.OPEN) {
+                this.ws.close();
+            }
             this.ws = undefined;
         }
     }

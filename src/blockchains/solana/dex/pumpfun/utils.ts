@@ -10,7 +10,8 @@ import { logger } from '../../../../logger';
 import { sleep } from '../../../../utils/functions';
 import { solToLamports } from '../../../utils/amount';
 import SolanaAdapter from '../../SolanaAdapter';
-import { TransactionMode, WalletInfo } from '../../types';
+import { TransactionMode } from '../../types';
+import Wallet from '../../Wallet';
 
 export function formPumpfunTokenUrl(mint: string): string {
     return `https://pump.fun/coin/${mint}`;
@@ -54,16 +55,16 @@ export function calculatePumpTokenLamportsValue(amountRaw: number, priceInSol: n
  */
 export async function sellPumpfunTokens({
     pumpfun,
-    walletInfo,
+    wallet,
     solanaAdapter,
     mint,
 }: {
     pumpfun: Pumpfun;
-    walletInfo: WalletInfo;
+    wallet: Wallet;
     solanaAdapter: SolanaAdapter;
     mint?: string;
 }) {
-    for (const token of await solanaAdapter.getAccountTokens(walletInfo.address)) {
+    for (const token of await solanaAdapter.getAccountTokens(wallet.address)) {
         if (!token.mint.endsWith('pump') && token.ifpsMetadata?.createdOn !== 'https://pump.fun') {
             continue;
         }
@@ -86,7 +87,7 @@ export async function sellPumpfunTokens({
             () =>
                 pumpfun.sell({
                     transactionMode: TransactionMode.Execution,
-                    payerPrivateKey: walletInfo.privateKey,
+                    payerPrivateKey: wallet.privateKey,
                     tokenMint: token.mint,
                     tokenBondingCurve: bondingCurve.toBase58(),
                     tokenAssociatedBondingCurve: associatedBondingCurve.toBase58(),
@@ -103,13 +104,13 @@ export async function sellPumpfunTokens({
 
 export async function sellPumpfunTokensWithRetries({
     pumpfun,
-    walletInfo,
+    wallet,
     solanaAdapter,
     mint,
     retryConfig,
 }: {
     pumpfun: Pumpfun;
-    walletInfo: WalletInfo;
+    wallet: Wallet;
     solanaAdapter: SolanaAdapter;
     mint: string | undefined;
     retryConfig: {
@@ -125,7 +126,7 @@ export async function sellPumpfunTokensWithRetries({
         try {
             await sellPumpfunTokens({
                 pumpfun: pumpfun,
-                walletInfo: walletInfo,
+                wallet: wallet,
                 solanaAdapter: solanaAdapter,
                 mint: mint,
             });

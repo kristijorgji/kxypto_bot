@@ -23,9 +23,9 @@ export type BotConfig = {
     sellMonitorWaitPeriodMs: number;
 
     /**
-     * The interval (in milliseconds) to wait after a result is processed before returning the result.
+     * The time (in milliseconds) to wait after a result is processed before returning the result.
      */
-    afterResultMonitorWaitPeriodMs: number;
+    maxWaitMonitorAfterResultMs: number;
 
     /**
      * The amount of SOL to use for buying tokens.
@@ -49,7 +49,7 @@ export type DoSellResponse = {
 
 export type ShouldSellResponse = false | DoSellResponse;
 
-export type ExitMonitoringReason = 'NO_PUMP' | 'DUMPED';
+export type ExitMonitoringReason = 'NO_PUMP' | 'DUMPED' | 'STOPPED';
 
 export type ShouldExitMonitoringResponse =
     | false

@@ -85,6 +85,9 @@ async function start() {
                         solIn: inSol,
                         slippageDecimal: 0.5,
                         priorityFeeInSol: 0.002,
+                        jitoConfig: {
+                            jitoEnabled: true,
+                        },
                     }),
                 'pumpfun.buy',
                 { storeImmediately: true },
@@ -111,6 +114,9 @@ async function start() {
                         slippageDecimal: 0.5,
                         tokenBalance: buyRes.boughtAmountRaw,
                         priorityFeeInSol: 0.002,
+                        jitoConfig: {
+                            jitoEnabled: true,
+                        },
                     }),
                 'pumpfun.sell',
                 { storeImmediately: true },

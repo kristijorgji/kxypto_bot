@@ -228,15 +228,15 @@ async function handlePumpToken(
         });
 
         const strategy = new RiseStrategy(logger, {
-            variant: 'hc_15_bcp_20_dhp_10_tthp_5_tslp_10_tpp_30',
+            variant: 'hc_15_bcp_25_dhp_7_tthp_5_tslp_10_tpp_17',
             buy: {
                 holdersCount: { min: 15 },
-                bondingCurveProgress: { min: 20 },
-                devHoldingPercentage: { max: 10 },
+                bondingCurveProgress: { min: 25 },
+                devHoldingPercentage: { max: 7 },
                 topTenHoldingPercentage: { max: 5 },
             },
             sell: {
-                takeProfitPercentage: 30,
+                takeProfitPercentage: 17,
                 trailingStopLossPercentage: 10,
             },
             maxWaitMs: 300000,

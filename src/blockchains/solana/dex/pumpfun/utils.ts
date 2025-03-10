@@ -5,6 +5,7 @@ import { pumpCoinDataToInitialCoinData } from './mappers/mappers';
 import Pumpfun from './Pumpfun';
 import { PumpfunInitialCoinData, PumpfunSellResponse } from './types';
 import { measureExecutionTime } from '../../../../apm/apm';
+import { RetryConfig } from '../../../../core/types';
 import PumpfunRepository, { pumpfunRepository } from '../../../../db/repositories/PumpfunRepository';
 import { logger } from '../../../../logger';
 import { sleep } from '../../../../utils/functions';
@@ -113,10 +114,7 @@ export async function sellPumpfunTokensWithRetries({
     wallet: Wallet;
     solanaAdapter: SolanaAdapter;
     mint: string | undefined;
-    retryConfig: {
-        maxRetries: number;
-        sleepMs: number | ((retryCount: number) => number);
-    };
+    retryConfig: RetryConfig;
 }) {
     let { maxRetries, sleepMs } = retryConfig;
     let retries = 0;

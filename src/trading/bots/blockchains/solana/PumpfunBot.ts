@@ -57,7 +57,7 @@ export default class PumpfunBot {
         config: BotConfig;
         botEventBus: PumpfunBotEventBus;
     }) {
-        if (this.config.buyMonitorWaitPeriodMs % this.config.sellMonitorWaitPeriodMs !== 0) {
+        if (config.buyMonitorWaitPeriodMs % config.sellMonitorWaitPeriodMs !== 0) {
             throw new Error('buyMonitorWaitPeriodMs must be a multiple of sellMonitorWaitPeriodMs.');
         }
 
@@ -269,6 +269,9 @@ export default class PumpfunBot {
                             solIn: inSol,
                             priorityFeeInSol: buyPriorityFeeInSol,
                             slippageDecimal: strategy.config.buySlippageDecimal,
+                            jitoConfig: {
+                                jitoEnabled: true,
+                            },
                         }),
                     `pumpfun.buy_${buyPriorityFeeInSol}${this.config.simulate ? '_simulation' : ''}`,
                     { storeImmediately: true },
@@ -365,6 +368,9 @@ export default class PumpfunBot {
                             tokenBalance: strategy.buyPosition!.amountRaw,
                             priorityFeeInSol: sellPriorityFeeInSol,
                             slippageDecimal: strategy.config.sellSlippageDecimal,
+                            jitoConfig: {
+                                jitoEnabled: true,
+                            },
                         }),
                     `pumpfun.sell_${sellPriorityFeeInSol}${this.config.simulate ? '_simulation' : ''}`,
                     { storeImmediately: true },

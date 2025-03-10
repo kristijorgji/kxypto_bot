@@ -1,14 +1,7 @@
 import { deserializeMetadata } from '@metaplex-foundation/mpl-token-metadata';
 import { RpcAccount } from '@metaplex-foundation/umi';
 import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } from '@solana/spl-token';
-import {
-    AccountMeta,
-    Connection,
-    PublicKey,
-    Transaction,
-    TransactionInstruction,
-    sendAndConfirmTransaction,
-} from '@solana/web3.js';
+import { AccountMeta, Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
 import axios, { AxiosError } from 'axios';
 import BN from 'bn.js';
 import bs58 from 'bs58';
@@ -36,14 +29,16 @@ import {
     PumpfunSellResponse,
     PumpfunTokenBcStats,
 } from './types';
+import { RetryConfig } from '../../../../core/types';
 import { logger } from '../../../../logger';
 import { bufferFromUInt64 } from '../../../../utils/data/data';
 import { sleep } from '../../../../utils/functions';
 import { computeSimulatedLatencyNs } from '../../../../utils/simulations';
 import { lamportsToSol, solToLamports } from '../../../utils/amount';
+import { JitoConfig } from '../../Jito';
 import { getMetadataPDA } from '../../SolanaAdapter';
 import { TransactionMode, WssMessage } from '../../types';
-import { createTransaction, getKeyPairFromPrivateKey } from '../../utils/helpers';
+import { DEFAULT_COMMITMENT, DEFAULT_FINALITY, getKeyPairFromPrivateKey, sendTx } from '../../utils/helpers';
 import { simulatePriceWithLowerSlippage, simulateSolTransactionDetails } from '../../utils/simulations';
 import { getTokenIfpsMetadata } from '../../utils/tokens';
 import { getSolTransactionDetails } from '../../utils/transactions';
@@ -69,6 +64,11 @@ export default class Pumpfun implements PumpfunListener {
 
     private listeningToNewTokens = false;
     private ws: WebSocket | undefined;
+
+    private static readonly getTxDetailsRetryConfig: RetryConfig = {
+        maxRetries: 5,
+        sleepMs: 250,
+    };
 
     constructor(private readonly config: { rpcEndpoint: string; wsEndpoint: string }) {
         this.connection = new Connection(this.config.rpcEndpoint, 'confirmed');
@@ -200,6 +200,7 @@ export default class Pumpfun implements PumpfunListener {
         solIn,
         priorityFeeInSol = Pumpfun.defaultPriorityInSol,
         slippageDecimal = Pumpfun.defaultSlippageDecimal,
+        jitoConfig,
     }: {
         transactionMode: TransactionMode;
         payerPrivateKey: string;
@@ -209,6 +210,7 @@ export default class Pumpfun implements PumpfunListener {
         solIn: number;
         priorityFeeInSol?: number;
         slippageDecimal?: number;
+        jitoConfig?: JitoConfig;
     }): Promise<PumpfunBuyResponse> {
         const payer = await getKeyPairFromPrivateKey(payerPrivateKey);
         const mint = new PublicKey(tokenMint);
@@ -270,26 +272,41 @@ export default class Pumpfun implements PumpfunListener {
         });
         txBuilder.add(instruction);
 
-        const transaction = await createTransaction(
-            this.connection,
-            txBuilder.instructions,
-            payer.publicKey,
-            priorityFeeInSol,
-        );
-
         if (transactionMode === TransactionMode.Execution) {
-            const signature = await sendAndConfirmTransaction(this.connection, transaction, [payer], {
-                skipPreflight: true,
-                preflightCommitment: 'confirmed',
-            });
+            const buyResult = await sendTx(
+                this.connection,
+                txBuilder,
+                payer.publicKey,
+                [payer],
+                {
+                    unitLimit: 1400000,
+                    unitPrice: solToLamports(priorityFeeInSol),
+                },
+                DEFAULT_COMMITMENT,
+                DEFAULT_FINALITY,
+                jitoConfig?.jitoEnabled,
+                jitoConfig?.tipLampports,
+                jitoConfig?.endpoint,
+            );
+
+            if (buyResult.error) {
+                throw buyResult.error;
+            }
+            const { signature } = buyResult;
+
             logger.info(`Buy transaction confirmed: https://solscan.io/tx/${signature}`);
 
             return {
-                signature: signature,
+                signature: signature!,
                 boughtAmountRaw: tokenOut,
                 pumpTokenOut: tokenOut,
                 pumpMaxSolCost: maxSolCost,
-                txDetails: await getSolTransactionDetails(this.connection, signature, payer.publicKey.toBase58()),
+                txDetails: await getSolTransactionDetails(
+                    this.connection,
+                    signature!,
+                    payer.publicKey.toBase58(),
+                    Pumpfun.getTxDetailsRetryConfig,
+                ),
             };
         } else {
             // running the simulation incur fees so skipping for now
@@ -317,6 +334,7 @@ export default class Pumpfun implements PumpfunListener {
         tokenBalance,
         priorityFeeInSol = Pumpfun.defaultPriorityInSol,
         slippageDecimal = Pumpfun.defaultSlippageDecimal,
+        jitoConfig,
     }: {
         transactionMode: TransactionMode;
         payerPrivateKey: string;
@@ -326,6 +344,7 @@ export default class Pumpfun implements PumpfunListener {
         tokenBalance: number;
         priorityFeeInSol?: number;
         slippageDecimal?: number;
+        jitoConfig?: JitoConfig;
     }): Promise<PumpfunSellResponse> {
         const payer = await getKeyPairFromPrivateKey(payerPrivateKey);
         const mint = new PublicKey(tokenMint);
@@ -383,25 +402,40 @@ export default class Pumpfun implements PumpfunListener {
         });
         txBuilder.add(instruction);
 
-        const transaction = await createTransaction(
-            this.connection,
-            txBuilder.instructions,
-            payer.publicKey,
-            priorityFeeInSol,
-        );
-
         if (transactionMode === TransactionMode.Execution) {
-            const signature = await sendAndConfirmTransaction(this.connection, transaction, [payer], {
-                skipPreflight: true,
-                preflightCommitment: 'confirmed',
-            });
+            const sellResult = await sendTx(
+                this.connection,
+                txBuilder,
+                payer.publicKey,
+                [payer],
+                {
+                    unitLimit: 1400000,
+                    unitPrice: solToLamports(priorityFeeInSol),
+                },
+                DEFAULT_COMMITMENT,
+                DEFAULT_FINALITY,
+                jitoConfig?.jitoEnabled,
+                jitoConfig?.tipLampports,
+                jitoConfig?.endpoint,
+            );
+
+            if (sellResult.error) {
+                throw sellResult.error;
+            }
+            const { signature } = sellResult;
+
             logger.info(`Sell transaction confirmed: https://solscan.io/tx/${signature}`);
 
             return {
-                signature: signature,
+                signature: signature!,
                 soldRawAmount: tokenBalance,
                 minLamportsOutput: minLamportsOutput,
-                txDetails: await getSolTransactionDetails(this.connection, signature, payer.publicKey.toBase58()),
+                txDetails: await getSolTransactionDetails(
+                    this.connection,
+                    signature!,
+                    payer.publicKey.toBase58(),
+                    Pumpfun.getTxDetailsRetryConfig,
+                ),
             };
         } else {
             // running the simulation incur fees so skipping for now
@@ -435,13 +469,7 @@ export default class Pumpfun implements PumpfunListener {
      */
     async getCoinDataWithRetries(
         tokenMint: string,
-        {
-            maxRetries = 3,
-            sleepMs = 0,
-        }: {
-            maxRetries: number;
-            sleepMs: number | ((retryCount: number) => number);
-        },
+        { maxRetries = 3, sleepMs = 0 }: RetryConfig,
     ): Promise<PumpFunCoinData> {
         let coinData: PumpFunCoinData | undefined;
         let retries = 0;

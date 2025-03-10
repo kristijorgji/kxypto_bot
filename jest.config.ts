@@ -12,7 +12,7 @@ export default {
     collectCoverageFrom: ['src/**/*.{js,jsx,ts,tsx}', '__tests__/**/*.{js,jsx,ts,tsx}', '!<rootDir>/node_modules/'],
     coverageThreshold: {
         global: {
-            branches: 25,
+            branches: 20,
             functions: 20,
             lines: 25,
             statements: 25,

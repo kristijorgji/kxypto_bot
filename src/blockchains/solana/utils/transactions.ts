@@ -1,5 +1,8 @@
-import { Connection, PublicKey } from '@solana/web3.js';
+import { Connection, ParsedTransactionWithMeta, PublicKey } from '@solana/web3.js';
 
+import { measureExecutionTime } from '../../../apm/apm';
+import { RetryConfig } from '../../../core/types';
+import { sleep } from '../../../utils/functions';
 import { BASE_FEE_LAMPORTS } from '../constants/core';
 import { SolTransactionDetails } from '../types';
 
@@ -7,15 +10,28 @@ import { SolTransactionDetails } from '../types';
  * Fetches the lamports transferred (net & gross) and transaction fees from a Solana transaction.
  * grossTransferredLamports is positive for sale transactions and negative for buy
  */
-export async function getSolTransactionDetails(
+const _getSolTransactionDetails = async (
     connection: Connection,
     transactionSignature: string,
     recipientAddress: string,
-): Promise<SolTransactionDetails> {
-    const transaction = await connection.getParsedTransaction(transactionSignature, {
-        commitment: 'confirmed',
-        maxSupportedTransactionVersion: 0,
-    });
+    { maxRetries, sleepMs }: RetryConfig,
+): Promise<SolTransactionDetails> => {
+    let transaction: ParsedTransactionWithMeta | null;
+    let retries = 0;
+
+    do {
+        transaction = await connection.getParsedTransaction(transactionSignature, {
+            commitment: 'confirmed',
+            maxSupportedTransactionVersion: 0,
+        });
+
+        if (!transaction) {
+            sleepMs = typeof sleepMs === 'function' ? sleepMs(retries + 1) : sleepMs;
+            if (sleepMs > 0) {
+                await sleep(sleepMs);
+            }
+        }
+    } while (!transaction && retries++ < maxRetries);
 
     if (!transaction) {
         throw new Error('Transaction not found!');
@@ -52,4 +68,18 @@ export async function getSolTransactionDetails(
         priorityFeeLamports,
         totalFeeLamports,
     };
-}
+};
+
+export const getSolTransactionDetails = (
+    connection: Connection,
+    transactionSignature: string,
+    recipientAddress: string,
+    retryConfig: RetryConfig,
+) =>
+    measureExecutionTime(
+        () => _getSolTransactionDetails(connection, transactionSignature, recipientAddress, retryConfig),
+        'getSolTransactionDetails',
+        {
+            storeImmediately: true,
+        },
+    );

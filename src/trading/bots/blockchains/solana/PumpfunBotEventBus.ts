@@ -5,6 +5,10 @@ import { BotTradeResponse, TradeTransaction } from './types';
 export default class PumpfunBotEventBus {
     private readonly eventEmitter: EventEmitter = new EventEmitter();
 
+    constructor() {
+        this.eventEmitter.setMaxListeners(0);
+    }
+
     tradeExecuted(transaction: TradeTransaction): void {
         this.eventEmitter.emit('tradeExecuted', transaction);
     }

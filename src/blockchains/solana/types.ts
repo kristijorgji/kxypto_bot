@@ -1,4 +1,18 @@
+import { VersionedTransactionResponse } from '@solana/web3.js';
+
 export type WalletInfo = { privateKey: string; address: string };
+
+export type PriorityFee = {
+    unitLimit: number;
+    unitPrice: number;
+};
+
+export type TransactionResult = {
+    signature?: string;
+    error?: unknown;
+    results?: VersionedTransactionResponse;
+    success: boolean;
+};
 
 export enum TransactionMode {
     Simulation,

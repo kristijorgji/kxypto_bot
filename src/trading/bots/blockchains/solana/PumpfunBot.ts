@@ -5,11 +5,13 @@ import {
     BotExitResponse,
     BotResponse,
     BotTradeResponse,
+    BoughtSold,
     PumpfunBuyPositionMetadata,
     PumpfunSellPositionMetadata,
     TradeTransaction,
 } from './types';
 import { measureExecutionTime } from '../../../../apm/apm';
+import { SolanaTokenMints } from '../../../../blockchains/solana/constants/SolanaTokenMints';
 import Pumpfun from '../../../../blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunMarketContextProvider from '../../../../blockchains/solana/dex/pumpfun/PumpfunMarketContextProvider';
 import { PumpfunInitialCoinData } from '../../../../blockchains/solana/dex/pumpfun/types';
@@ -21,8 +23,11 @@ import SolanaAdapter from '../../../../blockchains/solana/SolanaAdapter';
 import { TransactionMode } from '../../../../blockchains/solana/types';
 import Wallet from '../../../../blockchains/solana/Wallet';
 import { lamportsToSol, solToLamports } from '../../../../blockchains/utils/amount';
+import { closePosition, insertPosition } from '../../../../db/repositories/positions';
+import { InsertPosition } from '../../../../db/types';
 import { sleep } from '../../../../utils/functions';
 import LaunchpadBotStrategy from '../../../strategies/launchpads/LaunchpadBotStrategy';
+import { generateTradeId } from '../../../utils/generateTradeId';
 import { HistoryEntry } from '../../launchpads/types';
 import { BotConfig, SellReason } from '../../types';
 
@@ -102,6 +107,7 @@ export default class PumpfunBot {
 
         let buy = false;
         let buyInProgress = false;
+        let position: InsertPosition | undefined;
         let sell:
             | {
                   reason: SellReason;
@@ -282,6 +288,9 @@ export default class PumpfunBot {
                             transactionType: 'buy',
                             subCategory: 'newPosition',
                             transactionHash: buyRes.signature,
+                            walletAddress: this.wallet.address,
+                            bought: formTokenBoughtOrSold(tokenInfo, buyRes.boughtAmountRaw),
+                            sold: formSolBoughtOrSold(buyRes.txDetails.grossTransferredLamports),
                             amountRaw: buyRes.boughtAmountRaw,
                             grossTransferredLamports: buyRes.txDetails.grossTransferredLamports,
                             netTransferredLamports: buyRes.txDetails.netTransferredLamports,
@@ -301,7 +310,31 @@ export default class PumpfunBot {
                          * The longer the buy transaction takes the more likely price has changed, so need to put limit orders with most closely price to the one used to buy
                          * TODO calculate real buy price based on buyRes details and set up the limits accordingly
                          */
-                        strategy.afterBuy(dataAtBuyTime.priceInSol, buyPosition);
+                        const limits = strategy.afterBuy(dataAtBuyTime.priceInSol, buyPosition);
+                        position = {
+                            trade_id: generateTradeId('solana', tokenInfo.symbol),
+                            chain: 'solana',
+                            exchange: 'pumpfun',
+                            user_address: this.wallet.address,
+                            asset_mint: buyPosition.bought.address,
+                            asset_symbol: buyPosition.bought.symbol,
+                            entry_price: buyPosition.price.inSol,
+                            in_amount: buyPosition.amountRaw,
+                            stop_loss: limits.stopLoss ?? null,
+                            trailing_sl_percent: limits.trailingStopLossPercentage ?? null,
+                            take_profit: limits.takeProfit ?? null,
+                            trailing_take_profit_percent: limits.trailingTakeProfit?.trailingProfitPercentage ?? null,
+                            trailing_take_profit_stop_percent:
+                                limits?.trailingTakeProfit?.trailingStopPercentage ?? null,
+                            tx_signature: buyPosition.transactionHash,
+                            status: 'open',
+                            closed_at: null,
+                            exit_tx_signature: null,
+                            exit_price: null,
+                            realized_profit: null,
+                            exit_amount: null,
+                        };
+                        insertPosition(position).catch(reason => this.logger.error(reason));
                         sleepIntervalMs = this.config.sellMonitorWaitPeriodMs;
 
                         logger.info(
@@ -389,6 +422,9 @@ export default class PumpfunBot {
                             transactionType: 'sell',
                             subCategory: 'sellAll',
                             transactionHash: sellRes.signature,
+                            walletAddress: this.wallet.address,
+                            bought: formSolBoughtOrSold(sellRes.txDetails.grossTransferredLamports),
+                            sold: formTokenBoughtOrSold(tokenInfo, sellRes.soldRawAmount),
                             amountRaw: sellRes.soldRawAmount,
                             grossTransferredLamports: sellRes.txDetails.grossTransferredLamports,
                             netTransferredLamports: sellRes.txDetails.netTransferredLamports,
@@ -406,6 +442,13 @@ export default class PumpfunBot {
 
                         const pnlLamports =
                             dataAtSellTime.buyPosition.netTransferredLamports + sellPosition.netTransferredLamports;
+
+                        closePosition(position!.trade_id, {
+                            saleTxSignature: sellRes.signature,
+                            exitPrice: sellPosition.price.inSol,
+                            realizedProfit: lamportsToSol(pnlLamports),
+                            exitAmount: sellPosition.amountRaw,
+                        }).catch(this.logger.error);
 
                         result = {
                             netPnl: {
@@ -457,4 +500,22 @@ export default class PumpfunBot {
                 : `BotExitResponse, exitCode=${(result as BotExitResponse).exitCode}`,
         );
     }
+}
+
+export function formSolBoughtOrSold(amountLamports: number): BoughtSold {
+    return {
+        address: SolanaTokenMints.WSOL,
+        name: 'SOL',
+        symbol: 'SOL',
+        amount: Math.abs(amountLamports),
+    };
+}
+
+export function formTokenBoughtOrSold(tokenInfo: PumpfunInitialCoinData, amountRaw: number): BoughtSold {
+    return {
+        address: tokenInfo.mint,
+        name: tokenInfo.name,
+        symbol: tokenInfo.symbol,
+        amount: amountRaw,
+    };
 }

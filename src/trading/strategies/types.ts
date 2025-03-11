@@ -29,3 +29,13 @@ export type StrategySellConfig = {
         stopPercentage: number;
     };
 };
+
+export type AfterBuyResponse = {
+    stopLoss?: number;
+    trailingStopLossPercentage?: number;
+    takeProfit?: number;
+    trailingTakeProfit?: {
+        trailingProfitPercentage: number;
+        trailingStopPercentage: number;
+    };
+};

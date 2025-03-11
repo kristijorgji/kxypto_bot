@@ -18,11 +18,21 @@ export type PumpfunSellPositionMetadata = {
     reason: SellReason;
 };
 
+export type BoughtSold = {
+    address: string;
+    name: string;
+    symbol: string;
+    amount: number;
+};
+
 export type TradeTransaction<T = Record<string, unknown>> = {
     timestamp: number;
     transactionType: TransactionType;
     subCategory: SwapSubCategory;
     transactionHash: string;
+    walletAddress: string;
+    bought: BoughtSold;
+    sold: BoughtSold;
     amountRaw: number;
     /**
      * This will be negative for buy transactions and positive for sale

@@ -32,6 +32,11 @@ export type JitoConfig = {
 
 export const TIP_LAMPORTS = 150000; // 0,00015 SOL
 
+/**
+ * https://docs.jito.wtf/lowlatencytxnsend/#getting-started
+ * https://github.com/jito-labs/jito-js-rpc/blob/master/src/index.js
+ * https://github.dev/rayorole/pumpdotfun-sdk#readme
+ */
 export default class Jito {
     // eslint-disable-next-line no-useless-constructor
     constructor(private readonly config?: { endpoint?: JitoEndpoint }) {}

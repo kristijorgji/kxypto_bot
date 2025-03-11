@@ -85,7 +85,7 @@ export type HandlePumpTokenReport = {
 const config: Config = {
     simulate: true,
     maxTokensToProcessInParallel: 10,
-    buyMonitorWaitPeriodMs: 500,
+    buyMonitorWaitPeriodMs: 1000,
     sellMonitorWaitPeriodMs: 250,
     maxWaitMonitorAfterResultMs: 30 * 1e3,
     buyInSol: 0.4,
@@ -252,7 +252,7 @@ async function handlePumpToken(
             JSON.stringify(
                 {
                     $schema: {
-                        version: 1.06,
+                        version: 1.07,
                     },
                     simulation: c.simulate,
                     strategy: {

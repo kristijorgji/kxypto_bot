@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { TradeTransaction } from '../../bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
 import { ShouldExitMonitoringResponse, ShouldSellResponse } from '../../bots/types';
-import { StrategyConfig } from '../types';
+import { AfterBuyResponse, StrategyConfig } from '../types';
 
 export default abstract class LaunchpadBotStrategy {
     abstract readonly name: string;
@@ -32,7 +32,7 @@ export default abstract class LaunchpadBotStrategy {
 
     abstract shouldBuy(context: MarketContext, history: HistoryEntry[]): boolean;
 
-    abstract afterBuy(buyPrice: number, buyPosition: TradeTransaction): void;
+    abstract afterBuy(buyPrice: number, buyPosition: TradeTransaction): AfterBuyResponse;
 
     abstract shouldSell(context: MarketContext, history: HistoryEntry[]): ShouldSellResponse;
 

@@ -170,7 +170,7 @@ export async function runStrategy(
         totalTradesCount: totalTradesCount,
         totalBuyTradesCount: totalBuyTradesCount,
         totalSellTradesCount: totalSellTradesCount,
-        winRatePercentage: (winsCount / (winsCount + lossesCount)) * 100,
+        winRatePercentage: totalTradesCount === 0 ? 0 : (winsCount / (winsCount + lossesCount)) * 100,
         winsCount: winsCount,
         biggestWinPercentage:
             winsCount === 0 ? 0 : (lamportsToSol(biggestWin.amountLamports) / runConfig.buyAmountSol) * 100,

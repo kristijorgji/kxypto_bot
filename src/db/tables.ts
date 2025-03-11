@@ -3,4 +3,5 @@ export const Tables = {
     Tokens: 'tokens',
     Backtests: 'backtests',
     StrategyResults: 'strategy_results',
+    Positions: 'positions',
 };

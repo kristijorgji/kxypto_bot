@@ -8,7 +8,7 @@ import StopLossPercentage from '../../orders/StopLossPercentage';
 import TakeProfitPercentage from '../../orders/TakeProfitPercentage';
 import TrailingStopLoss from '../../orders/TrailingStopLoss';
 import TrailingTakeProfit from '../../orders/TrailingTakeProfit';
-import { StrategyConfig, StrategySellConfig } from '../types';
+import { AfterBuyResponse, StrategyConfig, StrategySellConfig } from '../types';
 
 type ConfigExtra = {
     sell: StrategySellConfig;
@@ -35,19 +35,24 @@ export abstract class LimitsBasedStrategy extends LaunchpadBotStrategy {
         super();
     }
 
-    afterBuy(buyPrice: number, buyPosition: TradeTransaction): void {
+    afterBuy(buyPrice: number, buyPosition: TradeTransaction): AfterBuyResponse {
+        const r: AfterBuyResponse = {};
+
         this._buyPosition = buyPosition;
 
         if (this.config.sell.trailingStopLossPercentage) {
             this.trailingStopLoss = new TrailingStopLoss(buyPrice, this.config.sell.trailingStopLossPercentage);
+            r.trailingStopLossPercentage = this.config.sell.trailingStopLossPercentage;
         }
 
         if (this.config.sell.stopLossPercentage) {
             this.stopLossPercentage = new StopLossPercentage(buyPrice, this.config.sell.stopLossPercentage);
+            r.stopLoss = this.stopLossPercentage.stopPrice;
         }
 
         if (this.config.sell.takeProfitPercentage) {
             this.takeProfitPercentage = new TakeProfitPercentage(buyPrice, this.config.sell.takeProfitPercentage);
+            r.takeProfit = this.takeProfitPercentage.takeProfitPrice;
         }
 
         if (this.config.sell.trailingTakeProfit) {
@@ -56,7 +61,13 @@ export abstract class LimitsBasedStrategy extends LaunchpadBotStrategy {
                 trailingProfitPercentage: this.config.sell.trailingTakeProfit.profitPercentage,
                 trailingStopPercentage: this.config.sell.trailingTakeProfit.stopPercentage,
             });
+            r.trailingTakeProfit = {
+                trailingProfitPercentage: this.config.sell.trailingTakeProfit.profitPercentage,
+                trailingStopPercentage: this.config.sell.trailingTakeProfit.stopPercentage,
+            };
         }
+
+        return r;
     }
 
     shouldSell({ price }: MarketContext): ShouldSellResponse {

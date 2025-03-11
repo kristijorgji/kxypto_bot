@@ -8,8 +8,10 @@ export type ApmEntry = {
     execution_time_ns: number;
 };
 
+export type Blockchain = 'solana' | 'ethereum';
+
 export type Token<T = Record<string, unknown>> = {
-    chain: 'solana';
+    chain: Blockchain;
     mint: string;
     name: string;
     symbol: string;
@@ -22,3 +24,32 @@ export type Backtest = {
     id: string;
     config: Record<string, unknown>;
 };
+
+export type Position = {
+    id: number;
+    trade_id: string;
+    chain: Blockchain;
+    exchange: 'pumpfun';
+    user_address: string;
+    asset_mint: string;
+    asset_symbol: string;
+    entry_price: number;
+    in_amount: number;
+    stop_loss: number | null;
+    trailing_sl_percent: number | null;
+    take_profit: number | null;
+    trailing_take_profit_percent: number | null;
+    trailing_take_profit_stop_percent: number | null;
+    tx_signature: string;
+    status: 'open' | 'closed';
+    opened_at: Date;
+    closed_at: Date | null;
+    exit_tx_signature: string | null;
+    exit_price: number | null;
+    realized_profit: number | null;
+    exit_amount: number | null;
+    created_at: Date;
+    updated_at: Date;
+};
+
+export type InsertPosition = Omit<Position, 'id' | 'opened_at' | 'created_at' | 'updated_at'>;

@@ -1,5 +1,6 @@
 import { Logger } from 'winston';
 
+import { formSolBoughtOrSold, formTokenBoughtOrSold } from './PumpfunBot';
 import { BacktestExitResponse, BacktestRunConfig, BacktestTradeResponse, TradeTransaction } from './types';
 import { PUMPFUN_TOKEN_DECIMALS } from '../../../../blockchains/solana/dex/pumpfun/constants';
 import {
@@ -16,6 +17,8 @@ import {
 import { lamportsToSol, solToLamports } from '../../../../blockchains/utils/amount';
 import { HistoryEntry } from '../../launchpads/types';
 import { SellReason } from '../../types';
+
+const BacktestWallet = '_backtest_';
 
 export default class PumpfunBacktester {
     // eslint-disable-next-line no-useless-constructor
@@ -71,6 +74,9 @@ export default class PumpfunBacktester {
                     transactionType: 'buy',
                     subCategory: tradeHistory.find(e => e.transactionType === 'buy') ? 'accumulation' : 'newPosition',
                     transactionHash: _generateFakeBacktestTransactionHash(),
+                    walletAddress: BacktestWallet,
+                    bought: formTokenBoughtOrSold(tokenInfo, holdingsRaw),
+                    sold: formSolBoughtOrSold(txDetails.grossTransferredLamports),
                     amountRaw: holdingsRaw,
                     grossTransferredLamports: txDetails.grossTransferredLamports,
                     netTransferredLamports: txDetails.netTransferredLamports,
@@ -139,6 +145,9 @@ export default class PumpfunBacktester {
                     transactionType: 'sell',
                     subCategory: 'sellAll',
                     transactionHash: _generateFakeBacktestTransactionHash(),
+                    walletAddress: BacktestWallet,
+                    bought: formSolBoughtOrSold(txDetails.grossTransferredLamports),
+                    sold: formTokenBoughtOrSold(tokenInfo, holdingsRaw),
                     amountRaw: holdingsRaw,
                     grossTransferredLamports: txDetails.grossTransferredLamports,
                     netTransferredLamports: txDetails.netTransferredLamports,

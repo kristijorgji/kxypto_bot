@@ -4,4 +4,5 @@ export const Tables = {
     Backtests: 'backtests',
     StrategyResults: 'strategy_results',
     Positions: 'positions',
+    LaunchpadTokenResults: 'launchpad_token_results',
 };

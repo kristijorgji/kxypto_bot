@@ -18,11 +18,13 @@ import Wallet from '../../blockchains/solana/Wallet';
 import { lamportsToSol } from '../../blockchains/utils/amount';
 import { db } from '../../db/knex';
 import { pumpfunRepository } from '../../db/repositories/PumpfunRepository';
+import { insertLaunchpadTokenResult } from '../../db/repositories/tokenAnalytics';
 import { logger } from '../../logger';
+import isTokenCreatorSafe from '../../trading/bots/blockchains/solana/isTokenCreatorSafe';
 import PumpfunBot from '../../trading/bots/blockchains/solana/PumpfunBot';
 import PumpfunBotEventBus from '../../trading/bots/blockchains/solana/PumpfunBotEventBus';
 import PumpfunBotsTradeManager from '../../trading/bots/blockchains/solana/PumpfunBotsTradeManager';
-import { BotResponse, BotTradeResponse } from '../../trading/bots/blockchains/solana/types';
+import { BotExitResponse, BotResponse, BotTradeResponse } from '../../trading/bots/blockchains/solana/types';
 import { BotConfig } from '../../trading/bots/types';
 import RiseStrategy from '../../trading/strategies/launchpads/RiseStrategy';
 import { sleep } from '../../utils/functions';
@@ -55,7 +57,7 @@ type Config = {
     stopAtMinWalletBalanceLamports: number | null;
 } & BotConfig;
 
-export type HandlePumpTokenReport = {
+type HandlePumpTokenBaseReport = {
     /**
      * This information is used to understand the content of this report
      * As it changes it is mandatory to document what version we stored for every report
@@ -65,27 +67,39 @@ export type HandlePumpTokenReport = {
         name?: string;
     };
     simulation: boolean;
+    mint: string;
+    name: string;
+    url: string;
+    bullXUrl: string;
+    creator: string;
+    startedAt: Date;
+    endedAt: Date;
+    elapsedSeconds: number;
+};
+
+export type HandlePumpTokenExitReport = HandlePumpTokenBaseReport & {
+    exitCode: 'BAD_CREATOR';
+    exitReason: string;
+};
+
+export type HandlePumpTokenBotReport = HandlePumpTokenBaseReport & {
     strategy: {
         id: string;
         name: string;
         configVariant: string;
     };
-    mint: string;
-    name: string;
-    url: string;
-    startedAt: Date;
-    endedAt: Date;
-    elapsedSeconds: number;
     monitor: {
         buyTimeframeMs: number;
         sellTimeframeMs: number;
     };
 } & BotResponse;
 
+export type HandlePumpTokenReport = HandlePumpTokenExitReport | HandlePumpTokenBotReport;
+
 const config: Config = {
-    simulate: true,
-    maxTokensToProcessInParallel: 10,
-    buyMonitorWaitPeriodMs: 1000,
+    simulate: false,
+    maxTokensToProcessInParallel: 100,
+    buyMonitorWaitPeriodMs: 2500,
     sellMonitorWaitPeriodMs: 250,
     maxWaitMonitorAfterResultMs: 30 * 1e3,
     buyInSol: 0.4,
@@ -213,6 +227,36 @@ async function handlePumpToken(
         );
         await pumpfunRepository.insertToken(initialCoinData);
 
+        const isCreatorSafeResult = await isTokenCreatorSafe(initialCoinData.creator);
+        if (!isCreatorSafeResult.safe) {
+            logger.info(
+                '[%s] Skipping this token because its creator %s is not safe, %s, data=%o',
+                identifier,
+                initialCoinData.creator,
+                isCreatorSafeResult.reason,
+                isCreatorSafeResult.data,
+            );
+            const endedAt = new Date();
+            await storeResult({
+                $schema: {
+                    version: 1.08,
+                },
+                simulation: c.simulate,
+                mint: tokenData.mint,
+                name: tokenData.name,
+                url: formPumpfunTokenUrl(tokenData.mint),
+                bullXUrl: `https://neo.bullx.io/terminal?chainId=1399811149&address=${tokenData.mint}`,
+                creator: initialCoinData.creator,
+                startedAt: startedAt,
+                endedAt: startedAt,
+                elapsedSeconds: getSecondsDifference(startedAt, endedAt),
+                exitCode: 'BAD_CREATOR',
+                exitReason: `Skipping this token because its creator is not detected as safe, reason=${isCreatorSafeResult.reason}`,
+            });
+
+            return null;
+        }
+
         const pumpfunBot = new PumpfunBot({
             logger: logger.child({
                 contextMap: {
@@ -228,10 +272,10 @@ async function handlePumpToken(
         });
 
         const strategy = new RiseStrategy(logger, {
-            variant: 'hc_15_bcp_25_dhp_7_tthp_5_tslp_10_tpp_17',
+            variant: 'hc_12_bcp_22_dhp_7_tthp_5_tslp_10_tpp_17',
             buy: {
-                holdersCount: { min: 15 },
-                bondingCurveProgress: { min: 25 },
+                holdersCount: { min: 12 },
+                bondingCurveProgress: { min: 22 },
                 devHoldingPercentage: { max: 7 },
                 topTenHoldingPercentage: { max: 5 },
             },
@@ -239,7 +283,7 @@ async function handlePumpToken(
                 takeProfitPercentage: 17,
                 trailingStopLossPercentage: 10,
             },
-            maxWaitMs: 300000,
+            maxWaitMs: 7 * 60 * 1e3,
             priorityFeeInSol: 0.005,
             buySlippageDecimal: 0.25,
             sellSlippageDecimal: 0.25,
@@ -247,35 +291,30 @@ async function handlePumpToken(
         const handleRes = await pumpfunBot.run(identifier, initialCoinData, strategy);
 
         const endedAt = new Date();
-        await fs.writeFileSync(
-            ensureDataFolder(`pumpfun-stats/${tokenData.mint}.json`),
-            JSON.stringify(
-                {
-                    $schema: {
-                        version: 1.07,
-                    },
-                    simulation: c.simulate,
-                    strategy: {
-                        id: strategy.identifier,
-                        name: strategy.name,
-                        configVariant: strategy.configVariant,
-                    },
-                    mint: tokenData.mint,
-                    name: tokenData.name,
-                    url: formPumpfunTokenUrl(tokenData.mint),
-                    startedAt: startedAt,
-                    endedAt: endedAt,
-                    elapsedSeconds: getSecondsDifference(startedAt, endedAt),
-                    monitor: {
-                        buyTimeframeMs: config.buyMonitorWaitPeriodMs,
-                        sellTimeframeMs: config.sellMonitorWaitPeriodMs,
-                    },
-                    ...handleRes,
-                } as HandlePumpTokenReport,
-                null,
-                2,
-            ),
-        );
+        await storeResult({
+            $schema: {
+                version: 1.08,
+            },
+            simulation: c.simulate,
+            strategy: {
+                id: strategy.identifier,
+                name: strategy.name,
+                configVariant: strategy.configVariant,
+            },
+            mint: tokenData.mint,
+            name: tokenData.name,
+            url: formPumpfunTokenUrl(tokenData.mint),
+            bullXUrl: `https://neo.bullx.io/terminal?chainId=1399811149&address=${tokenData.mint}`,
+            creator: initialCoinData.creator,
+            startedAt: startedAt,
+            endedAt: endedAt,
+            elapsedSeconds: getSecondsDifference(startedAt, endedAt),
+            monitor: {
+                buyTimeframeMs: config.buyMonitorWaitPeriodMs,
+                sellTimeframeMs: config.sellMonitorWaitPeriodMs,
+            },
+            ...handleRes,
+        } as HandlePumpTokenBotReport);
 
         return handleRes;
     } catch (e) {
@@ -284,4 +323,17 @@ async function handlePumpToken(
 
         return null;
     }
+}
+
+async function storeResult(report: HandlePumpTokenReport) {
+    await fs.writeFileSync(ensureDataFolder(`pumpfun-stats/${report.mint}.json`), JSON.stringify(report, null, 2));
+    await insertLaunchpadTokenResult({
+        chain: 'solana',
+        platform: 'pumpfun',
+        mint: report.mint,
+        creator: report.creator,
+        net_pnl: (report as BotTradeResponse)?.netPnl?.inSol ?? null,
+        exit_code: (report as BotExitResponse)?.exitCode ?? null,
+        exit_reason: (report as BotExitResponse)?.exitReason ?? null,
+    });
 }

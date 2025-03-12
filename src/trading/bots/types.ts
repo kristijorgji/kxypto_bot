@@ -49,7 +49,7 @@ export type DoSellResponse = {
 
 export type ShouldSellResponse = false | DoSellResponse;
 
-export type ExitMonitoringReason = 'NO_PUMP' | 'DUMPED' | 'STOPPED';
+export type ExitMonitoringReason = 'NO_PUMP' | 'DUMPED' | 'STOPPED' | 'BAD_CREATOR';
 
 export type ShouldExitMonitoringResponse =
     | false

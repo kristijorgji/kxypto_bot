@@ -1,7 +1,11 @@
 import fs from 'fs';
 
 import { logger } from '../../../../logger';
-import { HandlePumpTokenReport } from '../../../../scripts/pumpfun/bot';
+import {
+    HandlePumpTokenBotReport,
+    HandlePumpTokenExitReport,
+    HandlePumpTokenReport,
+} from '../../../../scripts/pumpfun/bot';
 import { comparePaths, moveFile, walkDirFilesSyncRecursive } from '../../../../utils/files';
 import { formDataFolder } from '../../../../utils/storage';
 import { BotTradeResponse } from '../../../bots/blockchains/solana/types';
@@ -24,16 +28,22 @@ export async function organizePumpfunFiles() {
         }
 
         let path = `${pumpfunStatsPath}/${content.simulation ? 'simulation' : 'real'}/${content.$schema.version}`;
-        path = `${path}/${content.strategy.name}/${
-            content.strategy.configVariant === '' ? '_' : content.strategy.configVariant
-        }`;
+        if ((content as HandlePumpTokenBotReport).strategy) {
+            const c = content as HandlePumpTokenBotReport;
+            path = `${path}/${c.strategy.name}/${c.strategy.configVariant === '' ? '_' : c.strategy.configVariant}`;
+        } else {
+            path = `${path}/_exit_/${(content as HandlePumpTokenExitReport).exitCode}`;
+        }
 
         if ((content as BotTradeResponse).netPnl) {
             const tradeType = (content as BotTradeResponse).netPnl.inLamports > 0 ? 'wins' : 'losses';
             path = `${path}/trade/${tradeType}/${file.name}`;
         }
 
-        if (Object.prototype.hasOwnProperty.call(content, 'exitCode')) {
+        if (
+            (content as HandlePumpTokenBotReport).strategy &&
+            Object.prototype.hasOwnProperty.call(content, 'exitCode')
+        ) {
             path = `${path}/no_trade/${(content as { exitCode: ExitMonitoringReason }).exitCode.toLowerCase()}/${
                 file.name
             }`;

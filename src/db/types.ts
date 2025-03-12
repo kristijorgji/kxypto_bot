@@ -1,3 +1,5 @@
+import { ExitMonitoringReason } from '../trading/bots/types';
+
 // example 2023-03-20 12:57:02
 export type MySQLTimestamp = string;
 
@@ -53,3 +55,14 @@ export type Position = {
 };
 
 export type InsertPosition = Omit<Position, 'id' | 'opened_at' | 'created_at' | 'updated_at'>;
+
+export type LaunchpadTokenResult = {
+    id: string;
+    chain: Blockchain;
+    platform: 'pumpfun';
+    mint: string;
+    creator: string;
+    net_pnl: number | null;
+    exit_code: ExitMonitoringReason | null;
+    exit_reason: string | null;
+};

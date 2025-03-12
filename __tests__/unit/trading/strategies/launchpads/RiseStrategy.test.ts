@@ -2,7 +2,7 @@ import { createLogger } from 'winston';
 
 import { formSolBoughtOrSold } from '../../../../../src/trading/bots/blockchains/solana/PumpfunBot';
 import { TradeTransaction } from '../../../../../src/trading/bots/blockchains/solana/types';
-import { MarketContext } from '../../../../../src/trading/bots/launchpads/types';
+import { HistoryEntry, MarketContext } from '../../../../../src/trading/bots/launchpads/types';
 import RiseStrategy from '../../../../../src/trading/strategies/launchpads/RiseStrategy';
 
 describe(RiseStrategy.name, () => {
@@ -101,7 +101,7 @@ describe(RiseStrategy.name, () => {
             expect(strategy.shouldExit(...shouldExitItExitsArgs)).toEqual({
                 exitCode: 'DUMPED',
                 message:
-                    'Stopped monitoring token because it was probably dumped and current market cap is less than the initial one',
+                    'Stopped monitoring token because it was probably dumped less_mc_and_few_holders and current market cap is less than the initial one',
                 shouldSell: false,
             });
         });
@@ -112,10 +112,47 @@ describe(RiseStrategy.name, () => {
             // @ts-ignore
             expect(strategy.shouldExit(...shouldExitItExitsArgs)).toEqual({
                 exitCode: 'DUMPED',
-                message: 'The token is probably dumped and we will sell at loss, sell=true',
+                message: 'The token is probably dumped less_mc_and_few_holders and we will sell at loss, sell=true',
                 shouldSell: {
                     reason: 'DUMPED',
                 },
+            });
+        });
+
+        it('should exit if token is dumped and holders now are less than before max', () => {
+            expect(
+                strategy.shouldExit(
+                    {
+                        price: 3.1355480118319034e-8,
+                        marketCap: 30.9,
+                        holdersCount: 3,
+                        bondingCurveProgress: 50,
+                        devHoldingPercentage: 5,
+                        topTenHoldingPercentage: 20,
+                    },
+                    [
+                        formHistoryEntry({
+                            marketCap: 31,
+                            holdersCount: 1,
+                        }),
+                        formHistoryEntry({
+                            marketCap: 32,
+                            holdersCount: 4,
+                        }),
+                        formHistoryEntry({
+                            marketCap: 30.9,
+                            holdersCount: 3,
+                        }),
+                    ],
+                    {
+                        elapsedMonitoringMs: 60 * 1e3,
+                    },
+                ),
+            ).toEqual({
+                exitCode: 'DUMPED',
+                message:
+                    'Stopped monitoring token because it was probably dumped less_holders_and_mc_than_initial and current market cap is less than the initial one',
+                shouldSell: false,
             });
         });
     });
@@ -247,3 +284,16 @@ describe(RiseStrategy.name, () => {
         });
     });
 });
+
+function formHistoryEntry(data: Partial<HistoryEntry>): HistoryEntry {
+    return {
+        timestamp: data.timestamp ?? 1,
+        // eslint-disable-next-line no-loss-of-precision
+        price: data.price ?? 3.0355480118319034e-8,
+        marketCap: data.marketCap ?? 31.770000079,
+        bondingCurveProgress: data.bondingCurveProgress ?? 25,
+        holdersCount: data.holdersCount ?? 15,
+        devHoldingPercentage: data.devHoldingPercentage ?? 10,
+        topTenHoldingPercentage: data.topTenHoldingPercentage ?? 35,
+    };
+}

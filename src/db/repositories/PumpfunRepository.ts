@@ -5,7 +5,7 @@ import { db } from '../knex';
 import { Tables } from '../tables';
 import { Token } from '../types';
 
-const CreatedOnPumpfun = 'https://pump.fun';
+export const CreatedOnPumpfun = 'https://pump.fun';
 
 type PumpTokenOther = {
     creator: string;

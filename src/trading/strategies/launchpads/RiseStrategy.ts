@@ -65,16 +65,39 @@ export default class RiseStrategy extends LimitsBasedStrategy {
 
         let res: ShouldExitMonitoringResponse = false;
 
-        if (
-            mcDiffFromInitialPercentage < -6 ||
-            (mcDiffFromInitialPercentage < -5 && holdersCount <= 3 && elapsedMonitoringMs >= 120 * 1e3)
+        let maxPreviousHolders = holdersCount;
+        for (let i = 0; i < history.length - 1; i++) {
+            if (history[i].holdersCount >= maxPreviousHolders) {
+                maxPreviousHolders = history[i].holdersCount;
+            }
+        }
+
+        let dumpReason:
+            | 'lower_mc_than_initial'
+            | 'less_holders_and_mc_than_initial'
+            | 'less_mc_and_few_holders'
+            | undefined;
+
+        if (mcDiffFromInitialPercentage < -6) {
+            dumpReason = 'lower_mc_than_initial';
+        } else if (
+            marketCap < history[0].marketCap &&
+            holdersCount <= 3 &&
+            maxPreviousHolders > holdersCount &&
+            elapsedMonitoringMs >= 60 * 1e3
         ) {
+            dumpReason = 'less_holders_and_mc_than_initial';
+        } else if (mcDiffFromInitialPercentage < -5 && holdersCount <= 3 && elapsedMonitoringMs >= 60 * 1e3) {
+            dumpReason = 'less_mc_and_few_holders';
+        }
+
+        if (dumpReason) {
             const exitCode = 'DUMPED';
 
             if (this._buyPosition) {
                 res = {
                     exitCode: exitCode,
-                    message: 'The token is probably dumped and we will sell at loss, sell=true',
+                    message: `The token is probably dumped ${dumpReason} and we will sell at loss, sell=true`,
                     shouldSell: {
                         reason: exitCode,
                     },
@@ -82,8 +105,7 @@ export default class RiseStrategy extends LimitsBasedStrategy {
             } else {
                 res = {
                     exitCode: exitCode,
-                    message:
-                        'Stopped monitoring token because it was probably dumped and current market cap is less than the initial one',
+                    message: `Stopped monitoring token because it was probably dumped ${dumpReason} and current market cap is less than the initial one`,
                     shouldSell: false,
                 };
             }

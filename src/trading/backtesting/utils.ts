@@ -10,7 +10,7 @@ import { pumpfunRepository } from '../../db/repositories/PumpfunRepository';
 import { Tables } from '../../db/tables';
 import { Backtest } from '../../db/types';
 import { logger } from '../../logger';
-import { HandlePumpTokenReport } from '../../scripts/pumpfun/bot';
+import { HandlePumpTokenBotReport } from '../../scripts/pumpfun/bot';
 import { FileInfo } from '../../utils/files';
 import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
 import {
@@ -21,7 +21,7 @@ import {
 } from '../bots/blockchains/solana/types';
 import LaunchpadBotStrategy from '../strategies/launchpads/LaunchpadBotStrategy';
 
-const cache: Record<string, HandlePumpTokenReport> = {};
+const cache: Record<string, HandlePumpTokenBotReport> = {};
 
 export async function runStrategy(
     {
@@ -67,11 +67,11 @@ export async function runStrategy(
     };
 
     for (const file of files) {
-        let content: HandlePumpTokenReport;
+        let content: HandlePumpTokenBotReport;
         if (cache[file.fullPath]) {
             content = cache[file.fullPath];
         } else {
-            content = JSON.parse(fs.readFileSync(file.fullPath).toString()) as HandlePumpTokenReport;
+            content = JSON.parse(fs.readFileSync(file.fullPath).toString()) as HandlePumpTokenBotReport;
             cache[file.fullPath] = content;
         }
 

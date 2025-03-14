@@ -1,3 +1,4 @@
+import { TradeTransaction } from '../bots/blockchains/solana/types';
 import { MarketContext } from '../bots/launchpads/types';
 
 export type StrategyConfig<C = Record<string, unknown>> = {
@@ -16,6 +17,11 @@ export type StrategyConfig<C = Record<string, unknown>> = {
 export type IntervalConfig = {
     min?: number;
     max?: number;
+};
+
+export type LaunchpadBuyPosition = {
+    marketContext: MarketContext;
+    transaction: TradeTransaction;
 };
 
 export type LaunchpadStrategyBuyConfig = Partial<Record<keyof MarketContext, IntervalConfig>>;

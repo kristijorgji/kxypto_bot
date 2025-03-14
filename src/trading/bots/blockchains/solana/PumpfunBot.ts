@@ -180,10 +180,11 @@ export default class PumpfunBot {
             const mcDiffFromInitialPercentage = ((marketCapInSol - initialMarketCap) / initialMarketCap) * 100;
 
             logger.debug(
-                'price=%s, marketCap=%s, bondingCurveProgress=%s%%',
+                'price=%s, marketCap=%s, bondingCurveProgress=%s%%, entryTimestamp=%s',
                 priceInSol,
                 marketCapInSol,
                 bondingCurveProgress,
+                history[history.length - 1].timestamp,
             );
             logger.debug(
                 'total holders=%d, top ten holding %s%%, dev holding %s%%',
@@ -229,12 +230,12 @@ export default class PumpfunBot {
 
             if (!actionInProgress && strategy.buyPosition) {
                 const priceDiffPercentageSincePurchase =
-                    ((solToLamports(priceInSol) - strategy.buyPosition.price.inLamports) /
-                        strategy.buyPosition.price.inLamports) *
+                    ((solToLamports(priceInSol) - strategy.buyPosition.transaction.price.inLamports) /
+                        strategy.buyPosition.transaction.price.inLamports) *
                     100;
                 const diffInSol = lamportsToSol(
-                    calculatePumpTokenLamportsValue(strategy.buyPosition.amountRaw, priceInSol) -
-                        Math.abs(strategy.buyPosition.netTransferredLamports),
+                    calculatePumpTokenLamportsValue(strategy.buyPosition.transaction.amountRaw, priceInSol) -
+                        Math.abs(strategy.buyPosition.transaction.netTransferredLamports),
                 );
 
                 logger.info('Price change since purchase %s%%', priceDiffPercentageSincePurchase);
@@ -259,6 +260,7 @@ export default class PumpfunBot {
                 const dataAtBuyTime = {
                     priceInSol: priceInSol,
                     marketCapInSol: marketCapInSol,
+                    marketContext: marketContext,
                 };
                 // TODO calculate dynamically based on the situation if it is not provided
                 const inSol = this.config.buyInSol ?? 0.4;
@@ -312,7 +314,10 @@ export default class PumpfunBot {
                          * The longer the buy transaction takes the more likely price has changed, so need to put limit orders with most closely price to the one used to buy
                          * TODO calculate real buy price based on buyRes details and set up the limits accordingly
                          */
-                        const limits = strategy.afterBuy(dataAtBuyTime.priceInSol, buyPosition);
+                        const limits = strategy.afterBuy(dataAtBuyTime.priceInSol, {
+                            marketContext: dataAtBuyTime.marketContext,
+                            transaction: buyPosition,
+                        });
                         position = {
                             trade_id: generateTradeId('solana', tokenInfo.symbol),
                             chain: 'solana',
@@ -406,7 +411,7 @@ export default class PumpfunBot {
                             tokenMint: tokenMint,
                             tokenBondingCurve: tokenInfo.bondingCurve,
                             tokenAssociatedBondingCurve: tokenInfo.associatedBondingCurve,
-                            tokenBalance: strategy.buyPosition!.amountRaw,
+                            tokenBalance: strategy.buyPosition!.transaction.amountRaw,
                             priorityFeeInSol: sellPriorityFeeInSol,
                             slippageDecimal: strategy.config.sellSlippageDecimal,
                             jitoConfig: {
@@ -449,7 +454,8 @@ export default class PumpfunBot {
                         this.botEventBus.tradeExecuted(sellPosition);
 
                         const pnlLamports =
-                            dataAtSellTime.buyPosition.netTransferredLamports + sellPosition.netTransferredLamports;
+                            dataAtSellTime.buyPosition.transaction.netTransferredLamports +
+                            sellPosition.netTransferredLamports;
 
                         closePosition(position!.trade_id, {
                             saleTxSignature: sellRes.signature,
@@ -463,7 +469,7 @@ export default class PumpfunBot {
                                 inLamports: pnlLamports,
                                 inSol: lamportsToSol(pnlLamports),
                             },
-                            transactions: [dataAtSellTime.buyPosition, sellPosition],
+                            transactions: [dataAtSellTime.buyPosition.transaction, sellPosition],
                             history: history,
                         };
                         this.botEventBus.botTradeResponse(result);

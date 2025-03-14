@@ -87,7 +87,10 @@ export default class PumpfunBacktester {
                     marketCap: marketCap,
                 };
                 tradeHistory.push(buyPosition);
-                strategy.afterBuy(price, buyPosition);
+                strategy.afterBuy(price, {
+                    marketContext: marketContext,
+                    transaction: buyPosition,
+                });
 
                 // Simulate time passing by going to the next market context
                 i =

@@ -1,14 +1,13 @@
 import { Logger } from 'winston';
 
 import LaunchpadBotStrategy from './LaunchpadBotStrategy';
-import { TradeTransaction } from '../../bots/blockchains/solana/types';
 import { MarketContext } from '../../bots/launchpads/types';
 import { ShouldSellResponse } from '../../bots/types';
 import StopLossPercentage from '../../orders/StopLossPercentage';
 import TakeProfitPercentage from '../../orders/TakeProfitPercentage';
 import TrailingStopLoss from '../../orders/TrailingStopLoss';
 import TrailingTakeProfit from '../../orders/TrailingTakeProfit';
-import { AfterBuyResponse, StrategyConfig, StrategySellConfig } from '../types';
+import { AfterBuyResponse, LaunchpadBuyPosition, StrategyConfig, StrategySellConfig } from '../types';
 
 type ConfigExtra = {
     sell: StrategySellConfig;
@@ -25,9 +24,9 @@ export abstract class LimitsBasedStrategy extends LaunchpadBotStrategy {
     protected takeProfitPercentage: TakeProfitPercentage | undefined;
     protected trailingTakeProfit: TrailingTakeProfit | undefined;
 
-    protected _buyPosition: TradeTransaction | undefined;
+    protected _buyPosition: LaunchpadBuyPosition | undefined;
 
-    get buyPosition(): TradeTransaction | undefined {
+    get buyPosition(): LaunchpadBuyPosition | undefined {
         return this._buyPosition;
     }
 
@@ -35,7 +34,7 @@ export abstract class LimitsBasedStrategy extends LaunchpadBotStrategy {
         super();
     }
 
-    afterBuy(buyPrice: number, buyPosition: TradeTransaction): AfterBuyResponse {
+    afterBuy(buyPrice: number, buyPosition: LaunchpadBuyPosition): AfterBuyResponse {
         const r: AfterBuyResponse = {};
 
         this._buyPosition = buyPosition;

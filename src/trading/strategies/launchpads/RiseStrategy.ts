@@ -2,7 +2,7 @@ import { Logger } from 'winston';
 
 import { shouldBuyStateless } from './common';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
-import { ShouldExitMonitoringResponse } from '../../bots/types';
+import { ShouldExitMonitoringResponse, ShouldSellResponse } from '../../bots/types';
 import { LaunchpadStrategyBuyConfig, StrategyConfig, StrategySellConfig } from '../types';
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
 
@@ -122,5 +122,21 @@ export default class RiseStrategy extends LimitsBasedStrategy {
 
     shouldBuy(marketContext: MarketContext): boolean {
         return shouldBuyStateless(this.config.buy, marketContext);
+    }
+
+    shouldSell(marketContext: MarketContext): ShouldSellResponse {
+        const shouldSellRes = super.shouldSell(marketContext);
+        if (shouldSellRes) {
+            return shouldSellRes;
+        }
+
+        const shouldSell = !shouldBuyStateless(this.config.buy, marketContext);
+        if (!shouldSell) {
+            return false;
+        }
+
+        return {
+            reason: 'NO_LONGER_MEETS_ENTRY_RULES',
+        };
     }
 }

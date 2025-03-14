@@ -4,6 +4,8 @@ import { formSolBoughtOrSold } from '../../../../../src/trading/bots/blockchains
 import { TradeTransaction } from '../../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '../../../../../src/trading/bots/launchpads/types';
 import RiseStrategy from '../../../../../src/trading/strategies/launchpads/RiseStrategy';
+import { LaunchpadBuyPosition } from '../../../../../src/trading/strategies/types';
+import { readFixture } from '../../../../__utils/data';
 
 describe(RiseStrategy.name, () => {
     let strategy: RiseStrategy;
@@ -41,6 +43,11 @@ describe(RiseStrategy.name, () => {
             inLamports: 1e9,
         },
         marketCap: 3.2,
+    };
+
+    const launchpadBuyPosition: LaunchpadBuyPosition = {
+        marketContext: marketContext,
+        transaction: buyTradeTransaction,
     };
 
     describe('shouldExit', () => {
@@ -107,7 +114,7 @@ describe(RiseStrategy.name, () => {
         });
 
         it('should exit if token is dumped and request sell when we have a position', () => {
-            strategy.afterBuy(100, buyTradeTransaction);
+            strategy.afterBuy(100, launchpadBuyPosition);
 
             // @ts-ignore
             expect(strategy.shouldExit(...shouldExitItExitsArgs)).toEqual({
@@ -166,7 +173,7 @@ describe(RiseStrategy.name, () => {
                 },
             });
 
-            strategy.afterBuy(10, buyTradeTransaction);
+            strategy.afterBuy(10, launchpadBuyPosition);
 
             expect(
                 strategy.shouldSell({
@@ -185,7 +192,7 @@ describe(RiseStrategy.name, () => {
                     takeProfitPercentage: 30,
                 },
             });
-            strategy.afterBuy(10, buyTradeTransaction);
+            strategy.afterBuy(10, launchpadBuyPosition);
 
             expect(
                 strategy.shouldSell({
@@ -211,7 +218,7 @@ describe(RiseStrategy.name, () => {
                 },
             });
 
-            strategy.afterBuy(10, buyTradeTransaction);
+            strategy.afterBuy(10, launchpadBuyPosition);
 
             expect(
                 strategy.shouldSell({
@@ -233,7 +240,7 @@ describe(RiseStrategy.name, () => {
                     },
                 },
             });
-            strategy.afterBuy(10, buyTradeTransaction);
+            strategy.afterBuy(10, launchpadBuyPosition);
 
             expect(
                 strategy.shouldSell({
@@ -256,6 +263,49 @@ describe(RiseStrategy.name, () => {
                 reason: 'TRAILING_TAKE_PROFIT',
             });
         });
+
+        it('should sell when dev and top 10 insiders increase position after we bought', () => {
+            const history: HistoryEntry[] = readFixture<{ history: HistoryEntry[] }>(
+                'backtest/pumpfun/B6eQdRcdYhuFxXKx75jumoMGkZCE4LCeobSDgZNzpump',
+            ).history;
+
+            const buyEntryIndex = 36;
+
+            strategy = new RiseStrategy(silentLogger, {
+                variant: 'hc_12_bcp_22_dhp_7_tthp_5_tslp_10_tpp_17',
+                buy: {
+                    holdersCount: { min: 12 },
+                    bondingCurveProgress: { min: 22 },
+                    devHoldingPercentage: { max: 7 },
+                    topTenHoldingPercentage: { max: 5 },
+                },
+                sell: {
+                    takeProfitPercentage: 17,
+                    trailingStopLossPercentage: 10,
+                },
+                maxWaitMs: 7 * 60 * 1e3,
+                priorityFeeInSol: 0.005,
+                buySlippageDecimal: 0.25,
+                sellSlippageDecimal: 0.25,
+            });
+            strategy.afterBuy(1.8959502681185026e-7, {
+                marketContext: history[buyEntryIndex] as MarketContext,
+                transaction: buyTradeTransaction,
+            });
+
+            let firstSellIndex = -1;
+            for (let i = buyEntryIndex; i < history.length; i++) {
+                const shouldSellRes = strategy.shouldSell(history[i]);
+                if (shouldSellRes) {
+                    firstSellIndex = i;
+                    expect(shouldSellRes).toEqual({
+                        reason: 'NO_LONGER_MEETS_ENTRY_RULES',
+                    });
+                    break;
+                }
+            }
+            expect(firstSellIndex).toEqual(878);
+        });
     });
 
     describe('afterBuy', () => {
@@ -272,7 +322,7 @@ describe(RiseStrategy.name, () => {
                 },
             });
 
-            expect(strategy.afterBuy(10, buyTradeTransaction)).toEqual({
+            expect(strategy.afterBuy(10, launchpadBuyPosition)).toEqual({
                 stopLoss: 9,
                 trailingStopLossPercentage: 12,
                 takeProfit: 12,

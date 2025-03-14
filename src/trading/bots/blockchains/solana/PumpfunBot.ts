@@ -19,6 +19,7 @@ import {
     calculatePumpTokenLamportsValue,
     sellPumpfunTokensWithRetries,
 } from '../../../../blockchains/solana/dex/pumpfun/utils';
+import { JitoConfig, TIP_LAMPORTS } from '../../../../blockchains/solana/Jito';
 import SolanaAdapter from '../../../../blockchains/solana/SolanaAdapter';
 import { TransactionMode } from '../../../../blockchains/solana/types';
 import Wallet from '../../../../blockchains/solana/Wallet';
@@ -99,6 +100,10 @@ export default class PumpfunBot {
             throw new Error('Bot is already running!');
         }
         this.isRunning = true;
+
+        const jitoConfig: JitoConfig = {
+            jitoEnabled: true,
+        };
 
         let sleepIntervalMs = this.config.buyMonitorWaitPeriodMs; // sleep interval between fetching new stats, price, holders etc. We can keep it higher before buying to save RPC calls and reduce when want to sell and monitor faster
         const startTimestamp = Date.now();
@@ -279,11 +284,9 @@ export default class PumpfunBot {
                             solIn: inSol,
                             priorityFeeInSol: buyPriorityFeeInSol,
                             slippageDecimal: strategy.config.buySlippageDecimal,
-                            jitoConfig: {
-                                jitoEnabled: true,
-                            },
+                            jitoConfig: jitoConfig,
                         }),
-                    `pumpfun.buy_${buyPriorityFeeInSol}${this.config.simulate ? '_simulation' : ''}`,
+                    formPumpfunApmTransactionName(this.config.simulate, 'buy', buyPriorityFeeInSol, jitoConfig),
                     { storeImmediately: true },
                 )
                     .then(buyRes => {
@@ -414,11 +417,9 @@ export default class PumpfunBot {
                             tokenBalance: strategy.buyPosition!.transaction.amountRaw,
                             priorityFeeInSol: sellPriorityFeeInSol,
                             slippageDecimal: strategy.config.sellSlippageDecimal,
-                            jitoConfig: {
-                                jitoEnabled: true,
-                            },
+                            jitoConfig: jitoConfig,
                         }),
-                    `pumpfun.sell_${sellPriorityFeeInSol}${this.config.simulate ? '_simulation' : ''}`,
+                    formPumpfunApmTransactionName(this.config.simulate, 'sell', sellPriorityFeeInSol, jitoConfig),
                     { storeImmediately: true },
                 )
                     .then(sellRes => {
@@ -517,6 +518,17 @@ export default class PumpfunBot {
                 : `BotExitResponse, exitCode=${(result as BotExitResponse).exitCode}`,
         );
     }
+}
+
+function formPumpfunApmTransactionName(
+    simulate: boolean,
+    type: 'buy' | 'sell',
+    priorityFeeSol: number,
+    jitoConfig: JitoConfig,
+): string {
+    return `pumpfun.${type}_${simulate ? 'simulation' : 'real'}_${priorityFeeSol}${
+        jitoConfig.jitoEnabled ? `_jito_${lamportsToSol(jitoConfig.tipLampports ?? TIP_LAMPORTS)}` : ''
+    }`;
 }
 
 export function formSolBoughtOrSold(amountLamports: number): BoughtSold {

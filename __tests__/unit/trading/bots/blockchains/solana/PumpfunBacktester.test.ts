@@ -43,6 +43,9 @@ describe(PumpfunBacktester.name, () => {
         const runConfig: BacktestRunConfig = {
             initialBalanceLamports: solToLamports(1),
             buyAmountSol: 0.4,
+            jitoConfig: {
+                jitoEnabled: true,
+            },
             strategy: riseStrategy,
             onlyOneFullTrade: true,
             allowNegativeBalance: false,

@@ -32,7 +32,7 @@ export async function organizePumpfunFiles() {
             const c = content as HandlePumpTokenBotReport;
             path = `${path}/${c.strategy.name}/${c.strategy.configVariant === '' ? '_' : c.strategy.configVariant}`;
         } else {
-            path = `${path}/_exit_/${(content as HandlePumpTokenExitReport).exitCode}`;
+            path = `${path}/_exit_/${(content as HandlePumpTokenExitReport).exitCode.toLowerCase()}/${file.name}`;
         }
 
         if ((content as BotTradeResponse).netPnl) {

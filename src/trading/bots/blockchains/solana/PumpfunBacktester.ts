@@ -25,7 +25,7 @@ export default class PumpfunBacktester {
     constructor(private readonly logger: Logger) {}
 
     async run(
-        { initialBalanceLamports, buyAmountSol, strategy, onlyOneFullTrade }: BacktestRunConfig,
+        { initialBalanceLamports, buyAmountSol, jitoConfig, strategy, onlyOneFullTrade }: BacktestRunConfig,
         tokenInfo: PumpfunInitialCoinData,
         history: HistoryEntry[],
     ): Promise<BacktestTradeResponse | BacktestExitResponse> {
@@ -97,7 +97,7 @@ export default class PumpfunBacktester {
                     getNextEntryIndex(
                         history,
                         i,
-                        marketContext.timestamp + simulatePumpBuyLatencyMs(buyPriorityFeeInSol),
+                        marketContext.timestamp + simulatePumpBuyLatencyMs(buyPriorityFeeInSol, jitoConfig),
                     ) - 1;
                 continue;
             }
@@ -178,7 +178,7 @@ export default class PumpfunBacktester {
                     getNextEntryIndex(
                         history,
                         i,
-                        marketContext.timestamp + simulatePumpSellLatencyMs(sellPriorityFeeInSol),
+                        marketContext.timestamp + simulatePumpSellLatencyMs(sellPriorityFeeInSol, jitoConfig),
                     ) - 1;
                 continue;
             }

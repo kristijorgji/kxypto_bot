@@ -1,3 +1,4 @@
+import { JitoConfig } from '../../../../blockchains/solana/Jito';
 import LaunchpadBotStrategy from '../../../strategies/launchpads/LaunchpadBotStrategy';
 import { HistoryEntry } from '../../launchpads/types';
 import { ExitMonitoringReason, SellReason, SwapSubCategory, TransactionType } from '../../types';
@@ -84,6 +85,7 @@ export type BacktestTradeResponse = {
 export type BacktestRunConfig = {
     initialBalanceLamports: number;
     buyAmountSol: number;
+    jitoConfig: JitoConfig;
     strategy: LaunchpadBotStrategy;
     /**
      * if this is true the simulation will exit after one buy - trade pair

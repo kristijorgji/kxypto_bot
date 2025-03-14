@@ -57,6 +57,9 @@ async function findBestStrategy() {
             initialBalanceLamports: solToLamports(1),
             strategy: strategy,
             buyAmountSol: 0.4,
+            jitoConfig: {
+                jitoEnabled: true,
+            },
             onlyOneFullTrade: true,
             allowNegativeBalance: false,
         };

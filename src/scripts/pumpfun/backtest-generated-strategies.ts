@@ -73,6 +73,9 @@ async function findBestStrategy() {
     const baseRunConfig: Omit<BacktestRunConfig, 'strategy'> = {
         initialBalanceLamports: solToLamports(1),
         buyAmountSol: 0.4,
+        jitoConfig: {
+            jitoEnabled: true,
+        },
         onlyOneFullTrade: true,
         allowNegativeBalance: false,
     };

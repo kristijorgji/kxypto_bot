@@ -313,7 +313,14 @@ export default class Pumpfun implements PumpfunListener {
             // const simulatedResult = await this.connection.simulateTransaction(transaction);
             // logger.info(simulatedResult);
 
-            await sleep(simulatePumpBuyLatencyMs(priorityFeeInSol));
+            await sleep(
+                simulatePumpBuyLatencyMs(
+                    priorityFeeInSol,
+                    jitoConfig ?? {
+                        jitoEnabled: false,
+                    },
+                ),
+            );
 
             return {
                 signature: _generateFakeSimulationTransactionHash(),
@@ -442,7 +449,14 @@ export default class Pumpfun implements PumpfunListener {
             // const simulatedResult = await this.connection.simulateTransaction(transaction);
             // logger.info(simulatedResult);
 
-            await sleep(simulatePumpSellLatencyMs(priorityFeeInSol));
+            await sleep(
+                simulatePumpSellLatencyMs(
+                    priorityFeeInSol,
+                    jitoConfig ?? {
+                        jitoEnabled: false,
+                    },
+                ),
+            );
 
             return {
                 signature: _generateFakeSimulationTransactionHash(),
@@ -680,10 +694,18 @@ function _generateFakeSimulationTransactionHash() {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function simulatePumpBuyLatencyMs(priorityFeeInSol: number): number {
-    /**
-     * TODO adjust the values here based on the data with different priority fees
-     */
+export function simulatePumpBuyLatencyMs(priorityFeeInSol: number, jitoConfig: JitoConfig): number {
+    if (jitoConfig.jitoEnabled) {
+        return (
+            computeSimulatedLatencyNs({
+                minTimeNs: 2265385250,
+                maxTimeNs: 2645449583,
+                avgTimeNs: 2455417416.5,
+                medianTimeNs: 2645449583,
+            }) / 1e6
+        );
+    }
+
     return (
         computeSimulatedLatencyNs({
             minTimeNs: 3036228333,
@@ -695,10 +717,18 @@ export function simulatePumpBuyLatencyMs(priorityFeeInSol: number): number {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function simulatePumpSellLatencyMs(priorityFeeInSol: number): number {
-    /**
-     * TODO adjust the values here based on the data with different priority fees
-     */
+export function simulatePumpSellLatencyMs(priorityFeeInSol: number, jitoConfig: JitoConfig): number {
+    if (jitoConfig.jitoEnabled) {
+        return (
+            computeSimulatedLatencyNs({
+                minTimeNs: 1762302125,
+                maxTimeNs: 2120724750,
+                avgTimeNs: 1941513437.5,
+                medianTimeNs: 2120724750,
+            }) / 1e6
+        );
+    }
+
     return (
         computeSimulatedLatencyNs({
             minTimeNs: 3102956041,

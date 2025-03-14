@@ -228,6 +228,22 @@ async function handlePumpToken(
         await pumpfunRepository.insertToken(initialCoinData);
 
         const isCreatorSafeResult = await isTokenCreatorSafe(initialCoinData.creator);
+
+        const baseReport: HandlePumpTokenBaseReport = {
+            $schema: {
+                version: 1.09,
+            },
+            simulation: c.simulate,
+            mint: tokenData.mint,
+            name: tokenData.name,
+            url: formPumpfunTokenUrl(tokenData.mint),
+            bullXUrl: `https://neo.bullx.io/terminal?chainId=1399811149&address=${tokenData.mint}`,
+            creator: initialCoinData.creator,
+            startedAt: startedAt,
+            endedAt: startedAt,
+            elapsedSeconds: 0,
+        };
+
         if (!isCreatorSafeResult.safe) {
             logger.info(
                 '[%s] Skipping this token because its creator %s is not safe, %s, data=%o',
@@ -238,17 +254,8 @@ async function handlePumpToken(
             );
             const endedAt = new Date();
             await storeResult({
-                $schema: {
-                    version: 1.08,
-                },
-                simulation: c.simulate,
-                mint: tokenData.mint,
-                name: tokenData.name,
-                url: formPumpfunTokenUrl(tokenData.mint),
-                bullXUrl: `https://neo.bullx.io/terminal?chainId=1399811149&address=${tokenData.mint}`,
-                creator: initialCoinData.creator,
-                startedAt: startedAt,
-                endedAt: startedAt,
+                ...baseReport,
+                endedAt: endedAt,
                 elapsedSeconds: getSecondsDifference(startedAt, endedAt),
                 exitCode: 'BAD_CREATOR',
                 exitReason: `Skipping this token because its creator is not detected as safe, reason=${isCreatorSafeResult.reason}`,
@@ -292,21 +299,19 @@ async function handlePumpToken(
 
         const endedAt = new Date();
         await storeResult({
-            $schema: {
-                version: 1.08,
-            },
-            simulation: c.simulate,
+            $schema: baseReport.$schema,
+            simulation: baseReport.simulation,
             strategy: {
                 id: strategy.identifier,
                 name: strategy.name,
                 configVariant: strategy.configVariant,
             },
-            mint: tokenData.mint,
-            name: tokenData.name,
-            url: formPumpfunTokenUrl(tokenData.mint),
-            bullXUrl: `https://neo.bullx.io/terminal?chainId=1399811149&address=${tokenData.mint}`,
-            creator: initialCoinData.creator,
-            startedAt: startedAt,
+            mint: baseReport.mint,
+            name: baseReport.name,
+            url: baseReport.url,
+            bullXUrl: baseReport.bullXUrl,
+            creator: baseReport.creator,
+            startedAt: baseReport.startedAt,
             endedAt: endedAt,
             elapsedSeconds: getSecondsDifference(startedAt, endedAt),
             monitor: {

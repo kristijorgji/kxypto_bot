@@ -143,7 +143,6 @@ export default class PumpfunBot {
                 holdersCount: holdersCount,
                 devHoldingPercentage: devHoldingPercentage,
                 topTenHoldingPercentage: topTenHoldingPercentage,
-                _afterResult: result !== undefined,
             });
 
             /**
@@ -253,6 +252,9 @@ export default class PumpfunBot {
             if (!actionInProgress && !strategy.buyPosition && buy) {
                 logger.info('We will start the buy buyInProgress=true');
                 buyInProgress = true;
+                history[history.length - 1]._metadata = {
+                    action: 'startBuy',
+                };
 
                 const dataAtBuyTime = {
                     priceInSol: priceInSol,
@@ -344,6 +346,9 @@ export default class PumpfunBot {
                             buyRes,
                         );
 
+                        history[history.length - 1]._metadata = {
+                            action: 'buyCompleted',
+                        };
                         buyInProgress = false;
                     })
                     .catch(async e => {
@@ -379,6 +384,9 @@ export default class PumpfunBot {
             if (!actionInProgress && sell && strategy.buyPosition) {
                 logger.info('We will start the sell sellInProgress=true');
                 sellInProgress = true;
+                history[history.length - 1]._metadata = {
+                    action: 'startSell',
+                };
 
                 const dataAtSellTime = {
                     buyPosition: strategy.buyPosition,
@@ -461,6 +469,9 @@ export default class PumpfunBot {
                         this.botEventBus.botTradeResponse(result);
 
                         strategy.afterSell();
+                        history[history.length - 1]._metadata = {
+                            action: 'sellCompleted',
+                        };
                     })
                     .catch(async e => {
                         // TODO handle errors, some error might be false negative example block height timeout, sell might be successful but we get error

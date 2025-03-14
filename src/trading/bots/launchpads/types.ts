@@ -12,11 +12,12 @@ export type HistoryEntry = {
     devHoldingPercentage: number;
     topTenHoldingPercentage: number;
     /**
-     * this will be true if this record was added after an action
-     *  exit
-     *  trade - buy or sell
+     * Optional field used only for troubleshooting and debugging
+     * It is not needed elsewhere in backtests or other places
      */
-    _afterResult?: boolean;
+    _metadata?: {
+        action: 'startBuy' | 'buyCompleted' | 'startSell' | 'sellCompleted';
+    };
 };
 
 export type MarketContext = {

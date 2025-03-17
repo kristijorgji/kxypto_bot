@@ -111,7 +111,7 @@ async function findBestStrategy() {
     logger.info('Running backtest %s, will test %d strategies\n', backtestId, total);
 
     const baseConfig: Partial<RiseStrategyConfig> = {
-        priorityFeeInSol: 0.005,
+        priorityFeeInSol: 0.007,
     };
 
     for (const config of riseStrategyConfigGenerator.formConfigs(s)) {

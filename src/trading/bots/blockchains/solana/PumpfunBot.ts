@@ -21,7 +21,7 @@ import {
 } from '../../../../blockchains/solana/dex/pumpfun/utils';
 import { JitoConfig, TIP_LAMPORTS } from '../../../../blockchains/solana/Jito';
 import SolanaAdapter from '../../../../blockchains/solana/SolanaAdapter';
-import { TransactionMode } from '../../../../blockchains/solana/types';
+import { SolTransactionDetails, TransactionMode } from '../../../../blockchains/solana/types';
 import Wallet from '../../../../blockchains/solana/Wallet';
 import { lamportsToSol, solToLamports } from '../../../../blockchains/utils/amount';
 import { closePosition, insertPosition } from '../../../../db/repositories/positions';
@@ -31,6 +31,10 @@ import LaunchpadBotStrategy from '../../../strategies/launchpads/LaunchpadBotStr
 import { generateTradeId } from '../../../utils/generateTradeId';
 import { HistoryEntry } from '../../launchpads/types';
 import { BotConfig, SellReason } from '../../types';
+
+export const ErrorMessage = {
+    insufficientFundsToBuy: 'no_funds_to_buy',
+};
 
 const DefaultPriorityFeeSol = 0.005;
 
@@ -120,9 +124,14 @@ export default class PumpfunBot {
             | undefined;
         let sellInProgress = false;
         const history: HistoryEntry[] = [];
+        let fatalError: Error | undefined;
         let result: BotResponse | undefined;
 
         while (this.isRunning || strategy.buyPosition || sellInProgress || buyInProgress) {
+            if (fatalError) {
+                throw fatalError;
+            }
+
             const elapsedMonitoringMs = Date.now() - startTimestamp;
             const actionInProgress = buyInProgress || sellInProgress;
 
@@ -320,6 +329,11 @@ export default class PumpfunBot {
                                 pumpTokenOut: buyRes.pumpTokenOut,
                             },
                         };
+
+                        if (buyRes.txDetails.error) {
+                            throw buyRes.txDetails;
+                        }
+
                         this.botEventBus.tradeExecuted(buyPosition);
                         /**
                          * The longer the buy transaction takes the more likely price has changed, so need to put limit orders with most closely price to the one used to buy
@@ -373,8 +387,13 @@ export default class PumpfunBot {
                     })
                     .catch(async e => {
                         // TODO handle properly and double check if it really failed or was block height transaction timeout
-                        logger.error('Error while buying');
-                        logger.error(e);
+                        logger.error('Error while buying, e=%o', e);
+
+                        if ((e as SolTransactionDetails).error?.type === 'insufficient_lamports') {
+                            fatalError = new Error(ErrorMessage.insufficientFundsToBuy);
+                            buyInProgress = false;
+                            return;
+                        }
 
                         // TODO check the wallet if the buy was successful and timed out and proceed monitoring normally
                         // TODO make a proper sell only for this mint if we hold it and get back transaction details to store it into a tradehistory etc

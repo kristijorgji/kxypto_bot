@@ -9,6 +9,7 @@ import {
 } from '../../../../blockchains/solana/dex/pumpfun/Pumpfun';
 import { PumpfunInitialCoinData } from '../../../../blockchains/solana/dex/pumpfun/types';
 import { calculatePumpTokenLamportsValue } from '../../../../blockchains/solana/dex/pumpfun/utils';
+import { TIP_LAMPORTS } from '../../../../blockchains/solana/Jito';
 import {
     simulatePriceWithHigherSlippage,
     simulateSolTransactionDetails,
@@ -59,12 +60,22 @@ export default class PumpfunBacktester {
                 strategy.config.buyPriorityFeeInSol ??
                 strategy.config.priorityFeeInSol ??
                 lamportsToSol(simulateSolanaPriorityFeeInLamports());
+
+            // We create the associated pumpfun token account and pay its fee the first time we trade this token
+            const pumpCreateAccountFeeLamports = tradeHistory.length === 0 ? 4045000 : 0;
+            const jitoTipLamports = jitoConfig.jitoEnabled ? jitoConfig.tipLampports ?? TIP_LAMPORTS : 0;
+            const requiredAmountLamports =
+                buyInLamports + buyPriorityFeeInSol + pumpCreateAccountFeeLamports + jitoTipLamports;
+
             if (
-                balanceLamports > buyInLamports + solToLamports(buyPriorityFeeInSol) &&
+                balanceLamports > requiredAmountLamports &&
                 !strategy.buyPosition &&
                 strategy.shouldBuy(marketContext, history)
             ) {
-                const txDetails = simulateSolTransactionDetails(-buyInLamports, solToLamports(buyPriorityFeeInSol));
+                const txDetails = simulateSolTransactionDetails(
+                    -buyInLamports - pumpCreateAccountFeeLamports - jitoTipLamports,
+                    solToLamports(buyPriorityFeeInSol),
+                );
 
                 holdingsRaw += (buyAmountSol / price) * 10 ** PUMPFUN_TOKEN_DECIMALS;
                 balanceLamports += txDetails.netTransferredLamports;
@@ -139,7 +150,7 @@ export default class PumpfunBacktester {
                     strategy.config.priorityFeeInSol ??
                     lamportsToSol(simulateSolanaPriorityFeeInLamports());
                 const txDetails = simulateSolTransactionDetails(
-                    receivedAmountLamports,
+                    receivedAmountLamports - jitoTipLamports,
                     solToLamports(sellPriorityFeeInSol),
                 );
 

@@ -21,7 +21,7 @@ import { pumpfunRepository } from '../../db/repositories/PumpfunRepository';
 import { insertLaunchpadTokenResult } from '../../db/repositories/tokenAnalytics';
 import { logger } from '../../logger';
 import isTokenCreatorSafe from '../../trading/bots/blockchains/solana/isTokenCreatorSafe';
-import PumpfunBot from '../../trading/bots/blockchains/solana/PumpfunBot';
+import PumpfunBot, { ErrorMessage } from '../../trading/bots/blockchains/solana/PumpfunBot';
 import PumpfunBotEventBus from '../../trading/bots/blockchains/solana/PumpfunBotEventBus';
 import PumpfunBotsTradeManager from '../../trading/bots/blockchains/solana/PumpfunBotsTradeManager';
 import { BotExitResponse, BotResponse, BotTradeResponse } from '../../trading/bots/blockchains/solana/types';
@@ -132,8 +132,7 @@ async function start() {
     logger.info(`Started with balance ${lamportsToSol(await wallet.getBalanceLamports())} SOL`);
 
     const botEventBus = new PumpfunBotEventBus();
-    // eslint-disable-next-line no-new
-    new PumpfunBotsTradeManager(logger, botEventBus, wallet, {
+    const pumpfunBotsTradeManager = new PumpfunBotsTradeManager(logger, botEventBus, wallet, {
         maxFullTrades: config.maxFullTrades,
         minWalletBalanceLamports: config.stopAtMinWalletBalanceLamports,
     });
@@ -143,28 +142,39 @@ async function start() {
         pumpfun,
         config.maxTokensToProcessInParallel,
         async (identifier, data) => {
-            const handleRes = await handlePumpToken(
-                {
-                    pumpfun,
-                    solanaAdapter,
-                    marketContextProvider,
-                    botEventBus: botEventBus,
-                },
-                {
-                    identifier: identifier.toString(),
-                    config: config,
-                    wallet: wallet,
-                    tokenData: data,
-                },
-            );
+            try {
+                const handleRes = await handlePumpToken(
+                    {
+                        pumpfun,
+                        solanaAdapter,
+                        marketContextProvider,
+                        botEventBus: botEventBus,
+                    },
+                    {
+                        identifier: identifier.toString(),
+                        config: config,
+                        wallet: wallet,
+                        tokenData: data,
+                    },
+                );
 
-            if (config.simulate) {
-                if (handleRes && (handleRes as BotTradeResponse).transactions) {
-                    logger.info(
-                        '[%s] Simulated new balance: %s SOL',
-                        identifier,
-                        lamportsToSol(await wallet.getBalanceLamports()),
-                    );
+                if (config.simulate) {
+                    if (handleRes && (handleRes as BotTradeResponse).transactions) {
+                        logger.info(
+                            '[%s] Simulated new balance: %s SOL',
+                            identifier,
+                            lamportsToSol(await wallet.getBalanceLamports()),
+                        );
+                    }
+                }
+            } catch (e) {
+                logger.error('[%s] Failed handling pump token %s', identifier, data.mint);
+
+                if ((e as Error).message === ErrorMessage.insufficientFundsToBuy) {
+                    logger.warn('We got error %s and will stop all bots', ErrorMessage.insufficientFundsToBuy);
+                    pumpfunBotsTradeManager.stopAllBots();
+                } else {
+                    logger.error(e);
                 }
             }
         },
@@ -219,115 +229,108 @@ async function handlePumpToken(
         formPumpfunTokenUrl(tokenData.mint),
     );
 
-    try {
-        const initialCoinData = pumpCoinDataToInitialCoinData(
-            await pumpfun.getCoinDataWithRetries(tokenData.mint, {
-                maxRetries: 10,
-                sleepMs: retryCount => (retryCount <= 5 ? randomInt(250, 1000) : retryCount * randomInt(500, 2500)),
-            }),
+    const initialCoinData = pumpCoinDataToInitialCoinData(
+        await pumpfun.getCoinDataWithRetries(tokenData.mint, {
+            maxRetries: 10,
+            sleepMs: retryCount => (retryCount <= 5 ? randomInt(250, 1000) : retryCount * randomInt(500, 2500)),
+        }),
+    );
+    await pumpfunRepository.insertToken(initialCoinData);
+
+    const isCreatorSafeResult = await isTokenCreatorSafe(initialCoinData.creator);
+
+    const baseReport: HandlePumpTokenBaseReport = {
+        $schema: {
+            version: 1.09,
+        },
+        simulation: c.simulate,
+        mint: tokenData.mint,
+        name: tokenData.name,
+        url: formPumpfunTokenUrl(tokenData.mint),
+        bullXUrl: `https://neo.bullx.io/terminal?chainId=1399811149&address=${tokenData.mint}`,
+        creator: initialCoinData.creator,
+        startedAt: startedAt,
+        endedAt: startedAt,
+        elapsedSeconds: 0,
+    };
+
+    if (!isCreatorSafeResult.safe) {
+        logger.info(
+            '[%s] Skipping this token because its creator %s is not safe, %s',
+            identifier,
+            initialCoinData.creator,
+            isCreatorSafeResult.reason,
         );
-        await pumpfunRepository.insertToken(initialCoinData);
-
-        const isCreatorSafeResult = await isTokenCreatorSafe(initialCoinData.creator);
-
-        const baseReport: HandlePumpTokenBaseReport = {
-            $schema: {
-                version: 1.09,
-            },
-            simulation: c.simulate,
-            mint: tokenData.mint,
-            name: tokenData.name,
-            url: formPumpfunTokenUrl(tokenData.mint),
-            bullXUrl: `https://neo.bullx.io/terminal?chainId=1399811149&address=${tokenData.mint}`,
-            creator: initialCoinData.creator,
-            startedAt: startedAt,
-            endedAt: startedAt,
-            elapsedSeconds: 0,
-        };
-
-        if (!isCreatorSafeResult.safe) {
-            logger.info(
-                '[%s] Skipping this token because its creator %s is not safe, %s',
-                identifier,
-                initialCoinData.creator,
-                isCreatorSafeResult.reason,
-            );
-            const endedAt = new Date();
-            await storeResult({
-                ...baseReport,
-                endedAt: endedAt,
-                elapsedSeconds: getSecondsDifference(startedAt, endedAt),
-                exitCode: 'BAD_CREATOR',
-                exitReason: `Skipping this token because its creator is not detected as safe, reason=${isCreatorSafeResult.reason}`,
-            });
-
-            return null;
-        }
-
-        const pumpfunBot = new PumpfunBot({
-            logger: logger.child({
-                contextMap: {
-                    listenerId: identifier,
-                },
-            }),
-            pumpfun: pumpfun,
-            solanaAdapter: solanaAdapter,
-            marketContextProvider: marketContextProvider,
-            wallet: wallet,
-            config: c,
-            botEventBus: botEventBus,
-        });
-
-        const strategy = new RiseStrategy(logger, {
-            variant: 'hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17',
-            buy: {
-                holdersCount: { min: 10 },
-                bondingCurveProgress: { min: 22 },
-                devHoldingPercentage: { max: 7 },
-                topTenHoldingPercentage: { max: 10 },
-            },
-            sell: {
-                takeProfitPercentage: 17,
-                trailingStopLossPercentage: 10,
-            },
-            maxWaitMs: 7 * 60 * 1e3,
-            priorityFeeInSol: 0.005,
-            buySlippageDecimal: 0.25,
-            sellSlippageDecimal: 0.25,
-        });
-        const handleRes = await pumpfunBot.run(identifier, initialCoinData, strategy);
-
         const endedAt = new Date();
         await storeResult({
-            $schema: baseReport.$schema,
-            simulation: baseReport.simulation,
-            strategy: {
-                id: strategy.identifier,
-                name: strategy.name,
-                configVariant: strategy.configVariant,
-            },
-            mint: baseReport.mint,
-            name: baseReport.name,
-            url: baseReport.url,
-            bullXUrl: baseReport.bullXUrl,
-            creator: baseReport.creator,
-            startedAt: baseReport.startedAt,
+            ...baseReport,
             endedAt: endedAt,
             elapsedSeconds: getSecondsDifference(startedAt, endedAt),
-            monitor: {
-                buyTimeframeMs: config.buyMonitorWaitPeriodMs,
-                sellTimeframeMs: config.sellMonitorWaitPeriodMs,
-            },
-            ...handleRes,
-        } as HandlePumpTokenBotReport);
-
-        return handleRes;
-    } catch (e) {
-        logger.error('[%s] Failed handling pump token %s', identifier, tokenData.mint);
-        logger.error(e);
+            exitCode: 'BAD_CREATOR',
+            exitReason: `Skipping this token because its creator is not detected as safe, reason=${isCreatorSafeResult.reason}`,
+        });
 
         return null;
     }
+
+    const pumpfunBot = new PumpfunBot({
+        logger: logger.child({
+            contextMap: {
+                listenerId: identifier,
+            },
+        }),
+        pumpfun: pumpfun,
+        solanaAdapter: solanaAdapter,
+        marketContextProvider: marketContextProvider,
+        wallet: wallet,
+        config: c,
+        botEventBus: botEventBus,
+    });
+
+    const strategy = new RiseStrategy(logger, {
+        variant: 'hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17',
+        buy: {
+            holdersCount: { min: 10 },
+            bondingCurveProgress: { min: 22 },
+            devHoldingPercentage: { max: 7 },
+            topTenHoldingPercentage: { max: 10 },
+        },
+        sell: {
+            takeProfitPercentage: 17,
+            trailingStopLossPercentage: 10,
+        },
+        maxWaitMs: 7 * 60 * 1e3,
+        priorityFeeInSol: 0.005,
+        buySlippageDecimal: 0.25,
+        sellSlippageDecimal: 0.25,
+    });
+    const handleRes = await pumpfunBot.run(identifier, initialCoinData, strategy);
+
+    const endedAt = new Date();
+    await storeResult({
+        $schema: baseReport.$schema,
+        simulation: baseReport.simulation,
+        strategy: {
+            id: strategy.identifier,
+            name: strategy.name,
+            configVariant: strategy.configVariant,
+        },
+        mint: baseReport.mint,
+        name: baseReport.name,
+        url: baseReport.url,
+        bullXUrl: baseReport.bullXUrl,
+        creator: baseReport.creator,
+        startedAt: baseReport.startedAt,
+        endedAt: endedAt,
+        elapsedSeconds: getSecondsDifference(startedAt, endedAt),
+        monitor: {
+            buyTimeframeMs: config.buyMonitorWaitPeriodMs,
+            sellTimeframeMs: config.sellMonitorWaitPeriodMs,
+        },
+        ...handleRes,
+    } as HandlePumpTokenBotReport);
+
+    return handleRes;
 }
 
 async function storeResult(report: HandlePumpTokenReport) {

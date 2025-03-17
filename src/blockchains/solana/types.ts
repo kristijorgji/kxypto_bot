@@ -122,10 +122,16 @@ export type WssMessage = {
     };
 };
 
+export type SolanaTransactionErrorType = 'insufficient_lamports' | 'unknown';
+
 export type SolTransactionDetails = {
     grossTransferredLamports: number; // Amount before fees
     netTransferredLamports: number; // Amount after fees
     baseFeeLamports: number;
     priorityFeeLamports: number;
     totalFeeLamports: number;
+    error?: {
+        type: SolanaTransactionErrorType;
+        object: unknown;
+    };
 };

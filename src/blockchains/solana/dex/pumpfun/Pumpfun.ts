@@ -494,17 +494,15 @@ export default class Pumpfun implements PumpfunListener {
                 coinData = await this.getCoinData(tokenMint);
             } catch (e) {
                 error = e as Error | AxiosError;
-                if (e instanceof AxiosError) {
-                    if (e.response?.status === 429) {
-                        const retryInMs = randomInt(5000, 20000);
-                        logger.info(
-                            'failed to fetch coin data on retry %d, we got back response 429, will retry in %ds',
-                            retries,
-                            retryInMs / 1000,
-                        );
-                        await sleep(retryInMs);
-                        retries--;
-                    }
+                if (e instanceof AxiosError && e.response?.status === 429) {
+                    const retryInMs = randomInt(5000, 20000);
+                    logger.info(
+                        'failed to fetch coin data on retry %d, we got back response 429, will retry in %ds',
+                        retries,
+                        retryInMs / 1000,
+                    );
+                    await sleep(retryInMs);
+                    retries--;
                 } else {
                     sleepMs = typeof sleepMs === 'function' ? sleepMs(retries + 1) : sleepMs;
                     logger.error(
@@ -573,7 +571,7 @@ export default class Pumpfun implements PumpfunListener {
     }
 
     async getCoinData(tokenMint: string): Promise<PumpFunCoinData> {
-        const url = `https://frontend-api.pump.fun/coins/${tokenMint}`;
+        const url = `https://frontend-api-v3.pump.fun/coins/${tokenMint}`;
         const response = await axios.get(url, {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0',

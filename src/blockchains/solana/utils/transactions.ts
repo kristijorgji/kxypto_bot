@@ -4,7 +4,7 @@ import { measureExecutionTime } from '../../../apm/apm';
 import { RetryConfig } from '../../../core/types';
 import { sleep } from '../../../utils/functions';
 import { BASE_FEE_LAMPORTS } from '../constants/core';
-import { SolTransactionDetails } from '../types';
+import { SolTransactionDetails, SolanaTransactionErrorType } from '../types';
 
 /**
  * Fetches the lamports transferred (net & gross) and transaction fees from a Solana transaction.
@@ -37,6 +37,20 @@ const _getSolTransactionDetails = async (
         throw new Error('Transaction not found!');
     }
 
+    let error: unknown;
+    let errorType: SolanaTransactionErrorType | undefined;
+    if (transaction.meta?.err) {
+        error = transaction.meta?.err;
+        const log = ((transaction.meta.logMessages ?? []) as string[]).find(e =>
+            (e as string).includes('Transfer: insufficient lamports'),
+        );
+        if (log) {
+            errorType = 'insufficient_lamports';
+        } else {
+            errorType = 'unknown';
+        }
+    }
+
     const recipientPublicKey = new PublicKey(recipientAddress);
     let netReceivedLamports = 0;
 
@@ -61,13 +75,22 @@ const _getSolTransactionDetails = async (
     // Gross amount sent before fees (total amount transferred, not just net received)
     const grossReceivedLamports = netReceivedLamports + totalFeeLamports;
 
-    return {
+    const r: SolTransactionDetails = {
         grossTransferredLamports: grossReceivedLamports,
         netTransferredLamports: netReceivedLamports,
         baseFeeLamports: estimatedBaseFeeLamports,
         priorityFeeLamports,
         totalFeeLamports,
     };
+
+    if (errorType) {
+        r.error = {
+            type: errorType,
+            object: error,
+        };
+    }
+
+    return r;
 };
 
 export const getSolTransactionDetails = (

@@ -45,4 +45,8 @@ export default class PumpfunBotsTradeManager {
             }
         });
     }
+
+    stopAllBots(): void {
+        this.botEventBus.stopBot();
+    }
 }

@@ -31,7 +31,7 @@ import {
 } from './types';
 import { RetryConfig } from '../../../../core/types';
 import { logger } from '../../../../logger';
-import { bufferFromUInt64 } from '../../../../utils/data/data';
+import { bufferFromUInt64, randomInt } from '../../../../utils/data/data';
 import { sleep } from '../../../../utils/functions';
 import { computeSimulatedLatencyNs } from '../../../../utils/simulations';
 import { lamportsToSol, solToLamports } from '../../../utils/amount';
@@ -66,7 +66,7 @@ export default class Pumpfun implements PumpfunListener {
     private ws: WebSocket | undefined;
 
     private static readonly getTxDetailsRetryConfig: RetryConfig = {
-        maxRetries: 5,
+        maxRetries: 10,
         sleepMs: 250,
     };
 
@@ -496,11 +496,13 @@ export default class Pumpfun implements PumpfunListener {
                 error = e as Error | AxiosError;
                 if (e instanceof AxiosError) {
                     if (e.response?.status === 429) {
+                        const retryInMs = randomInt(5000, 20000);
                         logger.info(
-                            'failed to fetch coin data on retry %d, we got back response 429, will retry in 5s',
+                            'failed to fetch coin data on retry %d, we got back response 429, will retry in %ds',
                             retries,
+                            retryInMs / 1000,
                         );
-                        await sleep(5000);
+                        await sleep(retryInMs);
                         retries--;
                     }
                 } else {

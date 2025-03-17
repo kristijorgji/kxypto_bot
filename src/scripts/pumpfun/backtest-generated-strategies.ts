@@ -67,7 +67,9 @@ async function findBestStrategy() {
     const backtester = new PumpfunBacktester(logger);
 
     const pumpfunStatsPath = formDataFolder('pumpfun-stats');
-    const files = walkDirFilesSyncRecursive(pumpfunStatsPath).filter(el => el.fullPath.includes('no_trade/no_pump'));
+    const files = walkDirFilesSyncRecursive(pumpfunStatsPath).filter(
+        el => el.fullPath.includes('no_trade/no_pump') || el.fullPath.includes('/trade/'),
+    );
     let tested = 0;
 
     const baseRunConfig: Omit<BacktestRunConfig, 'strategy'> = {

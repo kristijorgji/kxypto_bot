@@ -2,6 +2,7 @@ import { Logger } from 'winston';
 
 import PumpfunBotEventBus from './PumpfunBotEventBus';
 import Wallet from '../../../../blockchains/solana/Wallet';
+import { lamportsToSol } from '../../../../blockchains/utils/amount';
 
 export default class PumpfunBotsTradeManager {
     private fullTradesCount: number = 0;
@@ -17,18 +18,18 @@ export default class PumpfunBotsTradeManager {
     ) {
         this.botEventBus.onTradeExecuted(async transaction => {
             this.wallet.modifyBalance(transaction.netTransferredLamports);
-            if (
-                this.config.minWalletBalanceLamports &&
-                (await this.wallet.getBalanceLamports()) <= this.config.minWalletBalanceLamports
-            ) {
-                this.logger.info(
-                    '[%s] - Minimum wallet balance %s / %s reached, emitting stop bot',
-                    PumpfunBotsTradeManager.name,
-                    this.config.maxFullTrades,
-                    this.wallet.getBalanceLamports(),
-                    this.config.minWalletBalanceLamports,
-                );
-                this.botEventBus.stopBot();
+
+            if (this.config.minWalletBalanceLamports) {
+                const balanceLamports = await this.wallet.getBalanceLamports();
+                if (balanceLamports <= this.config.minWalletBalanceLamports) {
+                    this.logger.info(
+                        '[%s] - Minimum wallet balance %s / %s reached, emitting stop bot',
+                        PumpfunBotsTradeManager.name,
+                        lamportsToSol(balanceLamports),
+                        lamportsToSol(this.config.minWalletBalanceLamports),
+                    );
+                    this.botEventBus.stopBot();
+                }
             }
         });
 

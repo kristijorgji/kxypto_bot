@@ -9,9 +9,11 @@ import {
     PumpfunInitialCoinData,
     PumpfunSellResponse,
 } from '../blockchains/solana/dex/pumpfun/types';
-import { formPumpfunTokenUrl } from '../blockchains/solana/dex/pumpfun/utils';
+import { formPumpfunTokenUrl, sellPumpfunTokens } from '../blockchains/solana/dex/pumpfun/utils';
+import SolanaAdapter from '../blockchains/solana/SolanaAdapter';
 import { TransactionMode } from '../blockchains/solana/types';
-import solanaMnemonicToKeypair from '../blockchains/solana/utils/solanaMnemonicToKeypair';
+import { solanaConnection } from '../blockchains/solana/utils/connection';
+import Wallet from '../blockchains/solana/Wallet';
 import { logger } from '../logger';
 import { sleep } from '../utils/functions';
 
@@ -25,21 +27,27 @@ dotenv.config();
 })();
 
 async function start() {
+    const shouldSellPumpTokens = false;
+
     const pumpfun = new Pumpfun({
         rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
         wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
     });
 
-    const walletInfo = await solanaMnemonicToKeypair(process.env.WALLET_MNEMONIC_PHRASE as string, {
+    const wallet = await new Wallet(solanaConnection, {
         provider: SolanaWalletProviders.TrustWallet,
-    });
+        mnemonic: process.env.WALLET_MNEMONIC_PHRASE as string,
+    }).init(false);
 
-    // await sellAllPumpfunTokens({
-    //     pumpfun: pumpfun,
-    //     walletInfo: walletInfo,
-    //     solanaAdapter: new SolanaAdapter(solanaConnection),
-    // });
-    // return;
+    if (shouldSellPumpTokens) {
+        await sellPumpfunTokens({
+            pumpfun: pumpfun,
+            wallet: wallet,
+            solanaAdapter: new SolanaAdapter(solanaConnection),
+            // mint: '5qS8Rt2Ec33ouJyi91kPWYnmSqZR3uCvb4THr2Jupump',
+        });
+        return;
+    }
 
     const maxTokensToSnipe = 1;
     let snipped = 0;
@@ -78,7 +86,7 @@ async function start() {
                 () =>
                     pumpfun.buy({
                         transactionMode: TransactionMode.Execution,
-                        payerPrivateKey: walletInfo.privateKey,
+                        payerPrivateKey: wallet.privateKey,
                         tokenMint: tokenMint,
                         tokenBondingCurve: initialCoinData.bondingCurve,
                         tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
@@ -107,7 +115,7 @@ async function start() {
                 () =>
                     pumpfun.sell({
                         transactionMode: TransactionMode.Execution,
-                        payerPrivateKey: walletInfo.privateKey,
+                        payerPrivateKey: wallet.privateKey,
                         tokenMint: tokenMint,
                         tokenBondingCurve: initialCoinData.bondingCurve,
                         tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,

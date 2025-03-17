@@ -1,3 +1,4 @@
+import { SellReason } from '../../trading/bots/types';
 import { db } from '../knex';
 import { Tables } from '../tables';
 import { InsertPosition, Position } from '../types';
@@ -10,6 +11,7 @@ export async function closePosition(
     tradeId: string,
     args: {
         saleTxSignature: string;
+        closeReason: SellReason;
         exitPrice: number;
         realizedProfit: number;
         exitAmount: number;
@@ -18,6 +20,7 @@ export async function closePosition(
     await db(Tables.Positions).where('trade_id', tradeId).andWhere('status', 'open').update({
         status: 'closed',
         closed_at: db.fn.now(),
+        close_reason: args.closeReason,
         exit_tx_signature: args.saleTxSignature,
         exit_price: args.exitPrice,
         realized_profit: args.realizedProfit,

@@ -10,6 +10,7 @@ export async function up(knex: Knex): Promise<void> {
         table.string('exchange', 50).notNullable().index();
         table.string('user_address').notNullable().index();
         table.string('asset_mint').notNullable();
+        table.string('asset_name').notNullable();
         table.string('asset_symbol').notNullable();
         table.decimal('entry_price', 38, 18).notNullable();
         table.decimal('in_amount', 38, 18).notNullable();
@@ -19,9 +20,21 @@ export async function up(knex: Knex): Promise<void> {
         table.decimal('trailing_take_profit_percent', 7, 2).nullable();
         table.decimal('trailing_take_profit_stop_percent', 7, 2).nullable();
         table.string('tx_signature').notNullable();
-        table.enum('status', ['open', 'closed']).notNullable().defaultTo('open');
+        table.enum('status', ['open', 'closed']).notNullable().defaultTo('open').index();
         table.timestamp('opened_at').defaultTo(knex.fn.now());
         table.timestamp('closed_at').nullable();
+        table
+            .enum('close_reason', [
+                'DUMPED',
+                'TRAILING_STOP_LOSS',
+                'STOP_LOSS',
+                'TAKE_PROFIT',
+                'TRAILING_TAKE_PROFIT',
+                'AT_HARDCODED_PROFIT',
+                'NO_LONGER_MEETS_ENTRY_RULES',
+            ])
+            .nullable()
+            .index();
         table.string('exit_tx_signature').nullable();
         table.decimal('exit_price', 38, 18).nullable();
         table.decimal('realized_profit', 38, 18).nullable();

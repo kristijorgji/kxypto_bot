@@ -34,7 +34,7 @@ export default async function isTokenCreatorSafe(creator: string): Promise<IsTok
     } else if (totalResultsCount === 0) {
         safe = true;
         reason = 'no_previous_history';
-    } else if (totalResultsCount >= 8 && badResultsCount / totalResultsCount >= 0.5) {
+    } else if (totalResultsCount >= 12 && badResultsCount / totalResultsCount >= 0.5) {
         safe = false;
         reason = 'low_success_rate';
     }

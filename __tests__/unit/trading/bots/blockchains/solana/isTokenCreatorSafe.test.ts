@@ -13,17 +13,17 @@ describe(isTokenCreatorSafe.name, () => {
 
     const cases: [string, GetTokenCreatorStatsResult, boolean, IsCreatorSafeReason][] = [
         [
-            'should reject if more than half of their tokens were dumped and had at least 8 results',
+            'should reject if more than half of their tokens were dumped and had at least 12 results',
             {
-                createdCount: 5,
+                createdCount: 12,
                 results: [
                     {
                         exit_code: 'DUMPED',
-                        count: 10,
+                        count: 6,
                     },
                     {
                         exit_code: 'NO_PUMP',
-                        count: 10,
+                        count: 6,
                     },
                 ],
             },
@@ -31,17 +31,17 @@ describe(isTokenCreatorSafe.name, () => {
             'low_success_rate',
         ],
         [
-            'should not reject if has more than half dumped and less than 8 results',
+            'should not reject if has more than half dumped and less than 12 results',
             {
-                createdCount: 7,
+                createdCount: 11,
                 results: [
                     {
                         exit_code: 'DUMPED',
-                        count: 4,
+                        count: 7,
                     },
                     {
                         exit_code: 'NO_PUMP',
-                        count: 3,
+                        count: 4,
                     },
                 ],
             },

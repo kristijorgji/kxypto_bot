@@ -27,6 +27,7 @@ import PumpfunBotsTradeManager from '../../trading/bots/blockchains/solana/Pumpf
 import { BotExitResponse, BotResponse, BotTradeResponse } from '../../trading/bots/blockchains/solana/types';
 import { BotConfig } from '../../trading/bots/types';
 import RiseStrategy from '../../trading/strategies/launchpads/RiseStrategy';
+import { randomInt } from '../../utils/data/data';
 import { sleep } from '../../utils/functions';
 import { ensureDataFolder } from '../../utils/storage';
 import { getSecondsDifference } from '../../utils/time';
@@ -98,7 +99,7 @@ export type HandlePumpTokenReport = HandlePumpTokenExitReport | HandlePumpTokenB
 
 const config: Config = {
     simulate: false,
-    maxTokensToProcessInParallel: 100,
+    maxTokensToProcessInParallel: 70,
     buyMonitorWaitPeriodMs: 2500,
     sellMonitorWaitPeriodMs: 250,
     maxWaitMonitorAfterResultMs: 30 * 1e3,
@@ -222,7 +223,7 @@ async function handlePumpToken(
         const initialCoinData = pumpCoinDataToInitialCoinData(
             await pumpfun.getCoinDataWithRetries(tokenData.mint, {
                 maxRetries: 10,
-                sleepMs: retryCount => (retryCount <= 5 ? 250 : 500),
+                sleepMs: retryCount => (retryCount <= 5 ? randomInt(250, 1000) : retryCount * randomInt(500, 2500)),
             }),
         );
         await pumpfunRepository.insertToken(initialCoinData);
@@ -246,11 +247,10 @@ async function handlePumpToken(
 
         if (!isCreatorSafeResult.safe) {
             logger.info(
-                '[%s] Skipping this token because its creator %s is not safe, %s, data=%o',
+                '[%s] Skipping this token because its creator %s is not safe, %s',
                 identifier,
                 initialCoinData.creator,
                 isCreatorSafeResult.reason,
-                isCreatorSafeResult.data,
             );
             const endedAt = new Date();
             await storeResult({
@@ -279,12 +279,12 @@ async function handlePumpToken(
         });
 
         const strategy = new RiseStrategy(logger, {
-            variant: 'hc_12_bcp_22_dhp_7_tthp_5_tslp_10_tpp_17',
+            variant: 'hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17',
             buy: {
-                holdersCount: { min: 12 },
+                holdersCount: { min: 10 },
                 bondingCurveProgress: { min: 22 },
                 devHoldingPercentage: { max: 7 },
-                topTenHoldingPercentage: { max: 5 },
+                topTenHoldingPercentage: { max: 10 },
             },
             sell: {
                 takeProfitPercentage: 17,

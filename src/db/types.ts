@@ -1,4 +1,4 @@
-import { ExitMonitoringReason } from '../trading/bots/types';
+import { ExitMonitoringReason, SellReason } from '../trading/bots/types';
 
 // example 2023-03-20 12:57:02
 export type MySQLTimestamp = string;
@@ -34,6 +34,7 @@ export type Position = {
     exchange: 'pumpfun';
     user_address: string;
     asset_mint: string;
+    asset_name: string;
     asset_symbol: string;
     entry_price: number;
     in_amount: number;
@@ -46,6 +47,7 @@ export type Position = {
     status: 'open' | 'closed';
     opened_at: Date;
     closed_at: Date | null;
+    close_reason: SellReason | null;
     exit_tx_signature: string | null;
     exit_price: number | null;
     realized_profit: number | null;

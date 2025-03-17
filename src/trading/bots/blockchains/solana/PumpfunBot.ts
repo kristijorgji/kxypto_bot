@@ -243,6 +243,12 @@ export default class PumpfunBot {
                         Math.abs(strategy.buyPosition.transaction.netTransferredLamports),
                 );
 
+                const lastHistoryIndex = history.length - 1;
+                history[lastHistoryIndex]._metadata = {
+                    ...(history[lastHistoryIndex]._metadata ?? {}),
+                    diffSincePurchase: { percent: priceDiffPercentageSincePurchase, inSol: diffInSol },
+                };
+
                 logger.info('Price change since purchase %s%%', priceDiffPercentageSincePurchase);
                 logger.info('Estimated sol diff %s', diffInSol);
 
@@ -258,7 +264,9 @@ export default class PumpfunBot {
             if (!actionInProgress && !strategy.buyPosition && buy) {
                 logger.info('We will start the buy buyInProgress=true');
                 buyInProgress = true;
-                history[history.length - 1]._metadata = {
+                const lastHistoryIndex = history.length - 1;
+                history[lastHistoryIndex]._metadata = {
+                    ...(history[lastHistoryIndex]._metadata ?? {}),
                     action: 'startBuy',
                 };
 
@@ -328,6 +336,7 @@ export default class PumpfunBot {
                             user_address: this.wallet.address,
                             asset_mint: buyPosition.bought.address,
                             asset_symbol: buyPosition.bought.symbol,
+                            asset_name: buyPosition.bought.name,
                             entry_price: buyPosition.price.inSol,
                             in_amount: buyPosition.amountRaw,
                             stop_loss: limits.stopLoss ?? null,
@@ -339,6 +348,7 @@ export default class PumpfunBot {
                             tx_signature: buyPosition.transactionHash,
                             status: 'open',
                             closed_at: null,
+                            close_reason: null,
                             exit_tx_signature: null,
                             exit_price: null,
                             realized_profit: null,
@@ -354,7 +364,9 @@ export default class PumpfunBot {
                             buyRes,
                         );
 
-                        history[history.length - 1]._metadata = {
+                        const lastHistoryIndex = history.length - 1;
+                        history[lastHistoryIndex]._metadata = {
+                            ...(history[lastHistoryIndex]._metadata ?? {}),
                             action: 'buyCompleted',
                         };
                         buyInProgress = false;
@@ -460,6 +472,7 @@ export default class PumpfunBot {
 
                         closePosition(position!.trade_id, {
                             saleTxSignature: sellRes.signature,
+                            closeReason: dataAtSellTime.sellReason,
                             exitPrice: sellPosition.price.inSol,
                             realizedProfit: lamportsToSol(pnlLamports),
                             exitAmount: sellPosition.amountRaw,
@@ -476,7 +489,9 @@ export default class PumpfunBot {
                         this.botEventBus.botTradeResponse(result);
 
                         strategy.afterSell();
-                        history[history.length - 1]._metadata = {
+                        const lastHistoryIndex = history.length - 1;
+                        history[lastHistoryIndex]._metadata = {
+                            ...(history[lastHistoryIndex]._metadata ?? {}),
                             action: 'sellCompleted',
                         };
                     })

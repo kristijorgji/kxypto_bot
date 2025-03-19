@@ -78,6 +78,7 @@ async function findBestStrategy() {
         jitoConfig: {
             jitoEnabled: true,
         },
+        useRandomizedValues: true,
         onlyOneFullTrade: true,
         allowNegativeBalance: false,
     };

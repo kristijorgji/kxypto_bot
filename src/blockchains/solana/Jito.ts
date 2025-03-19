@@ -27,7 +27,7 @@ const getRandomJitoMainnetEndpoint = (): JitoEndpoint => {
 export type JitoConfig = {
     jitoEnabled: boolean;
     endpoint?: JitoEndpoint;
-    tipLampports?: number;
+    tipLamports?: number;
 };
 
 export const TIP_LAMPORTS = 150000; // 0,00015 SOL

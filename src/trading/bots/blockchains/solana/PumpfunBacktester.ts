@@ -9,9 +9,10 @@ import {
 } from '../../../../blockchains/solana/dex/pumpfun/Pumpfun';
 import { PumpfunInitialCoinData } from '../../../../blockchains/solana/dex/pumpfun/types';
 import { calculatePumpTokenLamportsValue } from '../../../../blockchains/solana/dex/pumpfun/utils';
-import { TIP_LAMPORTS } from '../../../../blockchains/solana/Jito';
+import { JitoConfig, TIP_LAMPORTS } from '../../../../blockchains/solana/Jito';
 import {
     simulatePriceWithHigherSlippage,
+    simulatePriceWithLowerSlippage,
     simulateSolTransactionDetails,
     simulateSolanaPriorityFeeInLamports,
 } from '../../../../blockchains/solana/utils/simulations';
@@ -22,11 +23,21 @@ import { SellReason } from '../../types';
 const BacktestWallet = '_backtest_';
 
 export default class PumpfunBacktester {
+    public static readonly DefaultStaticPriorityFeeInSol = 0.005;
+    public static readonly PumpfunAccountCreationFeeLamports = 4045000;
+
     // eslint-disable-next-line no-useless-constructor
     constructor(private readonly logger: Logger) {}
 
     async run(
-        { initialBalanceLamports, buyAmountSol, jitoConfig, strategy, onlyOneFullTrade }: BacktestRunConfig,
+        {
+            initialBalanceLamports,
+            buyAmountSol,
+            jitoConfig,
+            strategy,
+            useRandomizedValues,
+            onlyOneFullTrade,
+        }: BacktestRunConfig,
         tokenInfo: PumpfunInitialCoinData,
         history: HistoryEntry[],
     ): Promise<BacktestTradeResponse | BacktestExitResponse> {
@@ -47,25 +58,27 @@ export default class PumpfunBacktester {
             const marketContext = history[i];
             const { price, marketCap } = marketContext;
 
-            // no more money for further purchases, and also we have no position
-            if (balanceLamports < buyAmountLamports && !strategy.buyPosition) {
-                break;
-            }
-
-            const buyInLamports = simulatePriceWithHigherSlippage(
-                buyAmountLamports,
-                strategy.config.buySlippageDecimal,
-            );
+            const buyInLamports = useRandomizedValues
+                ? simulatePriceWithHigherSlippage(buyAmountLamports, strategy.config.buySlippageDecimal)
+                : buyAmountLamports * (1 + strategy.config.buySlippageDecimal);
             const buyPriorityFeeInSol =
                 strategy.config.buyPriorityFeeInSol ??
                 strategy.config.priorityFeeInSol ??
-                lamportsToSol(simulateSolanaPriorityFeeInLamports());
+                (useRandomizedValues
+                    ? lamportsToSol(simulateSolanaPriorityFeeInLamports())
+                    : PumpfunBacktester.DefaultStaticPriorityFeeInSol);
 
             // We create the associated pumpfun token account and pay its fee the first time we trade this token
-            const pumpCreateAccountFeeLamports = tradeHistory.length === 0 ? 4045000 : 0;
-            const jitoTipLamports = jitoConfig.jitoEnabled ? jitoConfig.tipLampports ?? TIP_LAMPORTS : 0;
+            const pumpCreateAccountFeeLamports =
+                tradeHistory.length === 0 ? PumpfunBacktester.PumpfunAccountCreationFeeLamports : 0;
+            const jitoTipLamports = getJitoTipLamports(jitoConfig);
             const requiredAmountLamports =
-                buyInLamports + buyPriorityFeeInSol + pumpCreateAccountFeeLamports + jitoTipLamports;
+                buyInLamports + solToLamports(buyPriorityFeeInSol) + pumpCreateAccountFeeLamports + jitoTipLamports;
+
+            // no more money for further purchases, and also we have no position
+            if (balanceLamports < requiredAmountLamports && !strategy.buyPosition) {
+                break;
+            }
 
             if (
                 balanceLamports > requiredAmountLamports &&
@@ -103,14 +116,17 @@ export default class PumpfunBacktester {
                     transaction: buyPosition,
                 });
 
-                // Simulate time passing by going to the next market context
-                i =
-                    getNextEntryIndex(
-                        history,
-                        i,
-                        marketContext.timestamp + simulatePumpBuyLatencyMs(buyPriorityFeeInSol, jitoConfig),
-                    ) - 1;
-                continue;
+                if (i < history.length - 1) {
+                    // Simulate time passing by going to the next market context
+                    i =
+                        getNextEntryIndex(
+                            history,
+                            i,
+                            marketContext.timestamp +
+                                simulatePumpBuyLatencyMs(buyPriorityFeeInSol, jitoConfig, useRandomizedValues),
+                        ) - 1;
+                    continue;
+                }
             }
 
             if (!strategy.buyPosition) {
@@ -140,15 +156,19 @@ export default class PumpfunBacktester {
                 }
             }
 
-            if (sell && strategy.buyPosition) {
-                const receivedAmountLamports = simulatePriceWithHigherSlippage(
-                    calculatePumpTokenLamportsValue(holdingsRaw, price),
-                    strategy.config.sellSlippageDecimal,
-                );
+            if (sell && strategy.buyPosition && holdingsRaw > 0) {
+                const receivedAmountLamports = useRandomizedValues
+                    ? simulatePriceWithLowerSlippage(
+                          calculatePumpTokenLamportsValue(holdingsRaw, price),
+                          strategy.config.sellSlippageDecimal,
+                      )
+                    : calculatePumpTokenLamportsValue(holdingsRaw, price) * (1 - strategy.config.sellSlippageDecimal);
                 const sellPriorityFeeInSol =
                     strategy.config.sellPriorityFeeInSol ??
                     strategy.config.priorityFeeInSol ??
-                    lamportsToSol(simulateSolanaPriorityFeeInLamports());
+                    (useRandomizedValues
+                        ? lamportsToSol(simulateSolanaPriorityFeeInLamports())
+                        : PumpfunBacktester.DefaultStaticPriorityFeeInSol);
                 const txDetails = simulateSolTransactionDetails(
                     receivedAmountLamports - jitoTipLamports,
                     solToLamports(sellPriorityFeeInSol),
@@ -179,19 +199,23 @@ export default class PumpfunBacktester {
                 balanceLamports += txDetails.netTransferredLamports;
                 holdingsRaw = 0;
 
+                sell = undefined;
                 strategy.afterSell();
                 if (onlyOneFullTrade) {
                     break;
                 }
 
-                // Simulate time passing by going to the next market context
-                i =
-                    getNextEntryIndex(
-                        history,
-                        i,
-                        marketContext.timestamp + simulatePumpSellLatencyMs(sellPriorityFeeInSol, jitoConfig),
-                    ) - 1;
-                continue;
+                if (i < history.length - 1) {
+                    // Simulate time passing by going to the next market context
+                    i =
+                        getNextEntryIndex(
+                            history,
+                            i,
+                            marketContext.timestamp +
+                                simulatePumpSellLatencyMs(sellPriorityFeeInSol, jitoConfig, useRandomizedValues),
+                        ) - 1;
+                    continue;
+                }
             }
 
             // Track peak balanceLamports for drawdown calculation
@@ -236,4 +260,8 @@ export function getNextEntryIndex(history: HistoryEntry[], currentIndex: number,
 
 function _generateFakeBacktestTransactionHash() {
     return `_backtest_${Date.now()}`;
+}
+
+export function getJitoTipLamports(jitoConfig?: JitoConfig): number {
+    return jitoConfig?.jitoEnabled ? jitoConfig.tipLamports ?? TIP_LAMPORTS : 0;
 }

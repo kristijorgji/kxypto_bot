@@ -1,5 +1,7 @@
 import { VersionedTransactionResponse } from '@solana/web3.js';
 
+import { LatencyMetrics } from '../../utils/simulations';
+
 export type WalletInfo = { privateKey: string; address: string };
 
 export type PriorityFee = {
@@ -133,5 +135,16 @@ export type SolTransactionDetails = {
     error?: {
         type: SolanaTransactionErrorType;
         object: unknown;
+    };
+};
+
+export type ExecutionLatencyData = {
+    rpc: {
+        default: LatencyMetrics;
+        priorityFee: Record<number, LatencyMetrics>;
+    };
+    jito: {
+        default: LatencyMetrics;
+        tip: Record<number, LatencyMetrics>;
     };
 };

@@ -35,7 +35,7 @@ export async function sendTx(
     commitment: Commitment = DEFAULT_COMMITMENT,
     finality: Finality = DEFAULT_FINALITY,
     jito: boolean = false,
-    tipLampports: number = TIP_LAMPORTS,
+    tipLamports: number = TIP_LAMPORTS,
     jitoEndpoint?: JitoEndpoint,
 ): Promise<TransactionResult> {
     const newTx = new Transaction();
@@ -56,7 +56,7 @@ export async function sendTx(
         const tipInstruction = SystemProgram.transfer({
             fromPubkey: payer,
             toPubkey: new PublicKey(jitoClient.getRandomTipAccount()),
-            lamports: tipLampports,
+            lamports: tipLamports,
         });
         newTx.add(tipInstruction);
     }

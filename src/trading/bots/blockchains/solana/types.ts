@@ -82,17 +82,44 @@ export type BacktestTradeResponse = {
     roi: number;
 };
 
+/**
+ * Configuration options for running a backtest simulation.
+ */
 export type BacktestRunConfig = {
-    initialBalanceLamports: number;
-    buyAmountSol: number;
-    jitoConfig: JitoConfig;
-    strategy: LaunchpadBotStrategy;
     /**
-     * if this is true the simulation will exit after one buy - trade pair
+     * The initial balance for the backtest, denominated in lamports (1 SOL = 1,000,000,000 lamports).
+     */
+    initialBalanceLamports: number;
+
+    /**
+     * The amount of SOL to allocate for each buy transaction during the simulation.
+     */
+    buyAmountSol: number;
+
+    /**
+     * Configuration settings related to Jito.
+     */
+    jitoConfig: JitoConfig;
+
+    /**
+     * The trading strategy to be used in the backtest.
+     */
+    strategy: LaunchpadBotStrategy;
+
+    /**
+     * If `true`, the simulation will introduce random variations in execution times and other parameters like slippage
+     * to better mimic real-world market conditions.
+     */
+    useRandomizedValues: boolean;
+
+    /**
+     * If `true`, the simulation will exit after completing a single buy-sell trade cycle.
      */
     onlyOneFullTrade: boolean;
+
     /**
-     * if this is true the simulation will continue with the next file resetting the initial balance
+     * If `true`, the simulation will proceed to the next data file even if the balance becomes negative,
+     * resetting the initial balance for the new file.
      */
     allowNegativeBalance: boolean;
 };

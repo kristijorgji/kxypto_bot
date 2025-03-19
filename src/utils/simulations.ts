@@ -1,14 +1,11 @@
-export function computeSimulatedLatencyNs({
-    minTimeNs,
-    maxTimeNs,
-    avgTimeNs,
-    medianTimeNs,
-}: {
+export type LatencyMetrics = {
     minTimeNs: number;
     maxTimeNs: number;
     avgTimeNs: number;
     medianTimeNs: number;
-}): number {
+};
+
+export function computeSimulatedLatencyNs({ minTimeNs, maxTimeNs, avgTimeNs, medianTimeNs }: LatencyMetrics): number {
     const randomFactor = Math.random(); // Value between 0 and 1
 
     if (medianTimeNs < avgTimeNs) {

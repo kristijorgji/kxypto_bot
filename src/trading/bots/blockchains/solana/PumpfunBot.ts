@@ -383,6 +383,7 @@ export default class PumpfunBot {
                             ...(history[lastHistoryIndex]._metadata ?? {}),
                             action: 'buyCompleted',
                         };
+                        buy = false;
                         buyInProgress = false;
                     })
                     .catch(async e => {
@@ -391,6 +392,7 @@ export default class PumpfunBot {
 
                         if ((e as SolTransactionDetails).error?.type === 'insufficient_lamports') {
                             fatalError = new Error(ErrorMessage.insufficientFundsToBuy);
+                            buy = false;
                             buyInProgress = false;
                             return;
                         }
@@ -416,6 +418,7 @@ export default class PumpfunBot {
                         logger.warn('Slept 250ms and will try to sell again to ensure any holdings is sold');
                         await fallbackSell();
 
+                        buy = false;
                         buyInProgress = false;
                     });
             }
@@ -521,6 +524,7 @@ export default class PumpfunBot {
                         throw e;
                     })
                     .finally(() => {
+                        sell = undefined;
                         sellInProgress = false;
                     });
             }
@@ -561,7 +565,7 @@ function formPumpfunApmTransactionName(
     jitoConfig: JitoConfig,
 ): string {
     return `pumpfun.${type}_${simulate ? 'simulation' : 'real'}_${priorityFeeSol}${
-        jitoConfig.jitoEnabled ? `_jito_${lamportsToSol(jitoConfig.tipLampports ?? TIP_LAMPORTS)}` : ''
+        jitoConfig.jitoEnabled ? `_jito_${lamportsToSol(jitoConfig.tipLamports ?? TIP_LAMPORTS)}` : ''
     }`;
 }
 

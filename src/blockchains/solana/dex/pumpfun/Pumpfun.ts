@@ -19,6 +19,7 @@ import {
     SYSTEM_PROGRAM_ID,
     TOKEN_PROGRAM_ID,
 } from './constants';
+import { pumpfunBuyLatencies, pumpfunSellLatencies } from './data/latencies';
 import BondingCurveState from './domain/BondingCurveState';
 import {
     NewPumpFunTokenData,
@@ -29,8 +30,10 @@ import {
     PumpfunSellResponse,
     PumpfunTokenBcStats,
 } from './types';
+import { calculatePumpTokenLamportsValue } from './utils';
 import { RetryConfig } from '../../../../core/types';
 import { logger } from '../../../../logger';
+import { getJitoTipLamports } from '../../../../trading/bots/blockchains/solana/PumpfunBacktester';
 import { bufferFromUInt64, randomInt } from '../../../../utils/data/data';
 import { sleep } from '../../../../utils/functions';
 import { computeSimulatedLatencyNs } from '../../../../utils/simulations';
@@ -39,7 +42,12 @@ import { JitoConfig } from '../../Jito';
 import { getMetadataPDA } from '../../SolanaAdapter';
 import { TransactionMode, WssMessage } from '../../types';
 import { DEFAULT_COMMITMENT, DEFAULT_FINALITY, getKeyPairFromPrivateKey, sendTx } from '../../utils/helpers';
-import { simulatePriceWithLowerSlippage, simulateSolTransactionDetails } from '../../utils/simulations';
+import {
+    getLatencyMetrics,
+    simulatePriceWithHigherSlippage,
+    simulatePriceWithLowerSlippage,
+    simulateSolTransactionDetails,
+} from '../../utils/simulations';
 import { getTokenIfpsMetadata } from '../../utils/tokens';
 import { getSolTransactionDetails } from '../../utils/transactions';
 
@@ -285,7 +293,7 @@ export default class Pumpfun implements PumpfunListener {
                 DEFAULT_COMMITMENT,
                 DEFAULT_FINALITY,
                 jitoConfig?.jitoEnabled,
-                jitoConfig?.tipLampports,
+                jitoConfig?.tipLamports,
                 jitoConfig?.endpoint,
             );
 
@@ -319,6 +327,7 @@ export default class Pumpfun implements PumpfunListener {
                     jitoConfig ?? {
                         jitoEnabled: false,
                     },
+                    true,
                 ),
             );
 
@@ -327,7 +336,13 @@ export default class Pumpfun implements PumpfunListener {
                 boughtAmountRaw: tokenOut,
                 pumpTokenOut: tokenOut,
                 pumpMaxSolCost: maxSolCost,
-                txDetails: simulateSolTransactionDetails(-solInLamports, solToLamports(priorityFeeInSol)),
+                txDetails: simulateSolTransactionDetails(
+                    -Math.min(
+                        simulatePriceWithHigherSlippage(solInLamports, slippageDecimal),
+                        solToLamports(maxSolCost),
+                    ) - getJitoTipLamports(jitoConfig),
+                    solToLamports(priorityFeeInSol),
+                ),
             };
         }
     }
@@ -422,7 +437,7 @@ export default class Pumpfun implements PumpfunListener {
                 DEFAULT_COMMITMENT,
                 DEFAULT_FINALITY,
                 jitoConfig?.jitoEnabled,
-                jitoConfig?.tipLampports,
+                jitoConfig?.tipLamports,
                 jitoConfig?.endpoint,
             );
 
@@ -455,6 +470,7 @@ export default class Pumpfun implements PumpfunListener {
                     jitoConfig ?? {
                         jitoEnabled: false,
                     },
+                    true,
                 ),
             );
 
@@ -466,10 +482,10 @@ export default class Pumpfun implements PumpfunListener {
                     Math.max(
                         minLamportsOutput,
                         simulatePriceWithLowerSlippage(
-                            solToLamports(priceInSol * (tokenBalance / 10 ** PUMPFUN_TOKEN_DECIMALS)),
-                            0.125,
+                            calculatePumpTokenLamportsValue(tokenBalance, priceInSol),
+                            slippageDecimal,
                         ),
-                    ),
+                    ) - getJitoTipLamports(jitoConfig),
                     solToLamports(priorityFeeInSol),
                 ),
             };
@@ -693,48 +709,22 @@ function _generateFakeSimulationTransactionHash() {
     return `_simulation_${Date.now()}`;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function simulatePumpBuyLatencyMs(priorityFeeInSol: number, jitoConfig: JitoConfig): number {
-    if (jitoConfig.jitoEnabled) {
-        return (
-            computeSimulatedLatencyNs({
-                minTimeNs: 2265385250,
-                maxTimeNs: 2645449583,
-                avgTimeNs: 2455417416.5,
-                medianTimeNs: 2645449583,
-            }) / 1e6
-        );
-    }
+export function simulatePumpBuyLatencyMs(
+    priorityFeeInSol: number,
+    jitoConfig: JitoConfig,
+    varyLatency: boolean,
+): number {
+    const latencies = getLatencyMetrics(pumpfunBuyLatencies, priorityFeeInSol, jitoConfig);
 
-    return (
-        computeSimulatedLatencyNs({
-            minTimeNs: 3036228333,
-            maxTimeNs: 28021031083,
-            avgTimeNs: 15406187822.75,
-            medianTimeNs: 22503762125,
-        }) / 1e6
-    );
+    return varyLatency ? computeSimulatedLatencyNs(latencies) / 1e6 : latencies.avgTimeNs / 1e6;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function simulatePumpSellLatencyMs(priorityFeeInSol: number, jitoConfig: JitoConfig): number {
-    if (jitoConfig.jitoEnabled) {
-        return (
-            computeSimulatedLatencyNs({
-                minTimeNs: 1762302125,
-                maxTimeNs: 2120724750,
-                avgTimeNs: 1941513437.5,
-                medianTimeNs: 2120724750,
-            }) / 1e6
-        );
-    }
+export function simulatePumpSellLatencyMs(
+    priorityFeeInSol: number,
+    jitoConfig: JitoConfig,
+    varyLatency: boolean,
+): number {
+    const latencies = getLatencyMetrics(pumpfunSellLatencies, priorityFeeInSol, jitoConfig);
 
-    return (
-        computeSimulatedLatencyNs({
-            minTimeNs: 3102956041,
-            maxTimeNs: 18382920708,
-            avgTimeNs: 8706733343.75,
-            medianTimeNs: 7812372459,
-        }) / 1e6
-    );
+    return varyLatency ? computeSimulatedLatencyNs(latencies) / 1e6 : latencies.avgTimeNs / 1e6;
 }

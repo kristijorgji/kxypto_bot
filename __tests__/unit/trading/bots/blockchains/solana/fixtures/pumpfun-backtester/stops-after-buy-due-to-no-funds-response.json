@@ -1,0 +1,70 @@
+{
+  "tradeHistory": [
+    {
+      "timestamp": 1616175600000,
+      "transactionType": "buy",
+      "subCategory": "newPosition",
+      "transactionHash": "_backtest_1616175600001",
+      "walletAddress": "_backtest_",
+      "bought": {
+        "address": "5xNMMoEQcQiJQURE6DEwvHVt1jJsMTLrFmBHZoqpump",
+        "amount": 144404.3321299639,
+        "name": "Oracle Framework",
+        "symbol": "ORACLE"
+      },
+      "sold": {
+        "address": "So11111111111111111111111111111111111111112",
+        "amount": 504195000,
+        "name": "SOL",
+        "symbol": "SOL"
+      },
+      "amountRaw": 144404.3321299639,
+      "grossTransferredLamports": -504195000,
+      "netTransferredLamports": -509200000,
+      "price": {
+        "inSol": 2.77,
+        "inLamports": 2770000000
+      },
+      "marketCap": 150
+    },
+    {
+      "timestamp": 1616175600002,
+      "transactionType": "sell",
+      "subCategory": "sellAll",
+      "transactionHash": "_backtest_1616175600003",
+      "walletAddress": "_backtest_",
+      "bought": {
+        "address": "So11111111111111111111111111111111111111112",
+        "amount": 21510649.819494583,
+        "name": "SOL",
+        "symbol": "SOL"
+      },
+      "sold": {
+        "address": "5xNMMoEQcQiJQURE6DEwvHVt1jJsMTLrFmBHZoqpump",
+        "amount": 144404.3321299639,
+        "name": "Oracle Framework",
+        "symbol": "ORACLE"
+      },
+      "amountRaw": 144404.3321299639,
+      "grossTransferredLamports": 21510649.819494583,
+      "netTransferredLamports": 16505649.819494583,
+      "price": {
+        "inLamports": 200000000,
+        "inSol": 0.2
+      },
+      "marketCap": 1.5,
+      "metadata": {
+        "pumpMinLamportsOutput": 144404.3321299639,
+        "reason": "TRAILING_STOP_LOSS"
+      }
+    }
+  ],
+  "finalBalanceLamports": 207305649.81949458,
+  "profitLossLamports": -492694350.1805054,
+  "holdings": {
+    "amountRaw": 0,
+    "lamportsValue": 0
+  },
+  "roi": -70.38490716864362,
+  "maxDrawdown": 0
+}

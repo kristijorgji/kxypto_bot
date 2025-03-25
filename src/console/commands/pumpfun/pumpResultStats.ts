@@ -8,7 +8,7 @@ import { walkDirFilesSyncRecursive } from '../../../utils/files';
 
 export default function pumpResultStats(args: { path: string }) {
     const pumpfunStatsPath = args.path;
-    const files = walkDirFilesSyncRecursive(pumpfunStatsPath);
+    const files = walkDirFilesSyncRecursive(pumpfunStatsPath, [], 'json');
 
     let netPlnLamports = 0;
 

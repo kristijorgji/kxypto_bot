@@ -1,4 +1,4 @@
-import { getDateSecondsAgo, getSecondsDifference } from '../../../src/utils/time';
+import { dateToMySQLTimestamp, getDateSecondsAgo, getSecondsDifference } from '../../../src/utils/time';
 
 describe('getDateSecondsAgo', () => {
     beforeAll(() => {
@@ -83,5 +83,37 @@ describe('getSecondsDifference', () => {
 
         const result = getSecondsDifference(date1, date2);
         expect(result).toBe(2); // Difference is 2 seconds
+    });
+});
+
+describe('dateToMySQLTimestamp', () => {
+    test('should format a Date object to MySQL TIMESTAMP format', () => {
+        const date = new Date(Date.UTC(2025, 2, 12, 17, 17, 18)); // March 12, 2025, 17:17:18 UTC
+        const result = dateToMySQLTimestamp(date);
+        expect(result).toBe('2025-03-12 17:17:18');
+    });
+
+    test('should correctly format a different date', () => {
+        const date = new Date(Date.UTC(2000, 0, 1, 0, 0, 0)); // January 1, 2000, 00:00:00 UTC
+        const result = dateToMySQLTimestamp(date);
+        expect(result).toBe('2000-01-01 00:00:00');
+    });
+
+    test('should handle leap year dates', () => {
+        const date = new Date(Date.UTC(2024, 1, 29, 12, 30, 45)); // Feb 29, 2024 (Leap year)
+        const result = dateToMySQLTimestamp(date);
+        expect(result).toBe('2024-02-29 12:30:45');
+    });
+
+    test('should handle single-digit months and days correctly', () => {
+        const date = new Date(Date.UTC(2023, 8, 5, 8, 5, 5)); // September 5, 2023, 08:05:05 UTC
+        const result = dateToMySQLTimestamp(date);
+        expect(result).toBe('2023-09-05 08:05:05');
+    });
+
+    test('should handle midnight correctly', () => {
+        const date = new Date(Date.UTC(2022, 11, 31, 23, 59, 59)); // December 31, 2022, 23:59:59 UTC
+        const result = dateToMySQLTimestamp(date);
+        expect(result).toBe('2022-12-31 23:59:59');
     });
 });

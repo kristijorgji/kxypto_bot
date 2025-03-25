@@ -5,6 +5,7 @@ import { Tables } from '../tables';
 export async function up(knex: Knex): Promise<void> {
     await knex.schema.createTable(Tables.LaunchpadTokenResults, table => {
         table.bigIncrements('id').primary();
+        table.boolean('simulation').notNullable();
         table.enum('chain', ['solana']).notNullable().index();
         table.enum('platform', ['pumpfun']).notNullable().index();
         table.string('mint').notNullable();

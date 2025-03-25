@@ -334,8 +334,9 @@ async function handlePumpToken(
 }
 
 async function storeResult(report: HandlePumpTokenReport) {
-    await fs.writeFileSync(ensureDataFolder(`pumpfun-stats/${report.mint}.json`), JSON.stringify(report, null, 2));
+    await fs.writeFileSync(ensureDataFolder(`pumpfun-stats/tmp/${report.mint}.json`), JSON.stringify(report, null, 2));
     await insertLaunchpadTokenResult({
+        simulation: report.simulation,
         chain: 'solana',
         platform: 'pumpfun',
         mint: report.mint,

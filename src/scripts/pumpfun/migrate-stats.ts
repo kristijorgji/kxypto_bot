@@ -2,10 +2,9 @@ import fs from 'fs';
 
 import { HandlePumpTokenReport } from './bot';
 import { logger } from '../../logger';
-import { organizePumpfunFiles } from '../../trading/backtesting/data/pumpfun/utils';
+import { formPumpfunStatsDataFolder, organizePumpfunFiles } from '../../trading/backtesting/data/pumpfun/utils';
 import { insertKeysAfter } from '../../utils/data/records';
 import { walkDirFilesSyncRecursive } from '../../utils/files';
-import { formDataFolder } from '../../utils/storage';
 import { getSecondsDifference } from '../../utils/time';
 
 (async () => {
@@ -20,8 +19,8 @@ async function start() {
 }
 
 async function migrateFilesToNewSchema() {
-    const pumpfunStatsPath = formDataFolder('pumpfun-stats');
-    const files = walkDirFilesSyncRecursive(pumpfunStatsPath);
+    const pumpfunStatsPath = formPumpfunStatsDataFolder();
+    const files = walkDirFilesSyncRecursive(pumpfunStatsPath, [], 'json');
     let skipped = 0;
     let changed = 0;
     let unchanged = 0;

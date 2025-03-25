@@ -5,6 +5,7 @@ import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import { solToLamports } from '../../blockchains/utils/amount';
 import { db } from '../../db/knex';
 import { logger } from '../../logger';
+import { formPumpfunStatsDataFolder } from '../../trading/backtesting/data/pumpfun/utils';
 import RiseStrategyConfigGenerator, {
     StartState,
 } from '../../trading/backtesting/strategies/RiseStrategyConfigGenerator';
@@ -14,7 +15,6 @@ import { BacktestRunConfig, StrategyBacktestResult } from '../../trading/bots/bl
 import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
 import RiseStrategy, { RiseStrategyConfig } from '../../trading/strategies/launchpads/RiseStrategy';
 import { walkDirFilesSyncRecursive } from '../../utils/files';
-import { formDataFolder } from '../../utils/storage';
 
 const riseStrategyConfigGenerator = new RiseStrategyConfigGenerator();
 
@@ -66,8 +66,8 @@ async function findBestStrategy() {
     });
     const backtester = new PumpfunBacktester(logger);
 
-    const pumpfunStatsPath = formDataFolder('pumpfun-stats');
-    const files = walkDirFilesSyncRecursive(pumpfunStatsPath).filter(
+    const pumpfunStatsPath = formPumpfunStatsDataFolder();
+    const files = walkDirFilesSyncRecursive(pumpfunStatsPath, [], 'json').filter(
         el => el.fullPath.includes('no_trade/no_pump') || el.fullPath.includes('/trade/'),
     );
     let tested = 0;

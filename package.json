@@ -26,6 +26,7 @@
     "pumpfun-bot": "ts-node -r dotenv/config src/scripts/pumpfun/bot.ts",
     "pumpfun-organize": "ts-node -r dotenv/config src/scripts/pumpfun/organize-stats.ts",
     "pumpfun-migrate-stats": "ts-node -r dotenv/config src/scripts/pumpfun/migrate-stats.ts",
+    "pumpfun-migrate-stats-to-db": "ts-node -r dotenv/config src/scripts/pumpfun/migrate-stats-to-db.ts",
     "pumpfun-backtest": "ts-node -r dotenv/config src/scripts/pumpfun/backtest-strategy.ts",
     "pumpfun-backtest-generated-strategies": "ts-node -r dotenv/config src/scripts/pumpfun/backtest-generated-strategies.ts",
     "example:pumpfun": "ts-node -r dotenv/config src/examples/pumpfun.ts",

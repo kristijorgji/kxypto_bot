@@ -1,3 +1,5 @@
+import { MySQLTimestamp } from '../db/types';
+
 /**
  * returns it as string in this format YYYY-MM-DD
  */
@@ -10,4 +12,8 @@ export function getDateSecondsAgo(seconds: number): string {
 
 export function getSecondsDifference(start: Date, end: Date): number {
     return Math.abs((end.getTime() - start.getTime()) / 1000);
+}
+
+export function dateToMySQLTimestamp(date: Date): MySQLTimestamp {
+    return date.toISOString().slice(0, 19).replace('T', ' ');
 }

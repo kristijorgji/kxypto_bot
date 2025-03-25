@@ -60,6 +60,7 @@ export type InsertPosition = Omit<Position, 'id' | 'opened_at' | 'created_at' | 
 
 export type LaunchpadTokenResult = {
     id: string;
+    simulation: boolean;
     chain: Blockchain;
     platform: 'pumpfun';
     mint: string;

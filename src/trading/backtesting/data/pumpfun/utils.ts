@@ -11,15 +11,24 @@ import { formDataFolder } from '../../../../utils/storage';
 import { BotTradeResponse } from '../../../bots/blockchains/solana/types';
 import { ExitMonitoringReason } from '../../../bots/types';
 
+export function formPumpfunStatsDataFolder(): string {
+    return formDataFolder('pumpfun-stats');
+}
+
 export async function organizePumpfunFiles() {
-    const pumpfunStatsPath = formDataFolder('pumpfun-stats');
-    const files = walkDirFilesSyncRecursive(pumpfunStatsPath);
+    const pumpfunStatsPath = formPumpfunStatsDataFolder();
+    const files = walkDirFilesSyncRecursive(pumpfunStatsPath, [], 'json');
     let skipped = 0;
     let changed = 0;
     let unchanged = 0;
 
     for (const file of files) {
-        const content = JSON.parse(fs.readFileSync(file.fullPath).toString()) as HandlePumpTokenReport;
+        let content: HandlePumpTokenReport;
+        try {
+            content = JSON.parse(fs.readFileSync(file.fullPath).toString()) as HandlePumpTokenReport;
+        } catch (e) {
+            throw new Error(`Error reading and parsing file ${file.fullPath}`);
+        }
 
         // skip older files that don't have a supported schema
         if (content.$schema === undefined) {

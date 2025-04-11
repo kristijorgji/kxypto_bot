@@ -29,11 +29,11 @@ export default abstract class LaunchpadBotStrategy {
         },
     ): ShouldExitMonitoringResponse;
 
-    abstract shouldBuy(context: MarketContext, history: HistoryEntry[]): boolean;
+    abstract shouldBuy(mint: string, context: MarketContext, history: HistoryEntry[]): Promise<boolean>;
 
     abstract afterBuy(buyPrice: number, buyPosition: LaunchpadBuyPosition): AfterBuyResponse;
 
-    abstract shouldSell(context: MarketContext, history: HistoryEntry[]): ShouldSellResponse;
+    abstract shouldSell(mint: string, context: MarketContext, history: HistoryEntry[]): Promise<ShouldSellResponse>;
 
     abstract afterSell(): void;
 

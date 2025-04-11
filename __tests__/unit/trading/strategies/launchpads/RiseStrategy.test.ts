@@ -18,6 +18,8 @@ describe(RiseStrategy.name, () => {
         strategy = new RiseStrategy(silentLogger);
     });
 
+    const mint = '2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx';
+
     const marketContext: MarketContext = {
         price: 100,
         marketCap: 200,
@@ -165,7 +167,9 @@ describe(RiseStrategy.name, () => {
     });
 
     describe('shouldSell', () => {
-        it('should sell when stop loss is triggered', () => {
+        const history: HistoryEntry[] = [];
+
+        it('should sell when stop loss is triggered', async () => {
             strategy = new RiseStrategy(silentLogger, {
                 sell: {
                     stopLossPercentage: 10,
@@ -176,16 +180,20 @@ describe(RiseStrategy.name, () => {
             strategy.afterBuy(10, launchpadBuyPosition);
 
             expect(
-                strategy.shouldSell({
-                    ...marketContext,
-                    price: 9,
-                }),
+                await strategy.shouldSell(
+                    mint,
+                    {
+                        ...marketContext,
+                        price: 9,
+                    },
+                    history,
+                ),
             ).toEqual({
                 reason: 'STOP_LOSS',
             });
         });
 
-        it('should sell when trailing stop loss is triggered', () => {
+        it('should sell when trailing stop loss is triggered', async () => {
             strategy = new RiseStrategy(silentLogger, {
                 sell: {
                     trailingStopLossPercentage: 10,
@@ -195,22 +203,30 @@ describe(RiseStrategy.name, () => {
             strategy.afterBuy(10, launchpadBuyPosition);
 
             expect(
-                strategy.shouldSell({
-                    ...marketContext,
-                    price: 12,
-                }),
+                await strategy.shouldSell(
+                    mint,
+                    {
+                        ...marketContext,
+                        price: 12,
+                    },
+                    history,
+                ),
             ).toEqual(false);
             expect(
-                strategy.shouldSell({
-                    ...marketContext,
-                    price: 10.8,
-                }),
+                await strategy.shouldSell(
+                    mint,
+                    {
+                        ...marketContext,
+                        price: 10.8,
+                    },
+                    history,
+                ),
             ).toEqual({
                 reason: 'TRAILING_STOP_LOSS',
             });
         });
 
-        it('should sell when take profit is triggered', () => {
+        it('should sell when take profit is triggered', async () => {
             strategy = new RiseStrategy(silentLogger, {
                 sell: {
                     stopLossPercentage: 10,
@@ -221,16 +237,20 @@ describe(RiseStrategy.name, () => {
             strategy.afterBuy(10, launchpadBuyPosition);
 
             expect(
-                strategy.shouldSell({
-                    ...marketContext,
-                    price: 12,
-                }),
+                await strategy.shouldSell(
+                    mint,
+                    {
+                        ...marketContext,
+                        price: 12,
+                    },
+                    history,
+                ),
             ).toEqual({
                 reason: 'TAKE_PROFIT',
             });
         });
 
-        it('should sell when trailing take profit is triggered', () => {
+        it('should sell when trailing take profit is triggered', async () => {
             strategy = new RiseStrategy(silentLogger, {
                 sell: {
                     trailingStopLossPercentage: 10,
@@ -243,28 +263,40 @@ describe(RiseStrategy.name, () => {
             strategy.afterBuy(10, launchpadBuyPosition);
 
             expect(
-                strategy.shouldSell({
-                    ...marketContext,
-                    price: 11,
-                }),
+                await strategy.shouldSell(
+                    mint,
+                    {
+                        ...marketContext,
+                        price: 11,
+                    },
+                    history,
+                ),
             ).toEqual(false);
             expect(
-                strategy.shouldSell({
-                    ...marketContext,
-                    price: 15,
-                }),
+                await strategy.shouldSell(
+                    mint,
+                    {
+                        ...marketContext,
+                        price: 15,
+                    },
+                    history,
+                ),
             ).toEqual(false);
             expect(
-                strategy.shouldSell({
-                    ...marketContext,
-                    price: 13.5,
-                }),
+                await strategy.shouldSell(
+                    mint,
+                    {
+                        ...marketContext,
+                        price: 13.5,
+                    },
+                    history,
+                ),
             ).toEqual({
                 reason: 'TRAILING_TAKE_PROFIT',
             });
         });
 
-        it('should sell when dev and top 10 insiders increase position after we bought', () => {
+        it('should sell when dev and top 10 insiders increase position after we bought', async () => {
             const history: HistoryEntry[] = readFixture<{ history: HistoryEntry[] }>(
                 'backtest/pumpfun/B6eQdRcdYhuFxXKx75jumoMGkZCE4LCeobSDgZNzpump',
             ).history;
@@ -295,7 +327,7 @@ describe(RiseStrategy.name, () => {
 
             let firstSellIndex = -1;
             for (let i = buyEntryIndex; i < history.length; i++) {
-                const shouldSellRes = strategy.shouldSell(history[i]);
+                const shouldSellRes = await strategy.shouldSell(mint, history[i], history);
                 if (shouldSellRes) {
                     firstSellIndex = i;
                     expect(shouldSellRes).toEqual({

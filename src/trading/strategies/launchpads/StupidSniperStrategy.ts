@@ -45,7 +45,7 @@ export default class StupidSniperStrategy extends LimitsBasedStrategy {
         return false;
     }
 
-    shouldBuy(): boolean {
+    async shouldBuy(): Promise<boolean> {
         return true;
     }
 }

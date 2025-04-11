@@ -215,7 +215,11 @@ export default class PumpfunBot {
                 continue;
             }
 
-            if (!actionInProgress && !strategy.buyPosition && strategy.shouldBuy(marketContext, history)) {
+            if (
+                !actionInProgress &&
+                !strategy.buyPosition &&
+                (await strategy.shouldBuy(tokenMint, marketContext, history))
+            ) {
                 logger.info('We set buy=true because the conditions are met');
                 buy = true;
             }
@@ -261,7 +265,7 @@ export default class PumpfunBot {
                 logger.info('Price change since purchase %s%%', priceDiffPercentageSincePurchase);
                 logger.info('Estimated sol diff %s', diffInSol);
 
-                const shouldSellRes = strategy.shouldSell(marketContext, history);
+                const shouldSellRes = await strategy.shouldSell(tokenMint, marketContext, history);
                 if (shouldSellRes !== false) {
                     sell = {
                         reason: shouldSellRes.reason,

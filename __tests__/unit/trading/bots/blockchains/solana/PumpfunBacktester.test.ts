@@ -57,6 +57,7 @@ describe(PumpfunBacktester.name, () => {
         useRandomizedValues: true,
         onlyOneFullTrade: true,
         allowNegativeBalance: false,
+        sellUnclosedPositionsAtEnd: false,
     };
 
     const tokenInfo: PumpfunInitialCoinData = {
@@ -223,29 +224,35 @@ describe(PumpfunBacktester.name, () => {
             expect(r.tradeHistory[1].price.inSol).toEqual(87);
         });
 
+        const historyWhereShouldHaveHoldings: HistoryEntry[] = [
+            {
+                // it will buy here as we set all conditions to match the strategy buy config
+                timestamp: 7,
+                price: 2.77,
+                marketCap: 150,
+                bondingCurveProgress: 25,
+                holdersCount: 15,
+                devHoldingPercentage: 10,
+                topTenHoldingPercentage: 35,
+            },
+            {
+                // won't sell here as sell conditions aren't met
+                timestamp: 8,
+                price: 2.77,
+                marketCap: 150,
+                bondingCurveProgress: 25,
+                holdersCount: 15,
+                devHoldingPercentage: 10,
+                topTenHoldingPercentage: 35,
+            },
+        ];
+
         it('should return holdings amount and value after a buy if it cannot sell', async () => {
-            const r = (await backtester.run(runConfig, tokenInfo, [
-                {
-                    // it will buy here as we set all conditions to match the strategy buy config
-                    timestamp: 7,
-                    price: 2.77,
-                    marketCap: 150,
-                    bondingCurveProgress: 25,
-                    holdersCount: 15,
-                    devHoldingPercentage: 10,
-                    topTenHoldingPercentage: 35,
-                },
-                {
-                    // won't sell here as sell conditions aren't met
-                    timestamp: 8,
-                    price: 2.77,
-                    marketCap: 150,
-                    bondingCurveProgress: 25,
-                    holdersCount: 15,
-                    devHoldingPercentage: 10,
-                    topTenHoldingPercentage: 35,
-                },
-            ])) as BacktestTradeResponse;
+            const r = (await backtester.run(
+                runConfig,
+                tokenInfo,
+                historyWhereShouldHaveHoldings,
+            )) as BacktestTradeResponse;
 
             expect(r.tradeHistory.length).toEqual(1);
             expect(r.finalBalanceLamports).toBeLessThan(runConfig.initialBalanceLamports);
@@ -253,6 +260,26 @@ describe(PumpfunBacktester.name, () => {
             expect(r.holdings.amountRaw).toEqual(r.tradeHistory[0].amountRaw);
             expect(r.holdings.lamportsValue).toEqual(solToLamports(runConfig.buyAmountSol));
             expect(r.roi).toBeLessThan(-20);
+        });
+
+        it('should sell all unclosed positions at the end when sellUnclosedPositionsAtEnd is true', async () => {
+            const r = (await backtester.run(
+                {
+                    ...runConfig,
+                    useRandomizedValues: false,
+                    sellUnclosedPositionsAtEnd: true,
+                },
+                tokenInfo,
+                historyWhereShouldHaveHoldings,
+            )) as BacktestTradeResponse;
+
+            expect(r.tradeHistory.length).toEqual(2);
+            expect(r.tradeHistory[0].transactionType).toEqual('buy');
+            expect(r.tradeHistory[1].transactionType).toEqual('sell');
+            expect(r.tradeHistory[1].metadata).toEqual({
+                pumpMinLamportsOutput: 144404.3321299639,
+                reason: 'BEFORE_EXIT_MONITORING',
+            });
         });
     });
 

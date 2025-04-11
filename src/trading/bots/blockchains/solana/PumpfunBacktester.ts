@@ -37,10 +37,12 @@ export default class PumpfunBacktester {
             strategy,
             useRandomizedValues,
             onlyOneFullTrade,
+            sellUnclosedPositionsAtEnd,
         }: BacktestRunConfig,
         tokenInfo: PumpfunInitialCoinData,
         history: HistoryEntry[],
     ): Promise<BacktestTradeResponse | BacktestExitResponse> {
+        const historySoFar: HistoryEntry[] = [];
         let balanceLamports = initialBalanceLamports;
         let holdingsRaw = 0;
         const tradeHistory: TradeTransaction[] = [];
@@ -56,6 +58,7 @@ export default class PumpfunBacktester {
 
         for (let i = 0; i < history.length; i++) {
             const marketContext = history[i];
+            historySoFar.push(marketContext);
             const { price, marketCap } = marketContext;
 
             const buyInLamports = useRandomizedValues
@@ -83,7 +86,7 @@ export default class PumpfunBacktester {
             if (
                 balanceLamports > requiredAmountLamports &&
                 !strategy.buyPosition &&
-                strategy.shouldBuy(marketContext, history)
+                (await strategy.shouldBuy(tokenInfo.mint, marketContext, historySoFar))
             ) {
                 const txDetails = simulateSolTransactionDetails(
                     -buyInLamports - pumpCreateAccountFeeLamports - jitoTipLamports,
@@ -130,7 +133,7 @@ export default class PumpfunBacktester {
             }
 
             if (!strategy.buyPosition) {
-                const shouldExitRes = strategy.shouldExit(marketContext, history, {
+                const shouldExitRes = strategy.shouldExit(marketContext, historySoFar, {
                     elapsedMonitoringMs: marketContext.timestamp - history[0].timestamp,
                 });
                 if (shouldExitRes) {
@@ -148,10 +151,14 @@ export default class PumpfunBacktester {
             }
 
             if (strategy.buyPosition) {
-                const shouldSellRes = strategy.shouldSell(marketContext, history);
+                const shouldSellRes = await strategy.shouldSell(tokenInfo.mint, marketContext, historySoFar);
                 if (shouldSellRes !== false) {
                     sell = {
                         reason: shouldSellRes.reason,
+                    };
+                } else if (sellUnclosedPositionsAtEnd && i === history.length - 1) {
+                    sell = {
+                        reason: 'BEFORE_EXIT_MONITORING',
                     };
                 }
             }

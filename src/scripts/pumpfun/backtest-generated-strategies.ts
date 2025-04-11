@@ -81,6 +81,7 @@ async function findBestStrategy() {
         useRandomizedValues: true,
         onlyOneFullTrade: true,
         allowNegativeBalance: false,
+        sellUnclosedPositionsAtEnd: false,
     };
 
     await storeBacktest({

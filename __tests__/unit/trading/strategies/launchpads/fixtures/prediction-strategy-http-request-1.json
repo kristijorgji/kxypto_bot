@@ -1,0 +1,95 @@
+{
+  "mint": "2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx",
+  "features": [
+    {
+      "timestamp": 1741801808098,
+      "price": 2.8451621631980156e-8,
+      "marketCap": 30.263140958,
+      "bondingCurveProgress": 2,
+      "holdersCount": 17,
+      "devHoldingPercentage": 67.5822349501994,
+      "topTenHoldingPercentage": 68.7104729751522
+    },
+    {
+      "timestamp": 1741801810764,
+      "price": 2.8451621631980156e-8,
+      "marketCap": 30.263140958,
+      "bondingCurveProgress": 2,
+      "holdersCount": 16,
+      "devHoldingPercentage": 0,
+      "topTenHoldingPercentage": 1.1333380932815
+    },
+    {
+      "timestamp": 1741801813453,
+      "price": 2.8451621631980156e-8,
+      "marketCap": 30.263140958,
+      "bondingCurveProgress": 2,
+      "holdersCount": 16,
+      "devHoldingPercentage": 0,
+      "topTenHoldingPercentage": 0.9274431278705
+    },
+    {
+      "timestamp": 1741801816136,
+      "price": 2.845137646237573e-8,
+      "marketCap": 30.263010568,
+      "bondingCurveProgress": 2,
+      "holdersCount": 15,
+      "devHoldingPercentage": 0,
+      "topTenHoldingPercentage": 0.9274431278705
+    },
+    {
+      "timestamp": 1741801818799,
+      "price": 2.845137646237573e-8,
+      "marketCap": 30.263010568,
+      "bondingCurveProgress": 2,
+      "holdersCount": 15,
+      "devHoldingPercentage": 0,
+      "topTenHoldingPercentage": 0.9274431278705
+    },
+    {
+      "timestamp": 1741801821467,
+      "price": 2.845137646237573e-8,
+      "marketCap": 30.263010568,
+      "bondingCurveProgress": 2,
+      "holdersCount": 15,
+      "devHoldingPercentage": 0,
+      "topTenHoldingPercentage": 0.9274431278705
+    },
+    {
+      "timestamp": 1741801824148,
+      "price": 2.845137646237573e-8,
+      "marketCap": 30.263010568,
+      "bondingCurveProgress": 2,
+      "holdersCount": 15,
+      "devHoldingPercentage": 0,
+      "topTenHoldingPercentage": 0.9274431278705
+    },
+    {
+      "timestamp": 1741801826829,
+      "price": 2.8038831272957455e-8,
+      "marketCap": 30.042802449,
+      "bondingCurveProgress": 1,
+      "holdersCount": 14,
+      "devHoldingPercentage": 0,
+      "topTenHoldingPercentage": 0.9274431278705
+    },
+    {
+      "timestamp": 1741801829919,
+      "price": 2.8038831272957455e-8,
+      "marketCap": 30.042802449,
+      "bondingCurveProgress": 1,
+      "holdersCount": 14,
+      "devHoldingPercentage": 0,
+      "topTenHoldingPercentage": 0.9274431278705
+    },
+    {
+      "timestamp": 1741801832589,
+      "price": 2.8038831272957455e-8,
+      "marketCap": 30.042802449,
+      "bondingCurveProgress": 1,
+      "holdersCount": 14,
+      "devHoldingPercentage": 0,
+      "topTenHoldingPercentage": 0.9274431278705
+    }
+  ]
+}

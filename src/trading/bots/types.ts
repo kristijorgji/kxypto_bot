@@ -42,7 +42,8 @@ export type SellReason =
     | 'TAKE_PROFIT'
     | 'TRAILING_TAKE_PROFIT'
     | 'AT_HARDCODED_PROFIT'
-    | 'NO_LONGER_MEETS_ENTRY_RULES';
+    | 'NO_LONGER_MEETS_ENTRY_RULES'
+    | 'BEFORE_EXIT_MONITORING';
 
 export type DoSellResponse = {
     reason: SellReason;

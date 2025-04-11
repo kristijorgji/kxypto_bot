@@ -122,6 +122,13 @@ export type BacktestRunConfig = {
      * resetting the initial balance for the new file.
      */
     allowNegativeBalance: boolean;
+
+    /**
+     * If `true`, the simulation will automatically sell all remaining open positions
+     * at the final timestamp of the historical data. This ensures that all trades
+     * are closed by the end of the backtest.
+     */
+    sellUnclosedPositionsAtEnd: boolean;
 };
 
 export type StrategyBacktestResult = {

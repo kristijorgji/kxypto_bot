@@ -1,6 +1,6 @@
 import { Logger } from 'winston';
 
-import { shouldBuyStateless } from './common';
+import { shouldBuyStateless, shouldExitLaunchpadToken } from './common';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
 import { ShouldExitMonitoringResponse, ShouldSellResponse } from '../../bots/types';
 import { LaunchpadStrategyBuyConfig, StrategyConfig, StrategySellConfig } from '../types';
@@ -53,79 +53,21 @@ export default class RiseStrategy extends LimitsBasedStrategy {
     }
 
     shouldExit(
-        { marketCap, holdersCount }: MarketContext,
+        marketContext: MarketContext,
         history: HistoryEntry[],
-        {
-            elapsedMonitoringMs,
-        }: {
+        extra: {
             elapsedMonitoringMs: number;
         },
     ): ShouldExitMonitoringResponse {
-        const mcDiffFromInitialPercentage = ((marketCap - history[0].marketCap) / history[0].marketCap) * 100;
-
-        let res: ShouldExitMonitoringResponse = false;
-
-        let maxPreviousHolders = holdersCount;
-        for (let i = 0; i < history.length - 1; i++) {
-            if (history[i].holdersCount >= maxPreviousHolders) {
-                maxPreviousHolders = history[i].holdersCount;
-            }
-        }
-
-        let dumpReason:
-            | 'lower_mc_than_initial'
-            | 'less_holders_and_mc_than_initial'
-            | 'less_mc_and_few_holders'
-            | undefined;
-
-        if (mcDiffFromInitialPercentage < -6) {
-            dumpReason = 'lower_mc_than_initial';
-        } else if (
-            marketCap < history[0].marketCap &&
-            holdersCount <= 3 &&
-            maxPreviousHolders > holdersCount &&
-            elapsedMonitoringMs >= 60 * 1e3
-        ) {
-            dumpReason = 'less_holders_and_mc_than_initial';
-        } else if (mcDiffFromInitialPercentage < -5 && holdersCount <= 3 && elapsedMonitoringMs >= 60 * 1e3) {
-            dumpReason = 'less_mc_and_few_holders';
-        }
-
-        if (dumpReason) {
-            const exitCode = 'DUMPED';
-
-            if (this._buyPosition) {
-                res = {
-                    exitCode: exitCode,
-                    message: `The token is probably dumped ${dumpReason} and we will sell at loss, sell=true`,
-                    shouldSell: {
-                        reason: exitCode,
-                    },
-                };
-            } else {
-                res = {
-                    exitCode: exitCode,
-                    message: `Stopped monitoring token because it was probably dumped ${dumpReason} and current market cap is less than the initial one`,
-                    shouldSell: false,
-                };
-            }
-        } else if (!this._buyPosition && elapsedMonitoringMs >= this.config.maxWaitMs) {
-            res = {
-                exitCode: 'NO_PUMP',
-                message: `Stopped monitoring token. We waited ${elapsedMonitoringMs / 1000} seconds and did not pump`,
-                shouldSell: false,
-            };
-        }
-
-        return res;
+        return shouldExitLaunchpadToken(marketContext, history, extra, this._buyPosition, this.config.maxWaitMs);
     }
 
-    shouldBuy(marketContext: MarketContext): boolean {
-        return shouldBuyStateless(this.config.buy, marketContext);
+    shouldBuy(mint: string, marketContext: MarketContext): Promise<boolean> {
+        return Promise.resolve(shouldBuyStateless(this.config.buy, marketContext));
     }
 
-    shouldSell(marketContext: MarketContext): ShouldSellResponse {
-        const shouldSellRes = super.shouldSell(marketContext);
+    async shouldSell(mint: string, marketContext: MarketContext, history: HistoryEntry[]): Promise<ShouldSellResponse> {
+        const shouldSellRes = await super.shouldSell(mint, marketContext, history);
         if (shouldSellRes) {
             return shouldSellRes;
         }

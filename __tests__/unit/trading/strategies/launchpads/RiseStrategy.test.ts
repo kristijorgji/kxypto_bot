@@ -5,6 +5,7 @@ import { TradeTransaction } from '../../../../../src/trading/bots/blockchains/so
 import { HistoryEntry, MarketContext } from '../../../../../src/trading/bots/launchpads/types';
 import RiseStrategy from '../../../../../src/trading/strategies/launchpads/RiseStrategy';
 import { LaunchpadBuyPosition } from '../../../../../src/trading/strategies/types';
+import { formHistoryEntry } from '../../../../__utils/blockchains/solana';
 import { readFixture } from '../../../../__utils/data';
 
 describe(RiseStrategy.name, () => {
@@ -366,16 +367,3 @@ describe(RiseStrategy.name, () => {
         });
     });
 });
-
-function formHistoryEntry(data: Partial<HistoryEntry>): HistoryEntry {
-    return {
-        timestamp: data.timestamp ?? 1,
-        // eslint-disable-next-line no-loss-of-precision
-        price: data.price ?? 3.0355480118319034e-8,
-        marketCap: data.marketCap ?? 31.770000079,
-        bondingCurveProgress: data.bondingCurveProgress ?? 25,
-        holdersCount: data.holdersCount ?? 15,
-        devHoldingPercentage: data.devHoldingPercentage ?? 10,
-        topTenHoldingPercentage: data.topTenHoldingPercentage ?? 35,
-    };
-}

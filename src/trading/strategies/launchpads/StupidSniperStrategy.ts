@@ -4,9 +4,7 @@ import { LimitsBasedStrategy } from './LimitsBasedStrategy';
 import { ShouldExitMonitoringResponse } from '../../bots/types';
 import { StrategyConfig, StrategySellConfig } from '../types';
 
-type ConfigExtra = {
-    sell: StrategySellConfig;
-};
+type StupidSniperStrategyConfig = StrategyConfig<{ sell: StrategySellConfig }>;
 
 export default class StupidSniperStrategy extends LimitsBasedStrategy {
     readonly name = 'StupidSniperStrategy';
@@ -18,7 +16,7 @@ export default class StupidSniperStrategy extends LimitsBasedStrategy {
         - Use trailing stop loss to lock in profits while allowing for continued growth.
     `;
 
-    readonly config: StrategyConfig<ConfigExtra> = {
+    readonly config: StupidSniperStrategyConfig = {
         maxWaitMs: 5 * 60 * 1e3,
         buySlippageDecimal: 0.25,
         sellSlippageDecimal: 0.25,
@@ -31,7 +29,7 @@ export default class StupidSniperStrategy extends LimitsBasedStrategy {
         },
     };
 
-    constructor(readonly logger: Logger, config?: Partial<StrategyConfig>) {
+    constructor(readonly logger: Logger, config?: Partial<StupidSniperStrategyConfig>) {
         super(logger);
         if (config) {
             this.config = {

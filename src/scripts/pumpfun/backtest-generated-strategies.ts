@@ -138,6 +138,7 @@ async function findBestStrategy() {
             {
                 backtester: backtester,
                 pumpfun: pumpfun,
+                logger: logger,
             },
             runConfig,
             files,

@@ -9,7 +9,6 @@ import { db } from '../../db/knex';
 import { pumpfunRepository } from '../../db/repositories/PumpfunRepository';
 import { Tables } from '../../db/tables';
 import { Backtest } from '../../db/types';
-import { logger } from '../../logger';
 import { HandlePumpTokenBotReport } from '../../scripts/pumpfun/bot';
 import { FileInfo } from '../../utils/files';
 import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
@@ -27,9 +26,11 @@ export async function runStrategy(
     {
         backtester,
         pumpfun,
+        logger,
     }: {
         backtester: PumpfunBacktester;
         pumpfun: Pumpfun;
+        logger: Logger;
     },
     runConfig: BacktestRunConfig,
     files: FileInfo[],

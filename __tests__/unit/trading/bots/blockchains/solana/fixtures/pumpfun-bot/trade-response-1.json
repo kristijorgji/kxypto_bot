@@ -1,0 +1,178 @@
+{
+  "netPnl": {
+    "inLamports": -52975189.81992549,
+    "inSol": -0.05297518981992549
+  },
+  "transactions": [
+    {
+      "amountRaw": 11496621999445,
+      "bought": {
+        "address": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump",
+        "amount": 11496621999445,
+        "name": "Meme Mining Company",
+        "symbol": "MMC"
+      },
+      "grossTransferredLamports": -440000000.00000006,
+      "marketCap": 33.1,
+      "metadata": {
+        "pumpInSol": 0.4,
+        "pumpMaxSolCost": 0.5,
+        "pumpTokenOut": 11496621999445
+      },
+      "netTransferredLamports": -445005000.00000006,
+      "price": {
+        "inLamports": 31,
+        "inSol": 3.1e-8
+      },
+      "sold": {
+        "address": "So11111111111111111111111111111111111111112",
+        "amount": 440000000.00000006,
+        "name": "SOL",
+        "symbol": "SOL"
+      },
+      "subCategory": "newPosition",
+      "timestamp": 1616175606000,
+      "transactionHash": "_test_1741177688106",
+      "transactionType": "buy",
+      "walletAddress": "mocked-address"
+    },
+    {
+      "amountRaw": 11496621999445,
+      "bought": {
+        "address": "So11111111111111111111111111111111111111112",
+        "amount": 392034810.18107456,
+        "name": "SOL",
+        "symbol": "SOL"
+      },
+      "grossTransferredLamports": 392034810.18107456,
+      "marketCap": 35,
+      "metadata": {
+        "pumpMinLamportsOutput": 620000000,
+        "reason": "TAKE_PROFIT"
+      },
+      "netTransferredLamports": 392029810.1800746,
+      "price": {
+        "inLamports": 34.1,
+        "inSol": 3.41e-8
+      },
+      "sold": {
+        "address": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump",
+        "amount": 11496621999445,
+        "name": "Meme Mining Company",
+        "symbol": "MMC"
+      },
+      "subCategory": "sellAll",
+      "timestamp": 1616175616000,
+      "transactionHash": "_test_1742211111111",
+      "transactionType": "sell",
+      "walletAddress": "mocked-address"
+    }
+  ],
+  "history": [
+    {
+      "_metadata": {
+        "action": "startBuy"
+      },
+      "bondingCurveProgress": 3,
+      "devHoldingPercentage": 5,
+      "holdersCount": 2,
+      "marketCap": 33.1,
+      "price": 3.1e-8,
+      "timestamp": 1616175603000,
+      "topTenHoldingPercentage": 10
+    },
+    {
+      "_metadata": {
+        "action": "buyCompleted"
+      },
+      "bondingCurveProgress": 15,
+      "devHoldingPercentage": 6,
+      "holdersCount": 7,
+      "marketCap": 33.2,
+      "price": 3.12e-8,
+      "timestamp": 1616175605000,
+      "topTenHoldingPercentage": 8
+    },
+    {
+      "_metadata": {
+        "diffSincePurchase": {
+          "inSol": -0.08516073141737152,
+          "percent": 0.9677419354838732
+        }
+      },
+      "bondingCurveProgress": 15,
+      "devHoldingPercentage": 6,
+      "holdersCount": 7,
+      "marketCap": 33.3,
+      "price": 3.13e-8,
+      "timestamp": 1616175609000,
+      "topTenHoldingPercentage": 8
+    },
+    {
+      "_metadata": {
+        "diffSincePurchase": {
+          "inSol": -0.08401106921742696,
+          "percent": 1.2903225806451681
+        }
+      },
+      "bondingCurveProgress": 15,
+      "devHoldingPercentage": 6,
+      "holdersCount": 7,
+      "marketCap": 33.4,
+      "price": 3.14e-8,
+      "timestamp": 1616175611000,
+      "topTenHoldingPercentage": 8
+    },
+    {
+      "_metadata": {
+        "action": "startSell"
+      },
+      "bondingCurveProgress": 20,
+      "devHoldingPercentage": 4,
+      "holdersCount": 18,
+      "marketCap": 35,
+      "price": 3.41e-8,
+      "timestamp": 1616175613000,
+      "topTenHoldingPercentage": 7
+    },
+    {
+      "_metadata": {
+        "action": "sellCompleted"
+      },
+      "bondingCurveProgress": 20,
+      "devHoldingPercentage": 4,
+      "holdersCount": 18,
+      "marketCap": 100,
+      "price": 3.42e-8,
+      "timestamp": 1616175615000,
+      "topTenHoldingPercentage": 7
+    },
+    {
+      "bondingCurveProgress": 20,
+      "devHoldingPercentage": 4,
+      "holdersCount": 18,
+      "marketCap": 100,
+      "price": 3.4299999999999996e-8,
+      "timestamp": 1616175618000,
+      "topTenHoldingPercentage": 7
+    },
+    {
+      "bondingCurveProgress": 20,
+      "devHoldingPercentage": 4,
+      "holdersCount": 18,
+      "marketCap": 100,
+      "price": 3.44e-8,
+      "timestamp": 1616175620000,
+      "topTenHoldingPercentage": 7
+    },
+    {
+      "bondingCurveProgress": 20,
+      "devHoldingPercentage": 4,
+      "holdersCount": 18,
+      "marketCap": 100,
+      "price": 3.45e-8,
+      "timestamp": 1616175622000,
+      "topTenHoldingPercentage": 7
+    }
+  ]
+}

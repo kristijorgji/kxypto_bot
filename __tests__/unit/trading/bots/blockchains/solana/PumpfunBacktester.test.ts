@@ -11,6 +11,7 @@ import PumpfunBacktester, {
 import { BacktestRunConfig, BacktestTradeResponse } from '../../../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry } from '../../../../../../src/trading/bots/launchpads/types';
 import RiseStrategy, { RiseStrategyConfig } from '../../../../../../src/trading/strategies/launchpads/RiseStrategy';
+import { formHistoryEntry } from '../../../../../__utils/blockchains/solana';
 import { readFixture, readLocalFixture } from '../../../../../__utils/data';
 
 const originalDateNow = Date.now;
@@ -185,36 +186,27 @@ describe(PumpfunBacktester.name, () => {
             });
 
             const r = (await backtester.run(runConfig, tokenInfo, [
-                {
+                formHistoryEntry(
                     // it will buy here as we set all conditions to match the strategy buy config
-                    timestamp: 7,
-                    price: 2.77,
-                    marketCap: 150,
-                    bondingCurveProgress: 25,
-                    holdersCount: 15,
-                    devHoldingPercentage: 10,
-                    topTenHoldingPercentage: 35,
-                },
-                {
+                    {
+                        timestamp: 7,
+                        price: 2.77,
+                    },
+                ),
+                formHistoryEntry(
                     // a sell opportunity which will be missed due to simulating buy execution time
-                    timestamp: 8,
-                    price: 100,
-                    marketCap: 150,
-                    bondingCurveProgress: 25,
-                    holdersCount: 15,
-                    devHoldingPercentage: 10,
-                    topTenHoldingPercentage: 35,
-                },
-                {
+                    {
+                        timestamp: 8,
+                        price: 100,
+                    },
+                ),
+                formHistoryEntry(
                     // it will sell here
-                    timestamp: 10,
-                    price: 87,
-                    marketCap: 150,
-                    bondingCurveProgress: 25,
-                    holdersCount: 15,
-                    devHoldingPercentage: 10,
-                    topTenHoldingPercentage: 35,
-                },
+                    {
+                        timestamp: 10,
+                        price: 87,
+                    },
+                ),
             ])) as BacktestTradeResponse;
 
             expect(r.tradeHistory.length).toEqual(2);
@@ -225,26 +217,16 @@ describe(PumpfunBacktester.name, () => {
         });
 
         const historyWhereShouldHaveHoldings: HistoryEntry[] = [
-            {
+            formHistoryEntry({
                 // it will buy here as we set all conditions to match the strategy buy config
                 timestamp: 7,
                 price: 2.77,
-                marketCap: 150,
-                bondingCurveProgress: 25,
-                holdersCount: 15,
-                devHoldingPercentage: 10,
-                topTenHoldingPercentage: 35,
-            },
-            {
+            }),
+            formHistoryEntry({
                 // won't sell here as sell conditions aren't met
                 timestamp: 8,
                 price: 2.77,
-                marketCap: 150,
-                bondingCurveProgress: 25,
-                holdersCount: 15,
-                devHoldingPercentage: 10,
-                topTenHoldingPercentage: 35,
-            },
+            }),
         ];
 
         it('should return holdings amount and value after a buy if it cannot sell', async () => {
@@ -297,36 +279,24 @@ describe(PumpfunBacktester.name, () => {
             },
             tokenInfo,
             [
-                {
+                formHistoryEntry({
                     // it will buy here as we set all conditions to match the strategy buy config
                     timestamp: 7,
                     price: 2.77,
                     marketCap: 150,
-                    bondingCurveProgress: 25,
-                    holdersCount: 15,
-                    devHoldingPercentage: 10,
-                    topTenHoldingPercentage: 35,
-                },
-                {
+                }),
+                formHistoryEntry({
                     // it will sell at huge loss here
                     timestamp: 8,
                     price: 0.2,
                     marketCap: 1.5,
-                    bondingCurveProgress: 25,
-                    holdersCount: 15,
-                    devHoldingPercentage: 10,
-                    topTenHoldingPercentage: 35,
-                },
-                {
+                }),
+                formHistoryEntry({
                     // buy conditions meet here, but it must not buy as has no balance
                     timestamp: 9,
                     price: 2.75,
                     marketCap: 145,
-                    bondingCurveProgress: 25,
-                    holdersCount: 15,
-                    devHoldingPercentage: 10,
-                    topTenHoldingPercentage: 35,
-                },
+                }),
             ],
         )) as BacktestTradeResponse;
 
@@ -361,46 +331,30 @@ describe(PumpfunBacktester.name, () => {
             },
             tokenInfo,
             [
-                {
+                formHistoryEntry({
                     // it will buy here as we set all conditions to match the strategy buy config
                     timestamp: 7,
                     price: 2.77,
                     marketCap: 150,
-                    bondingCurveProgress: 25,
-                    holdersCount: 15,
-                    devHoldingPercentage: 10,
-                    topTenHoldingPercentage: 35,
-                },
-                {
-                    // it will sell at huge loss here
+                }),
+                formHistoryEntry({
+                    // it will sell at profit here
                     timestamp: 8,
-                    price: 0.2,
+                    price: 7,
                     marketCap: 1.5,
-                    bondingCurveProgress: 25,
-                    holdersCount: 15,
-                    devHoldingPercentage: 10,
-                    topTenHoldingPercentage: 35,
-                },
-                {
+                }),
+                formHistoryEntry({
                     // it will buy again here but this time should not use any pumpfun fee account
                     timestamp: 9,
                     price: 0.1,
                     marketCap: 145,
-                    bondingCurveProgress: 25,
-                    holdersCount: 15,
-                    devHoldingPercentage: 10,
-                    topTenHoldingPercentage: 35,
-                },
-                {
+                }),
+                formHistoryEntry({
                     // it will do nothing here
                     timestamp: 10,
                     price: 0.1,
                     marketCap: 145,
-                    bondingCurveProgress: 25,
-                    holdersCount: 15,
-                    devHoldingPercentage: 10,
-                    topTenHoldingPercentage: 35,
-                },
+                }),
             ],
         )) as BacktestTradeResponse;
 
@@ -412,26 +366,18 @@ describe(PumpfunBacktester.name, () => {
     describe('should use properly randomized values', () => {
         it('for buy, sell slippage', async () => {
             const history: HistoryEntry[] = [
-                {
+                formHistoryEntry({
                     // it will buy here as we set all conditions to match the strategy buy config
                     timestamp: 7,
                     price: 2.77,
                     marketCap: 150,
-                    bondingCurveProgress: 25,
-                    holdersCount: 15,
-                    devHoldingPercentage: 10,
-                    topTenHoldingPercentage: 35,
-                },
-                {
+                }),
+                formHistoryEntry({
                     // it will sell here
                     timestamp: 8,
                     price: 5,
                     marketCap: 160,
-                    bondingCurveProgress: 25,
-                    holdersCount: 15,
-                    devHoldingPercentage: 10,
-                    topTenHoldingPercentage: 35,
-                },
+                }),
             ];
 
             for (let i = 0; i < 100; i++) {
@@ -495,36 +441,24 @@ describe(PumpfunBacktester.name, () => {
             simulatePumpSellLatencyMsSpy.mockRestore();
 
             const history: HistoryEntry[] = [
-                {
+                formHistoryEntry({
                     // it will buy here as we set all conditions to match the strategy buy config
                     timestamp: 7,
                     price: 2.77,
                     marketCap: 150,
-                    bondingCurveProgress: 25,
-                    holdersCount: 15,
-                    devHoldingPercentage: 10,
-                    topTenHoldingPercentage: 35,
-                },
-                {
+                }),
+                formHistoryEntry({
                     // it might sell here
                     timestamp: 2300,
                     price: 5,
                     marketCap: 160,
-                    bondingCurveProgress: 25,
-                    holdersCount: 15,
-                    devHoldingPercentage: 10,
-                    topTenHoldingPercentage: 35,
-                },
-                {
+                }),
+                formHistoryEntry({
                     // it might sell here
                     timestamp: 2555,
                     price: 4.7,
                     marketCap: 160,
-                    bondingCurveProgress: 25,
-                    holdersCount: 15,
-                    devHoldingPercentage: 10,
-                    topTenHoldingPercentage: 35,
-                },
+                }),
             ];
 
             let foundFirstSellPossibility = false;
@@ -579,6 +513,33 @@ describe(PumpfunBacktester.name, () => {
 
             expect(foundFirstSellPossibility).toBeTruthy();
             expect(foundSecondSellPossibility).toBeTruthy();
+        });
+    });
+
+    it('should exit when the strategy requires so', async () => {
+        const history: HistoryEntry[] = [
+            // does nothing
+            formHistoryEntry({
+                marketCap: 30,
+                holdersCount: 1,
+            }),
+            // does nothing
+            formHistoryEntry({
+                marketCap: 50,
+                holdersCount: 1,
+            }),
+            // token is dumped and strategy.shouldExit will be true and sell false as we haven't bought anything
+            formHistoryEntry({
+                marketCap: 27,
+                holdersCount: 1,
+            }),
+        ];
+
+        const r = (await backtester.run(runConfig, tokenInfo, history)) as BacktestTradeResponse;
+        expect(r).toEqual({
+            exitCode: 'DUMPED',
+            exitReason:
+                'Stopped monitoring token because it was probably dumped lower_mc_than_initial and current market cap is less than the initial one',
         });
     });
 });

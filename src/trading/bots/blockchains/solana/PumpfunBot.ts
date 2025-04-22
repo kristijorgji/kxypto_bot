@@ -34,6 +34,7 @@ import { BotConfig, SellReason } from '../../types';
 
 export const ErrorMessage = {
     insufficientFundsToBuy: 'no_funds_to_buy',
+    errorBuyingFallbackSellAll: 'error_buying_fallback_sell_all',
 };
 
 const DefaultPriorityFeeSol = 0.005;
@@ -422,6 +423,7 @@ export default class PumpfunBot {
                         logger.warn('Slept 250ms and will try to sell again to ensure any holdings is sold');
                         await fallbackSell();
 
+                        fatalError = new Error(ErrorMessage.errorBuyingFallbackSellAll);
                         buy = false;
                         buyInProgress = false;
                     });
@@ -523,9 +525,11 @@ export default class PumpfunBot {
                     })
                     .catch(async e => {
                         // TODO handle errors, some error might be false negative example block height timeout, sell might be successful but we get error
+                        history[history.length - 1]._metadata = {
+                            action: 'sellError',
+                        };
                         logger.error('Error while selling');
-                        logger.error(e);
-                        throw e;
+                        logger.error((e as Error).message ? (e as Error).message : e);
                     })
                     .finally(() => {
                         sell = undefined;

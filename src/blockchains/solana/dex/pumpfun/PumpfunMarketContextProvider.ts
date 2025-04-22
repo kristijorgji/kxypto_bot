@@ -7,7 +7,7 @@ import calculateHoldersStats from '../../../../trading/bots/launchpads/utils/cal
 import SolanaAdapter from '../../SolanaAdapter';
 import { TokenHolder } from '../../types';
 
-export default class PumpfunMarketContextProvide {
+export default class PumpfunMarketContextProvider {
     // eslint-disable-next-line no-useless-constructor
     constructor(private readonly pumpfun: Pumpfun, private readonly solanaAdapter: SolanaAdapter) {}
 

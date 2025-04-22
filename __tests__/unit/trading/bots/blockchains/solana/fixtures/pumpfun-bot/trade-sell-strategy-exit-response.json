@@ -1,0 +1,148 @@
+{
+  "netPnl": {
+    "inLamports": 1079990000,
+    "inSol": 1.07999
+  },
+  "transactions": [
+    {
+      "amountRaw": 10499526567337,
+      "bought": {
+        "address": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump",
+        "amount": 10499526567337,
+        "name": "Meme Mining Company",
+        "symbol": "MMC"
+      },
+      "grossTransferredLamports": 420000000,
+      "marketCap": 60,
+      "metadata": {
+        "pumpInSol": 0.4,
+        "pumpMaxSolCost": 0.55,
+        "pumpTokenOut": 10499526567337
+      },
+      "netTransferredLamports": 414995000,
+      "price": {
+        "inLamports": 410,
+        "inSol": 4.1e-7
+      },
+      "sold": {
+        "address": "So11111111111111111111111111111111111111112",
+        "amount": 420000000,
+        "name": "SOL",
+        "symbol": "SOL"
+      },
+      "subCategory": "newPosition",
+      "timestamp": 1616175606000,
+      "transactionHash": "3iDf5i1MpqRMPfvvQCyy2U1DZVngaMGRRcNCpbZT1R5DEnjTBQtb6n1qhttf1fECMLbUqG7s3K8AYRA2ghhzM7Nx",
+      "transactionType": "buy",
+      "walletAddress": "mocked-address"
+    },
+    {
+      "amountRaw": 10499526567337,
+      "bought": {
+        "address": "So11111111111111111111111111111111111111112",
+        "amount": 670000000,
+        "name": "SOL",
+        "symbol": "SOL"
+      },
+      "grossTransferredLamports": 670000000,
+      "marketCap": 33.4,
+      "metadata": {
+        "pumpMinLamportsOutput": 710000000,
+        "reason": "DUMPED"
+      },
+      "netTransferredLamports": 664995000,
+      "price": {
+        "inLamports": 31.400000000000002,
+        "inSol": 3.14e-8
+      },
+      "sold": {
+        "address": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump",
+        "amount": 10499526567337,
+        "name": "Meme Mining Company",
+        "symbol": "MMC"
+      },
+      "subCategory": "sellAll",
+      "timestamp": 1616175612000,
+      "transactionHash": "4qADGbGKY7C26ZEb7CKMEbkCvSbo3Ybf9R6Lqqx1HyBYjyt5AK8WEQmy76EcAM9NDBKur8Vqk3ZH5XES28U1DxBB",
+      "transactionType": "sell",
+      "walletAddress": "mocked-address"
+    }
+  ],
+  "history": [
+    {
+      "_metadata": {
+        "action": "startBuy"
+      },
+      "bondingCurveProgress": 50,
+      "devHoldingPercentage": 5,
+      "holdersCount": 70,
+      "marketCap": 60,
+      "price": 4.1e-7,
+      "timestamp": 1616175603000,
+      "topTenHoldingPercentage": 10
+    },
+    {
+      "_metadata": {
+        "action": "buyCompleted"
+      },
+      "bondingCurveProgress": 50,
+      "devHoldingPercentage": 5,
+      "holdersCount": 70,
+      "marketCap": 60,
+      "price": 4.2e-7,
+      "timestamp": 1616175605000,
+      "topTenHoldingPercentage": 10
+    },
+    {
+      "_metadata": {
+        "action": "startSell"
+      },
+      "bondingCurveProgress": 2,
+      "devHoldingPercentage": 5,
+      "holdersCount": 1,
+      "marketCap": 33.4,
+      "price": 3.14e-8,
+      "timestamp": 1616175609000,
+      "topTenHoldingPercentage": 10
+    },
+    {
+      "_metadata": {
+        "action": "sellCompleted"
+      },
+      "bondingCurveProgress": 50,
+      "devHoldingPercentage": 5,
+      "holdersCount": 70,
+      "marketCap": 60,
+      "price": 3.141e-8,
+      "timestamp": 1616175611000,
+      "topTenHoldingPercentage": 10
+    },
+    {
+      "bondingCurveProgress": 50,
+      "devHoldingPercentage": 5,
+      "holdersCount": 70,
+      "marketCap": 60,
+      "price": 3.142e-8,
+      "timestamp": 1616175614000,
+      "topTenHoldingPercentage": 10
+    },
+    {
+      "bondingCurveProgress": 50,
+      "devHoldingPercentage": 5,
+      "holdersCount": 70,
+      "marketCap": 60,
+      "price": 3.143e-8,
+      "timestamp": 1616175616000,
+      "topTenHoldingPercentage": 10
+    },
+    {
+      "bondingCurveProgress": 50,
+      "devHoldingPercentage": 5,
+      "holdersCount": 70,
+      "marketCap": 60,
+      "price": 3.144e-8,
+      "timestamp": 1616175618000,
+      "topTenHoldingPercentage": 10
+    }
+  ]
+}

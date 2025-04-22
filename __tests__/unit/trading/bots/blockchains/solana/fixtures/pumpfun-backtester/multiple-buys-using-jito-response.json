@@ -1,97 +1,97 @@
 {
+  "finalBalanceLamports": 814312743.6823106,
+  "holdings": {
+    "amountRaw": 4000000,
+    "lamportsValue": 400000000
+  },
+  "maxDrawdown": 0,
+  "profitLossLamports": -185687256.31768942,
+  "roi": -18.56872563176894,
   "tradeHistory": [
     {
-      "timestamp": 1616175600000,
-      "transactionType": "buy",
-      "subCategory": "newPosition",
-      "transactionHash": "_backtest_1616175600001",
-      "walletAddress": "_backtest_",
+      "amountRaw": 144404.3321299639,
       "bought": {
         "address": "5xNMMoEQcQiJQURE6DEwvHVt1jJsMTLrFmBHZoqpump",
+        "amount": 144404.3321299639,
         "name": "Oracle Framework",
-        "symbol": "ORACLE",
-        "amount": 144404.3321299639
+        "symbol": "ORACLE"
       },
-      "sold": {
-        "address": "So11111111111111111111111111111111111111112",
-        "name": "SOL",
-        "symbol": "SOL",
-        "amount": 464294999.99999994
-      },
-      "amountRaw": 144404.3321299639,
       "grossTransferredLamports": -464294999.99999994,
+      "marketCap": 150,
       "netTransferredLamports": -471299999.99999994,
       "price": {
         "inLamports": 2770000000,
         "inSol": 2.77
       },
-      "marketCap": 150
+      "sold": {
+        "address": "So11111111111111111111111111111111111111112",
+        "amount": 464294999.99999994,
+        "name": "SOL",
+        "symbol": "SOL"
+      },
+      "subCategory": "newPosition",
+      "timestamp": 1616175600000,
+      "transactionHash": "_backtest_1616175600001",
+      "transactionType": "buy",
+      "walletAddress": "_backtest_"
     },
     {
-      "timestamp": 1616175600002,
-      "transactionType": "sell",
-      "subCategory": "sellAll",
-      "transactionHash": "_backtest_1616175600003",
-      "walletAddress": "_backtest_",
+      "amountRaw": 144404.3321299639,
       "bought": {
         "address": "So11111111111111111111111111111111111111112",
+        "amount": 757872743.6823105,
         "name": "SOL",
-        "symbol": "SOL",
-        "amount": 21410649.819494583
+        "symbol": "SOL"
       },
-      "sold": {
-        "address": "5xNMMoEQcQiJQURE6DEwvHVt1jJsMTLrFmBHZoqpump",
-        "name": "Oracle Framework",
-        "symbol": "ORACLE",
-        "amount": 144404.3321299639
-      },
-      "amountRaw": 144404.3321299639,
-      "grossTransferredLamports": 21410649.819494583,
-      "netTransferredLamports": 16405649.819494583,
-      "price": {
-        "inSol": 0.2,
-        "inLamports": 200000000
-      },
+      "grossTransferredLamports": 757872743.6823105,
       "marketCap": 1.5,
       "metadata": {
-        "reason": "TRAILING_STOP_LOSS",
-        "pumpMinLamportsOutput": 144404.3321299639
-      }
-    },
-    {
-      "timestamp": 1616175600004,
-      "transactionType": "buy",
-      "subCategory": "accumulation",
-      "transactionHash": "_backtest_1616175600005",
-      "walletAddress": "_backtest_",
-      "bought": {
-        "address": "5xNMMoEQcQiJQURE6DEwvHVt1jJsMTLrFmBHZoqpump",
-        "name": "Oracle Framework",
-        "symbol": "ORACLE",
-        "amount": 4000000
+        "pumpMinLamportsOutput": 144404.3321299639,
+        "reason": "TAKE_PROFIT"
+      },
+      "netTransferredLamports": 752867743.6823105,
+      "price": {
+        "inLamports": 7000000000,
+        "inSol": 7
       },
       "sold": {
-        "address": "So11111111111111111111111111111111111111112",
-        "name": "SOL",
-        "symbol": "SOL",
-        "amount": 460249999.99999994
+        "address": "5xNMMoEQcQiJQURE6DEwvHVt1jJsMTLrFmBHZoqpump",
+        "amount": 144404.3321299639,
+        "name": "Oracle Framework",
+        "symbol": "ORACLE"
       },
+      "subCategory": "sellAll",
+      "timestamp": 1616175600002,
+      "transactionHash": "_backtest_1616175600003",
+      "transactionType": "sell",
+      "walletAddress": "_backtest_"
+    },
+    {
       "amountRaw": 4000000,
+      "bought": {
+        "address": "5xNMMoEQcQiJQURE6DEwvHVt1jJsMTLrFmBHZoqpump",
+        "amount": 4000000,
+        "name": "Oracle Framework",
+        "symbol": "ORACLE"
+      },
       "grossTransferredLamports": -460249999.99999994,
+      "marketCap": 145,
       "netTransferredLamports": -467254999.99999994,
       "price": {
         "inLamports": 100000000,
         "inSol": 0.1
       },
-      "marketCap": 145
+      "sold": {
+        "address": "So11111111111111111111111111111111111111112",
+        "amount": 460249999.99999994,
+        "name": "SOL",
+        "symbol": "SOL"
+      },
+      "subCategory": "accumulation",
+      "timestamp": 1616175600004,
+      "transactionHash": "_backtest_1616175600005",
+      "transactionType": "buy",
+      "walletAddress": "_backtest_"
     }
-  ],
-  "finalBalanceLamports": 77850649.81949466,
-  "profitLossLamports": -922149350.1805053,
-  "holdings": {
-    "amountRaw": 4000000,
-    "lamportsValue": 400000000
-  },
-  "roi": -92.21493501805053,
-  "maxDrawdown": 0.5221493501805053
+  ]
 }

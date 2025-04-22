@@ -2,6 +2,7 @@
 
 import os from 'os';
 
+import * as logform from 'logform';
 import TransportStreamOptions from 'winston-transport';
 
 const MESSAGE = Symbol.for('message');
@@ -22,6 +23,7 @@ interface ArrayTransportOptions {
     array?: any[];
     levels?: Record<string, string>;
     parser?: (message: any) => any;
+    format?: logform.Format;
     json?: boolean;
     limit?: number;
     maxListeners?: number;
@@ -31,6 +33,7 @@ export default class ArrayTransport extends TransportStreamOptions {
     private array: any[];
     private eol: string;
     private levels: Record<string, string>;
+    public format?: logform.Format;
     private parser: (message: any) => any;
     private limit?: number;
 
@@ -44,6 +47,7 @@ export default class ArrayTransport extends TransportStreamOptions {
         this.array = options.array || [];
         this.levels = options.levels || {};
         this.parser = options.parser || (options.json ? defaultParserJSON : defaultParser);
+        this.format = options.format;
         this.limit = options.limit;
         this.setMaxListeners(maxListeners as number);
     }
@@ -52,10 +56,16 @@ export default class ArrayTransport extends TransportStreamOptions {
         setImmediate(() => {
             this.emit('logged', info);
         });
+
         // @ts-ignore
         const message = info[MESSAGE];
 
-        this.array.push(this.parser(message));
+        const parsedMessage = this.parser(message);
+        if (parsedMessage.message) {
+            parsedMessage.message = info.message;
+        }
+
+        this.array.push(parsedMessage);
         if (this.limit && this.array.length > this.limit) {
             this.array.shift();
         }

@@ -9,13 +9,19 @@ export default {
     setupFilesAfterEnv: ['<rootDir>/jest-setup.ts'],
     testMatch: ['**/__tests__/**/*.test.ts'],
     collectCoverage: true,
-    collectCoverageFrom: ['src/**/*.{js,jsx,ts,tsx}', '__tests__/**/*.{js,jsx,ts,tsx}', '!<rootDir>/node_modules/'],
+    collectCoverageFrom: [
+        'src/**/*.{js,jsx,ts,tsx}',
+        '!src/db/migrations/**',
+        '!src/examples/**',
+        '!**/__mocks__/**',
+        '!<rootDir>/node_modules/',
+    ],
     coverageThreshold: {
         global: {
-            statements: 30,
-            branches: 30,
-            functions: 25,
-            lines: 30,
+            statements: 40,
+            branches: 40,
+            functions: 30,
+            lines: 40,
         },
     },
     moduleNameMapper: {

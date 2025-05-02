@@ -118,12 +118,6 @@ export type BacktestRunConfig = {
     onlyOneFullTrade: boolean;
 
     /**
-     * If `true`, the simulation will proceed to the next data file even if the balance becomes negative,
-     * resetting the initial balance for the new file.
-     */
-    allowNegativeBalance: boolean;
-
-    /**
      * If `true`, the simulation will automatically sell all remaining open positions
      * at the final timestamp of the historical data. This ensures that all trades
      * are closed by the end of the backtest.

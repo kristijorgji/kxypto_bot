@@ -1,11 +1,13 @@
 import { AxiosResponse } from 'axios';
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
-import { LogEntry, createLogger } from 'winston';
+import { LogEntry, createLogger, format } from 'winston';
 
 import ArrayTransport from '../../../../../src/logger/transports/ArrayTransport';
 import { HistoryEntry } from '../../../../../src/trading/bots/launchpads/types';
-import PredictionStrategy from '../../../../../src/trading/strategies/launchpads/PredictionStrategy';
+import PredictionStrategy, {
+    PredictPricesRequest,
+} from '../../../../../src/trading/strategies/launchpads/PredictionStrategy';
 import { deepEqual } from '../../../../../src/utils/data/equals';
 import { readFixture, readLocalFixture } from '../../../../__utils/data';
 
@@ -13,7 +15,18 @@ const mockServer = setupServer();
 
 describe(PredictionStrategy.name, () => {
     let logs: LogEntry[] = [];
-    const logger = createLogger();
+    const logger = createLogger({
+        level: 'silly',
+    });
+    const sourceConfig = {
+        endpoint: process.env.PRICE_PREDICTION_ENDPOINT as string,
+    };
+    const config = {
+        requiredFeaturesLength: 10,
+        buy: {
+            minPredictedPriceIncreasePercentage: 15,
+        },
+    };
     let strategy: PredictionStrategy;
 
     beforeAll(() => {
@@ -22,20 +35,9 @@ describe(PredictionStrategy.name, () => {
 
     beforeEach(() => {
         logs = [];
-        logger.clear().add(new ArrayTransport({ array: logs, json: true }));
+        logger.clear().add(new ArrayTransport({ array: logs, json: true, format: format.splat() }));
 
-        strategy = new PredictionStrategy(
-            logger,
-            {
-                endpoint: process.env.PRICE_PREDICTION_ENDPOINT as string,
-            },
-            {
-                requiredFeaturesLength: 10,
-                buy: {
-                    minPredictedPriceIncreasePercentage: 15,
-                },
-            },
-        );
+        strategy = new PredictionStrategy(logger, sourceConfig, config);
     });
 
     afterEach(() => {
@@ -52,6 +54,13 @@ describe(PredictionStrategy.name, () => {
         'backtest/pumpfun/B6eQdRcdYhuFxXKx75jumoMGkZCE4LCeobSDgZNzpump',
     ).history;
 
+    const dummyApiSuccessResponse = {
+        predicted_prices: [
+            1.890614874462375e-7, 1.990614874462375e-7, 2.110614874462375e-7, 2.120614874462375e-7,
+            2.1931132543763547e-7,
+        ],
+    };
+
     describe('shouldBuy', () => {
         const mswPredictPriceWillIncreaseHandler = http.post(
             process.env.PRICE_PREDICTION_ENDPOINT as string,
@@ -61,18 +70,7 @@ describe(PredictionStrategy.name, () => {
                     return HttpResponse.json({}, { status: 400 });
                 }
 
-                return HttpResponse.json(
-                    {
-                        predicted_prices: [
-                            1.890614874462375e-7,
-                            1.990614874462375e-7,
-                            2.110614874462375e-7,
-                            2.120614874462375e-7,
-                            1.890614874462375e-7 * (1 + strategy.config.buy.minPredictedPriceIncreasePercentage),
-                        ],
-                    },
-                    { status: 200 },
-                );
+                return HttpResponse.json(dummyApiSuccessResponse, { status: 200 });
             },
         );
 
@@ -81,25 +79,104 @@ describe(PredictionStrategy.name, () => {
             expect(await strategy.shouldBuy(mint, history[4], history)).toEqual(true);
         });
 
+        describe('should send the correct features length in the HTTP request', () => {
+            it('should return false and make no HTTP call if the min required features length is not met', async () => {
+                expect(await strategy.shouldBuy(mint, history[4], [history[4]])).toEqual(false);
+            });
+
+            it('should send upToFeaturesLength features when it is less than history length', async () => {
+                strategy = new PredictionStrategy(logger, sourceConfig, { ...config, upToFeaturesLength: 380 });
+                mockServer.use(
+                    http.post(process.env.PRICE_PREDICTION_ENDPOINT as string, async ({ request }) => {
+                        const body = (await request.json()) as PredictPricesRequest;
+                        if (body.features.length !== 380) {
+                            return HttpResponse.json({}, { status: 400 });
+                        }
+
+                        return HttpResponse.json(dummyApiSuccessResponse, { status: 200 });
+                    }),
+                );
+
+                expect(await strategy.shouldBuy(mint, history[4], history)).toEqual(true);
+            });
+
+            it('should send all available features when history is shorter than upToFeaturesLength', async () => {
+                strategy = new PredictionStrategy(logger, sourceConfig, {
+                    ...config,
+                    upToFeaturesLength: 2000,
+                });
+                mockServer.use(
+                    http.post(process.env.PRICE_PREDICTION_ENDPOINT as string, async ({ request }) => {
+                        const body = (await request.json()) as PredictPricesRequest;
+                        if (body.features.length !== 1256) {
+                            return HttpResponse.json({}, { status: 400 });
+                        }
+
+                        return HttpResponse.json(dummyApiSuccessResponse, { status: 200 });
+                    }),
+                );
+
+                expect(await strategy.shouldBuy(mint, history[4], history)).toEqual(true);
+            });
+        });
+
+        describe('uses properly skipAllSameFeatures', () => {
+            const historyWithoutVariation = Array(100)
+                .fill(0)
+                .map((_, index) => ({
+                    ...history[4],
+                    timestamp: index + 1,
+                }));
+
+            it('should skip request and return false if all features are identical and skipping is enabled', async () => {
+                expect(await strategy.shouldBuy(mint, historyWithoutVariation[33], historyWithoutVariation)).toEqual(
+                    false,
+                );
+                expect(logs).toEqual([
+                    {
+                        level: 'debug',
+                        message: 'There is no variation in the 10 features, returning false',
+                    },
+                ]);
+            });
+
+            it('should make HTTP request even if all features are the same when skipAllSameFeatures is false', async () => {
+                strategy = new PredictionStrategy(logger, sourceConfig, {
+                    ...config,
+                    skipAllSameFeatures: false,
+                });
+
+                mockServer.use(
+                    http.post(process.env.PRICE_PREDICTION_ENDPOINT as string, async ({ request }) => {
+                        const body = (await request.json()) as PredictPricesRequest;
+                        if (body.features.length !== 10) {
+                            return HttpResponse.json({}, { status: 400 });
+                        }
+
+                        return HttpResponse.json(dummyApiSuccessResponse, { status: 200 });
+                    }),
+                );
+
+                expect(await strategy.shouldBuy(mint, historyWithoutVariation[33], historyWithoutVariation)).toEqual(
+                    true,
+                );
+            });
+        });
+
         it('should not buy when the predicted price increases with the expected threshold and context limits do not match', async () => {
             mockServer.use(mswPredictPriceWillIncreaseHandler);
-            strategy = new PredictionStrategy(
-                logger,
-                {
-                    endpoint: process.env.PRICE_PREDICTION_ENDPOINT as string,
-                },
-                {
-                    requiredFeaturesLength: 10,
-                    buy: {
-                        minPredictedPriceIncreasePercentage: 15,
-                        context: {
-                            holdersCount: {
-                                min: 17,
-                            },
+            strategy = new PredictionStrategy(logger, sourceConfig, {
+                requiredFeaturesLength: 10,
+                buy: {
+                    minPredictedPriceIncreasePercentage: 15,
+                    context: {
+                        holdersCount: {
+                            min: 17,
                         },
                     },
                 },
-            );
+            });
+
             expect(await strategy.shouldBuy(mint, history[4], history)).toEqual(false);
         });
 
@@ -126,6 +203,7 @@ describe(PredictionStrategy.name, () => {
                     );
                 }),
             );
+
             expect(await strategy.shouldBuy(mint, history[4], history)).toEqual(false);
         });
 
@@ -142,11 +220,13 @@ describe(PredictionStrategy.name, () => {
             );
 
             const actual = await strategy.shouldBuy(mint, history[4], history);
+
             expect(actual).toEqual(false);
             expect(logs.length).toEqual(2);
             expect(logs[0]).toEqual({
                 level: 'error',
-                message: 'Error getting price prediction for mint %s, returning false',
+                message:
+                    'Error getting price prediction for mint 2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx, returning false',
             });
             expect(logs[1].level).toEqual('error');
             expect((logs[1].message as unknown as AxiosResponse).data).toEqual({

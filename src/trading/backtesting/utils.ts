@@ -46,7 +46,6 @@ export async function runStrategy(
     let balanceLamports = runConfig.initialBalanceLamports;
     let totalProfitLossLamports = 0;
     let totalHoldingsValueInLamports = 0;
-    let totalRoi = 0;
     let totalTradesCount = 0;
     let totalBuyTradesCount = 0;
     let totalSellTradesCount = 0;
@@ -78,7 +77,14 @@ export async function runStrategy(
 
         const initialCoinData = await forceGetPumpCoinInitialData(pumpfun, pumpfunRepository, content.mint);
         try {
-            const r = await backtester.run(runConfig, initialCoinData, content.history);
+            const r = await backtester.run(
+                {
+                    ...runConfig,
+                    initialBalanceLamports: balanceLamports,
+                },
+                initialCoinData,
+                content.history,
+            );
             runConfig.strategy.resetState();
 
             if (verbose) {
@@ -97,7 +103,6 @@ export async function runStrategy(
                 if (pr.tradeHistory.length > 0) {
                     totalProfitLossLamports += pr.profitLossLamports;
                     totalHoldingsValueInLamports += pr.holdings.lamportsValue;
-                    totalRoi += pr.roi;
 
                     totalTradesCount += pr.tradeHistory.length;
                     const buysTrades = pr.tradeHistory.filter(e => e.transactionType === 'buy').length;
@@ -141,7 +146,7 @@ export async function runStrategy(
                 }
 
                 balanceLamports += pr.profitLossLamports;
-                if (!runConfig.allowNegativeBalance && balanceLamports <= 0) {
+                if (balanceLamports <= 0) {
                     logger.info('Stopping because reached <=0 balance: %s SOL', lamportsToSol(balanceLamports));
                     break;
                 }
@@ -167,7 +172,7 @@ export async function runStrategy(
     return {
         totalPnlInSol: lamportsToSol(totalProfitLossLamports),
         totalHoldingsValueInSol: lamportsToSol(totalHoldingsValueInLamports),
-        totalRoi: totalRoi,
+        totalRoi: (totalProfitLossLamports / runConfig.initialBalanceLamports) * 100,
         totalTradesCount: totalTradesCount,
         totalBuyTradesCount: totalBuyTradesCount,
         totalSellTradesCount: totalSellTradesCount,

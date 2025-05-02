@@ -57,7 +57,6 @@ describe(PumpfunBacktester.name, () => {
         strategy: riseStrategy,
         useRandomizedValues: true,
         onlyOneFullTrade: true,
-        allowNegativeBalance: false,
         sellUnclosedPositionsAtEnd: false,
     };
 

@@ -7,9 +7,25 @@ import { ShouldExitMonitoringResponse } from '../../bots/types';
 import { IntervalConfig, StrategyConfig, StrategySellConfig } from '../types';
 import { shouldBuyStateless, shouldExitLaunchpadToken } from './common';
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
+import { deepEqual } from '../../../utils/data/equals';
 
 export type PredictionStrategyConfig = StrategyConfig<{
+    /**
+     * The number of most recent features that must be present for a prediction to proceed.
+     */
     requiredFeaturesLength: number;
+
+    /**
+     * Optional upper limit on the number of features to consider for predictions.
+     */
+    upToFeaturesLength?: number;
+
+    /**
+     * Whether to skip predictions if all features are the same.
+     * Useful to avoid redundant signals when data has no variation.
+     */
+    skipAllSameFeatures: boolean;
+
     buy: {
         minPredictedPriceIncreasePercentage: number;
         context?: Partial<Record<keyof MarketContext, IntervalConfig>>;
@@ -17,7 +33,7 @@ export type PredictionStrategyConfig = StrategyConfig<{
     sell: StrategySellConfig;
 }>;
 
-type PredictPricesRequest = {
+export type PredictPricesRequest = {
     mint: string;
     features: {
         timestamp: number;
@@ -50,6 +66,7 @@ export default class PredictionStrategy extends LimitsBasedStrategy {
         buySlippageDecimal: 0.25,
         sellSlippageDecimal: 0.25,
         requiredFeaturesLength: 10,
+        skipAllSameFeatures: true,
         buy: {
             minPredictedPriceIncreasePercentage: 15,
         },
@@ -103,9 +120,13 @@ export default class PredictionStrategy extends LimitsBasedStrategy {
             return false;
         }
 
+        const featuresCountToSend = this.config.upToFeaturesLength
+            ? Math.min(history.length, this.config.upToFeaturesLength)
+            : this.config.requiredFeaturesLength;
+
         const requestBody: PredictPricesRequest = {
             mint: mint,
-            features: history.slice(-this.config.requiredFeaturesLength).map(e => ({
+            features: history.slice(-featuresCountToSend).map(e => ({
                 timestamp: e.timestamp,
                 price: e.price,
                 marketCap: e.marketCap,
@@ -115,6 +136,27 @@ export default class PredictionStrategy extends LimitsBasedStrategy {
                 topTenHoldingPercentage: e.topTenHoldingPercentage,
             })),
         };
+
+        // because the scaler will use 0 value if all features are exactly same objects, while excluding the timestamp that always changes
+        if (this.config.skipAllSameFeatures) {
+            let areSame = true;
+            for (let i = 1; i < requestBody.features.length; i++) {
+                const features = requestBody.features[i];
+
+                if (!deepEqual(features, requestBody.features[i - 1], new Set(['timestamp']))) {
+                    areSame = false;
+                    break;
+                }
+            }
+
+            if (areSame) {
+                this.logger.debug(
+                    'There is no variation in the %d features, returning false',
+                    requestBody.features.length,
+                );
+                return false;
+            }
+        }
 
         const response = await this.client.post<PredictPricesResponse>(this.source.endpoint, requestBody);
 

@@ -53,7 +53,6 @@ describe('runStrategy', () => {
         },
         useRandomizedValues: false,
         onlyOneFullTrade: true,
-        allowNegativeBalance: false,
         sellUnclosedPositionsAtEnd: false,
     };
 
@@ -112,7 +111,7 @@ describe('runStrategy', () => {
         expect(actual).toEqual({
             totalPnlInSol: -0.11603954545454549,
             totalHoldingsValueInSol: 0,
-            totalRoi: -11.603954545454553,
+            totalRoi: -11.603954545454549,
             totalTradesCount: 4,
             totalBuyTradesCount: 2,
             totalSellTradesCount: 2,
@@ -154,7 +153,7 @@ describe('runStrategy', () => {
         expect(actual).toEqual({
             totalPnlInSol: -0.523555,
             totalHoldingsValueInSol: 0.5502272727272727,
-            totalRoi: -52.355500000000006,
+            totalRoi: -52.3555,
             totalTradesCount: 3,
             totalBuyTradesCount: 2,
             totalSellTradesCount: 1,
@@ -176,7 +175,7 @@ describe('runStrategy', () => {
             // it will sell here
             formHistoryEntry({
                 timestamp: 2,
-                price: 0.5,
+                price: 7.3,
             }),
         ],
         lb: [
@@ -188,7 +187,7 @@ describe('runStrategy', () => {
             // it will sell here
             formHistoryEntry({
                 timestamp: 2,
-                price: 2,
+                price: 0.1,
             }),
         ],
         lc: [
@@ -205,7 +204,7 @@ describe('runStrategy', () => {
         ],
     };
 
-    it('should stop checking next mints if we have no balance left and runConfig.allowNegativeBalance = false', async () => {
+    it('should stop checking next mints if we have no balance left', async () => {
         mockFsReadFileSync(historiesThatResultInLoss);
 
         const actual = await runStrategy(
@@ -227,9 +226,9 @@ describe('runStrategy', () => {
         );
 
         expect(actual).toEqual({
-            totalPnlInSol: -1.16621,
+            totalPnlInSol: -1.0002725,
             totalHoldingsValueInSol: 0,
-            totalRoi: -116.621,
+            totalRoi: -100.02725,
             totalTradesCount: 4,
             totalBuyTradesCount: 2,
             totalSellTradesCount: 2,
@@ -237,46 +236,9 @@ describe('runStrategy', () => {
             winsCount: 0,
             biggestWinPercentage: 0,
             lossesCount: 2,
-            biggestLossPercentage: -124.121,
+            biggestLossPercentage: -126.93350000000001,
         });
         expect(logs.some(l => l.message.includes('Stopping because reached <=0 balance'))).toBeTruthy();
-    });
-
-    it('should continue with next mints as expected when runConfig.allowNegativeBalance = true and balance is negative', async () => {
-        mockFsReadFileSync(historiesThatResultInLoss);
-
-        const actual = await runStrategy(
-            runStrategyDeps,
-            {
-                ...runConfig,
-                allowNegativeBalance: true,
-                strategy: new StupidSniperStrategy(logger, {
-                    sell: {
-                        takeProfitPercentage: 100,
-                        stopLossPercentage: 10,
-                    },
-                }),
-            },
-            Object.keys(historiesThatResultInLoss).map(key => ({
-                fullPath: `tmp_test/${key}.json`,
-                name: `${key}.json`,
-                creationTime: new Date(),
-            })),
-        );
-
-        expect(actual).toEqual({
-            totalPnlInSol: -1.743065,
-            totalHoldingsValueInSol: 0,
-            totalRoi: -174.3065,
-            totalTradesCount: 6,
-            totalBuyTradesCount: 3,
-            totalSellTradesCount: 3,
-            winRatePercentage: 0,
-            winsCount: 0,
-            biggestWinPercentage: 0,
-            lossesCount: 3,
-            biggestLossPercentage: -124.121,
-        });
     });
 
     it('should work as expected when no trade happened', async () => {

@@ -1,7 +1,13 @@
 import { Logger } from 'winston';
 
 import { formSolBoughtOrSold, formTokenBoughtOrSold } from './PumpfunBot';
-import { BacktestExitResponse, BacktestRunConfig, BacktestTradeResponse, TradeTransaction } from './types';
+import {
+    BacktestExitResponse,
+    BacktestRunConfig,
+    BacktestTradeResponse,
+    PumpfunBuyPositionMetadata, PumpfunSellPositionMetadata,
+    TradeTransaction,
+} from './types';
 import { PUMPFUN_TOKEN_DECIMALS } from '../../../../blockchains/solana/dex/pumpfun/constants';
 import {
     simulatePumpBuyLatencyMs,
@@ -35,7 +41,7 @@ export default class PumpfunBacktester {
             buyAmountSol,
             jitoConfig,
             strategy,
-            useRandomizedValues,
+            randomization,
             onlyOneFullTrade,
             sellUnclosedPositionsAtEnd,
         }: BacktestRunConfig,
@@ -61,30 +67,68 @@ export default class PumpfunBacktester {
             historySoFar.push(marketContext);
             const { price, marketCap } = marketContext;
 
-            const buyInLamports = useRandomizedValues
-                ? simulatePriceWithHigherSlippage(buyAmountLamports, strategy.config.buySlippageDecimal)
-                : buyAmountLamports * (1 + strategy.config.buySlippageDecimal);
             const buyPriorityFeeInSol =
                 strategy.config.buyPriorityFeeInSol ??
                 strategy.config.priorityFeeInSol ??
-                (useRandomizedValues
+                (randomization.priorityFees
                     ? lamportsToSol(simulateSolanaPriorityFeeInLamports())
                     : PumpfunBacktester.DefaultStaticPriorityFeeInSol);
 
+            const simulatedBuyLatencyMs = simulatePumpBuyLatencyMs(
+                buyPriorityFeeInSol,
+                jitoConfig,
+                randomization.execution,
+            );
+
+            const { buyPrice, buyInLamports } = ((): {
+                buyPrice: number;
+                buyInLamports: number;
+            } => {
+                if (randomization.slippages === 'randomized' || randomization.slippages === 'off') {
+                    const slippageModifier =
+                        randomization.slippages === 'randomized'
+                            ? simulatePriceWithHigherSlippage(1, strategy.config.buySlippageDecimal)
+                            : 1 + strategy.config.buySlippageDecimal;
+                    return {
+                        buyPrice: price * slippageModifier,
+                        buyInLamports: buyAmountLamports * slippageModifier,
+                    };
+                } else if (randomization.slippages === 'closestEntry') {
+                    /**
+                     * it will use either the previous or next history entry's price closest to the 25% of the simulation
+                     * buy time (because usually within 25% of time request reaches the server,
+                     * the rest of the buy function is validating, storing and fetching from the blockchain)
+                     */
+                    const buyPrice = history[
+                        getClosestEntryIndex(
+                            history,
+                            i,
+                            marketContext.timestamp + 0.25 * simulatedBuyLatencyMs,
+                        )
+                        ].price;
+                    const buyPriceDiffPercentageDecimal = (buyPrice - price) / price;
+                    return {
+                        buyPrice: buyPrice,
+                        buyInLamports: buyAmountLamports * (1 + buyPriceDiffPercentageDecimal),
+                    };
+                } else {
+                    throw new Error(`Unknown randomization.slippages mode ${randomization.slippages} was provided`);
+                }
+            })();
             // We create the associated pumpfun token account and pay its fee the first time we trade this token
             const pumpCreateAccountFeeLamports =
                 tradeHistory.length === 0 ? PumpfunBacktester.PumpfunAccountCreationFeeLamports : 0;
             const jitoTipLamports = getJitoTipLamports(jitoConfig);
-            const requiredAmountLamports =
+            const minBalanceToBuyLamports =
                 buyInLamports + solToLamports(buyPriorityFeeInSol) + pumpCreateAccountFeeLamports + jitoTipLamports;
 
             // no more money for further purchases, and also we have no position
-            if (balanceLamports < requiredAmountLamports && !strategy.buyPosition) {
+            if (balanceLamports <= minBalanceToBuyLamports && !strategy.buyPosition) {
                 break;
             }
 
             if (
-                balanceLamports > requiredAmountLamports &&
+                balanceLamports >= minBalanceToBuyLamports &&
                 !strategy.buyPosition &&
                 (await strategy.shouldBuy(tokenInfo.mint, marketContext, historySoFar))
             ) {
@@ -93,10 +137,10 @@ export default class PumpfunBacktester {
                     solToLamports(buyPriorityFeeInSol),
                 );
 
-                holdingsRaw += (buyAmountSol / price) * 10 ** PUMPFUN_TOKEN_DECIMALS;
+                holdingsRaw += calculateRawTokenHoldings(buyAmountSol, price);
                 balanceLamports += txDetails.netTransferredLamports;
 
-                const buyPosition: TradeTransaction = {
+                const buyPosition: TradeTransaction<PumpfunBuyPositionMetadata> = {
                     timestamp: Date.now(),
                     transactionType: 'buy',
                     subCategory: tradeHistory.find(e => e.transactionType === 'buy') ? 'accumulation' : 'newPosition',
@@ -112,6 +156,12 @@ export default class PumpfunBacktester {
                         inSol: price,
                     },
                     marketCap: marketCap,
+                    metadata: {
+                        pumpInSol: lamportsToSol(buyInLamports),
+                        pumpMaxSolCost: lamportsToSol(buyInLamports),
+                        pumpTokenOut: holdingsRaw,
+                        pumpBuyPriceInSol: buyPrice,
+                    },
                 };
                 tradeHistory.push(buyPosition);
                 strategy.afterBuy(price, {
@@ -121,13 +171,7 @@ export default class PumpfunBacktester {
 
                 if (i < history.length - 1) {
                     // Simulate time passing by going to the next market context
-                    i =
-                        getNextEntryIndex(
-                            history,
-                            i,
-                            marketContext.timestamp +
-                                simulatePumpBuyLatencyMs(buyPriorityFeeInSol, jitoConfig, useRandomizedValues),
-                        ) - 1;
+                    i = getNextEntryIndex(history, i, marketContext.timestamp + simulatedBuyLatencyMs) - 1;
                     continue;
                 }
             }
@@ -164,18 +208,58 @@ export default class PumpfunBacktester {
             }
 
             if (sell && strategy.buyPosition && holdingsRaw > 0) {
-                const receivedAmountLamports = useRandomizedValues
-                    ? simulatePriceWithLowerSlippage(
-                          calculatePumpTokenLamportsValue(holdingsRaw, price),
-                          strategy.config.sellSlippageDecimal,
-                      )
-                    : calculatePumpTokenLamportsValue(holdingsRaw, price) * (1 - strategy.config.sellSlippageDecimal);
                 const sellPriorityFeeInSol =
                     strategy.config.sellPriorityFeeInSol ??
                     strategy.config.priorityFeeInSol ??
-                    (useRandomizedValues
+                    (randomization.priorityFees
                         ? lamportsToSol(simulateSolanaPriorityFeeInLamports())
                         : PumpfunBacktester.DefaultStaticPriorityFeeInSol);
+
+                const simulatedSellLatencyMs = simulatePumpSellLatencyMs(
+                    sellPriorityFeeInSol,
+                    jitoConfig,
+                    randomization.execution,
+                );
+
+                const { sellPrice, receivedAmountLamports } = ((): {
+                    sellPrice: number;
+                    receivedAmountLamports: number;
+                } => {
+                    if (randomization.slippages === 'off' || randomization.slippages === 'randomized') {
+                        const slippageModifier =
+                            randomization.slippages === 'randomized'
+                                ? simulatePriceWithLowerSlippage(1, strategy.config.sellSlippageDecimal)
+                                : 1 - strategy.config.sellSlippageDecimal;
+                        return {
+                            sellPrice: price * slippageModifier,
+                            receivedAmountLamports:
+                                calculatePumpTokenLamportsValue(holdingsRaw, price) * slippageModifier,
+                        };
+                    } else if (randomization.slippages === 'closestEntry') {
+                        /**
+                         * it will use either the previous or next history entry's price closest to the 25% of the simulation
+                         * sell time (because usually within 25% of time request reaches the server,
+                         * the rest of the sell function is validating, storing and fetching from the blockchain)
+                         */
+                        const sellPrice =
+                            history[
+                                getClosestEntryIndex(
+                                    history,
+                                    i,
+                                    marketContext.timestamp + 0.25 * simulatedSellLatencyMs,
+                                )
+                            ].price;
+                        const sellPriceDiffPercentageDecimal = (sellPrice - price) / price;
+                        return {
+                            sellPrice: sellPrice,
+                            receivedAmountLamports:
+                                calculatePumpTokenLamportsValue(holdingsRaw, price) * (1 + sellPriceDiffPercentageDecimal),
+                        };
+                    } else {
+                        throw new Error(`Unknown randomization.slippages mode ${randomization.slippages} was provided`);
+                    }
+                })();
+
                 const txDetails = simulateSolTransactionDetails(
                     receivedAmountLamports - jitoTipLamports,
                     solToLamports(sellPriorityFeeInSol),
@@ -200,8 +284,10 @@ export default class PumpfunBacktester {
                     metadata: {
                         reason: sell.reason,
                         pumpMinLamportsOutput: holdingsRaw,
+                        sellPriceInSol: sellPrice,
                     },
-                });
+                    // eslint-disable-next-line prettier/prettier
+                } satisfies TradeTransaction<PumpfunSellPositionMetadata>);
 
                 balanceLamports += txDetails.netTransferredLamports;
                 holdingsRaw = 0;
@@ -214,13 +300,7 @@ export default class PumpfunBacktester {
 
                 if (i < history.length - 1) {
                     // Simulate time passing by going to the next market context
-                    i =
-                        getNextEntryIndex(
-                            history,
-                            i,
-                            marketContext.timestamp +
-                                simulatePumpSellLatencyMs(sellPriorityFeeInSol, jitoConfig, useRandomizedValues),
-                        ) - 1;
+                    i = getNextEntryIndex(history, i, marketContext.timestamp + simulatedSellLatencyMs) - 1;
                     continue;
                 }
             }
@@ -265,10 +345,24 @@ export function getNextEntryIndex(history: HistoryEntry[], currentIndex: number,
     return history.length - 1;
 }
 
+export function getClosestEntryIndex(history: HistoryEntry[], currentIndex: number, nextTimestampMs: number): number {
+    const nextIndex = currentIndex < history.length - 1 ? currentIndex + 1 : currentIndex;
+
+    if (nextTimestampMs - history[currentIndex].timestamp < history[nextIndex].timestamp - nextTimestampMs) {
+        return currentIndex;
+    }
+
+    return getNextEntryIndex(history, currentIndex, nextTimestampMs);
+}
+
 function _generateFakeBacktestTransactionHash() {
     return `_backtest_${Date.now()}`;
 }
 
 export function getJitoTipLamports(jitoConfig?: JitoConfig): number {
     return jitoConfig?.jitoEnabled ? jitoConfig.tipLamports ?? TIP_LAMPORTS : 0;
+}
+
+function calculateRawTokenHoldings(amountSol: number, priceSol: number): number {
+    return (amountSol / priceSol) * 10 ** PUMPFUN_TOKEN_DECIMALS;
 }

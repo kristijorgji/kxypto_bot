@@ -12,11 +12,13 @@ export type PumpfunBuyPositionMetadata = {
     pumpInSol: number;
     pumpTokenOut: number;
     pumpMaxSolCost: number;
+    pumpBuyPriceInSol: number;
 };
 
 export type PumpfunSellPositionMetadata = {
     pumpMinLamportsOutput: number;
     reason: SellReason;
+    sellPriceInSol: number;
 };
 
 export type BoughtSold = {
@@ -107,10 +109,29 @@ export type BacktestRunConfig = {
     strategy: LaunchpadBotStrategy;
 
     /**
-     * If `true`, the simulation will introduce random variations in execution times and other parameters like slippage
-     * to better mimic real-world market conditions.
+     * Configuration for introducing random variations during simulation to better mimic real-world market conditions.
      */
-    useRandomizedValues: boolean;
+    randomization: {
+        /**
+         * If `true`, introduces random variations in buy and sell priority fees,
+         * within the provided priority fee intervals.
+         */
+        priorityFees: boolean;
+
+        /**
+         * Controls how slippage values are selected during the simulation:
+         * - `'off'`: Use the exact provided slippage values.
+         * - `'randomized'`: Randomize slippage within the provided buy and sell slippage intervals.
+         * - `'closestEntry'`: Use the closest available price value from the historical dataset or predefined entries after simulating buy or execution times.
+         */
+        slippages: 'off' | 'randomized' | 'closestEntry';
+
+        /**
+         * If `true`, introduces random variations in buy and sell execution times
+         * to simulate real-world delays.
+         */
+        execution: boolean;
+    };
 
     /**
      * If `true`, the simulation will exit after completing a single buy-sell trade cycle.

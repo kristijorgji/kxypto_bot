@@ -18,6 +18,12 @@
       },
       "grossTransferredLamports": -464294999.99999994,
       "marketCap": 150,
+      "metadata": {
+        "pumpBuyPriceInSol": 3.1854999999999998,
+        "pumpInSol": 0.45999999999999996,
+        "pumpMaxSolCost": 0.45999999999999996,
+        "pumpTokenOut": 144404.3321299639
+      },
       "netTransferredLamports": -471299999.99999994,
       "price": {
         "inLamports": 2770000000,
@@ -47,7 +53,8 @@
       "marketCap": 1.5,
       "metadata": {
         "pumpMinLamportsOutput": 144404.3321299639,
-        "reason": "TAKE_PROFIT"
+        "reason": "TAKE_PROFIT",
+        "sellPriceInSol": 5.25
       },
       "netTransferredLamports": 752867743.6823105,
       "price": {
@@ -76,6 +83,12 @@
       },
       "grossTransferredLamports": -460249999.99999994,
       "marketCap": 145,
+      "metadata": {
+        "pumpBuyPriceInSol": 0.11499999999999999,
+        "pumpInSol": 0.45999999999999996,
+        "pumpMaxSolCost": 0.45999999999999996,
+        "pumpTokenOut": 4000000
+      },
       "netTransferredLamports": -467254999.99999994,
       "price": {
         "inLamports": 100000000,

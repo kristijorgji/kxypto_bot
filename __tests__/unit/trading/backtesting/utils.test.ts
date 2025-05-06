@@ -51,7 +51,11 @@ describe('runStrategy', () => {
         jitoConfig: {
             jitoEnabled: true,
         },
-        useRandomizedValues: false,
+        randomization: {
+            priorityFees: false,
+            slippages: 'off',
+            execution: false,
+        },
         onlyOneFullTrade: true,
         sellUnclosedPositionsAtEnd: false,
     };

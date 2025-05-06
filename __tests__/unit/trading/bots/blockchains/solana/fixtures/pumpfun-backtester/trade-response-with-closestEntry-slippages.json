@@ -1,0 +1,77 @@
+{
+  "finalBalanceLamports": 1258407093.8628159,
+  "holdings": {
+    "amountRaw": 0,
+    "lamportsValue": 0
+  },
+  "maxDrawdown": 0,
+  "profitLossLamports": 258407093.86281586,
+  "roi": 25.840709386281585,
+  "tradeHistory": [
+    {
+      "amountRaw": 144404.3321299639,
+      "bought": {
+        "address": "5xNMMoEQcQiJQURE6DEwvHVt1jJsMTLrFmBHZoqpump",
+        "amount": 144404.3321299639,
+        "name": "Oracle Framework",
+        "symbol": "ORACLE"
+      },
+      "grossTransferredLamports": -468044999.99999994,
+      "marketCap": 150,
+      "metadata": {
+        "pumpBuyPriceInSol": 3.2132,
+        "pumpInSol": 0.46399999999999997,
+        "pumpMaxSolCost": 0.46399999999999997,
+        "pumpTokenOut": 144404.3321299639
+      },
+      "netTransferredLamports": -473049999.99999994,
+      "price": {
+        "inLamports": 2770000000,
+        "inSol": 2.77
+      },
+      "sold": {
+        "address": "So11111111111111111111111111111111111111112",
+        "amount": 468044999.99999994,
+        "name": "SOL",
+        "symbol": "SOL"
+      },
+      "subCategory": "newPosition",
+      "timestamp": 1616175600000,
+      "transactionHash": "_backtest_1616175600001",
+      "transactionType": "buy",
+      "walletAddress": "_backtest_"
+    },
+    {
+      "amountRaw": 144404.3321299639,
+      "bought": {
+        "address": "So11111111111111111111111111111111111111112",
+        "amount": 736462093.8628159,
+        "name": "SOL",
+        "symbol": "SOL"
+      },
+      "grossTransferredLamports": 736462093.8628159,
+      "marketCap": 160,
+      "metadata": {
+        "pumpMinLamportsOutput": 144404.3321299639,
+        "reason": "TAKE_PROFIT",
+        "sellPriceInSol": 5.1
+      },
+      "netTransferredLamports": 731457093.8628159,
+      "price": {
+        "inLamports": 5000000000,
+        "inSol": 5
+      },
+      "sold": {
+        "address": "5xNMMoEQcQiJQURE6DEwvHVt1jJsMTLrFmBHZoqpump",
+        "amount": 144404.3321299639,
+        "name": "Oracle Framework",
+        "symbol": "ORACLE"
+      },
+      "subCategory": "sellAll",
+      "timestamp": 1616175600002,
+      "transactionHash": "_backtest_1616175600003",
+      "transactionType": "sell",
+      "walletAddress": "_backtest_"
+    }
+  ]
+}

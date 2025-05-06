@@ -21,6 +21,12 @@
       "amountRaw": 144404.3321299639,
       "grossTransferredLamports": -504195000,
       "netTransferredLamports": -509200000,
+      "metadata": {
+        "pumpBuyPriceInSol": 3.4625,
+        "pumpInSol": 0.5,
+        "pumpMaxSolCost": 0.5,
+        "pumpTokenOut": 144404.3321299639
+      },
       "price": {
         "inSol": 2.77,
         "inLamports": 2770000000
@@ -55,7 +61,8 @@
       "marketCap": 1.5,
       "metadata": {
         "pumpMinLamportsOutput": 144404.3321299639,
-        "reason": "TRAILING_STOP_LOSS"
+        "reason": "TRAILING_STOP_LOSS",
+        "sellPriceInSol": 0.15000000000000002
       }
     }
   ],

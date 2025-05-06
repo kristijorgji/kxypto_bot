@@ -15,6 +15,7 @@
       "grossTransferredLamports": 420000000,
       "marketCap": 60,
       "metadata": {
+        "pumpBuyPriceInSol": 3.2e-8,
         "pumpInSol": 0.4,
         "pumpMaxSolCost": 0.55,
         "pumpTokenOut": 10499526567337
@@ -48,7 +49,8 @@
       "marketCap": 60,
       "metadata": {
         "pumpMinLamportsOutput": 710000000,
-        "reason": "TAKE_PROFIT"
+        "reason": "TAKE_PROFIT",
+        "sellPriceInSol": 4.25e-8
       },
       "netTransferredLamports": 664995000,
       "price": {

@@ -332,6 +332,7 @@ export default class PumpfunBot {
                                 pumpInSol: inSol,
                                 pumpMaxSolCost: buyRes.pumpMaxSolCost,
                                 pumpTokenOut: buyRes.pumpTokenOut,
+                                pumpBuyPriceInSol: priceInSol, // TODO use the correct real used price
                             },
                         };
 
@@ -490,6 +491,7 @@ export default class PumpfunBot {
                             metadata: {
                                 reason: dataAtSellTime.sellReason,
                                 pumpMinLamportsOutput: sellRes.minLamportsOutput,
+                                sellPriceInSol: priceInSol, // TODO use the correct real used price
                             },
                         };
                         this.botEventBus.tradeExecuted(sellPosition);

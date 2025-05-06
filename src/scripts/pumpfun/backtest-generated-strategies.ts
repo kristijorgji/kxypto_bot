@@ -78,7 +78,11 @@ async function findBestStrategy() {
         jitoConfig: {
             jitoEnabled: true,
         },
-        useRandomizedValues: true,
+        randomization: {
+            priorityFees: true,
+            slippages: 'closestEntry',
+            execution: true,
+        },
         onlyOneFullTrade: true,
         sellUnclosedPositionsAtEnd: false,
     };

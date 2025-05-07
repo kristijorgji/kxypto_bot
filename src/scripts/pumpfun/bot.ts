@@ -241,7 +241,7 @@ async function handlePumpToken(
 
     const baseReport: HandlePumpTokenBaseReport = {
         $schema: {
-            version: 1.09,
+            version: 1.1,
         },
         simulation: c.simulate,
         mint: tokenData.mint,

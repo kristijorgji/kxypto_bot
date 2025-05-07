@@ -231,12 +231,18 @@ export default class PumpfunBot {
                 });
 
                 if (shouldExitRes) {
+                    logger.info('strategy requires exit, res=%o', shouldExitRes);
                     if (shouldExitRes.shouldSell) {
-                        logger.info(shouldExitRes.message);
                         sell = {
                             reason: shouldExitRes.shouldSell.reason,
                         };
                     } else {
+                        const lastHistoryIndex = history.length - 1;
+                        history[lastHistoryIndex]._metadata = {
+                            ...(history[lastHistoryIndex]._metadata ?? {}),
+                            action: 'strategyExit',
+                        };
+
                         result = {
                             exitCode: shouldExitRes.exitCode,
                             exitReason: shouldExitRes.message,

@@ -48,6 +48,9 @@
       "topTenHoldingPercentage": 10
     },
     {
+      "_metadata": {
+        "action": "strategyExit"
+      },
       "bondingCurveProgress": 50,
       "devHoldingPercentage": 5,
       "holdersCount": 70,

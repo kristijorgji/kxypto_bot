@@ -128,6 +128,7 @@ export async function runStrategy(
                     }
 
                     if (verbose) {
+                        const isSingleFullTrade = runConfig.onlyOneFullTrade && pr.tradeHistory.length === 2;
                         logger.info(
                             'Final balance: %s SOL and holdings %s',
                             lamportsToSol(pr.finalBalanceLamports),
@@ -141,7 +142,10 @@ export async function runStrategy(
                         );
                         logger.info('Trades count %d', pr.tradeHistory.length);
                         logger.info('ROI %s%%', pr.roi);
-                        logger.info('Max Drawdown: %s%%\n', pr.maxDrawdown);
+                        logger.info('Max Drawdown: %s%%%s', pr.maxDrawdown, isSingleFullTrade ? '' : '\n');
+                        if (isSingleFullTrade) {
+                            logger.info('Trades=%o\n', pr.tradeHistory);
+                        }
                     }
                 }
 

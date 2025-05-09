@@ -21,6 +21,13 @@ export type PumpfunSellPositionMetadata = {
     sellPriceInSol: number;
 };
 
+export type BacktestTradeOrigin = {
+    historyRef: {
+        timestamp: number;
+        index: number;
+    };
+};
+
 export type BoughtSold = {
     address: string;
     name: string;
@@ -148,6 +155,7 @@ export type BacktestRunConfig = {
 
 export type StrategyBacktestResult = {
     totalPnlInSol: number;
+    finalBalanceLamports: number;
     totalHoldingsValueInSol: number;
     totalRoi: number;
     totalTradesCount: number;

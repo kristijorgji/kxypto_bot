@@ -3,6 +3,7 @@ import fs from 'fs';
 import dotenv from 'dotenv';
 /* eslint-disable import/first */
 dotenv.config();
+import { Logger } from 'winston';
 
 import { startApm } from '../../apm/apm';
 import { SolanaWalletProviders } from '../../blockchains/solana/constants/walletProviders';
@@ -35,7 +36,7 @@ import { getSecondsDifference } from '../../utils/time';
 /**
  * Configuration options for the bot's processing behavior.
  */
-type Config = {
+export type Config = {
     /**
      * The maximum number of tokens that can be processed in parallel.
      * - If set to `null`, there is no limit on parallel processing.
@@ -108,11 +109,26 @@ const config: Config = {
     stopAtMinWalletBalanceLamports: null,
 };
 
-(async () => {
-    await start();
-})();
+// ensures the code only auto-runs when the file is executed directly, not when imported
+if (require.main === module) {
+    (async () => {
+        await start(config, {
+            logger: logger,
+            botEventBus: new PumpfunBotEventBus(),
+        });
+    })();
+}
 
-async function start() {
+export async function start(
+    config: Config,
+    {
+        logger,
+        botEventBus,
+    }: {
+        logger: Logger;
+        botEventBus: PumpfunBotEventBus;
+    },
+) {
     startApm();
 
     logger.info('🚀 Bot started with config=%o', config);
@@ -131,7 +147,6 @@ async function start() {
 
     logger.info(`Started with balance ${lamportsToSol(await wallet.getBalanceLamports())} SOL`);
 
-    const botEventBus = new PumpfunBotEventBus();
     const pumpfunBotsTradeManager = new PumpfunBotsTradeManager(logger, botEventBus, wallet, {
         maxFullTrades: config.maxFullTrades,
         minWalletBalanceLamports: config.stopAtMinWalletBalanceLamports,
@@ -145,6 +160,7 @@ async function start() {
             try {
                 const handleRes = await handlePumpToken(
                     {
+                        logger,
                         pumpfun,
                         solanaAdapter,
                         marketContextProvider,
@@ -190,7 +206,7 @@ async function start() {
     while (!pumpfunListener.isDone()) {
         await sleep(500);
     }
-    await sleep(1e4);
+
     logger.info('We are done. The listener is force stopped and all items are processed');
     logger.info('Balance: %s SOL', lamportsToSol(await wallet.getBalanceLamports()));
     await db.destroy();
@@ -198,11 +214,13 @@ async function start() {
 
 async function handlePumpToken(
     {
+        logger,
         pumpfun,
         solanaAdapter,
         marketContextProvider,
         botEventBus,
     }: {
+        logger: Logger;
         pumpfun: Pumpfun;
         solanaAdapter: SolanaAdapter;
         marketContextProvider: PumpfunMarketContextProvider;

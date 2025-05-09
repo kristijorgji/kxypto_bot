@@ -24,15 +24,15 @@ export function formMarketContext(data: Partial<MarketContext>, copy?: MarketCon
     };
 }
 
-export function formHistoryEntry(data: Partial<HistoryEntry>, copy?: HistoryEntry): HistoryEntry {
+export function formHistoryEntry(data?: Partial<HistoryEntry>, copy?: HistoryEntry): HistoryEntry {
     return {
-        timestamp: data.timestamp ?? copy?.timestamp ?? 1,
+        timestamp: data?.timestamp ?? copy?.timestamp ?? 1,
         // eslint-disable-next-line no-loss-of-precision
-        price: data.price ?? copy?.price ?? 3.0355480118319034e-8,
-        marketCap: data.marketCap ?? copy?.marketCap ?? 31.770000079,
-        bondingCurveProgress: data.bondingCurveProgress ?? copy?.bondingCurveProgress ?? 25,
-        holdersCount: data.holdersCount ?? copy?.holdersCount ?? 15,
-        devHoldingPercentage: data.devHoldingPercentage ?? copy?.devHoldingPercentage ?? 10,
-        topTenHoldingPercentage: data.topTenHoldingPercentage ?? copy?.topTenHoldingPercentage ?? 35,
+        price: data?.price ?? copy?.price ?? 3.0355480118319034e-8,
+        marketCap: data?.marketCap ?? copy?.marketCap ?? 31.770000079,
+        bondingCurveProgress: data?.bondingCurveProgress ?? copy?.bondingCurveProgress ?? 25,
+        holdersCount: data?.holdersCount ?? copy?.holdersCount ?? 15,
+        devHoldingPercentage: data?.devHoldingPercentage ?? copy?.devHoldingPercentage ?? 10,
+        topTenHoldingPercentage: data?.topTenHoldingPercentage ?? copy?.topTenHoldingPercentage ?? 35,
     };
 }

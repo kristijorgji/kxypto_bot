@@ -59,13 +59,13 @@ export default class PumpfunQueuedListener {
     }
 
     async stopListening(force: boolean) {
+        this.logger.info('[%s] - Stopped listening force=%s.', PumpfunQueuedListener.name, force);
         this.forceStopped = force;
         if (!this.isListening) {
             return;
         }
         this.isListening = false;
         await this.pumpfun.stopListeningToNewTokens();
-        this.logger.info('[%s] - Stopped listening force=%s.', PumpfunQueuedListener.name, force);
     }
 
     isDone(): boolean {

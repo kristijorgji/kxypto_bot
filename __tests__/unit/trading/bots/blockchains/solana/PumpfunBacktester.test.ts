@@ -229,7 +229,7 @@ describe(PumpfunBacktester.name, () => {
             formHistoryEntry({
                 // won't sell here as sell conditions aren't met
                 timestamp: 8,
-                price: 2.77,
+                price: 2.78,
             }),
         ];
 
@@ -244,7 +244,7 @@ describe(PumpfunBacktester.name, () => {
             expect(r.finalBalanceLamports).toBeLessThan(runConfig.initialBalanceLamports);
             expect(r.profitLossLamports).toBeCloseTo(r.tradeHistory[0].netTransferredLamports);
             expect(r.holdings.amountRaw).toEqual(r.tradeHistory[0].amountRaw);
-            expect(r.holdings.lamportsValue).toEqual(solToLamports(runConfig.buyAmountSol));
+            expect(r.holdings.lamportsValue).toEqual(401444043.3212996);
             expect(r.roi).toBeLessThan(-20);
         });
 
@@ -266,10 +266,18 @@ describe(PumpfunBacktester.name, () => {
             expect(r.tradeHistory.length).toEqual(2);
             expect(r.tradeHistory[0].transactionType).toEqual('buy');
             expect(r.tradeHistory[1].transactionType).toEqual('sell');
+            expect(r.tradeHistory[1].price).toEqual({
+                inLamports: 2780000000,
+                inSol: 2.78,
+            });
             expect(r.tradeHistory[1].metadata).toEqual({
+                historyRef: {
+                    index: 1,
+                    timestamp: 8,
+                },
                 pumpMinLamportsOutput: 144404.3321299639,
                 reason: 'BEFORE_EXIT_MONITORING',
-                sellPriceInSol: 2.0775,
+                sellPriceInSol: 2.085,
             });
         });
     });

@@ -1,0 +1,90 @@
+{
+  "result": {
+    "totalPnlInSol": -0.11603954545454549,
+    "finalBalanceLamports": 883960454.5454545,
+    "totalHoldingsValueInSol": 0,
+    "totalRoi": -11.603954545454549,
+    "totalTradesCount": 4,
+    "totalBuyTradesCount": 2,
+    "totalSellTradesCount": 2,
+    "winRatePercentage": 50,
+    "winsCount": 1,
+    "biggestWinPercentage": 22.128999999999998,
+    "lossesCount": 1,
+    "biggestLossPercentage": -45.3369090909091
+  },
+  "logs": [
+    {
+      "level": "info",
+      "message": "Triggered take profit at price 2. TakeProfitPercentage {\n  _takeProfitPrice: 1.1,\n  [takeProfitPrice]: [Getter]\n}"
+    },
+    {
+      "level": "info",
+      "message": "[0] Results for mint: a, Meme Mining Company, MMC"
+    },
+    {
+      "level": "info",
+      "message": "Final balance: 1.110645 SOL and holdings 0"
+    },
+    {
+      "level": "info",
+      "message": "Profit/Loss: 0.110645 SOL"
+    },
+    {
+      "level": "info",
+      "message": "Holdings amount: 0, value: 0 SOL"
+    },
+    {
+      "level": "info",
+      "message": "Trades count 2"
+    },
+    {
+      "level": "info",
+      "message": "ROI 11.064499999999999%"
+    },
+    {
+      "level": "info",
+      "message": "Max Drawdown: 0%"
+    },
+    {
+      "level": "info",
+      "message": "Trades=[\n  {\n    timestamp: 1616148000000,\n    transactionType: 'buy',\n    subCategory: 'newPosition',\n    historyRef: {\n      timestamp: 1,\n      index: 0,\n      price: { inLamports: 1000000000, inSol: 1 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: -629195000,\n    netTransferredLamports: -634200000,\n    amountRaw: 500000,\n    metadata: {\n      pumpInSol: 0.625,\n      pumpMaxSolCost: 0.625,\n      pumpTokenOut: 500000,\n      pumpBuyPriceInSol: 1.25\n    }\n  },\n  {\n    timestamp: 1616148000000,\n    transactionType: 'sell',\n    subCategory: 'sellAll',\n    historyRef: {\n      timestamp: 2,\n      index: 1,\n      price: { inSol: 2, inLamports: 2000000000 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: 749850000,\n    netTransferredLamports: 744845000,\n    amountRaw: 500000,\n    metadata: {\n      reason: 'TAKE_PROFIT',\n      pumpMinLamportsOutput: 500000,\n      sellPriceInSol: 1.5\n    }\n  },\n  [length]: 2\n]\n"
+    },
+    {
+      "level": "info",
+      "message": "Triggered take profit at price 2.421. TakeProfitPercentage {\n  _takeProfitPrice: 2.4200000000000004,\n  [takeProfitPrice]: [Getter]\n}"
+    },
+    {
+      "level": "info",
+      "message": "[1] Results for mint: b, Meme Mining Company, MMC"
+    },
+    {
+      "level": "info",
+      "message": "Final balance: 0.8839604545454545 SOL and holdings 0"
+    },
+    {
+      "level": "info",
+      "message": "Profit/Loss: -0.2266845454545455 SOL"
+    },
+    {
+      "level": "info",
+      "message": "Holdings amount: 0, value: 0 SOL"
+    },
+    {
+      "level": "info",
+      "message": "Trades count 2"
+    },
+    {
+      "level": "info",
+      "message": "ROI -20.41017115770975%"
+    },
+    {
+      "level": "info",
+      "message": "Max Drawdown: 0%"
+    },
+    {
+      "level": "info",
+      "message": "Trades=[\n  {\n    timestamp: 1616148000000,\n    transactionType: 'buy',\n    subCategory: 'newPosition',\n    historyRef: {\n      timestamp: 1,\n      index: 0,\n      price: { inLamports: 2200000000, inSol: 2.2 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: -629195000,\n    netTransferredLamports: -634200000,\n    amountRaw: 227272.72727272726,\n    metadata: {\n      pumpInSol: 0.625,\n      pumpMaxSolCost: 0.625,\n      pumpTokenOut: 227272.72727272726,\n      pumpBuyPriceInSol: 2.75\n    }\n  },\n  {\n    timestamp: 1616148000000,\n    transactionType: 'sell',\n    subCategory: 'sellAll',\n    historyRef: {\n      timestamp: 2,\n      index: 1,\n      price: { inSol: 2.421, inLamports: 2421000000 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: 412520454.5454545,\n    netTransferredLamports: 407515454.5454545,\n    amountRaw: 227272.72727272726,\n    metadata: {\n      reason: 'TAKE_PROFIT',\n      pumpMinLamportsOutput: 227272.72727272726,\n      sellPriceInSol: 1.81575\n    }\n  },\n  [length]: 2\n]\n"
+    }
+  ]
+}

@@ -15,6 +15,7 @@ import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
 import {
     BacktestExitResponse,
     BacktestRunConfig,
+    BacktestTradeOrigin,
     BacktestTradeResponse,
     StrategyBacktestResult,
 } from '../bots/blockchains/solana/types';
@@ -144,8 +145,39 @@ export async function runStrategy(
                         logger.info('ROI %s%%', pr.roi);
                         logger.info('Max Drawdown: %s%%%s', pr.maxDrawdown, isSingleFullTrade ? '' : '\n');
                         if (isSingleFullTrade) {
-                            logger.info('Trades=%o\n', pr.tradeHistory);
+                            logger.info(
+                                'Trades=%o\n',
+                                pr.tradeHistory.map(e => {
+                                    const { historyRef, ...filteredMetadata } = e.metadata as Record<
+                                        string,
+                                        unknown
+                                    > & { historyRef: BacktestTradeOrigin };
+
+                                    return {
+                                        timestamp: e.timestamp,
+                                        transactionType: e.transactionType,
+                                        subCategory: e.subCategory,
+                                        historyRef: {
+                                            ...historyRef,
+                                            price: e.price,
+                                            marketCap: e.marketCap,
+                                        },
+                                        grossTransferredLamports: e.grossTransferredLamports,
+                                        netTransferredLamports: e.netTransferredLamports,
+                                        amountRaw: e.amountRaw,
+                                        metadata: filteredMetadata,
+                                    };
+                                }),
+                            );
                         }
+                    }
+                } else {
+                    if (verbose) {
+                        logger.info(
+                            '[%d] Completed full simulation — no trades executed across %d history entries\n',
+                            processed,
+                            content.history.length,
+                        );
                     }
                 }
 
@@ -157,7 +189,12 @@ export async function runStrategy(
             } else {
                 const pr = r as BacktestExitResponse;
                 if (verbose) {
-                    logger.info('Exited monitoring with code: %s, reason: %s\n', pr.exitCode, pr.exitReason);
+                    logger.info(
+                        '[%d] Exited monitoring with code: %s, reason: %s\n',
+                        processed,
+                        pr.exitCode,
+                        pr.exitReason,
+                    );
                 }
             }
         } catch (e) {
@@ -175,6 +212,7 @@ export async function runStrategy(
 
     return {
         totalPnlInSol: lamportsToSol(totalProfitLossLamports),
+        finalBalanceLamports: balanceLamports,
         totalHoldingsValueInSol: lamportsToSol(totalHoldingsValueInLamports),
         totalRoi: (totalProfitLossLamports / runConfig.initialBalanceLamports) * 100,
         totalTradesCount: totalTradesCount,
@@ -192,6 +230,7 @@ export async function runStrategy(
 
 export function logStrategyResult(logger: Logger, sr: StrategyBacktestResult, tested: number, total: number) {
     logger.info('Total Profit/Loss: %s SOL', sr.totalPnlInSol);
+    logger.info('Final balance: %s SOL', lamportsToSol(sr.finalBalanceLamports));
     logger.info('Total holdings value: %s SOL', sr.totalHoldingsValueInSol);
     logger.info('Total ROI %s%%', sr.totalRoi);
     logger.info('Win rate %s%%', sr.winRatePercentage);

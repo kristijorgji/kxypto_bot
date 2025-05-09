@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { basename } from 'path';
 
-import { LogEntry, createLogger } from 'winston';
+import { LogEntry, createLogger, format } from 'winston';
 
 import Pumpfun from '../../../../src/blockchains/solana/dex/pumpfun/Pumpfun';
 import { PumpfunInitialCoinData } from '../../../../src/blockchains/solana/dex/pumpfun/types';
@@ -16,7 +16,8 @@ import { HistoryEntry } from '../../../../src/trading/bots/launchpads/types';
 import RiseStrategy from '../../../../src/trading/strategies/launchpads/RiseStrategy';
 import StupidSniperStrategy from '../../../../src/trading/strategies/launchpads/StupidSniperStrategy';
 import { formHistoryEntry } from '../../../__utils/blockchains/solana';
-import { readFixture } from '../../../__utils/data';
+import { readFixture, readLocalFixture } from '../../../__utils/data';
+import { FullTestExpectation } from '../../../__utils/types';
 
 jest.mock('../../../../src/blockchains/solana/dex/pumpfun/utils', () => ({
     ...jest.requireActual('../../../../src/blockchains/solana/dex/pumpfun/utils'),
@@ -60,9 +61,14 @@ describe('runStrategy', () => {
         sellUnclosedPositionsAtEnd: false,
     };
 
+    beforeAll(() => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2021-03-19T10:00:00Z'));
+    });
+
     beforeEach(() => {
         logs = [];
-        logger.clear().add(new ArrayTransport({ array: logs, json: true }));
+        logger.clear().add(new ArrayTransport({ array: logs, json: true, format: format.splat() }));
 
         (forceGetPumpCoinInitialData as jest.Mock).mockImplementation((...args) => {
             return Promise.resolve({
@@ -70,6 +76,10 @@ describe('runStrategy', () => {
                 mint: args[2],
             });
         });
+    });
+
+    afterAll(() => {
+        jest.useRealTimers();
     });
 
     const histories: Record<string, HistoryEntry[]> = {
@@ -99,7 +109,7 @@ describe('runStrategy', () => {
         ],
     };
 
-    it('should work as expected when there are no holdings left', async () => {
+    it('1 - should work as expected when there are no holdings left with verbose logging', async () => {
         mockFsReadFileSync(histories);
 
         const actual = await runStrategy(
@@ -110,28 +120,21 @@ describe('runStrategy', () => {
                 name: `${key}.json`,
                 creationTime: new Date(),
             })),
+            {
+                verbose: true,
+            },
         );
 
-        expect(actual).toEqual({
-            totalPnlInSol: -0.11603954545454549,
-            totalHoldingsValueInSol: 0,
-            totalRoi: -11.603954545454549,
-            totalTradesCount: 4,
-            totalBuyTradesCount: 2,
-            totalSellTradesCount: 2,
-            winRatePercentage: 50,
-            winsCount: 1,
-            biggestWinPercentage: 22.128999999999998,
-            lossesCount: 1,
-            biggestLossPercentage: -45.3369090909091,
-        });
+        const expectedData = readLocalFixture<FullTestExpectation>('utils/1/expected.json');
+
+        expect(actual).toEqual(expectedData.result);
 
         const mockedFsReadFileSync = mockedFs.readFileSync as jest.Mock;
         expect(mockedFsReadFileSync.mock.calls[0]).toEqual(['tmp_test/a.json']);
         expect(mockedFsReadFileSync.mock.calls[2]).toEqual(['tmp_test/b.json']);
         expect(forceGetPumpCoinInitialData as jest.Mock).toHaveBeenCalledWith(pumpfun, pumpfunRepository, 'a');
         expect(forceGetPumpCoinInitialData as jest.Mock).toHaveBeenCalledWith(pumpfun, pumpfunRepository, 'b');
-        expect(logs.length).toEqual(2);
+        expect(logs).toEqual(expectedData.logs);
     });
 
     it('should work as expected when there are holdings left', async () => {
@@ -156,6 +159,7 @@ describe('runStrategy', () => {
 
         expect(actual).toEqual({
             totalPnlInSol: -0.523555,
+            finalBalanceLamports: 476445000,
             totalHoldingsValueInSol: 0.5502272727272727,
             totalRoi: -52.3555,
             totalTradesCount: 3,
@@ -231,6 +235,7 @@ describe('runStrategy', () => {
 
         expect(actual).toEqual({
             totalPnlInSol: -1.0002725,
+            finalBalanceLamports: -272500,
             totalHoldingsValueInSol: 0,
             totalRoi: -100.02725,
             totalTradesCount: 4,
@@ -279,6 +284,7 @@ describe('runStrategy', () => {
 
         expect(actual).toEqual({
             totalPnlInSol: 0,
+            finalBalanceLamports: 1000000000,
             totalHoldingsValueInSol: 0,
             totalRoi: 0,
             totalTradesCount: 0,

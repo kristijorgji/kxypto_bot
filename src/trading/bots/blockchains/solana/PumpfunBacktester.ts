@@ -3,7 +3,7 @@ import { Logger } from 'winston';
 import { formSolBoughtOrSold, formTokenBoughtOrSold } from './PumpfunBot';
 import {
     BacktestExitResponse,
-    BacktestRunConfig,
+    BacktestRunConfig, BacktestTradeOrigin,
     BacktestTradeResponse,
     PumpfunBuyPositionMetadata, PumpfunSellPositionMetadata,
     TradeTransaction,
@@ -140,7 +140,7 @@ export default class PumpfunBacktester {
                 holdingsRaw += calculateRawTokenHoldings(buyAmountSol, price);
                 balanceLamports += txDetails.netTransferredLamports;
 
-                const buyPosition: TradeTransaction<PumpfunBuyPositionMetadata> = {
+                const buyPosition: TradeTransaction<BacktestTradeOrigin & PumpfunBuyPositionMetadata> = {
                     timestamp: Date.now(),
                     transactionType: 'buy',
                     subCategory: tradeHistory.find(e => e.transactionType === 'buy') ? 'accumulation' : 'newPosition',
@@ -157,6 +157,10 @@ export default class PumpfunBacktester {
                     },
                     marketCap: marketCap,
                     metadata: {
+                        historyRef: {
+                            timestamp: marketContext.timestamp,
+                            index: i,
+                        },
                         pumpInSol: lamportsToSol(buyInLamports),
                         pumpMaxSolCost: lamportsToSol(buyInLamports),
                         pumpTokenOut: holdingsRaw,
@@ -282,12 +286,16 @@ export default class PumpfunBacktester {
                     },
                     marketCap: marketCap,
                     metadata: {
+                        historyRef: {
+                            timestamp: marketContext.timestamp,
+                            index: i,
+                        },
                         reason: sell.reason,
                         pumpMinLamportsOutput: holdingsRaw,
                         sellPriceInSol: sellPrice,
                     },
                     // eslint-disable-next-line prettier/prettier
-                } satisfies TradeTransaction<PumpfunSellPositionMetadata>);
+                } satisfies TradeTransaction<BacktestTradeOrigin & PumpfunSellPositionMetadata>);
 
                 balanceLamports += txDetails.netTransferredLamports;
                 holdingsRaw = 0;

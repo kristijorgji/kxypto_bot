@@ -1,6 +1,7 @@
 import { createLogger, format, transports } from 'winston';
 
 const IS_CLI_MODE = true;
+const IS_TEST_ENV = !!process.env.JEST_WORKER_ID;
 
 export const logger = createLogger({
     level: process.env.LOG_LEVEL || 'verbose',
@@ -34,7 +35,7 @@ export const logger = createLogger({
     ),
     transports: [
         new transports.Console(),
-        new transports.File({ dirname: 'logs', filename: `app_${getTimestamp()}.log` }),
+        ...(!IS_TEST_ENV ? [new transports.File({ dirname: 'logs', filename: `app_${getTimestamp()}.log` })] : []),
     ],
 });
 

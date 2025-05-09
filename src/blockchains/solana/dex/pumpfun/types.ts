@@ -82,7 +82,7 @@ export type PumpfunSellResponse = {
 };
 
 export interface PumpfunListener {
-    listenForPumpFunTokens(onNewToken: (data: NewPumpFunTokenData) => void): Promise<void>;
+    listenForPumpFunTokens(onNewToken: (data: NewPumpFunTokenData) => Promise<void>): Promise<void>;
 
     stopListeningToNewTokens(): void;
 }

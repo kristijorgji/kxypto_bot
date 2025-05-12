@@ -28,6 +28,7 @@ export type PredictionStrategyConfig = StrategyConfig<{
 
     buy: {
         minPredictedPriceIncreasePercentage: number;
+        minConsecutivePredictionConfirmations?: number;
         context?: Partial<Record<keyof MarketContext, IntervalConfig>>;
     };
     sell: StrategySellConfig;
@@ -69,6 +70,7 @@ export default class PredictionStrategy extends LimitsBasedStrategy {
         skipAllSameFeatures: true,
         buy: {
             minPredictedPriceIncreasePercentage: 15,
+            minConsecutivePredictionConfirmations: 1,
         },
         sell: {
             trailingStopLossPercentage: 15,
@@ -77,6 +79,8 @@ export default class PredictionStrategy extends LimitsBasedStrategy {
     };
 
     private readonly client: RateLimitedAxiosInstance;
+
+    private consecutivePredictionConfirmations: number = 0;
 
     constructor(
         readonly logger: Logger,
@@ -97,7 +101,7 @@ export default class PredictionStrategy extends LimitsBasedStrategy {
             axios.create({
                 validateStatus: () => true,
             }),
-            { maxRequests: 6000, perMilliseconds: 1000 },
+            { maxRequests: 8000, perMilliseconds: 1000 },
         );
     }
 
@@ -165,7 +169,14 @@ export default class PredictionStrategy extends LimitsBasedStrategy {
             const lastNextPrice = nextPrices[nextPrices.length - 1];
             const increasePercentage = ((lastNextPrice - context.price) / context.price) * 100;
             if (increasePercentage >= this.config.buy.minPredictedPriceIncreasePercentage) {
-                return true;
+                this.consecutivePredictionConfirmations++;
+
+                return (
+                    this.consecutivePredictionConfirmations >=
+                    (this.config.buy?.minConsecutivePredictionConfirmations ?? 1)
+                );
+            } else {
+                this.consecutivePredictionConfirmations = 0;
             }
         } else {
             this.logger.error('Error getting price prediction for mint %s, returning false', mint);
@@ -173,5 +184,10 @@ export default class PredictionStrategy extends LimitsBasedStrategy {
         }
 
         return false;
+    }
+
+    resetState() {
+        super.resetState();
+        this.consecutivePredictionConfirmations = 0;
     }
 }

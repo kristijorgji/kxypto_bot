@@ -74,9 +74,40 @@ describe(PredictionStrategy.name, () => {
             },
         );
 
-        it('should buy when the predicted price increases with the expected threshold', async () => {
+        it('should buy when predicted price exceeds threshold for required consecutive confirmations', async () => {
             mockServer.use(mswPredictPriceWillIncreaseHandler);
             expect(await strategy.shouldBuy(mint, history[4], history)).toEqual(true);
+        });
+
+        it('should not buy when predicted price increases with the expected threshold but consecutivePredictionConfirmations is less than required consecutive confirmations', async () => {
+            strategy = new PredictionStrategy(logger, sourceConfig, {
+                ...config,
+                buy: { ...config.buy, minConsecutivePredictionConfirmations: 3 },
+            });
+
+            let callCount = 0;
+            mockServer.use(
+                http.post(process.env.PRICE_PREDICTION_ENDPOINT as string, async ({ request }) => {
+                    const body = await request.json();
+                    if (!deepEqual(body, readLocalFixture('prediction-strategy-http-request-1'))) {
+                        return HttpResponse.json({}, { status: 400 });
+                    }
+
+                    return HttpResponse.json(
+                        {
+                            // return price less than expected increase only for the specified indexes to test the consecutive check
+                            predicted_prices: [
+                                [2].includes(callCount++) ? 1.890614874462375e-7 : 2.1931132543763547e-7,
+                            ],
+                        },
+                        { status: 200 },
+                    );
+                }),
+            );
+
+            for (let i = 0; i < 6; i++) {
+                expect(await strategy.shouldBuy(mint, history[4], history)).toEqual(i === 5);
+            }
         });
 
         describe('should send the correct features length in the HTTP request', () => {

@@ -183,7 +183,11 @@ export async function runStrategy(
 
                 balanceLamports += pr.profitLossLamports;
                 if (balanceLamports <= 0) {
-                    logger.info('Stopping because reached <=0 balance: %s SOL', lamportsToSol(balanceLamports));
+                    logger.info(
+                        '[%d] Stopping because reached <=0 balance: %s SOL',
+                        processed,
+                        lamportsToSol(balanceLamports),
+                    );
                     break;
                 }
             } else {
@@ -198,14 +202,14 @@ export async function runStrategy(
                 }
             }
         } catch (e) {
-            logger.error('Error handling mint %s', initialCoinData.mint);
+            logger.error('[%d] Error handling mint %s', processed, initialCoinData.mint);
             logger.info(e);
         }
 
         processed++;
 
         if (processed === maxToProcess) {
-            logger.info('Processed maxToProcess=%d files and will stop', maxToProcess);
+            logger.info('[%d] Processed maxToProcess=%d files and will stop', processed, maxToProcess);
             break;
         }
     }

@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from 'winston';
 
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
@@ -5,12 +6,11 @@ import { solToLamports } from '../../blockchains/utils/amount';
 import { db } from '../../db/knex';
 import { logger } from '../../logger';
 import { formPumpfunStatsDataFolder } from '../../trading/backtesting/data/pumpfun/utils';
-import { logStrategyResult, runStrategy } from '../../trading/backtesting/utils';
+import { logStrategyResult, runStrategy, storeBacktest, storeStrategyResult } from '../../trading/backtesting/utils';
 import PumpfunBacktester from '../../trading/bots/blockchains/solana/PumpfunBacktester';
 import { BacktestRunConfig, StrategyBacktestResult } from '../../trading/bots/blockchains/solana/types';
 import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
-import RiseStrategy from '../../trading/strategies/launchpads/RiseStrategy';
-import StupidSniperStrategy from '../../trading/strategies/launchpads/StupidSniperStrategy';
+import PredictionStrategy from '../../trading/strategies/launchpads/PredictionStrategy';
 import { walkDirFilesSyncRecursive } from '../../utils/files';
 
 (async () => {
@@ -29,6 +29,8 @@ async function start() {
 async function findBestStrategy() {
     const start = process.hrtime();
 
+    const backtestId = uuidv4();
+
     const pumpfun = new Pumpfun({
         rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
         wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
@@ -41,34 +43,69 @@ async function findBestStrategy() {
 
     const pumpfunStatsPath = formPumpfunStatsDataFolder();
     const files = walkDirFilesSyncRecursive(pumpfunStatsPath, [], 'json').filter(el =>
-        el.fullPath.includes('no_trade/no_pump'),
+        el.fullPath.includes('no_trade'),
     );
     let tested = 0;
 
-    const strategies: LaunchpadBotStrategy[] = [new RiseStrategy(silentLogger), new StupidSniperStrategy(silentLogger)];
+    const strategies: LaunchpadBotStrategy[] = [
+        new PredictionStrategy(
+            silentLogger,
+            {
+                endpoint: process.env.PRICE_PREDICTION_ENDPOINT as string,
+            },
+            {
+                variant: 'v5_short_ancor',
+                requiredFeaturesLength: 10,
+                upToFeaturesLength: 500,
+                skipAllSameFeatures: true,
+                buy: {
+                    minPredictedPriceIncreasePercentage: 20,
+                },
+                sell: {
+                    takeProfitPercentage: 10,
+                    stopLossPercentage: 15,
+                },
+            },
+        ),
+    ];
     const results: {
         strategy: LaunchpadBotStrategy;
         result: StrategyBacktestResult;
     }[] = [];
 
-    const total = strategies.length;
-    logger.info('Will test %d strategies\n', total);
+    const baseRunConfig: Omit<BacktestRunConfig, 'strategy'> = {
+        initialBalanceLamports: solToLamports(3),
+        buyAmountSol: 1,
+        jitoConfig: {
+            jitoEnabled: true,
+        },
+        randomization: {
+            priorityFees: true,
+            slippages: 'closestEntry',
+            execution: true,
+        },
+        onlyOneFullTrade: true,
+        sellUnclosedPositionsAtEnd: true,
+    };
+
+    await storeBacktest({
+        id: backtestId,
+        config: {
+            data: {
+                path: pumpfunStatsPath,
+                filesCount: files.length,
+            },
+            ...baseRunConfig,
+        },
+    });
+
+    const strategiesCount = strategies.length;
+    logger.info('Started backtest with id %s - will test %d strategies\n', backtestId, strategiesCount);
 
     for (const strategy of strategies) {
         const runConfig: BacktestRunConfig = {
-            initialBalanceLamports: solToLamports(1),
+            ...baseRunConfig,
             strategy: strategy,
-            buyAmountSol: 0.4,
-            jitoConfig: {
-                jitoEnabled: true,
-            },
-            randomization: {
-                priorityFees: true,
-                slippages: 'closestEntry',
-                execution: true,
-            },
-            onlyOneFullTrade: true,
-            sellUnclosedPositionsAtEnd: false,
         };
 
         logger.info(
@@ -88,6 +125,9 @@ async function findBestStrategy() {
             },
             runConfig,
             files,
+            {
+                verbose: true,
+            },
         );
         results.push({
             strategy: strategy,
@@ -95,7 +135,8 @@ async function findBestStrategy() {
         });
         tested++;
 
-        logStrategyResult(logger, sr, tested, total);
+        logStrategyResult(logger, sr, tested, strategiesCount);
+        await storeStrategyResult(backtestId, runConfig.strategy, sr);
     }
 
     results.sort((a, b) => b.result.totalPnlInSol - a.result.totalPnlInSol);

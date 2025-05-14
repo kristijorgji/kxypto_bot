@@ -2,9 +2,8 @@ import { Logger } from 'winston';
 
 import { formSolBoughtOrSold, formTokenBoughtOrSold } from './PumpfunBot';
 import {
-    BacktestExitResponse,
+    BacktestResponse,
     BacktestRunConfig, BacktestTradeOrigin,
-    BacktestTradeResponse,
     PumpfunBuyPositionMetadata, PumpfunSellPositionMetadata,
     TradeTransaction,
 } from './types';
@@ -47,13 +46,13 @@ export default class PumpfunBacktester {
         }: BacktestRunConfig,
         tokenInfo: PumpfunInitialCoinData,
         history: HistoryEntry[],
-    ): Promise<BacktestTradeResponse | BacktestExitResponse> {
+    ): Promise<BacktestResponse> {
         const historySoFar: HistoryEntry[] = [];
         let balanceLamports = initialBalanceLamports;
         let holdingsRaw = 0;
         const tradeHistory: TradeTransaction[] = [];
         let peakBalanceLamports = initialBalanceLamports; // Tracks the highest balanceLamports achieved
-        let maxDrawdown = 0; // Tracks max drawdown from peak
+        let maxDrawdownPercentage = 0; // Tracks max drawdown from peak
         const buyAmountLamports = solToLamports(buyAmountSol);
 
         let sell:
@@ -313,32 +312,28 @@ export default class PumpfunBacktester {
                 }
             }
 
-            // Track peak balanceLamports for drawdown calculation
+            // Track peak balanceLamports for drawdownPercentage calculation
             const currentBalanceLamports = balanceLamports + calculatePumpTokenLamportsValue(holdingsRaw, price);
             if (currentBalanceLamports > peakBalanceLamports) {
                 peakBalanceLamports = currentBalanceLamports;
             }
 
-            const drawdown = (peakBalanceLamports - currentBalanceLamports) / peakBalanceLamports;
-            maxDrawdown = Math.max(maxDrawdown, drawdown);
+            const drawdownPercentage = ((peakBalanceLamports - currentBalanceLamports) / peakBalanceLamports) * 100;
+            maxDrawdownPercentage = Math.max(maxDrawdownPercentage, drawdownPercentage);
         }
 
-        let finalBalanceLamports = initialBalanceLamports;
-        for (const trade of tradeHistory) {
-            finalBalanceLamports += trade.netTransferredLamports;
-        }
-        const profitLossLamports = finalBalanceLamports - initialBalanceLamports;
+        const profitLossLamports = balanceLamports - initialBalanceLamports;
 
         return {
             tradeHistory: tradeHistory,
-            finalBalanceLamports: finalBalanceLamports,
+            finalBalanceLamports: balanceLamports,
             profitLossLamports: profitLossLamports,
             holdings: {
                 amountRaw: holdingsRaw,
                 lamportsValue: calculatePumpTokenLamportsValue(holdingsRaw, history[history.length - 1].price),
             },
             roi: (profitLossLamports / initialBalanceLamports) * 100,
-            maxDrawdown: maxDrawdown,
+            maxDrawdownPercentage: maxDrawdownPercentage,
         };
     }
 }

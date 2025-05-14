@@ -19,6 +19,9 @@ export async function up(knex: Knex): Promise<void> {
         table.integer('total_trades_count').unsigned().notNullable();
         table.integer('buy_trades_count').unsigned().notNullable();
         table.integer('sell_trades_count').unsigned().notNullable();
+        table.double('highest_peak_sol').notNullable();
+        table.double('lowest_trough_sol').notNullable();
+        table.float('max_drawdown_percentage').notNullable();
         table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
         table.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable();
 

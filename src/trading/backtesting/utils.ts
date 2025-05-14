@@ -14,9 +14,11 @@ import { FileInfo } from '../../utils/files';
 import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
 import {
     BacktestExitResponse,
+    BacktestResponse,
     BacktestRunConfig,
     BacktestTradeOrigin,
     BacktestTradeResponse,
+    PumpfunSellPositionMetadata,
     StrategyBacktestResult,
 } from '../bots/blockchains/solana/types';
 import LaunchpadBotStrategy from '../strategies/launchpads/LaunchpadBotStrategy';
@@ -45,6 +47,11 @@ export async function runStrategy(
     const maxToProcess: number | null = null;
 
     let balanceLamports = runConfig.initialBalanceLamports;
+    let highestPeakLamports = runConfig.initialBalanceLamports;
+    let lowestTroughLamports = runConfig.initialBalanceLamports;
+    let currentPeakLamports = runConfig.initialBalanceLamports;
+    let currentTroughLamports = runConfig.initialBalanceLamports;
+    let maxDrawdownPercentage = 0;
     let totalProfitLossLamports = 0;
     let totalHoldingsValueInLamports = 0;
     let totalTradesCount = 0;
@@ -66,6 +73,7 @@ export async function runStrategy(
         mint: '',
         amountLamports: 1,
     };
+    const mintResults: Record<string, BacktestResponse> = {};
 
     for (const file of files) {
         let content: HandlePumpTokenBotReport;
@@ -87,6 +95,7 @@ export async function runStrategy(
                 content.history,
             );
             runConfig.strategy.resetState();
+            mintResults[content.mint] = r;
 
             if (verbose) {
                 logger.info(
@@ -143,7 +152,7 @@ export async function runStrategy(
                         );
                         logger.info('Trades count %d', pr.tradeHistory.length);
                         logger.info('ROI %s%%', pr.roi);
-                        logger.info('Max Drawdown: %s%%%s', pr.maxDrawdown, isSingleFullTrade ? '' : '\n');
+                        logger.info('Max Drawdown: %s%%%s', pr.maxDrawdownPercentage, isSingleFullTrade ? '' : '\n');
                         if (isSingleFullTrade) {
                             logger.info(
                                 'Trades=%o\n',
@@ -182,6 +191,24 @@ export async function runStrategy(
                 }
 
                 balanceLamports += pr.profitLossLamports;
+
+                if (balanceLamports > currentPeakLamports) {
+                    currentPeakLamports = balanceLamports;
+                    currentTroughLamports = balanceLamports; // reset trough on new peak
+
+                    // update all-time peak
+                    highestPeakLamports = Math.max(highestPeakLamports, currentPeakLamports);
+                } else if (balanceLamports < currentTroughLamports) {
+                    currentTroughLamports = balanceLamports;
+
+                    // update all-time trough
+                    lowestTroughLamports = Math.min(lowestTroughLamports, currentTroughLamports);
+
+                    const drawdownPercentage =
+                        ((currentPeakLamports - currentTroughLamports) / currentPeakLamports) * 100;
+                    maxDrawdownPercentage = Math.max(maxDrawdownPercentage, drawdownPercentage);
+                }
+
                 if (balanceLamports <= 0) {
                     logger.info(
                         '[%d] Stopping because reached <=0 balance: %s SOL',
@@ -229,6 +256,10 @@ export async function runStrategy(
         lossesCount: lossesCount,
         biggestLossPercentage:
             lossesCount === 0 ? 0 : (lamportsToSol(biggestLoss.amountLamports) / runConfig.buyAmountSol) * 100,
+        highestPeakLamports: highestPeakLamports,
+        lowestTroughLamports: lowestTroughLamports,
+        maxDrawdownPercentage: maxDrawdownPercentage,
+        mintResults: mintResults,
     };
 }
 
@@ -244,7 +275,30 @@ export function logStrategyResult(logger: Logger, sr: StrategyBacktestResult, te
     logger.info('Biggest loss %s%%', sr.biggestLossPercentage);
     logger.info('Total trades count %d', sr.totalTradesCount);
     logger.info('Total buy trades count %d', sr.totalBuyTradesCount);
-    logger.info('Total sell trades count %d\n', sr.totalSellTradesCount);
+    logger.info('Total sell trades count %d', sr.totalSellTradesCount);
+    const sellReasons: Record<string, number> = {};
+    for (const mint in sr.mintResults) {
+        const backtestResponse: BacktestResponse = sr.mintResults[mint];
+        if ((backtestResponse as BacktestTradeResponse).tradeHistory) {
+            for (const tradeTransaction of (backtestResponse as BacktestTradeResponse).tradeHistory) {
+                if (tradeTransaction.transactionType !== 'sell') {
+                    continue;
+                }
+
+                const sellReason = (tradeTransaction.metadata as BacktestTradeOrigin & PumpfunSellPositionMetadata)
+                    .reason;
+                if (!sellReasons[sellReason]) {
+                    sellReasons[sellReason] = 0;
+                }
+
+                sellReasons[sellReason]++;
+            }
+        }
+    }
+    logger.info('Sell reasons=%o', sellReasons);
+    logger.info('Highest peak: %s SOL', lamportsToSol(sr.highestPeakLamports));
+    logger.info('Lowest trough: %s SOL', lamportsToSol(sr.lowestTroughLamports));
+    logger.info('Max Drawdown: %s%%', sr.maxDrawdownPercentage);
     logger.info('Total progress %s%%\n', (tested / total) * 100);
 }
 
@@ -276,5 +330,8 @@ export async function storeStrategyResult(
         total_trades_count: sr.totalTradesCount,
         buy_trades_count: sr.totalBuyTradesCount,
         sell_trades_count: sr.totalSellTradesCount,
+        highest_peak_sol: lamportsToSol(sr.highestPeakLamports),
+        lowest_trough_sol: lamportsToSol(sr.lowestTroughLamports),
+        max_drawdown_percentage: sr.maxDrawdownPercentage,
     });
 }

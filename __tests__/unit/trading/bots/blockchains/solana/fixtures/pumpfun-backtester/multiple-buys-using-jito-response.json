@@ -4,7 +4,7 @@
     "amountRaw": 4000000,
     "lamportsValue": 400000000
   },
-  "maxDrawdown": 0,
+  "maxDrawdownPercentage": 0,
   "profitLossLamports": -185687256.31768942,
   "roi": -18.56872563176894,
   "tradeHistory": [

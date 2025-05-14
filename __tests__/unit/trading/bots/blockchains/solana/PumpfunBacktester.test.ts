@@ -181,7 +181,7 @@ describe(PumpfunBacktester.name, () => {
                 lamportsValue: 0,
             });
             expect(r.roi).toEqual(0);
-            expect(r.maxDrawdown).toEqual(0);
+            expect(r.maxDrawdownPercentage).toEqual(0);
         });
 
         it('should simulate buy execution time and skip to the next entry after a buy', async () => {

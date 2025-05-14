@@ -1,0 +1,205 @@
+{
+  "result": {
+    "totalPnlInSol": -1.0002725,
+    "finalBalanceLamports": -272500,
+    "totalHoldingsValueInSol": 0,
+    "totalRoi": -100.02725,
+    "totalTradesCount": 4,
+    "totalBuyTradesCount": 2,
+    "totalSellTradesCount": 2,
+    "winRatePercentage": 0,
+    "winsCount": 0,
+    "biggestWinPercentage": 0,
+    "lossesCount": 2,
+    "biggestLossPercentage": -126.93350000000001,
+    "highestPeakLamports": 1000000000,
+    "lowestTroughLamports": -272500,
+    "maxDrawdownPercentage": 100.02725,
+    "mintResults": {
+      "la": {
+        "finalBalanceLamports": 634395000,
+        "holdings": {
+          "amountRaw": 0,
+          "lamportsValue": 0
+        },
+        "maxDrawdownPercentage": 0,
+        "profitLossLamports": -365605000,
+        "roi": -36.560500000000005,
+        "tradeHistory": [
+          {
+            "amountRaw": 50000,
+            "bought": {
+              "address": "la",
+              "amount": 50000,
+              "name": "Meme Mining Company",
+              "symbol": "MMC"
+            },
+            "grossTransferredLamports": -629195000,
+            "marketCap": 31.770000079,
+            "metadata": {
+              "historyRef": {
+                "index": 0,
+                "timestamp": 1
+              },
+              "pumpBuyPriceInSol": 12.5,
+              "pumpInSol": 0.625,
+              "pumpMaxSolCost": 0.625,
+              "pumpTokenOut": 50000
+            },
+            "netTransferredLamports": -634200000,
+            "price": {
+              "inLamports": 10000000000,
+              "inSol": 10
+            },
+            "sold": {
+              "address": "So11111111111111111111111111111111111111112",
+              "amount": 629195000,
+              "name": "SOL",
+              "symbol": "SOL"
+            },
+            "subCategory": "newPosition",
+            "timestamp": 1616148000000,
+            "transactionHash": "_backtest_1616148000000",
+            "transactionType": "buy",
+            "walletAddress": "_backtest_"
+          },
+          {
+            "amountRaw": 50000,
+            "bought": {
+              "address": "So11111111111111111111111111111111111111112",
+              "amount": 273600000,
+              "name": "SOL",
+              "symbol": "SOL"
+            },
+            "grossTransferredLamports": 273600000,
+            "marketCap": 31.770000079,
+            "metadata": {
+              "historyRef": {
+                "index": 1,
+                "timestamp": 2
+              },
+              "pumpMinLamportsOutput": 50000,
+              "reason": "STOP_LOSS",
+              "sellPriceInSol": 5.475
+            },
+            "netTransferredLamports": 268595000,
+            "price": {
+              "inLamports": 7300000000,
+              "inSol": 7.3
+            },
+            "sold": {
+              "address": "la",
+              "amount": 50000,
+              "name": "Meme Mining Company",
+              "symbol": "MMC"
+            },
+            "subCategory": "sellAll",
+            "timestamp": 1616148000000,
+            "transactionHash": "_backtest_1616148000000",
+            "transactionType": "sell",
+            "walletAddress": "_backtest_"
+          }
+        ]
+      },
+      "lb": {
+        "finalBalanceLamports": -272500,
+        "holdings": {
+          "amountRaw": 0,
+          "lamportsValue": 0
+        },
+        "maxDrawdownPercentage": 0,
+        "profitLossLamports": -634667500,
+        "roi": -100.04295431080006,
+        "tradeHistory": [
+          {
+            "amountRaw": 62500,
+            "bought": {
+              "address": "lb",
+              "amount": 62500,
+              "name": "Meme Mining Company",
+              "symbol": "MMC"
+            },
+            "grossTransferredLamports": -629195000,
+            "marketCap": 31.770000079,
+            "metadata": {
+              "historyRef": {
+                "index": 0,
+                "timestamp": 1
+              },
+              "pumpBuyPriceInSol": 10,
+              "pumpInSol": 0.625,
+              "pumpMaxSolCost": 0.625,
+              "pumpTokenOut": 62500
+            },
+            "netTransferredLamports": -634200000,
+            "price": {
+              "inLamports": 8000000000,
+              "inSol": 8
+            },
+            "sold": {
+              "address": "So11111111111111111111111111111111111111112",
+              "amount": 629195000,
+              "name": "SOL",
+              "symbol": "SOL"
+            },
+            "subCategory": "newPosition",
+            "timestamp": 1616148000000,
+            "transactionHash": "_backtest_1616148000000",
+            "transactionType": "buy",
+            "walletAddress": "_backtest_"
+          },
+          {
+            "amountRaw": 62500,
+            "bought": {
+              "address": "So11111111111111111111111111111111111111112",
+              "amount": 4537500,
+              "name": "SOL",
+              "symbol": "SOL"
+            },
+            "grossTransferredLamports": 4537500,
+            "marketCap": 31.770000079,
+            "metadata": {
+              "historyRef": {
+                "index": 1,
+                "timestamp": 2
+              },
+              "pumpMinLamportsOutput": 62500,
+              "reason": "STOP_LOSS",
+              "sellPriceInSol": 0.07500000000000001
+            },
+            "netTransferredLamports": -467500,
+            "price": {
+              "inLamports": 100000000,
+              "inSol": 0.1
+            },
+            "sold": {
+              "address": "lb",
+              "amount": 62500,
+              "name": "Meme Mining Company",
+              "symbol": "MMC"
+            },
+            "subCategory": "sellAll",
+            "timestamp": 1616148000000,
+            "transactionHash": "_backtest_1616148000000",
+            "transactionType": "sell",
+            "walletAddress": "_backtest_"
+          }
+        ]
+      }
+    }
+  },
+  "logs": [
+    {
+      "level": "info",
+      "message": "Triggered stop loss percentage at price 7.3 with 10% stopPercentage and stopPrice 9"
+    },
+    {
+      "level": "info",
+      "message": "Triggered stop loss percentage at price 0.1 with 10% stopPercentage and stopPrice 7.2"
+    },
+    {
+      "level": "info",
+      "message": "[1] Stopping because reached <=0 balance: -0.0002725 SOL"
+    }
+  ]
+}

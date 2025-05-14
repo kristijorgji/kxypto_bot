@@ -1,0 +1,32 @@
+{
+  "result": {
+    "totalPnlInSol": 0,
+    "finalBalanceLamports": 1000000000,
+    "totalHoldingsValueInSol": 0,
+    "totalRoi": 0,
+    "totalTradesCount": 0,
+    "totalBuyTradesCount": 0,
+    "totalSellTradesCount": 0,
+    "winRatePercentage": 0,
+    "winsCount": 0,
+    "biggestWinPercentage": 0,
+    "lossesCount": 0,
+    "biggestLossPercentage": 0,
+    "highestPeakLamports": 1000000000,
+    "lowestTroughLamports": 1000000000,
+    "maxDrawdownPercentage": 0,
+    "mintResults": {
+      "nta": {
+        "finalBalanceLamports": 1000000000,
+        "holdings": {
+          "amountRaw": 0,
+          "lamportsValue": 0
+        },
+        "maxDrawdownPercentage": 0,
+        "profitLossLamports": 0,
+        "roi": 0,
+        "tradeHistory": []
+      }
+    }
+  }
+}

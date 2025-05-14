@@ -87,9 +87,11 @@ export type BacktestTradeResponse = {
         amountRaw: number;
         lamportsValue: number;
     };
-    maxDrawdown: number;
+    maxDrawdownPercentage: number;
     roi: number;
 };
+
+export type BacktestResponse = BacktestExitResponse | BacktestTradeResponse;
 
 /**
  * Configuration options for running a backtest simulation.
@@ -172,4 +174,8 @@ export type StrategyBacktestResult = {
      * This value is calculated relative to the amount used to buy
      */
     biggestLossPercentage: number;
+    highestPeakLamports: number;
+    lowestTroughLamports: number;
+    maxDrawdownPercentage: number;
+    mintResults: Record<string, BacktestResponse>;
 };

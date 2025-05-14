@@ -125,7 +125,7 @@ describe('runStrategy', () => {
             },
         );
 
-        const expectedData = readLocalFixture<FullTestExpectation>('utils/1/expected.json');
+        const expectedData = readLocalFixture<FullTestExpectation>('utils/1.json');
 
         expect(actual).toEqual(expectedData.result);
 
@@ -137,7 +137,7 @@ describe('runStrategy', () => {
         expect(logs).toEqual(expectedData.logs);
     });
 
-    it('should work as expected when there are holdings left', async () => {
+    it('2 - should work as expected when there are holdings left', async () => {
         mockFsReadFileSync(histories);
 
         const actual = await runStrategy(
@@ -157,20 +157,7 @@ describe('runStrategy', () => {
             })),
         );
 
-        expect(actual).toEqual({
-            totalPnlInSol: -0.523555,
-            finalBalanceLamports: 476445000,
-            totalHoldingsValueInSol: 0.5502272727272727,
-            totalRoi: -52.3555,
-            totalTradesCount: 3,
-            totalBuyTradesCount: 2,
-            totalSellTradesCount: 1,
-            winRatePercentage: 50,
-            winsCount: 1,
-            biggestWinPercentage: 22.128999999999998,
-            lossesCount: 1,
-            biggestLossPercentage: -126.84,
-        });
+        expect(actual).toEqual(readLocalFixture<FullTestExpectation>('utils/2.json').result);
     });
 
     const historiesThatResultInLoss: Record<string, HistoryEntry[]> = {
@@ -212,7 +199,7 @@ describe('runStrategy', () => {
         ],
     };
 
-    it('should stop checking next mints if we have no balance left', async () => {
+    it('3 - should stop checking next mints if we have no balance left', async () => {
         mockFsReadFileSync(historiesThatResultInLoss);
 
         const actual = await runStrategy(
@@ -233,24 +220,14 @@ describe('runStrategy', () => {
             })),
         );
 
-        expect(actual).toEqual({
-            totalPnlInSol: -1.0002725,
-            finalBalanceLamports: -272500,
-            totalHoldingsValueInSol: 0,
-            totalRoi: -100.02725,
-            totalTradesCount: 4,
-            totalBuyTradesCount: 2,
-            totalSellTradesCount: 2,
-            winRatePercentage: 0,
-            winsCount: 0,
-            biggestWinPercentage: 0,
-            lossesCount: 2,
-            biggestLossPercentage: -126.93350000000001,
-        });
+        const expectedData = readLocalFixture<FullTestExpectation>('utils/3.json');
+
+        expect(actual).toEqual(expectedData.result);
+        expect(logs).toEqual(expectedData.logs);
         expect(logs.some(l => l.message.includes('Stopping because reached <=0 balance'))).toBeTruthy();
     });
 
-    it('should work as expected when no trade happened', async () => {
+    it('4 - should work as expected when no trade happened', async () => {
         const historiesThatNoTradeHappened = {
             nta: [
                 formHistoryEntry({
@@ -282,20 +259,7 @@ describe('runStrategy', () => {
             })),
         );
 
-        expect(actual).toEqual({
-            totalPnlInSol: 0,
-            finalBalanceLamports: 1000000000,
-            totalHoldingsValueInSol: 0,
-            totalRoi: 0,
-            totalTradesCount: 0,
-            totalBuyTradesCount: 0,
-            totalSellTradesCount: 0,
-            winRatePercentage: 0,
-            winsCount: 0,
-            biggestWinPercentage: 0,
-            lossesCount: 0,
-            biggestLossPercentage: 0,
-        });
+        expect(actual).toEqual(readLocalFixture<FullTestExpectation>('utils/4.json').result);
     });
 });
 

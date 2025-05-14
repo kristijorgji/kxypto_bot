@@ -109,11 +109,12 @@ async function findBestStrategy() {
         };
 
         logger.info(
-            '[%d] Will test strategy %s with variant config: %s against %d historical data\n%s',
+            '[%d] Will test strategy %s with variant config: %s against %d historical data, config=%o\n%s',
             tested,
             runConfig.strategy.identifier,
             runConfig.strategy.configVariant,
             files.length,
+            runConfig.strategy.config,
             '='.repeat(100),
         );
 

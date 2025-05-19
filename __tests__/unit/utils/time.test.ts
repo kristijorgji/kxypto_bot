@@ -1,4 +1,9 @@
-import { dateToMySQLTimestamp, getDateSecondsAgo, getSecondsDifference } from '../../../src/utils/time';
+import {
+    dateToMySQLTimestamp,
+    formatDateIso8601WithOffset,
+    getDateSecondsAgo,
+    getSecondsDifference,
+} from '../../../src/utils/time';
 
 describe('getDateSecondsAgo', () => {
     beforeAll(() => {
@@ -115,5 +120,19 @@ describe('dateToMySQLTimestamp', () => {
         const date = new Date(Date.UTC(2022, 11, 31, 23, 59, 59)); // December 31, 2022, 23:59:59 UTC
         const result = dateToMySQLTimestamp(date);
         expect(result).toBe('2022-12-31 23:59:59');
+    });
+});
+
+describe('formatDateIso8601WithOffset', () => {
+    it('should format date correctly with timezone offset', () => {
+        const date = new Date('2025-05-01T10:45:17+02:00');
+        const formattedDate = formatDateIso8601WithOffset(date);
+        expect(formattedDate).toEqual('2025-05-01T08:45:17+00:00');
+    });
+
+    it('should format date correctly without timezone offset', () => {
+        const date = new Date('2025-05-01T10:45:17Z'); // Z represents UTC timezone
+        const formattedDate = formatDateIso8601WithOffset(date);
+        expect(formattedDate).toEqual('2025-05-01T10:45:17+00:00');
     });
 });

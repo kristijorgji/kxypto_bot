@@ -8,13 +8,14 @@
     2. [Database setup](#database-setup)
     3. [Help](#help)
 3. [CLI](#cli)
-4. [Troubleshooting](#troubleshooting)
+4. [Server](#server)
+5. [Troubleshooting](#troubleshooting)
     1. [How can I find my wallet private key if I have only the recovery phrase](#how-can-i-find-my-wallet-private-key-if-i-have-only-the-recovery-phrase)
-5. [Example Scripts](#example-scripts)
-6. [Environmental Variables](#environmental-variables)
-7. [Package.json Scripts](#packagejson-scripts)
-8. [Contributing](./docs/CONTRIBUTING.md)
-9. [License](#license)
+6. [Example Scripts](#example-scripts)
+7. [Environmental Variables](#environmental-variables)
+8. [Package.json Scripts](#packagejson-scripts)
+9. [Contributing](./docs/CONTRIBUTING.md)
+10. [License](#license)
 
 # Project Overview
 
@@ -71,6 +72,21 @@ There is more knowledge about different domains under [docs](docs).
 # CLI
 
 This project offers a cli for the most frequently needed standalone commands
+
+# Server
+
+This project exposes one express server
+
+* [server entry point](src/http-api/server.ts)
+
+with a couple of useful endpoints like
+
+* login
+* logout
+* refresh access token
+* others -coming soon
+
+in order to manage remotely the bots.
 
 Run
 

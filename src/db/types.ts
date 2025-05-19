@@ -3,6 +3,22 @@ import { ExitMonitoringReason, SellReason } from '../trading/bots/types';
 // example 2023-03-20 12:57:02
 export type MySQLTimestamp = string;
 
+export type User = {
+    id: string;
+    name: string;
+    email: string;
+    password: string;
+    username: string;
+};
+
+export type Session = {
+    id: string;
+    user_id: string;
+    refresh_token: string;
+    is_blocked: boolean;
+    expires_at: number;
+};
+
 export type ApmEntry = {
     id: string;
     name: string;

@@ -1,4 +1,6 @@
 export const Tables = {
+    Users: 'users',
+    Sessions: 'sessions',
     Apm: 'apm',
     Tokens: 'tokens',
     Backtests: 'backtests',

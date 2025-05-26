@@ -44,7 +44,10 @@
               "pumpBuyPriceInSol": 1.25,
               "pumpInSol": 0.625,
               "pumpMaxSolCost": 0.625,
-              "pumpTokenOut": 500000
+              "pumpTokenOut": 500000,
+              "buyRes": {
+                "reason": "always"
+              }
             },
             "netTransferredLamports": -634200000,
             "price": {
@@ -129,7 +132,10 @@
               "pumpBuyPriceInSol": 2.75,
               "pumpInSol": 0.625,
               "pumpMaxSolCost": 0.625,
-              "pumpTokenOut": 227272.72727272726
+              "pumpTokenOut": 227272.72727272726,
+              "buyRes": {
+                "reason": "always"
+              }
             },
             "netTransferredLamports": -634200000,
             "price": {
@@ -223,7 +229,7 @@
     },
     {
       "level": "info",
-      "message": "Trades=[\n  {\n    timestamp: 1616148000000,\n    transactionType: 'buy',\n    subCategory: 'newPosition',\n    historyRef: {\n      timestamp: 1,\n      index: 0,\n      price: { inLamports: 1000000000, inSol: 1 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: -629195000,\n    netTransferredLamports: -634200000,\n    amountRaw: 500000,\n    metadata: {\n      pumpInSol: 0.625,\n      pumpMaxSolCost: 0.625,\n      pumpTokenOut: 500000,\n      pumpBuyPriceInSol: 1.25\n    }\n  },\n  {\n    timestamp: 1616148000000,\n    transactionType: 'sell',\n    subCategory: 'sellAll',\n    historyRef: {\n      timestamp: 2,\n      index: 1,\n      price: { inSol: 2, inLamports: 2000000000 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: 749850000,\n    netTransferredLamports: 744845000,\n    amountRaw: 500000,\n    metadata: {\n      reason: 'TAKE_PROFIT',\n      pumpMinLamportsOutput: 500000,\n      sellPriceInSol: 1.5\n    }\n  },\n  [length]: 2\n]\n"
+      "message": "Trades=[\n  {\n    timestamp: 1616148000000,\n    transactionType: 'buy',\n    subCategory: 'newPosition',\n    historyRef: {\n      timestamp: 1,\n      index: 0,\n      price: { inLamports: 1000000000, inSol: 1 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: -629195000,\n    netTransferredLamports: -634200000,\n    amountRaw: 500000,\n    metadata: {\n      pumpInSol: 0.625,\n      pumpMaxSolCost: 0.625,\n      pumpTokenOut: 500000,\n      pumpBuyPriceInSol: 1.25,\n      buyRes: { reason: 'always' }\n    }\n  },\n  {\n    timestamp: 1616148000000,\n    transactionType: 'sell',\n    subCategory: 'sellAll',\n    historyRef: {\n      timestamp: 2,\n      index: 1,\n      price: { inSol: 2, inLamports: 2000000000 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: 749850000,\n    netTransferredLamports: 744845000,\n    amountRaw: 500000,\n    metadata: {\n      reason: 'TAKE_PROFIT',\n      pumpMinLamportsOutput: 500000,\n      sellPriceInSol: 1.5\n    }\n  },\n  [length]: 2\n]\n"
     },
     {
       "level": "info",
@@ -259,7 +265,7 @@
     },
     {
       "level": "info",
-      "message": "Trades=[\n  {\n    timestamp: 1616148000000,\n    transactionType: 'buy',\n    subCategory: 'newPosition',\n    historyRef: {\n      timestamp: 1,\n      index: 0,\n      price: { inLamports: 2200000000, inSol: 2.2 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: -629195000,\n    netTransferredLamports: -634200000,\n    amountRaw: 227272.72727272726,\n    metadata: {\n      pumpInSol: 0.625,\n      pumpMaxSolCost: 0.625,\n      pumpTokenOut: 227272.72727272726,\n      pumpBuyPriceInSol: 2.75\n    }\n  },\n  {\n    timestamp: 1616148000000,\n    transactionType: 'sell',\n    subCategory: 'sellAll',\n    historyRef: {\n      timestamp: 2,\n      index: 1,\n      price: { inSol: 2.421, inLamports: 2421000000 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: 412520454.5454545,\n    netTransferredLamports: 407515454.5454545,\n    amountRaw: 227272.72727272726,\n    metadata: {\n      reason: 'TAKE_PROFIT',\n      pumpMinLamportsOutput: 227272.72727272726,\n      sellPriceInSol: 1.81575\n    }\n  },\n  [length]: 2\n]\n"
+      "message": "Trades=[\n  {\n    timestamp: 1616148000000,\n    transactionType: 'buy',\n    subCategory: 'newPosition',\n    historyRef: {\n      timestamp: 1,\n      index: 0,\n      price: { inLamports: 2200000000, inSol: 2.2 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: -629195000,\n    netTransferredLamports: -634200000,\n    amountRaw: 227272.72727272726,\n    metadata: {\n      pumpInSol: 0.625,\n      pumpMaxSolCost: 0.625,\n      pumpTokenOut: 227272.72727272726,\n      pumpBuyPriceInSol: 2.75,\n      buyRes: { reason: 'always' }\n    }\n  },\n  {\n    timestamp: 1616148000000,\n    transactionType: 'sell',\n    subCategory: 'sellAll',\n    historyRef: {\n      timestamp: 2,\n      index: 1,\n      price: { inSol: 2.421, inLamports: 2421000000 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: 412520454.5454545,\n    netTransferredLamports: 407515454.5454545,\n    amountRaw: 227272.72727272726,\n    metadata: {\n      reason: 'TAKE_PROFIT',\n      pumpMinLamportsOutput: 227272.72727272726,\n      sellPriceInSol: 1.81575\n    }\n  },\n  [length]: 2\n]\n"
     }
   ]
 }

@@ -40,12 +40,51 @@ export type Token<T = Record<string, unknown>> = {
 
 export type Backtest = {
     id: string;
+    name?: string | null;
     config: Record<string, unknown> & {
         data: {
             path: string;
             filesCount: number;
         };
     };
+};
+
+export type BacktestStrategyResult = {
+    id: number;
+    backtest_id: string;
+    strategy: string;
+    config_variant: string;
+    config: Record<string, unknown>;
+    pnl_sol: number;
+    holdings_value_sol: number;
+    roi: number;
+    win_rate: number;
+    wins_count: number;
+    biggest_win_percentage: number;
+    losses_count: number;
+    biggest_loss_percentage: number;
+    total_trades_count: number;
+    buy_trades_count: number;
+    sell_trades_count: number;
+    highest_peak_sol: number;
+    lowest_trough_sol: number;
+    max_drawdown_percentage: number;
+    created_at: Date;
+    updated_at: Date;
+};
+
+export type BacktestStrategyMintResult = {
+    id: number;
+    strategy_result_id: number;
+    mint: string;
+    net_pnl_sol: number | null;
+    holdings_value_sol: number | null;
+    roi: number | null;
+    exit_code: ExitMonitoringReason | null;
+    exit_reason: string | null;
+    payload: Record<string, unknown>;
+    created_at: Date;
+    updated_at: Date;
 };
 
 export type Position = {

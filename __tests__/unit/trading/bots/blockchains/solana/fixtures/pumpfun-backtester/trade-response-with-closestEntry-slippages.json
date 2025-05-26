@@ -26,7 +26,10 @@
         "pumpBuyPriceInSol": 3.2132,
         "pumpInSol": 0.46399999999999997,
         "pumpMaxSolCost": 0.46399999999999997,
-        "pumpTokenOut": 144404.3321299639
+        "pumpTokenOut": 144404.3321299639,
+        "buyRes": {
+          "reason": "shouldBuyStateless"
+        }
       },
       "netTransferredLamports": -473049999.99999994,
       "price": {

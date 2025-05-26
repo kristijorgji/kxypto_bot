@@ -3,12 +3,13 @@ import type { Knex } from 'knex';
 import { Tables } from '../tables';
 
 export async function up(knex: Knex): Promise<void> {
-    await knex.schema.createTable(Tables.StrategyResults, table => {
+    await knex.schema.createTable(Tables.BacktestStrategyResults, table => {
+        table.bigIncrements('id').primary();
         table.uuid('backtest_id');
         table.string('strategy').notNullable();
         table.string('config_variant');
         table.json('config').notNullable();
-        table.double('pln_sol').notNullable();
+        table.double('pnl_sol').notNullable();
         table.double('holdings_value_sol').notNullable();
         table.float('roi').notNullable().index();
         table.float('win_rate').notNullable().index();
@@ -26,10 +27,12 @@ export async function up(knex: Knex): Promise<void> {
         table.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable();
 
         table.foreign('backtest_id').references('id').inTable(Tables.Backtests);
-        table.unique(['backtest_id', 'strategy', 'config_variant']);
+        table.unique(['backtest_id', 'strategy', 'config_variant'], {
+            indexName: 'bt_strategy_res_bt_id_strategy_config_variant_unique',
+        });
     });
 }
 
 export async function down(knex: Knex): Promise<void> {
-    await knex.schema.dropTableIfExists(Tables.StrategyResults);
+    await knex.schema.dropTableIfExists(Tables.BacktestStrategyResults);
 }

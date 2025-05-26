@@ -23,7 +23,7 @@ import {
 } from '../../../../blockchains/solana/utils/simulations';
 import { lamportsToSol, solToLamports } from '../../../../blockchains/utils/amount';
 import { HistoryEntry } from '../../launchpads/types';
-import { SellReason } from '../../types';
+import {SellReason, ShouldBuyResponse} from '../../types';
 
 const BacktestWallet = '_backtest_';
 
@@ -126,11 +126,12 @@ export default class PumpfunBacktester {
                 break;
             }
 
-            if (
-                balanceLamports >= minBalanceToBuyLamports &&
-                !strategy.buyPosition &&
-                (await strategy.shouldBuy(tokenInfo.mint, marketContext, historySoFar)).buy
-            ) {
+            let shouldBuyRes: ShouldBuyResponse | undefined;
+            if (balanceLamports >= minBalanceToBuyLamports &&
+                !strategy.buyPosition) {
+                shouldBuyRes =  await strategy.shouldBuy(tokenInfo.mint, marketContext, historySoFar);
+            }
+            if (shouldBuyRes?.buy === true) {
                 const txDetails = simulateSolTransactionDetails(
                     -buyInLamports - pumpCreateAccountFeeLamports - jitoTipLamports,
                     solToLamports(buyPriorityFeeInSol),
@@ -139,7 +140,10 @@ export default class PumpfunBacktester {
                 holdingsRaw += calculateRawTokenHoldings(buyAmountSol, price);
                 balanceLamports += txDetails.netTransferredLamports;
 
-                const buyPosition: TradeTransaction<BacktestTradeOrigin & PumpfunBuyPositionMetadata> = {
+                const buyPosition: TradeTransaction<BacktestTradeOrigin & PumpfunBuyPositionMetadata & {buyRes: {
+                    reason: string;
+                    data?: Record<string, unknown>
+                    }}> = {
                     timestamp: Date.now(),
                     transactionType: 'buy',
                     subCategory: tradeHistory.find(e => e.transactionType === 'buy') ? 'accumulation' : 'newPosition',
@@ -164,6 +168,10 @@ export default class PumpfunBacktester {
                         pumpMaxSolCost: lamportsToSol(buyInLamports),
                         pumpTokenOut: holdingsRaw,
                         pumpBuyPriceInSol: buyPrice,
+                        buyRes: {
+                            reason: shouldBuyRes.reason,
+                            ...(shouldBuyRes.data? {data: shouldBuyRes.data} : {})
+                        }
                     },
                 };
                 tradeHistory.push(buyPosition);

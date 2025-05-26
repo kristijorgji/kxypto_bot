@@ -44,7 +44,10 @@
               "pumpBuyPriceInSol": 1.25,
               "pumpInSol": 0.625,
               "pumpMaxSolCost": 0.625,
-              "pumpTokenOut": 500000
+              "pumpTokenOut": 500000,
+              "buyRes": {
+                "reason": "always"
+              }
             },
             "netTransferredLamports": -634200000,
             "price": {
@@ -129,7 +132,10 @@
               "pumpBuyPriceInSol": 2.75,
               "pumpInSol": 0.625,
               "pumpMaxSolCost": 0.625,
-              "pumpTokenOut": 227272.72727272726
+              "pumpTokenOut": 227272.72727272726,
+              "buyRes": {
+                "reason": "always"
+              }
             },
             "netTransferredLamports": -634200000,
             "price": {

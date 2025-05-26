@@ -5,7 +5,7 @@ import { createLogger } from 'winston';
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import { solToLamports } from '../../blockchains/utils/amount';
 import { db } from '../../db/knex';
-import { getBacktest, storeBacktest, storeStrategyResult } from '../../db/repositories/backtests';
+import { getBacktest, storeBacktest, storeBacktestStrategyResult } from '../../db/repositories/backtests';
 import { Backtest } from '../../db/types';
 import { logger } from '../../logger';
 import { formPumpfunStatsDataFolder } from '../../trading/backtesting/data/pumpfun/utils';
@@ -110,7 +110,7 @@ async function findBestStrategy(args: { backtestId?: string }) {
                 endpoint: process.env.PRICE_PREDICTION_ENDPOINT as string,
             },
             {
-                variant: 'v5_short_ancor',
+                variant: 'V11_rsi_mac_long_roc',
                 requiredFeaturesLength: 10,
                 upToFeaturesLength: 500,
                 skipAllSameFeatures: true,
@@ -167,7 +167,7 @@ async function findBestStrategy(args: { backtestId?: string }) {
         tested++;
 
         logStrategyResult(logger, sr, tested, strategiesCount);
-        await storeStrategyResult(backtestId, runConfig.strategy, sr);
+        await storeBacktestStrategyResult(backtestId, runConfig.strategy, sr);
     }
 
     results.sort((a, b) => b.result.totalPnlInSol - a.result.totalPnlInSol);

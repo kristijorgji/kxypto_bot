@@ -10,7 +10,7 @@ export default function pumpResultStats(args: { path: string }) {
     const pumpfunStatsPath = args.path;
     const files = walkDirFilesSyncRecursive(pumpfunStatsPath, [], 'json');
 
-    let netPlnLamports = 0;
+    let netPnlLamports = 0;
 
     let lossesCount = 0;
     let lossesAmountLamport = 0;
@@ -61,10 +61,10 @@ export default function pumpResultStats(args: { path: string }) {
             }
         }
 
-        netPlnLamports += netPnl.inLamports;
+        netPnlLamports += netPnl.inLamports;
     }
 
-    logger.info('Total Pnl %s SOL', lamportsToSol(netPlnLamports));
+    logger.info('Total Pnl %s SOL', lamportsToSol(netPnlLamports));
     logger.info('%d wins, %d loses', winsCount, lossesCount);
     logger.info('Total wins %s SOL', lamportsToSol(winsAmountLamport));
     logger.info('Biggest win %o', biggestWin);

@@ -4,7 +4,7 @@ import { createLogger } from 'winston';
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import { solToLamports } from '../../blockchains/utils/amount';
 import { db } from '../../db/knex';
-import { storeBacktest, storeStrategyResult } from '../../db/repositories/backtests';
+import { storeBacktest, storeBacktestStrategyResult } from '../../db/repositories/backtests';
 import { logger } from '../../logger';
 import { formPumpfunStatsDataFolder } from '../../trading/backtesting/data/pumpfun/utils';
 import RiseStrategyConfigGenerator, {
@@ -154,7 +154,7 @@ async function findBestStrategy() {
         tested++;
 
         logStrategyResult(logger, sr, tested, total);
-        await storeStrategyResult(backtestId, runConfig.strategy, sr);
+        await storeBacktestStrategyResult(backtestId, runConfig.strategy, sr);
     }
 
     results.sort((a, b) => b.result.totalPnlInSol - a.result.totalPnlInSol);

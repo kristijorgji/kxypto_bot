@@ -1,7 +1,7 @@
 import { Logger } from 'winston';
 
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
-import { ShouldExitMonitoringResponse } from '../../bots/types';
+import { ShouldBuyResponse, ShouldExitMonitoringResponse } from '../../bots/types';
 import { StrategyConfig, StrategySellConfig } from '../types';
 
 type StupidSniperStrategyConfig = StrategyConfig<{ sell: StrategySellConfig }>;
@@ -43,7 +43,10 @@ export default class StupidSniperStrategy extends LimitsBasedStrategy {
         return false;
     }
 
-    async shouldBuy(): Promise<boolean> {
-        return true;
+    async shouldBuy(): Promise<ShouldBuyResponse> {
+        return {
+            buy: true,
+            reason: 'always',
+        };
     }
 }

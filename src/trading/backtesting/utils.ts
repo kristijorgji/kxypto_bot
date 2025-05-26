@@ -5,10 +5,7 @@ import { Logger } from 'winston';
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import { forceGetPumpCoinInitialData } from '../../blockchains/solana/dex/pumpfun/utils';
 import { lamportsToSol } from '../../blockchains/utils/amount';
-import { db } from '../../db/knex';
 import { pumpfunRepository } from '../../db/repositories/PumpfunRepository';
-import { Tables } from '../../db/tables';
-import { Backtest } from '../../db/types';
 import { HandlePumpTokenBotReport } from '../../scripts/pumpfun/bot';
 import { FileInfo } from '../../utils/files';
 import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
@@ -21,7 +18,6 @@ import {
     PumpfunSellPositionMetadata,
     StrategyBacktestResult,
 } from '../bots/blockchains/solana/types';
-import LaunchpadBotStrategy from '../strategies/launchpads/LaunchpadBotStrategy';
 
 const cache: Record<string, HandlePumpTokenBotReport> = {};
 
@@ -300,38 +296,4 @@ export function logStrategyResult(logger: Logger, sr: StrategyBacktestResult, te
     logger.info('Lowest trough: %s SOL', lamportsToSol(sr.lowestTroughLamports));
     logger.info('Max Drawdown: %s%%', sr.maxDrawdownPercentage);
     logger.info('Total progress %s%%\n', (tested / total) * 100);
-}
-
-export async function storeBacktest(backtest: Backtest) {
-    await db.table(Tables.Backtests).insert({
-        id: backtest.id,
-        config: backtest.config,
-    });
-}
-
-export async function storeStrategyResult(
-    backtestId: string,
-    strategy: LaunchpadBotStrategy,
-    sr: StrategyBacktestResult,
-): Promise<void> {
-    await db.table(Tables.StrategyResults).insert({
-        backtest_id: backtestId,
-        strategy: strategy.name,
-        config_variant: strategy.configVariant,
-        config: strategy.config,
-        pln_sol: sr.totalPnlInSol,
-        holdings_value_sol: sr.totalHoldingsValueInSol,
-        roi: sr.totalRoi,
-        win_rate: sr.winRatePercentage,
-        wins_count: sr.winsCount,
-        biggest_win_percentage: sr.biggestWinPercentage,
-        losses_count: sr.lossesCount,
-        biggest_loss_percentage: sr.biggestLossPercentage,
-        total_trades_count: sr.totalTradesCount,
-        buy_trades_count: sr.totalBuyTradesCount,
-        sell_trades_count: sr.totalSellTradesCount,
-        highest_peak_sol: lamportsToSol(sr.highestPeakLamports),
-        lowest_trough_sol: lamportsToSol(sr.lowestTroughLamports),
-        max_drawdown_percentage: sr.maxDrawdownPercentage,
-    });
 }

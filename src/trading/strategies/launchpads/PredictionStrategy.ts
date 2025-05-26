@@ -3,7 +3,7 @@ import axiosRateLimit, { RateLimitedAxiosInstance } from 'axios-rate-limit';
 import { Logger } from 'winston';
 
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
-import { ShouldExitMonitoringResponse } from '../../bots/types';
+import { ShouldBuyResponse, ShouldExitMonitoringResponse } from '../../bots/types';
 import { IntervalConfig, StrategyConfig, StrategySellConfig } from '../types';
 import { shouldBuyStateless, shouldExitLaunchpadToken } from './common';
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
@@ -49,7 +49,16 @@ export type PredictPricesRequest = {
 
 type PredictPricesResponse = {
     predicted_prices: number[];
+    variance_prices?: number[];
 };
+
+export type PredictionStrategyShouldBuyResponseReason =
+    | 'requiredFeaturesLength'
+    | 'shouldBuyStateless'
+    | 'noVariationInFeatures'
+    | 'consecutivePredictionConfirmations'
+    | 'minPredictedPriceIncreasePercentage'
+    | 'prediction_error';
 
 export default class PredictionStrategy extends LimitsBasedStrategy {
     readonly name = 'PredictionStrategy';
@@ -115,13 +124,23 @@ export default class PredictionStrategy extends LimitsBasedStrategy {
         return shouldExitLaunchpadToken(marketContext, history, extra, this._buyPosition, this.config.maxWaitMs);
     }
 
-    async shouldBuy(mint: string, context: MarketContext, history: HistoryEntry[]): Promise<boolean> {
+    async shouldBuy(
+        mint: string,
+        context: MarketContext,
+        history: HistoryEntry[],
+    ): Promise<ShouldBuyResponse<PredictionStrategyShouldBuyResponseReason>> {
         if (history.length < this.config.requiredFeaturesLength) {
-            return false;
+            return {
+                buy: false,
+                reason: 'requiredFeaturesLength',
+            };
         }
 
         if (this.config.buy.context && !shouldBuyStateless(this.config.buy.context, context)) {
-            return false;
+            return {
+                buy: false,
+                reason: 'shouldBuyStateless',
+            };
         }
 
         const featuresCountToSend = this.config.upToFeaturesLength
@@ -158,7 +177,10 @@ export default class PredictionStrategy extends LimitsBasedStrategy {
                     'There is no variation in the %d features, returning false',
                     requestBody.features.length,
                 );
-                return false;
+                return {
+                    buy: false,
+                    reason: 'noVariationInFeatures',
+                };
             }
         }
 
@@ -167,23 +189,49 @@ export default class PredictionStrategy extends LimitsBasedStrategy {
         if (response.status === 200) {
             const nextPrices = (response.data as PredictPricesResponse).predicted_prices;
             const lastNextPrice = nextPrices[nextPrices.length - 1];
+            const nextVariances = (response.data as PredictPricesResponse)?.variance_prices ?? [null];
+            const lastNextVariance = nextVariances[nextVariances.length - 1];
+
+            const responseData = {
+                lastNextPrice: lastNextPrice,
+                lastNextVariance: lastNextVariance,
+            };
+
             const increasePercentage = ((lastNextPrice - context.price) / context.price) * 100;
             if (increasePercentage >= this.config.buy.minPredictedPriceIncreasePercentage) {
                 this.consecutivePredictionConfirmations++;
 
-                return (
-                    this.consecutivePredictionConfirmations >=
-                    (this.config.buy?.minConsecutivePredictionConfirmations ?? 1)
-                );
+                return {
+                    buy:
+                        this.consecutivePredictionConfirmations >=
+                        (this.config.buy?.minConsecutivePredictionConfirmations ?? 1),
+                    reason: 'consecutivePredictionConfirmations',
+                    data: responseData,
+                };
             } else {
                 this.consecutivePredictionConfirmations = 0;
+
+                return {
+                    buy: false,
+                    reason: 'minPredictedPriceIncreasePercentage',
+                    data: responseData,
+                };
             }
         } else {
             this.logger.error('Error getting price prediction for mint %s, returning false', mint);
             this.logger.error(response);
         }
 
-        return false;
+        return {
+            buy: false,
+            reason: 'prediction_error',
+            data: {
+                response: {
+                    status: response.status,
+                    body: response.data,
+                },
+            },
+        };
     }
 
     resetState() {

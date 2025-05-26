@@ -2,11 +2,13 @@ import { Logger } from 'winston';
 
 import { shouldBuyStateless, shouldExitLaunchpadToken } from './common';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
-import { ShouldExitMonitoringResponse, ShouldSellResponse } from '../../bots/types';
+import { ShouldBuyResponse, ShouldExitMonitoringResponse, ShouldSellResponse } from '../../bots/types';
 import { LaunchpadStrategyBuyConfig, StrategyConfig, StrategySellConfig } from '../types';
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
 
 export type RiseStrategyConfig = StrategyConfig<{ buy: LaunchpadStrategyBuyConfig; sell: StrategySellConfig }>;
+
+type RiseStrategyShouldBuyResponseReason = 'shouldBuyStateless';
 
 export default class RiseStrategy extends LimitsBasedStrategy {
     readonly name = 'RiseStrategy';
@@ -62,8 +64,14 @@ export default class RiseStrategy extends LimitsBasedStrategy {
         return shouldExitLaunchpadToken(marketContext, history, extra, this._buyPosition, this.config.maxWaitMs);
     }
 
-    shouldBuy(mint: string, marketContext: MarketContext): Promise<boolean> {
-        return Promise.resolve(shouldBuyStateless(this.config.buy, marketContext));
+    shouldBuy(
+        mint: string,
+        marketContext: MarketContext,
+    ): Promise<ShouldBuyResponse<RiseStrategyShouldBuyResponseReason>> {
+        return Promise.resolve({
+            buy: shouldBuyStateless(this.config.buy, marketContext),
+            reason: 'shouldBuyStateless',
+        });
     }
 
     async shouldSell(mint: string, marketContext: MarketContext, history: HistoryEntry[]): Promise<ShouldSellResponse> {

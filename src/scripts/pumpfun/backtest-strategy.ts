@@ -1,35 +1,52 @@
+import { program } from 'commander';
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from 'winston';
 
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import { solToLamports } from '../../blockchains/utils/amount';
 import { db } from '../../db/knex';
+import { getBacktest, storeBacktest, storeStrategyResult } from '../../db/repositories/backtests';
+import { Backtest } from '../../db/types';
 import { logger } from '../../logger';
 import { formPumpfunStatsDataFolder } from '../../trading/backtesting/data/pumpfun/utils';
-import { logStrategyResult, runStrategy, storeBacktest, storeStrategyResult } from '../../trading/backtesting/utils';
+import { logStrategyResult, runStrategy } from '../../trading/backtesting/utils';
 import PumpfunBacktester from '../../trading/bots/blockchains/solana/PumpfunBacktester';
 import { BacktestRunConfig, StrategyBacktestResult } from '../../trading/bots/blockchains/solana/types';
 import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
 import PredictionStrategy from '../../trading/strategies/launchpads/PredictionStrategy';
 import { walkDirFilesSyncRecursive } from '../../utils/files';
 
-(async () => {
-    start().finally(() => {
-        db.destroy();
+program
+    .name('backtest-strategy')
+    .description('Backtest the provided strategy(ies)')
+    .version('0.0.0')
+    .option(
+        '--backtestId <string>',
+        'existing backtest id if you want to store this strategy result as part of an existing backtest',
+    )
+    .action(async args => {
+        try {
+            await findBestStrategy({
+                backtestId: args.backtestId,
+            });
+        } finally {
+            await db.destroy();
+        }
     });
-})();
+
+program.parse();
 
 /**
  * It will test the provided strategies against the history pumpfun data stored in data/pumpfun-stats
  */
-async function start() {
-    await findBestStrategy();
-}
-
-async function findBestStrategy() {
+async function findBestStrategy(args: { backtestId?: string }) {
     const start = process.hrtime();
 
-    const backtestId = uuidv4();
+    const backtestId = args.backtestId ?? uuidv4();
+    let existingBacktest: Backtest | undefined;
+    if (args.backtestId) {
+        existingBacktest = await getBacktest(args.backtestId);
+    }
 
     const pumpfun = new Pumpfun({
         rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
@@ -41,11 +58,50 @@ async function findBestStrategy() {
     });
     const backtester = new PumpfunBacktester(logger);
 
-    const pumpfunStatsPath = formPumpfunStatsDataFolder();
+    const pumpfunStatsPath = existingBacktest ? existingBacktest.config.data.path : formPumpfunStatsDataFolder();
     const files = walkDirFilesSyncRecursive(pumpfunStatsPath, [], 'json').filter(el =>
         el.fullPath.includes('no_trade'),
     );
+    const totalFiles = files.length;
+    if (existingBacktest && existingBacktest.config.data.filesCount !== totalFiles) {
+        throw new Error(
+            `Cannot resume the existing backtest: expected ${existingBacktest.config.data.filesCount} file(s), but found ${totalFiles} file(s).`,
+        );
+    }
     let tested = 0;
+
+    const baseRunConfig: Omit<BacktestRunConfig, 'strategy'> = existingBacktest
+        ? (existingBacktest.config as unknown as Omit<BacktestRunConfig, 'strategy'>)
+        : {
+              initialBalanceLamports: solToLamports(3),
+              buyAmountSol: 1,
+              jitoConfig: {
+                  jitoEnabled: true,
+              },
+              randomization: {
+                  priorityFees: true,
+                  slippages: 'closestEntry',
+                  execution: true,
+              },
+              onlyOneFullTrade: true,
+              sellUnclosedPositionsAtEnd: true,
+          };
+    if (existingBacktest) {
+        delete (baseRunConfig as unknown as { data: never }).data;
+    }
+
+    if (!args.backtestId) {
+        await storeBacktest({
+            id: backtestId,
+            config: {
+                data: {
+                    path: pumpfunStatsPath,
+                    filesCount: totalFiles,
+                },
+                ...baseRunConfig,
+            },
+        });
+    }
 
     const strategies: LaunchpadBotStrategy[] = [
         new PredictionStrategy(
@@ -73,32 +129,6 @@ async function findBestStrategy() {
         result: StrategyBacktestResult;
     }[] = [];
 
-    const baseRunConfig: Omit<BacktestRunConfig, 'strategy'> = {
-        initialBalanceLamports: solToLamports(3),
-        buyAmountSol: 1,
-        jitoConfig: {
-            jitoEnabled: true,
-        },
-        randomization: {
-            priorityFees: true,
-            slippages: 'closestEntry',
-            execution: true,
-        },
-        onlyOneFullTrade: true,
-        sellUnclosedPositionsAtEnd: true,
-    };
-
-    await storeBacktest({
-        id: backtestId,
-        config: {
-            data: {
-                path: pumpfunStatsPath,
-                filesCount: files.length,
-            },
-            ...baseRunConfig,
-        },
-    });
-
     const strategiesCount = strategies.length;
     logger.info('Started backtest with id %s - will test %d strategies\n', backtestId, strategiesCount);
 
@@ -113,7 +143,7 @@ async function findBestStrategy() {
             tested,
             runConfig.strategy.identifier,
             runConfig.strategy.configVariant,
-            files.length,
+            totalFiles,
             runConfig.strategy.config,
             '='.repeat(100),
         );

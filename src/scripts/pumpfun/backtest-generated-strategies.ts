@@ -4,12 +4,13 @@ import { createLogger } from 'winston';
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import { solToLamports } from '../../blockchains/utils/amount';
 import { db } from '../../db/knex';
+import { storeBacktest, storeStrategyResult } from '../../db/repositories/backtests';
 import { logger } from '../../logger';
 import { formPumpfunStatsDataFolder } from '../../trading/backtesting/data/pumpfun/utils';
 import RiseStrategyConfigGenerator, {
     StartState,
 } from '../../trading/backtesting/strategies/RiseStrategyConfigGenerator';
-import { logStrategyResult, runStrategy, storeBacktest, storeStrategyResult } from '../../trading/backtesting/utils';
+import { logStrategyResult, runStrategy } from '../../trading/backtesting/utils';
 import PumpfunBacktester from '../../trading/bots/blockchains/solana/PumpfunBacktester';
 import { BacktestRunConfig, StrategyBacktestResult } from '../../trading/bots/blockchains/solana/types';
 import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';

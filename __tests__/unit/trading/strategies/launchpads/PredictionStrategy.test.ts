@@ -76,7 +76,14 @@ describe(PredictionStrategy.name, () => {
 
         it('should buy when predicted price exceeds threshold for required consecutive confirmations', async () => {
             mockServer.use(mswPredictPriceWillIncreaseHandler);
-            expect(await strategy.shouldBuy(mint, history[4], history)).toEqual(true);
+            expect(await strategy.shouldBuy(mint, history[4], history)).toEqual({
+                buy: true,
+                reason: 'consecutivePredictionConfirmations',
+                data: {
+                    lastNextPrice: 2.1931132543763547e-7,
+                    lastNextVariance: null,
+                },
+            });
         });
 
         it('should not buy when predicted price increases with the expected threshold but consecutivePredictionConfirmations is less than required consecutive confirmations', async () => {
@@ -85,6 +92,7 @@ describe(PredictionStrategy.name, () => {
                 buy: { ...config.buy, minConsecutivePredictionConfirmations: 3 },
             });
 
+            const indexesWithLowPrice = [2];
             let callCount = 0;
             mockServer.use(
                 http.post(process.env.PRICE_PREDICTION_ENDPOINT as string, async ({ request }) => {
@@ -97,7 +105,9 @@ describe(PredictionStrategy.name, () => {
                         {
                             // return price less than expected increase only for the specified indexes to test the consecutive check
                             predicted_prices: [
-                                [2].includes(callCount++) ? 1.890614874462375e-7 : 2.1931132543763547e-7,
+                                indexesWithLowPrice.includes(callCount++)
+                                    ? 1.890614874462375e-7
+                                    : 2.1931132543763547e-7,
                             ],
                         },
                         { status: 200 },
@@ -106,13 +116,25 @@ describe(PredictionStrategy.name, () => {
             );
 
             for (let i = 0; i < 6; i++) {
-                expect(await strategy.shouldBuy(mint, history[4], history)).toEqual(i === 5);
+                expect(await strategy.shouldBuy(mint, history[4], history)).toEqual({
+                    buy: i === 5,
+                    reason: indexesWithLowPrice.includes(i)
+                        ? 'minPredictedPriceIncreasePercentage'
+                        : 'consecutivePredictionConfirmations',
+                    data: {
+                        lastNextPrice: indexesWithLowPrice.includes(i) ? 1.890614874462375e-7 : 2.1931132543763547e-7,
+                        lastNextVariance: null,
+                    },
+                });
             }
         });
 
         describe('should send the correct features length in the HTTP request', () => {
             it('should return false and make no HTTP call if the min required features length is not met', async () => {
-                expect(await strategy.shouldBuy(mint, history[4], [history[4]])).toEqual(false);
+                expect(await strategy.shouldBuy(mint, history[4], [history[4]])).toEqual({
+                    buy: false,
+                    reason: 'requiredFeaturesLength',
+                });
             });
 
             it('should send upToFeaturesLength features when it is less than history length', async () => {
@@ -128,7 +150,14 @@ describe(PredictionStrategy.name, () => {
                     }),
                 );
 
-                expect(await strategy.shouldBuy(mint, history[4], history)).toEqual(true);
+                expect(await strategy.shouldBuy(mint, history[4], history)).toEqual({
+                    buy: true,
+                    reason: 'consecutivePredictionConfirmations',
+                    data: {
+                        lastNextPrice: 2.1931132543763547e-7,
+                        lastNextVariance: null,
+                    },
+                });
             });
 
             it('should send all available features when history is shorter than upToFeaturesLength', async () => {
@@ -147,7 +176,14 @@ describe(PredictionStrategy.name, () => {
                     }),
                 );
 
-                expect(await strategy.shouldBuy(mint, history[4], history)).toEqual(true);
+                expect(await strategy.shouldBuy(mint, history[4], history)).toEqual({
+                    buy: true,
+                    reason: 'consecutivePredictionConfirmations',
+                    data: {
+                        lastNextPrice: 2.1931132543763547e-7,
+                        lastNextVariance: null,
+                    },
+                });
             });
         });
 
@@ -160,9 +196,10 @@ describe(PredictionStrategy.name, () => {
                 }));
 
             it('should skip request and return false if all features are identical and skipping is enabled', async () => {
-                expect(await strategy.shouldBuy(mint, historyWithoutVariation[33], historyWithoutVariation)).toEqual(
-                    false,
-                );
+                expect(await strategy.shouldBuy(mint, historyWithoutVariation[33], historyWithoutVariation)).toEqual({
+                    buy: false,
+                    reason: 'noVariationInFeatures',
+                });
                 expect(logs).toEqual([
                     {
                         level: 'debug',
@@ -188,9 +225,14 @@ describe(PredictionStrategy.name, () => {
                     }),
                 );
 
-                expect(await strategy.shouldBuy(mint, historyWithoutVariation[33], historyWithoutVariation)).toEqual(
-                    true,
-                );
+                expect(await strategy.shouldBuy(mint, historyWithoutVariation[33], historyWithoutVariation)).toEqual({
+                    buy: true,
+                    reason: 'consecutivePredictionConfirmations',
+                    data: {
+                        lastNextPrice: 2.1931132543763547e-7,
+                        lastNextVariance: null,
+                    },
+                });
             });
         });
 
@@ -208,7 +250,10 @@ describe(PredictionStrategy.name, () => {
                 },
             });
 
-            expect(await strategy.shouldBuy(mint, history[4], history)).toEqual(false);
+            expect(await strategy.shouldBuy(mint, history[4], history)).toEqual({
+                buy: false,
+                reason: 'shouldBuyStateless',
+            });
         });
 
         it('should not buy when the last predicted price is below the defined threshold', async () => {
@@ -235,7 +280,14 @@ describe(PredictionStrategy.name, () => {
                 }),
             );
 
-            expect(await strategy.shouldBuy(mint, history[4], history)).toEqual(false);
+            expect(await strategy.shouldBuy(mint, history[4], history)).toEqual({
+                buy: false,
+                reason: 'minPredictedPriceIncreasePercentage',
+                data: {
+                    lastNextPrice: -0.09999697501620086,
+                    lastNextVariance: null,
+                },
+            });
         });
 
         it('should log error and return false when it fails to get the predicted prices', async () => {
@@ -250,9 +302,11 @@ describe(PredictionStrategy.name, () => {
                 }),
             );
 
-            const actual = await strategy.shouldBuy(mint, history[4], history);
-
-            expect(actual).toEqual(false);
+            expect(await strategy.shouldBuy(mint, history[4], history)).toEqual({
+                buy: false,
+                reason: 'prediction_error',
+                data: { response: { status: 400, body: { error: 'for fun' } } },
+            });
             expect(logs.length).toEqual(2);
             expect(logs[0]).toEqual({
                 level: 'error',

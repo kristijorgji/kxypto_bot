@@ -129,7 +129,7 @@ export default class PumpfunBacktester {
             if (
                 balanceLamports >= minBalanceToBuyLamports &&
                 !strategy.buyPosition &&
-                (await strategy.shouldBuy(tokenInfo.mint, marketContext, historySoFar))
+                (await strategy.shouldBuy(tokenInfo.mint, marketContext, historySoFar)).buy
             ) {
                 const txDetails = simulateSolTransactionDetails(
                     -buyInLamports - pumpCreateAccountFeeLamports - jitoTipLamports,

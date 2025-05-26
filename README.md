@@ -9,13 +9,12 @@
     3. [Help](#help)
 3. [CLI](#cli)
 4. [Server](#server)
-5. [Troubleshooting](#troubleshooting)
+5. [Example Scripts](#example-scripts)
+6. [Troubleshooting](#troubleshooting)
     1. [How can I find my wallet private key if I have only the recovery phrase](#how-can-i-find-my-wallet-private-key-if-i-have-only-the-recovery-phrase)
-6. [Example Scripts](#example-scripts)
-7. [Environmental Variables](#environmental-variables)
-8. [Package.json Scripts](#packagejson-scripts)
-9. [Contributing](./docs/CONTRIBUTING.md)
-10. [License](#license)
+7. [Package.json Scripts](#packagejson-scripts)
+8. [Contributing](./docs/CONTRIBUTING.md)
+9. [License](#license)
 
 # Project Overview
 
@@ -26,6 +25,12 @@ This crypto bot is using
 * lint and fix tools using my personal best standards
   from https://www.npmjs.com/package/@kristijorgji/eslint-config-typescript
 * fully debug compatible
+
+Features:
+
+- pumpfun bot
+- multiple trade strategies implemented
+- backtest strategies framework
 
 # Getting started
 
@@ -73,6 +78,14 @@ There is more knowledge about different domains under [docs](docs).
 
 This project offers a cli for the most frequently needed standalone commands
 
+Run
+
+```shell
+ts-node src/console/cli.ts
+```
+
+to see list of the available commands
+
 # Server
 
 This project exposes one express server
@@ -87,26 +100,6 @@ with a couple of useful endpoints like
 * others -coming soon
 
 in order to manage remotely the bots.
-
-Run
-
-```shell
-ts-node src/console/cli.ts
-```
-
-to see list of available commands
-
-# Troubleshooting
-
-## How can I find my wallet private key if I have only the recovery phrase
-
-You can run the helper CLI command
-
-**walletInfo:solana**
-
-```shell
- ts-node src/console/cli.ts walletInfo:solana --recoveryPhrasePath=k --provider=TrustWallet
-```
 
 # Example scripts
 
@@ -125,21 +118,46 @@ ts-node src/examples/getExchangeRate.ts
 The folder `src/scripts` contains `standalone` scripts that you can run.
 
 The difference between the example script is that these scripts here have a clear purpose and are useful, not just
-demonstrative
+demonstrative.
 They use the specified `.env` variables
 
-Example:
+Examples:
+
+**[backtest-strategy.ts](src/scripts/pumpfun/backtest-strategy.ts)**
+
+Run this script to test your defined strategy(ies) against the backtest history files
+
+With existing backtest:
+
+```shell
+ts-node -r dotenv/config src/scripts/pumpfun/backtest-strategy.ts --backtestId=existingBacktestId
+```
+
+Without existing backtest, it will create one automatically with the specified config:
+
+```shell
+ts-node -r dotenv/config src/scripts/pumpfun/backtest-strategy.ts
+```
+
+**Run the pumpfun bot**
 
 ```shell
 ts-node src/scripts/pumpfun/bot.ts
 ```
 
-# Environmental variables
+# Troubleshooting
 
-This project uses also `dotenv` so you can create `.env` file and specify your variables and will be used by the index
-file
+## How can I find my wallet private key if I have only the recovery phrase
 
-# Package.json scripts
+You can run the helper CLI command
+
+**walletInfo:solana**
+
+```shell
+ ts-node src/console/cli.ts walletInfo:solana --recoveryPhrasePath=k --provider=TrustWallet
+```
+
+# Package.json main scripts
 
 you can run them by `yarn commmand` or `npm run command`
 

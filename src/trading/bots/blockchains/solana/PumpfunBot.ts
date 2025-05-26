@@ -219,7 +219,7 @@ export default class PumpfunBot {
             if (
                 !actionInProgress &&
                 !strategy.buyPosition &&
-                (await strategy.shouldBuy(tokenMint, marketContext, history))
+                (await strategy.shouldBuy(tokenMint, marketContext, history)).buy
             ) {
                 logger.info('We set buy=true because the conditions are met');
                 buy = true;

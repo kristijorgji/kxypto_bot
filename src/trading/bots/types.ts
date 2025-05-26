@@ -49,6 +49,12 @@ export type DoSellResponse = {
     reason: SellReason;
 };
 
+export type ShouldBuyResponse<R = string, D = Record<string, unknown>> = {
+    buy: boolean;
+    reason: R;
+    data?: D;
+};
+
 export type ShouldSellResponse = false | DoSellResponse;
 
 export type ExitMonitoringReason = 'NO_PUMP' | 'DUMPED' | 'STOPPED' | 'BAD_CREATOR';

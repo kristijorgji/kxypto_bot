@@ -40,7 +40,12 @@ export type Token<T = Record<string, unknown>> = {
 
 export type Backtest = {
     id: string;
-    config: Record<string, unknown>;
+    config: Record<string, unknown> & {
+        data: {
+            path: string;
+            filesCount: number;
+        };
+    };
 };
 
 export type Position = {

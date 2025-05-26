@@ -3,13 +3,13 @@ import { ShouldExitMonitoringResponse } from '../../bots/types';
 import { IntervalConfig, LaunchpadBuyPosition, LaunchpadStrategyBuyConfig } from '../types';
 
 export function shouldBuyStateless(buyConfig: LaunchpadStrategyBuyConfig, marketContext: MarketContext): boolean {
-    let buy = true;
-
     for (const key in marketContext) {
-        buy &&= checkInterval(buyConfig[key as keyof MarketContext], marketContext[key as keyof MarketContext]);
+        if (!checkInterval(buyConfig[key as keyof MarketContext], marketContext[key as keyof MarketContext])) {
+            return false;
+        }
     }
 
-    return buy;
+    return true;
 }
 
 export function checkInterval(config: IntervalConfig | undefined, value: number): boolean {

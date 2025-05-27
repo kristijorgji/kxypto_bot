@@ -8,6 +8,7 @@ import { lamportsToSol } from '../../blockchains/utils/amount';
 import { pumpfunRepository } from '../../db/repositories/PumpfunRepository';
 import { HandlePumpTokenBotReport } from '../../scripts/pumpfun/bot';
 import { FileInfo } from '../../utils/files';
+import { formatElapsedTime } from '../../utils/time';
 import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
 import {
     BacktestExitResponse,
@@ -17,6 +18,7 @@ import {
     BacktestTradeResponse,
     PumpfunSellPositionMetadata,
     StrategyBacktestResult,
+    StrategyMintBacktestResult,
 } from '../bots/blockchains/solana/types';
 
 const cache: Record<string, HandlePumpTokenBotReport> = {};
@@ -69,7 +71,7 @@ export async function runStrategy(
         mint: '',
         amountLamports: 1,
     };
-    const mintResults: Record<string, BacktestResponse> = {};
+    const mintResults: Record<string, StrategyMintBacktestResult> = {};
 
     for (const file of files) {
         let content: HandlePumpTokenBotReport;
@@ -91,7 +93,11 @@ export async function runStrategy(
                 content.history,
             );
             runConfig.strategy.resetState();
-            mintResults[content.mint] = r;
+            mintResults[content.mint] = {
+                mintFileStorageType: 'local',
+                mintFilePath: file.fullPath,
+                backtestResponse: r,
+            };
 
             if (verbose) {
                 logger.info(
@@ -136,22 +142,30 @@ export async function runStrategy(
                     if (verbose) {
                         const isSingleFullTrade = runConfig.onlyOneFullTrade && pr.tradeHistory.length === 2;
                         logger.info(
-                            'Final balance: %s SOL and holdings %s',
+                            '[%d] Final balance: %s SOL and holdings %s',
+                            processed,
                             lamportsToSol(pr.finalBalanceLamports),
                             pr.holdings.amountRaw,
                         );
-                        logger.info('Profit/Loss: %s SOL', lamportsToSol(pr.profitLossLamports));
+                        logger.info('[%d] Profit/Loss: %s SOL', processed, lamportsToSol(pr.profitLossLamports));
                         logger.info(
-                            'Holdings amount: %s, value: %s SOL',
+                            '[%d] Holdings amount: %s, value: %s SOL',
+                            processed,
                             pr.holdings.amountRaw,
                             lamportsToSol(pr.holdings.lamportsValue),
                         );
-                        logger.info('Trades count %d', pr.tradeHistory.length);
-                        logger.info('ROI %s%%', pr.roi);
-                        logger.info('Max Drawdown: %s%%%s', pr.maxDrawdownPercentage, isSingleFullTrade ? '' : '\n');
+                        logger.info('[%d] Trades count %d', processed, pr.tradeHistory.length);
+                        logger.info('[%d] ROI %s%%', processed, pr.roi);
+                        logger.info(
+                            '[%d] Max Drawdown: %s%%%s',
+                            processed,
+                            pr.maxDrawdownPercentage,
+                            isSingleFullTrade ? '' : '\n',
+                        );
                         if (isSingleFullTrade) {
                             logger.info(
-                                'Trades=%o\n',
+                                '[%d] Trades=%o\n',
+                                processed,
                                 pr.tradeHistory.map(e => {
                                     const { historyRef, ...filteredMetadata } = e.metadata as Record<
                                         string,
@@ -259,7 +273,17 @@ export async function runStrategy(
     };
 }
 
-export function logStrategyResult(logger: Logger, sr: StrategyBacktestResult, tested: number, total: number) {
+export function logStrategyResult(
+    logger: Logger,
+    info: {
+        strategyId: string;
+        tested: number;
+        total: number;
+        executionTimeInS: number;
+    },
+    sr: StrategyBacktestResult,
+) {
+    logger.info('Finished testing strategy %s in %s', info.strategyId, formatElapsedTime(info.executionTimeInS));
     logger.info('Total Profit/Loss: %s SOL', sr.totalPnlInSol);
     logger.info('Final balance: %s SOL', lamportsToSol(sr.finalBalanceLamports));
     logger.info('Total holdings value: %s SOL', sr.totalHoldingsValueInSol);
@@ -274,7 +298,7 @@ export function logStrategyResult(logger: Logger, sr: StrategyBacktestResult, te
     logger.info('Total sell trades count %d', sr.totalSellTradesCount);
     const sellReasons: Record<string, number> = {};
     for (const mint in sr.mintResults) {
-        const backtestResponse: BacktestResponse = sr.mintResults[mint];
+        const backtestResponse: BacktestResponse = sr.mintResults[mint].backtestResponse;
         if ((backtestResponse as BacktestTradeResponse).tradeHistory) {
             for (const tradeTransaction of (backtestResponse as BacktestTradeResponse).tradeHistory) {
                 if (tradeTransaction.transactionType !== 'sell') {
@@ -295,5 +319,5 @@ export function logStrategyResult(logger: Logger, sr: StrategyBacktestResult, te
     logger.info('Highest peak: %s SOL', lamportsToSol(sr.highestPeakLamports));
     logger.info('Lowest trough: %s SOL', lamportsToSol(sr.lowestTroughLamports));
     logger.info('Max Drawdown: %s%%', sr.maxDrawdownPercentage);
-    logger.info('Total progress %s%%\n', (tested / total) * 100);
+    logger.info('Total progress %s%%\n', (info.tested / info.total) * 100);
 }

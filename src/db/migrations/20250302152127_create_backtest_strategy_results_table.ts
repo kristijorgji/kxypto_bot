@@ -7,9 +7,10 @@ export async function up(knex: Knex): Promise<void> {
         table.bigIncrements('id').primary();
         table.uuid('backtest_id');
         table.string('strategy').notNullable();
+        table.string('strategy_id').notNullable();
         table.string('config_variant');
         table.json('config').notNullable();
-        table.double('pnl_sol').notNullable();
+        table.double('pnl_sol').notNullable().index();
         table.double('holdings_value_sol').notNullable();
         table.float('roi').notNullable().index();
         table.float('win_rate').notNullable().index();
@@ -23,6 +24,7 @@ export async function up(knex: Knex): Promise<void> {
         table.double('highest_peak_sol').notNullable();
         table.double('lowest_trough_sol').notNullable();
         table.float('max_drawdown_percentage').notNullable();
+        table.decimal('execution_time_seconds', 10, 3).notNullable();
         table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
         table.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable();
 
@@ -30,6 +32,7 @@ export async function up(knex: Knex): Promise<void> {
         table.unique(['backtest_id', 'strategy', 'config_variant'], {
             indexName: 'bt_strategy_res_bt_id_strategy_config_variant_unique',
         });
+        table.unique(['backtest_id', 'strategy_id']);
     });
 }
 

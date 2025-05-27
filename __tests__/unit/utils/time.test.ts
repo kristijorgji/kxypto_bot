@@ -1,6 +1,7 @@
 import {
     dateToMySQLTimestamp,
     formatDateIso8601WithOffset,
+    formatElapsedTime,
     getDateSecondsAgo,
     getSecondsDifference,
 } from '../../../src/utils/time';
@@ -134,5 +135,47 @@ describe('formatDateIso8601WithOffset', () => {
         const date = new Date('2025-05-01T10:45:17Z'); // Z represents UTC timezone
         const formattedDate = formatDateIso8601WithOffset(date);
         expect(formattedDate).toEqual('2025-05-01T10:45:17+00:00');
+    });
+});
+
+describe('formatElapsedTime', () => {
+    it('formats seconds under a minute', () => {
+        expect(formatElapsedTime(5)).toBe('5s');
+        expect(formatElapsedTime(59)).toBe('59s');
+    });
+
+    it('formats minutes and seconds', () => {
+        expect(formatElapsedTime(60)).toBe('1m 0s');
+        expect(formatElapsedTime(125)).toBe('2m 5s');
+    });
+
+    it('formats hours, minutes, and seconds', () => {
+        expect(formatElapsedTime(3600)).toBe('1h 0m 0s');
+        expect(formatElapsedTime(3661)).toBe('1h 1m 1s');
+        expect(formatElapsedTime(5025)).toBe('1h 23m 45s');
+    });
+
+    it('formats exact hours and minutes cleanly', () => {
+        expect(formatElapsedTime(7200)).toBe('2h 0m 0s');
+        expect(formatElapsedTime(7260)).toBe('2h 1m 0s');
+    });
+
+    it('formats zero seconds correctly', () => {
+        expect(formatElapsedTime(0)).toBe('0s');
+    });
+
+    it('formats decimal seconds under a minute', () => {
+        expect(formatElapsedTime(5.678)).toBe('5.68s');
+        expect(formatElapsedTime(59.999)).toBe('60s'); // rounding edge case
+    });
+
+    it('formats decimal seconds with minutes', () => {
+        expect(formatElapsedTime(61.234)).toBe('1m 1.23s');
+        expect(formatElapsedTime(125.9)).toBe('2m 5.9s');
+    });
+
+    it('formats decimal seconds with hours and minutes', () => {
+        expect(formatElapsedTime(3661.789)).toBe('1h 1m 1.79s');
+        expect(formatElapsedTime(5025.321)).toBe('1h 23m 45.32s');
     });
 });

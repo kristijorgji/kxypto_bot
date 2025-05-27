@@ -1,4 +1,5 @@
 import { JitoConfig } from '../../../../blockchains/solana/Jito';
+import { FileStorageType } from '../../../../core/types';
 import LaunchpadBotStrategy from '../../../strategies/launchpads/LaunchpadBotStrategy';
 import { HistoryEntry } from '../../launchpads/types';
 import { ExitMonitoringReason, SellReason, SwapSubCategory, TransactionType } from '../../types';
@@ -155,6 +156,12 @@ export type BacktestRunConfig = {
     sellUnclosedPositionsAtEnd: boolean;
 };
 
+export type StrategyMintBacktestResult = {
+    mintFileStorageType: FileStorageType;
+    mintFilePath: string;
+    backtestResponse: BacktestResponse;
+};
+
 export type StrategyBacktestResult = {
     totalPnlInSol: number;
     finalBalanceLamports: number;
@@ -177,5 +184,5 @@ export type StrategyBacktestResult = {
     highestPeakLamports: number;
     lowestTroughLamports: number;
     maxDrawdownPercentage: number;
-    mintResults: Record<string, BacktestResponse>;
+    mintResults: Record<string, StrategyMintBacktestResult>;
 };

@@ -43,3 +43,27 @@ export function formatDateIso8601WithOffset(date: Date): string {
         pad(Math.abs(tzo) % 60)
     );
 }
+
+/**
+ * Converts seconds to a human-readable format like "1h 23m 45.67s"
+ * (limits seconds to 2 decimal places)
+ */
+export function formatElapsedTime(seconds: number): string {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = +(seconds % 60).toFixed(2); // limit to 2 decimal places
+
+    const parts = [];
+
+    if (h > 0) {
+        parts.push(`${h}h`);
+    }
+
+    if (m > 0 || h > 0) {
+        parts.push(`${m}m`);
+    }
+
+    parts.push(`${s}s`);
+
+    return parts.join(' ');
+}

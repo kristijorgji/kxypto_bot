@@ -5,16 +5,22 @@ import { createLogger } from 'winston';
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import { solToLamports } from '../../blockchains/utils/amount';
 import { db } from '../../db/knex';
-import { getBacktest, storeBacktest, storeBacktestStrategyResult } from '../../db/repositories/backtests';
+import {
+    getBacktest,
+    getBacktestStrategyResults,
+    storeBacktest,
+    storeBacktestStrategyResult,
+} from '../../db/repositories/backtests';
 import { Backtest } from '../../db/types';
 import { logger } from '../../logger';
 import { formPumpfunStatsDataFolder } from '../../trading/backtesting/data/pumpfun/utils';
 import { logStrategyResult, runStrategy } from '../../trading/backtesting/utils';
 import PumpfunBacktester from '../../trading/bots/blockchains/solana/PumpfunBacktester';
-import { BacktestRunConfig, StrategyBacktestResult } from '../../trading/bots/blockchains/solana/types';
+import { BacktestRunConfig } from '../../trading/bots/blockchains/solana/types';
 import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
 import PredictionStrategy from '../../trading/strategies/launchpads/PredictionStrategy';
 import { walkDirFilesSyncRecursive } from '../../utils/files';
+import { formatElapsedTime } from '../../utils/time';
 
 program
     .name('backtest-strategy')
@@ -124,10 +130,6 @@ async function findBestStrategy(args: { backtestId?: string }) {
             },
         ),
     ];
-    const results: {
-        strategy: LaunchpadBotStrategy;
-        result: StrategyBacktestResult;
-    }[] = [];
 
     const strategiesCount = strategies.length;
     logger.info('Started backtest with id %s - will test %d strategies\n', backtestId, strategiesCount);
@@ -148,6 +150,7 @@ async function findBestStrategy(args: { backtestId?: string }) {
             '='.repeat(100),
         );
 
+        const strategyStartTime = process.hrtime();
         const sr = await runStrategy(
             {
                 backtester: backtester,
@@ -160,27 +163,42 @@ async function findBestStrategy(args: { backtestId?: string }) {
                 verbose: true,
             },
         );
-        results.push({
-            strategy: strategy,
-            result: sr,
-        });
-        tested++;
+        const executionTime = process.hrtime(strategyStartTime);
+        const executionTimeInS = (executionTime[0] * 1e9 + executionTime[1]) / 1e9;
 
-        logStrategyResult(logger, sr, tested, strategiesCount);
-        await storeBacktestStrategyResult(backtestId, runConfig.strategy, sr);
+        logStrategyResult(
+            logger,
+            {
+                strategyId: strategy.identifier,
+                tested: tested,
+                total: strategiesCount,
+                executionTimeInS: executionTimeInS,
+            },
+            sr,
+        );
+        await storeBacktestStrategyResult(backtestId, runConfig.strategy, sr, executionTimeInS);
+
+        tested++;
     }
 
-    results.sort((a, b) => b.result.totalPnlInSol - a.result.totalPnlInSol);
+    const bestStrategyResult = (
+        await getBacktestStrategyResults(backtestId, {
+            orderBy: {
+                columnName: 'pnl_sol',
+                order: 'desc',
+            },
+            limit: 1,
+        })
+    )[0];
 
     const diff = process.hrtime(start);
     const timeInNs = diff[0] * 1e9 + diff[1];
 
-    logger.info('Finished testing %d strategies in %s seconds', tested, timeInNs / 1e9);
+    logger.info('Finished testing %d strategies in %s', tested, formatElapsedTime(timeInNs / 1e9));
     logger.info(
         'The best strategy is: %s with variant config: %s, config: %o',
-        results[0].strategy.identifier,
-        results[0].strategy.configVariant,
-        results[0].strategy.config,
-        results,
+        bestStrategyResult.strategy_id,
+        bestStrategyResult.config_variant,
+        bestStrategyResult.config,
     );
 }

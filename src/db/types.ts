@@ -1,3 +1,4 @@
+import { FileStorageType } from '../core/types';
 import { ExitMonitoringReason, SellReason } from '../trading/bots/types';
 
 // example 2023-03-20 12:57:02
@@ -53,6 +54,7 @@ export type BacktestStrategyResult = {
     id: number;
     backtest_id: string;
     strategy: string;
+    strategy_id: string;
     config_variant: string;
     config: Record<string, unknown>;
     pnl_sol: number;
@@ -69,6 +71,7 @@ export type BacktestStrategyResult = {
     highest_peak_sol: number;
     lowest_trough_sol: number;
     max_drawdown_percentage: number;
+    execution_time_seconds: number;
     created_at: Date;
     updated_at: Date;
 };
@@ -77,8 +80,13 @@ export type BacktestStrategyMintResult = {
     id: number;
     strategy_result_id: number;
     mint: string;
+    mint_file_storage_type: FileStorageType;
+    mint_file_path: string;
     net_pnl_sol: number | null;
     holdings_value_sol: number | null;
+    total_trades_count: number;
+    buy_trades_count: number;
+    sell_trades_count: number;
     roi: number | null;
     exit_code: ExitMonitoringReason | null;
     exit_reason: string | null;

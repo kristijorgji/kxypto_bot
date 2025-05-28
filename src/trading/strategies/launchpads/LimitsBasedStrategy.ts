@@ -1,6 +1,7 @@
 import { Logger } from 'winston';
 
 import LaunchpadBotStrategy from './LaunchpadBotStrategy';
+import { HistoryRef } from '../../bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
 import { ShouldSellResponse } from '../../bots/types';
 import StopLossPercentage from '../../orders/StopLossPercentage';
@@ -70,7 +71,12 @@ export abstract class LimitsBasedStrategy extends LaunchpadBotStrategy {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async shouldSell(mint: string, { price }: MarketContext, history: HistoryEntry[]): Promise<ShouldSellResponse> {
+    async shouldSell(
+        _mint: string,
+        _historyRef: HistoryRef,
+        { price }: MarketContext,
+        _history: HistoryEntry[],
+    ): Promise<ShouldSellResponse> {
         let sell: ShouldSellResponse = false;
 
         if (this.takeProfitPercentage && this.takeProfitPercentage.updatePrice(price)) {

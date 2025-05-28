@@ -26,7 +26,7 @@ export async function organizePumpfunFiles() {
         let content: HandlePumpTokenReport;
         try {
             content = JSON.parse(fs.readFileSync(file.fullPath).toString()) as HandlePumpTokenReport;
-        } catch (e) {
+        } catch (_) {
             throw new Error(`Error reading and parsing file ${file.fullPath}`);
         }
 

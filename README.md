@@ -45,7 +45,7 @@ Private ones like https://chainstack.com/ work better
 
 ## Database setup
 
-This project uses `knex` tool for migrating and seeding the database.
+This project uses `knex` tool for migrating and seeding the MySQL database.
 
 You can use the `package.json` commands for creating migrations, seeds or running them.
 

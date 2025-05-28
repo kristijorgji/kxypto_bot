@@ -14,3 +14,7 @@ export function randomDecimal(min: number, max: number, decimals: number): numbe
 export function randomInt(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
+export function deepClone<T>(input: T): T {
+    return JSON.parse(JSON.stringify(input)) as T;
+}

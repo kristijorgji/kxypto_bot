@@ -1,4 +1,4 @@
-import { RiseStrategyConfig } from '../../strategies/launchpads/RiseStrategy';
+import RiseStrategy, { RiseStrategyConfig } from '../../strategies/launchpads/RiseStrategy';
 
 export type StartState = {
     holdersCount: [number, number];
@@ -55,26 +55,23 @@ export default class RiseStrategyConfigGenerator {
                                 takeProfitPercentage <= s.takeProfitPercentage[1];
                                 takeProfitPercentage++
                             ) {
-                                yield {
-                                    variant: `hc_${holdersCount}_bcp_${bcp}_dhp_${dhp}_tthp_${tthp}_tslp_${trailingStopLossPercentage}_tpp_${takeProfitPercentage}`,
+                                const config: RiseStrategyConfig = {
                                     buy: {
-                                        holdersCount: {
-                                            min: holdersCount,
-                                        },
-                                        bondingCurveProgress: {
-                                            min: bcp,
-                                        },
-                                        devHoldingPercentage: {
-                                            max: dhp,
-                                        },
-                                        topTenHoldingPercentage: {
-                                            max: tthp,
-                                        },
+                                        holdersCount: { min: holdersCount },
+                                        bondingCurveProgress: { min: bcp },
+                                        devHoldingPercentage: { min: dhp },
+                                        topTenHoldingPercentage: { min: tthp },
                                     },
                                     sell: {
                                         trailingStopLossPercentage: trailingStopLossPercentage,
                                         takeProfitPercentage: takeProfitPercentage,
                                     },
+                                } as RiseStrategyConfig;
+
+                                yield {
+                                    variant: RiseStrategy.formVariant(config),
+                                    buy: config.buy,
+                                    sell: config.sell,
                                 };
 
                                 this._resumeState = {

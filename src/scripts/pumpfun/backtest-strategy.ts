@@ -4,6 +4,7 @@ import { createLogger } from 'winston';
 
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import { solToLamports } from '../../blockchains/utils/amount';
+import { redis } from '../../cache/cache';
 import { db } from '../../db/knex';
 import {
     getBacktest,
@@ -18,7 +19,10 @@ import { logStrategyResult, runStrategy } from '../../trading/backtesting/utils'
 import PumpfunBacktester from '../../trading/bots/blockchains/solana/PumpfunBacktester';
 import { BacktestRunConfig } from '../../trading/bots/blockchains/solana/types';
 import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
-import PredictionStrategy from '../../trading/strategies/launchpads/PredictionStrategy';
+import PredictionStrategy, {
+    PredictionSource,
+    PredictionStrategyConfig,
+} from '../../trading/strategies/launchpads/PredictionStrategy';
 import { walkDirFilesSyncRecursive } from '../../utils/files';
 import { formatElapsedTime } from '../../utils/time';
 
@@ -37,6 +41,7 @@ program
             });
         } finally {
             await db.destroy();
+            redis.disconnect();
         }
     });
 
@@ -109,26 +114,42 @@ async function findBestStrategy(args: { backtestId?: string }) {
         });
     }
 
+    const source: PredictionSource = {
+        endpoint: process.env.PRICE_PREDICTION_ENDPOINT as string,
+        model: 'v13_gru',
+    };
+    const config: Partial<PredictionStrategyConfig> = {
+        requiredFeaturesLength: 10,
+        upToFeaturesLength: 500,
+        skipAllSameFeatures: true,
+        buy: {
+            minPredictedPriceIncreasePercentage: 20,
+        },
+        sell: {
+            takeProfitPercentage: 10,
+            stopLossPercentage: 15,
+        },
+    };
+
     const strategies: LaunchpadBotStrategy[] = [
-        new PredictionStrategy(
-            silentLogger,
-            {
-                endpoint: process.env.PRICE_PREDICTION_ENDPOINT as string,
+        new PredictionStrategy(silentLogger, redis, source, {
+            ...config,
+            buy: {
+                minPredictedPriceIncreasePercentage: 20,
             },
-            {
-                variant: 'V11_rsi_mac_long_roc',
-                requiredFeaturesLength: 10,
-                upToFeaturesLength: 500,
-                skipAllSameFeatures: true,
-                buy: {
-                    minPredictedPriceIncreasePercentage: 20,
-                },
-                sell: {
-                    takeProfitPercentage: 10,
-                    stopLossPercentage: 15,
-                },
+        }),
+        new PredictionStrategy(silentLogger, redis, source, {
+            ...config,
+            buy: {
+                minPredictedPriceIncreasePercentage: 15,
             },
-        ),
+        }),
+        new PredictionStrategy(silentLogger, redis, source, {
+            ...config,
+            buy: {
+                minPredictedPriceIncreasePercentage: 10,
+            },
+        }),
     ];
 
     const strategiesCount = strategies.length;

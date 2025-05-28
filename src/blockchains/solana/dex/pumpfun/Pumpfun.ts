@@ -638,7 +638,7 @@ export default class Pumpfun implements PumpfunListener {
                         virtualSolReserves: r.virtualSolReserves,
                         virtualTokenReserves: r.virtualTokenReserves,
                     };
-                } catch (e) {
+                } catch (_) {
                     return null;
                 }
             })(),

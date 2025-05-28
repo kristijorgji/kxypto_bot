@@ -155,7 +155,7 @@ export const getTxDetails = async (
 ): Promise<VersionedTransactionResponse | null> => {
     try {
         bs58.decode(sig);
-    } catch (e) {
+    } catch (_) {
         return null;
     }
 

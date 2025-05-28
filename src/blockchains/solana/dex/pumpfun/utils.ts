@@ -29,7 +29,7 @@ export function formPumpfunTokenUrl(mint: string): string {
  */
 export async function forceGetPumpCoinInitialData(
     pumpfun: Pumpfun,
-    repository: PumpfunRepository,
+    _repository: PumpfunRepository,
     mint: string,
 ): Promise<PumpfunInitialCoinData> {
     let initialCoinData = await pumpfunRepository.getToken(mint);

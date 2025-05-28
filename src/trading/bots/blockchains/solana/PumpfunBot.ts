@@ -6,6 +6,7 @@ import {
     BotResponse,
     BotTradeResponse,
     BoughtSold,
+    HistoryRef,
     PumpfunBuyPositionMetadata,
     PumpfunSellPositionMetadata,
     TradeTransaction,
@@ -124,6 +125,7 @@ export default class PumpfunBot {
               }
             | undefined;
         let sellInProgress = false;
+        let historyIndex: number = 0;
         const history: HistoryEntry[] = [];
         let fatalError: Error | undefined;
         let result: BotResponse | undefined;
@@ -150,7 +152,7 @@ export default class PumpfunBot {
                 topTenHoldingPercentage,
             } = marketContext;
 
-            history.push({
+            const lastHistoryEntry = {
                 timestamp: Date.now(),
                 price: priceInSol,
                 marketCap: marketCapInSol,
@@ -158,7 +160,13 @@ export default class PumpfunBot {
                 holdersCount: holdersCount,
                 devHoldingPercentage: devHoldingPercentage,
                 topTenHoldingPercentage: topTenHoldingPercentage,
-            });
+            };
+            history.push(lastHistoryEntry);
+            historyIndex++;
+            const historyRef: HistoryRef = {
+                timestamp: lastHistoryEntry.timestamp,
+                index: historyIndex,
+            };
 
             /**
              * We will continue to monitor for the specified period after are "done" with this particular token
@@ -219,7 +227,7 @@ export default class PumpfunBot {
             if (
                 !actionInProgress &&
                 !strategy.buyPosition &&
-                (await strategy.shouldBuy(tokenMint, marketContext, history)).buy
+                (await strategy.shouldBuy(tokenMint, historyRef, marketContext, history)).buy
             ) {
                 logger.info('We set buy=true because the conditions are met');
                 buy = true;
@@ -272,7 +280,7 @@ export default class PumpfunBot {
                 logger.info('Price change since purchase %s%%', priceDiffPercentageSincePurchase);
                 logger.info('Estimated sol diff %s', diffInSol);
 
-                const shouldSellRes = await strategy.shouldSell(tokenMint, marketContext, history);
+                const shouldSellRes = await strategy.shouldSell(tokenMint, historyRef, marketContext, history);
                 if (shouldSellRes !== false) {
                     sell = {
                         reason: shouldSellRes.reason,

@@ -129,7 +129,10 @@ export default class PumpfunBacktester {
             let shouldBuyRes: ShouldBuyResponse | undefined;
             if (balanceLamports >= minBalanceToBuyLamports &&
                 !strategy.buyPosition) {
-                shouldBuyRes =  await strategy.shouldBuy(tokenInfo.mint, marketContext, historySoFar);
+                shouldBuyRes =  await strategy.shouldBuy(tokenInfo.mint, {
+                    timestamp: marketContext.timestamp,
+                    index: i,
+                }, marketContext, historySoFar);
             }
             if (shouldBuyRes?.buy === true) {
                 const txDetails = simulateSolTransactionDetails(
@@ -206,7 +209,10 @@ export default class PumpfunBacktester {
             }
 
             if (strategy.buyPosition) {
-                const shouldSellRes = await strategy.shouldSell(tokenInfo.mint, marketContext, historySoFar);
+                const shouldSellRes = await strategy.shouldSell(tokenInfo.mint, {
+                    timestamp: marketContext.timestamp,
+                    index: i,
+                }, marketContext, historySoFar);
                 if (shouldSellRes !== false) {
                     sell = {
                         reason: shouldSellRes.reason,

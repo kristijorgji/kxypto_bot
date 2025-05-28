@@ -3,6 +3,7 @@
   "features": [
     {
       "timestamp": 1741801808098,
+      "timeFromStartMs": 740605,
       "price": 2.8451621631980156e-8,
       "marketCap": 30.263140958,
       "bondingCurveProgress": 2,
@@ -12,6 +13,7 @@
     },
     {
       "timestamp": 1741801810764,
+      "timeFromStartMs": 743271,
       "price": 2.8451621631980156e-8,
       "marketCap": 30.263140958,
       "bondingCurveProgress": 2,
@@ -21,6 +23,7 @@
     },
     {
       "timestamp": 1741801813453,
+      "timeFromStartMs": 745960,
       "price": 2.8451621631980156e-8,
       "marketCap": 30.263140958,
       "bondingCurveProgress": 2,
@@ -30,6 +33,7 @@
     },
     {
       "timestamp": 1741801816136,
+      "timeFromStartMs": 748643,
       "price": 2.845137646237573e-8,
       "marketCap": 30.263010568,
       "bondingCurveProgress": 2,
@@ -39,6 +43,7 @@
     },
     {
       "timestamp": 1741801818799,
+      "timeFromStartMs": 751306,
       "price": 2.845137646237573e-8,
       "marketCap": 30.263010568,
       "bondingCurveProgress": 2,
@@ -48,6 +53,7 @@
     },
     {
       "timestamp": 1741801821467,
+      "timeFromStartMs": 753974,
       "price": 2.845137646237573e-8,
       "marketCap": 30.263010568,
       "bondingCurveProgress": 2,
@@ -57,6 +63,7 @@
     },
     {
       "timestamp": 1741801824148,
+      "timeFromStartMs": 756655,
       "price": 2.845137646237573e-8,
       "marketCap": 30.263010568,
       "bondingCurveProgress": 2,
@@ -66,6 +73,7 @@
     },
     {
       "timestamp": 1741801826829,
+      "timeFromStartMs": 759336,
       "price": 2.8038831272957455e-8,
       "marketCap": 30.042802449,
       "bondingCurveProgress": 1,
@@ -75,6 +83,7 @@
     },
     {
       "timestamp": 1741801829919,
+      "timeFromStartMs": 762426,
       "price": 2.8038831272957455e-8,
       "marketCap": 30.042802449,
       "bondingCurveProgress": 1,
@@ -84,6 +93,7 @@
     },
     {
       "timestamp": 1741801832589,
+      "timeFromStartMs": 765096,
       "price": 2.8038831272957455e-8,
       "marketCap": 30.042802449,
       "bondingCurveProgress": 1,

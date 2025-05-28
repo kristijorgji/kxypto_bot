@@ -1,9 +1,9 @@
 import { createLogger } from 'winston';
 
 import { formSolBoughtOrSold } from '../../../../../src/trading/bots/blockchains/solana/PumpfunBot';
-import { TradeTransaction } from '../../../../../src/trading/bots/blockchains/solana/types';
+import { HistoryRef, TradeTransaction } from '../../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '../../../../../src/trading/bots/launchpads/types';
-import RiseStrategy from '../../../../../src/trading/strategies/launchpads/RiseStrategy';
+import RiseStrategy, { RiseStrategyConfig } from '../../../../../src/trading/strategies/launchpads/RiseStrategy';
 import { LaunchpadBuyPosition } from '../../../../../src/trading/strategies/types';
 import { formHistoryEntry } from '../../../../__utils/blockchains/solana';
 import { readFixture } from '../../../../__utils/data';
@@ -51,6 +51,11 @@ describe(RiseStrategy.name, () => {
     const launchpadBuyPosition: LaunchpadBuyPosition = {
         marketContext: marketContext,
         transaction: buyTradeTransaction,
+    };
+
+    const historyRef: HistoryRef = {
+        timestamp: 1740056426861,
+        index: 10,
     };
 
     describe('shouldExit', () => {
@@ -183,6 +188,7 @@ describe(RiseStrategy.name, () => {
             expect(
                 await strategy.shouldSell(
                     mint,
+                    historyRef,
                     {
                         ...marketContext,
                         price: 9,
@@ -206,6 +212,7 @@ describe(RiseStrategy.name, () => {
             expect(
                 await strategy.shouldSell(
                     mint,
+                    historyRef,
                     {
                         ...marketContext,
                         price: 12,
@@ -216,6 +223,7 @@ describe(RiseStrategy.name, () => {
             expect(
                 await strategy.shouldSell(
                     mint,
+                    historyRef,
                     {
                         ...marketContext,
                         price: 10.8,
@@ -240,6 +248,7 @@ describe(RiseStrategy.name, () => {
             expect(
                 await strategy.shouldSell(
                     mint,
+                    historyRef,
                     {
                         ...marketContext,
                         price: 12,
@@ -266,6 +275,7 @@ describe(RiseStrategy.name, () => {
             expect(
                 await strategy.shouldSell(
                     mint,
+                    historyRef,
                     {
                         ...marketContext,
                         price: 11,
@@ -276,6 +286,7 @@ describe(RiseStrategy.name, () => {
             expect(
                 await strategy.shouldSell(
                     mint,
+                    historyRef,
                     {
                         ...marketContext,
                         price: 15,
@@ -286,6 +297,7 @@ describe(RiseStrategy.name, () => {
             expect(
                 await strategy.shouldSell(
                     mint,
+                    historyRef,
                     {
                         ...marketContext,
                         price: 13.5,
@@ -328,7 +340,7 @@ describe(RiseStrategy.name, () => {
 
             let firstSellIndex = -1;
             for (let i = buyEntryIndex; i < history.length; i++) {
-                const shouldSellRes = await strategy.shouldSell(mint, history[i], history);
+                const shouldSellRes = await strategy.shouldSell(mint, historyRef, history[i], history);
                 if (shouldSellRes) {
                     firstSellIndex = i;
                     expect(shouldSellRes).toEqual({
@@ -364,6 +376,53 @@ describe(RiseStrategy.name, () => {
                     trailingStopPercentage: 24,
                 },
             });
+        });
+    });
+
+    describe('formVariant', () => {
+        function getVariant(customConfig: Partial<RiseStrategyConfig> = {}) {
+            return new RiseStrategy(silentLogger, customConfig).config.variant;
+        }
+
+        it('should full variant key with all values', () => {
+            const key = getVariant({
+                maxWaitMs: 500,
+                buySlippageDecimal: 0.5,
+                sellSlippageDecimal: 0.4,
+                buyPriorityFeeInSol: 0.03,
+                sellPriorityFeeInSol: 0.07,
+                buy: {
+                    holdersCount: {
+                        min: 1,
+                        max: 2,
+                    },
+                    marketCap: {
+                        min: 2,
+                        max: 77,
+                    },
+                },
+                sell: {
+                    takeProfitPercentage: 10,
+                    trailingStopLossPercentage: 15,
+                    stopLossPercentage: 33,
+                    trailingTakeProfit: {
+                        profitPercentage: 30,
+                        stopPercentage: 5,
+                    },
+                },
+            });
+            expect(key).toBe('buy(hc:l1-h2_mc:l2-h77)_sell(tpp:10_tslp:15_slp:33_ttp(pp:30:sp:5))');
+        });
+
+        it('should exclude undefined values and use defaults', () => {
+            const key = getVariant({
+                buy: {
+                    bondingCurveProgress: {
+                        min: 30,
+                    },
+                },
+            });
+            expect(key).toBe('buy(bcp:l30)_sell(tslp:15_tpp:15)');
         });
     });
 });

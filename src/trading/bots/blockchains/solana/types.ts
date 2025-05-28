@@ -22,11 +22,13 @@ export type PumpfunSellPositionMetadata = {
     sellPriceInSol: number;
 };
 
+export type HistoryRef = {
+    timestamp: number;
+    index: number;
+};
+
 export type BacktestTradeOrigin = {
-    historyRef: {
-        timestamp: number;
-        index: number;
-    };
+    historyRef: HistoryRef;
 };
 
 export type BoughtSold = {

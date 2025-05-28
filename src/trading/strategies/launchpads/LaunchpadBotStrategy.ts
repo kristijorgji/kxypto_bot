@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 
+import { HistoryRef } from '../../bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
 import { ShouldBuyResponse, ShouldExitMonitoringResponse, ShouldSellResponse } from '../../bots/types';
 import { AfterBuyResponse, LaunchpadBuyPosition, StrategyConfig } from '../types';
@@ -29,11 +30,21 @@ export default abstract class LaunchpadBotStrategy {
         },
     ): ShouldExitMonitoringResponse;
 
-    abstract shouldBuy(mint: string, context: MarketContext, history: HistoryEntry[]): Promise<ShouldBuyResponse>;
+    abstract shouldBuy(
+        mint: string,
+        historyRef: HistoryRef,
+        context: MarketContext,
+        history: HistoryEntry[],
+    ): Promise<ShouldBuyResponse>;
 
     abstract afterBuy(buyPrice: number, buyPosition: LaunchpadBuyPosition): AfterBuyResponse;
 
-    abstract shouldSell(mint: string, context: MarketContext, history: HistoryEntry[]): Promise<ShouldSellResponse>;
+    abstract shouldSell(
+        mint: string,
+        historyRef: HistoryRef,
+        context: MarketContext,
+        history: HistoryEntry[],
+    ): Promise<ShouldSellResponse>;
 
     abstract afterSell(): void;
 

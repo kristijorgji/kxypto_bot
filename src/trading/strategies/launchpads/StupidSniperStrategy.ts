@@ -1,6 +1,7 @@
 import { Logger } from 'winston';
 
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
+import { deepClone } from '../../../utils/data/data';
 import { ShouldBuyResponse, ShouldExitMonitoringResponse } from '../../bots/types';
 import { StrategyConfig, StrategySellConfig } from '../types';
 
@@ -16,7 +17,7 @@ export default class StupidSniperStrategy extends LimitsBasedStrategy {
         - Use trailing stop loss to lock in profits while allowing for continued growth.
     `;
 
-    readonly config: StupidSniperStrategyConfig = {
+    static readonly defaultConfig: StupidSniperStrategyConfig = {
         maxWaitMs: 5 * 60 * 1e3,
         buySlippageDecimal: 0.25,
         sellSlippageDecimal: 0.25,
@@ -28,6 +29,8 @@ export default class StupidSniperStrategy extends LimitsBasedStrategy {
             },
         },
     };
+
+    readonly config: StupidSniperStrategyConfig = deepClone(StupidSniperStrategy.defaultConfig);
 
     constructor(readonly logger: Logger, config?: Partial<StupidSniperStrategyConfig>) {
         super(logger);

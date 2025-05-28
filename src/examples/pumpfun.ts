@@ -74,7 +74,7 @@ async function start() {
                     sleepMs: 250,
                 }),
             );
-        } catch (e) {
+        } catch (_) {
             logger.warn('Failed to fetch full token initial data, will use our own fallback');
             initialCoinData = await pumpfun.getInitialCoinBaseData(tokenMint);
         }

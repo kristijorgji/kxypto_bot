@@ -3,6 +3,7 @@ import { createLogger } from 'winston';
 
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import { solToLamports } from '../../blockchains/utils/amount';
+import { redis } from '../../cache/cache';
 import { db } from '../../db/knex';
 import { storeBacktest, storeBacktestStrategyResult } from '../../db/repositories/backtests';
 import { logger } from '../../logger';
@@ -43,6 +44,7 @@ const riseStrategyConfigGenerator = new RiseStrategyConfigGenerator();
 
 async function cleanup() {
     await db.destroy();
+    redis.disconnect();
 }
 
 /**
@@ -138,6 +140,7 @@ async function findBestStrategy() {
             '='.repeat(100),
         );
 
+        const strategyStartTime = process.hrtime();
         const sr = await runStrategy(
             {
                 backtester: backtester,
@@ -151,10 +154,22 @@ async function findBestStrategy() {
             strategy: runConfig.strategy,
             result: sr,
         });
-        tested++;
+        const executionTime = process.hrtime(strategyStartTime);
+        const executionTimeInS = (executionTime[0] * 1e9 + executionTime[1]) / 1e9;
 
-        logStrategyResult(logger, sr, tested, total);
-        await storeBacktestStrategyResult(backtestId, runConfig.strategy, sr);
+        logStrategyResult(
+            logger,
+            {
+                strategyId: runConfig.strategy.identifier,
+                tested: tested,
+                total: total,
+                executionTimeInS: executionTimeInS,
+            },
+            sr,
+        );
+        await storeBacktestStrategyResult(backtestId, runConfig.strategy, sr, executionTimeInS);
+
+        tested++;
     }
 
     results.sort((a, b) => b.result.totalPnlInSol - a.result.totalPnlInSol);

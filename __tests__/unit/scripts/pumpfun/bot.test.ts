@@ -18,18 +18,18 @@ import { pumpfunRepository } from '../../../../src/db/repositories/PumpfunReposi
 import { insertLaunchpadTokenResult } from '../../../../src/db/repositories/tokenAnalytics';
 import ArrayTransport from '../../../../src/logger/transports/ArrayTransport';
 import { Config, start } from '../../../../src/scripts/pumpfun/bot';
-import {NewPumpFunCoinDataFactory, NewPumpFunTokenDataFactory} from '../../../../src/testdata/factories/pumpfun';
+import { NewPumpFunCoinDataFactory, NewPumpFunTokenDataFactory } from '../../../../src/testdata/factories/pumpfun';
 import isTokenCreatorSafe from '../../../../src/trading/bots/blockchains/solana/isTokenCreatorSafe';
-import PumpfunBot, {ErrorMessage} from '../../../../src/trading/bots/blockchains/solana/PumpfunBot';
+import PumpfunBot, { ErrorMessage } from '../../../../src/trading/bots/blockchains/solana/PumpfunBot';
 import PumpfunBotEventBus from '../../../../src/trading/bots/blockchains/solana/PumpfunBotEventBus';
 import {
     BotExitResponse,
     BotResponse,
     BotTradeResponse,
-    TradeTransaction
+    TradeTransaction,
 } from '../../../../src/trading/bots/blockchains/solana/types';
-import {readLocalFixture} from '../../../__utils/data';
-import {FullTestExpectation} from '../../../__utils/types';
+import { readLocalFixture } from '../../../__utils/data';
+import { FullTestExpectation } from '../../../__utils/types';
 
 /**
  * 3rd party mocks
@@ -110,7 +110,7 @@ describe('bot', () => {
     const logger = createLogger({
         level: 'silly',
         format: format.combine(format.errors({ stack: true }), format.splat(), format.json()),
-    })
+    });
     let logs: LogEntry[] = [];
     let mockReturnsState = emptyMockReturnsState();
 
@@ -123,21 +123,17 @@ describe('bot', () => {
     beforeAll(() => {
         jest.useFakeTimers();
         jest.setSystemTime(new Date('2021-03-19T10:00:00Z'));
-    })
+    });
 
     beforeEach(() => {
         logs = [];
-        logger
-            .clear()
-            .add(new ArrayTransport({ array: logs, json: true, format: format.splat() }));
+        logger.clear().add(new ArrayTransport({ array: logs, json: true, format: format.splat() }));
 
         (solanaConnection.getBalance as jest.Mock).mockResolvedValue(solToLamports(1.52));
 
-        (PumpfunQueuedListener as jest.Mock).mockImplementation((...args: ConstructorParameters<typeof PumpfunQueuedListener>) => {
-            return mockPumpfunQueuedListener(
-                args,
-                data => mockReturnsState.dispatchedPumpfunTokens.push(data),
-                {
+        (PumpfunQueuedListener as jest.Mock).mockImplementation(
+            (...args: ConstructorParameters<typeof PumpfunQueuedListener>) => {
+                return mockPumpfunQueuedListener(args, data => mockReturnsState.dispatchedPumpfunTokens.push(data), {
                     sleepTime: 500,
                     tokens: [
                         NewPumpFunTokenDataFactory({
@@ -159,9 +155,9 @@ describe('bot', () => {
                             user: 'creator_3',
                         }),
                     ],
-                },
-            );
-        });
+                });
+            },
+        );
 
         (Pumpfun as unknown as jest.Mock).mockImplementation(() => {
             return {
@@ -206,7 +202,7 @@ describe('bot', () => {
         buyInSol: 0.4,
         maxFullTrades: null,
         stopAtMinWalletBalanceLamports: null,
-    }
+    };
 
     const startDeps = {
         logger: logger,
@@ -214,54 +210,55 @@ describe('bot', () => {
     };
 
     it('1 - should receive tokens, create bots for each of them and store the results', async () => {
-        pumpfunBotMock.run.mockImplementation(async (_: string, initialCoinData: PumpfunInitialCoinData): Promise<BotResponse> => {
-            let netPnlInSol: number | undefined;
-            if (initialCoinData.mint === mockReturnsState.returnedCoinDataWithRetries[0].mint) {
-                netPnlInSol = 0.534;
-            } else if (initialCoinData.mint === mockReturnsState.returnedCoinDataWithRetries[1].mint) {
-                netPnlInSol = 0.772;
-            }
+        pumpfunBotMock.run.mockImplementation(
+            async (_: string, initialCoinData: PumpfunInitialCoinData): Promise<BotResponse> => {
+                let netPnlInSol: number | undefined;
+                if (initialCoinData.mint === mockReturnsState.returnedCoinDataWithRetries[0].mint) {
+                    netPnlInSol = 0.534;
+                } else if (initialCoinData.mint === mockReturnsState.returnedCoinDataWithRetries[1].mint) {
+                    netPnlInSol = 0.772;
+                }
 
-            if (netPnlInSol) {
-                const buyTransaction = {
-                    transactionType: 'buy',
-                    netTransferredLamports: -solToLamports(startConfig.buyInSol!),
-                } as TradeTransaction;
-                botEventBus.tradeExecuted(buyTransaction);
+                if (netPnlInSol) {
+                    const buyTransaction = {
+                        transactionType: 'buy',
+                        netTransferredLamports: -solToLamports(startConfig.buyInSol!),
+                    } as TradeTransaction;
+                    botEventBus.tradeExecuted(buyTransaction);
 
-                const sellTransaction = {
-                    transactionType: 'sell',
-                    netTransferredLamports: solToLamports(startConfig.buyInSol! + netPnlInSol),
-                } as TradeTransaction;
-                botEventBus.tradeExecuted(sellTransaction);
+                    const sellTransaction = {
+                        transactionType: 'sell',
+                        netTransferredLamports: solToLamports(startConfig.buyInSol! + netPnlInSol),
+                    } as TradeTransaction;
+                    botEventBus.tradeExecuted(sellTransaction);
 
-                const botTradeResponse: BotTradeResponse = {
-                    netPnl: {
-                        inSol: netPnlInSol,
-                        inLamports: solToLamports(netPnlInSol),
-                    },
-                    transactions: [buyTransaction, sellTransaction],
+                    const botTradeResponse: BotTradeResponse = {
+                        netPnl: {
+                            inSol: netPnlInSol,
+                            inLamports: solToLamports(netPnlInSol),
+                        },
+                        transactions: [buyTransaction, sellTransaction],
+                        history: [],
+                    };
+                    botEventBus.botTradeResponse(botTradeResponse);
+
+                    return botTradeResponse;
+                }
+
+                return {
+                    exitCode: 'DUMPED',
+                    exitReason:
+                        'Stopped monitoring token because it was probably dumped and current market cap is less than the initial one',
                     history: [],
-                };
-                botEventBus.botTradeResponse(botTradeResponse);
-
-                return botTradeResponse;
-            }
-
-            return {
-                exitCode: 'DUMPED',
-                exitReason:
-                    'Stopped monitoring token because it was probably dumped and current market cap is less than the initial one',
-                history: [],
-                // eslint-disable-next-line prettier/prettier
-            } satisfies BotExitResponse;
-        });
+                } satisfies BotExitResponse;
+            },
+        );
 
         await start(startConfig, startDeps);
 
         const expected = readLocalFixture<FullTestExpectation>('bot/1');
 
-        expect((pumpfunRepository.insertToken as jest.Mock)).toHaveBeenCalledTimes(3);
+        expect(pumpfunRepository.insertToken as jest.Mock).toHaveBeenCalledTimes(3);
         expect((pumpfunRepository.insertToken as jest.Mock).mock.calls).toEqual([
             [pumpCoinDataToInitialCoinData(mockReturnsState.returnedCoinDataWithRetries[0])],
             [pumpCoinDataToInitialCoinData(mockReturnsState.returnedCoinDataWithRetries[1])],
@@ -271,13 +268,15 @@ describe('bot', () => {
         expect(isTokenCreatorSafe as jest.Mock).toHaveBeenCalledTimes(3);
         expect((isTokenCreatorSafe as jest.Mock).mock.calls).toEqual(expected.fnsCallArgs.isTokenCreatorSafe);
 
-        expect(pumpfunBotMock.run).toHaveBeenCalledTimes(3)
+        expect(pumpfunBotMock.run).toHaveBeenCalledTimes(3);
 
         expect(mockedFs.writeFileSync as jest.Mock).toHaveBeenCalledTimes(3);
         expect((mockedFs.writeFileSync as jest.Mock).mock.calls).toEqual(expected.fnsCallArgs['fs.writeFileSync']);
 
         expect(insertLaunchpadTokenResult as jest.Mock).toHaveBeenCalledTimes(3);
-        expect((insertLaunchpadTokenResult as jest.Mock).mock.calls).toEqual(expected.fnsCallArgs.insertLaunchpadTokenResult);
+        expect((insertLaunchpadTokenResult as jest.Mock).mock.calls).toEqual(
+            expected.fnsCallArgs.insertLaunchpadTokenResult,
+        );
 
         expect(db.destroy as jest.Mock).toHaveBeenCalledTimes(1);
 
@@ -313,7 +312,7 @@ describe('bot', () => {
         let timesCalledBusStopBot = 0;
         botEventBus.onStopBot(() => {
             timesCalledBusStopBot++;
-        })
+        });
 
         pumpfunBotMock.run.mockImplementation(async (): Promise<BotResponse> => {
             if (timesCalledBusStopBot === 0) {
@@ -327,10 +326,13 @@ describe('bot', () => {
             }
         });
 
-        await start({
-            ...startConfig,
-            maxFullTrades: 1,
-        }, startDeps);
+        await start(
+            {
+                ...startConfig,
+                maxFullTrades: 1,
+            },
+            startDeps,
+        );
 
         const expected = readLocalFixture<FullTestExpectation>('bot/5');
 

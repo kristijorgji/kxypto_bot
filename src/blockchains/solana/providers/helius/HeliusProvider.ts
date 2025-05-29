@@ -2,7 +2,6 @@ import { HeliusConfig, HeliusGetAssetsByOwnerResponse, HeliusGetTokenAccountsRes
 import { Asset, TokenHolder } from '../../types';
 
 export default class HeliusProvider {
-    // eslint-disable-next-line no-useless-constructor
     constructor(private readonly config: HeliusConfig) {}
 
     async getTokenHolders({

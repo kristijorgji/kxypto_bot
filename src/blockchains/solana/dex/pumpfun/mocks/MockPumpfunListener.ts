@@ -15,7 +15,7 @@ export default class MockPumpfunListener implements PumpfunListener {
         maxTokens?: number | null;
         tokens?: NewPumpFunTokenData[] | null;
     }) {
-        this.maxTokens = config.tokens ? config.tokens.length : config.maxTokens ?? 1e6;
+        this.maxTokens = config.tokens ? config.tokens.length : (config.maxTokens ?? 1e6);
         this.sleepTime = config.sleepTime;
         this.tokensToReturn = config.tokens ?? null;
     }

@@ -70,7 +70,6 @@ export abstract class LimitsBasedStrategy extends LaunchpadBotStrategy {
         return r;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async shouldSell(
         _mint: string,
         _historyRef: HistoryRef,

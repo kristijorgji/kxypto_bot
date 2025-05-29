@@ -22,7 +22,6 @@ describe('PredictionStrategy', () => {
     const logger = createLogger({
         level: 'silly',
     });
-    // eslint-disable-next-line new-cap
     const redisMockInstance = new redisMock();
     const sourceConfig: PredictionSource = {
         model: 'test_rsi7',

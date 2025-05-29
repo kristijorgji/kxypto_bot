@@ -1,7 +1,6 @@
 import fs from 'fs';
 
 import dotenv from 'dotenv';
-/* eslint-disable import/first */
 dotenv.config();
 import { Logger } from 'winston';
 

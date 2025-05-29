@@ -8,7 +8,6 @@ export default class PumpfunQueuedListener {
     private inProgress = 0;
     private taskIndex: number = 0;
 
-    // eslint-disable-next-line no-useless-constructor
     constructor(
         private readonly logger: Logger,
         private readonly pumpfun: PumpfunListener,

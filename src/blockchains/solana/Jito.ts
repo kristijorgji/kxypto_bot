@@ -7,7 +7,7 @@ const JITO_MAINNET_ENDPOINTS = [
     'https://slc.mainnet.block-engine.jito.wtf',
 ] as const;
 
-export type JitoEndpoint = typeof JITO_MAINNET_ENDPOINTS[number];
+export type JitoEndpoint = (typeof JITO_MAINNET_ENDPOINTS)[number];
 
 const TIP_ACCOUNTS = [
     '96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5',
@@ -38,7 +38,6 @@ export const TIP_LAMPORTS = 150000; // 0,00015 SOL
  * https://github.dev/rayorole/pumpdotfun-sdk#readme
  */
 export default class Jito {
-    // eslint-disable-next-line no-useless-constructor
     constructor(private readonly config?: { endpoint?: JitoEndpoint }) {}
 
     /**

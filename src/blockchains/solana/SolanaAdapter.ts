@@ -8,7 +8,6 @@ import { IfpsMetadata, TokenHolder, TokenInWalletFullInfo } from './types';
 import { getTokenIfpsMetadata } from './utils/tokens';
 
 export default class SolanaAdapter {
-    // eslint-disable-next-line no-useless-constructor
     constructor(private readonly connection: Connection) {}
 
     async getCirculatingSupply(tokenAddress: string) {

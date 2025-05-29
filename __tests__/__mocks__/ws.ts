@@ -5,7 +5,6 @@ class CustomMockWebSocket extends MockWebSocket {
     listeners: { [key: string]: Function[] } = {};
     static sendMockFn = jest.fn();
 
-    // eslint-disable-next-line no-useless-constructor
     constructor(url: string) {
         super(url);
     }

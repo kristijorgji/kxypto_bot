@@ -54,7 +54,6 @@ export function makeUnique<T>(nr: number, factory: () => T, initialBatch: T[] | 
         return makeUnique(nr, factory, batch);
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     makeUnique.c = 0;
 

@@ -19,7 +19,6 @@ type PumpTokenOther = {
 };
 
 export default class PumpfunRepository {
-    // eslint-disable-next-line no-useless-constructor
     constructor(private readonly db: Knex) {}
 
     async insertToken(data: PumpfunInitialCoinData): Promise<void> {

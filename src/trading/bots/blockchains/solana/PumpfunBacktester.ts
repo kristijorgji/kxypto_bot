@@ -3,8 +3,10 @@ import { Logger } from 'winston';
 import { formSolBoughtOrSold, formTokenBoughtOrSold } from './PumpfunBot';
 import {
     BacktestResponse,
-    BacktestRunConfig, BacktestTradeOrigin,
-    PumpfunBuyPositionMetadata, PumpfunSellPositionMetadata,
+    BacktestRunConfig,
+    BacktestTradeOrigin,
+    PumpfunBuyPositionMetadata,
+    PumpfunSellPositionMetadata,
     TradeTransaction,
 } from './types';
 import { PUMPFUN_TOKEN_DECIMALS } from '../../../../blockchains/solana/dex/pumpfun/constants';
@@ -23,7 +25,7 @@ import {
 } from '../../../../blockchains/solana/utils/simulations';
 import { lamportsToSol, solToLamports } from '../../../../blockchains/utils/amount';
 import { HistoryEntry } from '../../launchpads/types';
-import {SellReason, ShouldBuyResponse} from '../../types';
+import { SellReason, ShouldBuyResponse } from '../../types';
 
 const BacktestWallet = '_backtest_';
 
@@ -31,7 +33,6 @@ export default class PumpfunBacktester {
     public static readonly DefaultStaticPriorityFeeInSol = 0.005;
     public static readonly PumpfunAccountCreationFeeLamports = 4045000;
 
-    // eslint-disable-next-line no-useless-constructor
     constructor(private readonly logger: Logger) {}
 
     async run(
@@ -98,12 +99,9 @@ export default class PumpfunBacktester {
                      * buy time (because usually within 25% of time request reaches the server,
                      * the rest of the buy function is validating, storing and fetching from the blockchain)
                      */
-                    const buyPrice = history[
-                        getClosestEntryIndex(
-                            history,
-                            i,
-                            marketContext.timestamp + 0.25 * simulatedBuyLatencyMs,
-                        )
+                    const buyPrice =
+                        history[
+                            getClosestEntryIndex(history, i, marketContext.timestamp + 0.25 * simulatedBuyLatencyMs)
                         ].price;
                     const buyPriceDiffPercentageDecimal = (buyPrice - price) / price;
                     return {
@@ -127,12 +125,16 @@ export default class PumpfunBacktester {
             }
 
             let shouldBuyRes: ShouldBuyResponse | undefined;
-            if (balanceLamports >= minBalanceToBuyLamports &&
-                !strategy.buyPosition) {
-                shouldBuyRes =  await strategy.shouldBuy(tokenInfo.mint, {
-                    timestamp: marketContext.timestamp,
-                    index: i,
-                }, marketContext, historySoFar);
+            if (balanceLamports >= minBalanceToBuyLamports && !strategy.buyPosition) {
+                shouldBuyRes = await strategy.shouldBuy(
+                    tokenInfo.mint,
+                    {
+                        timestamp: marketContext.timestamp,
+                        index: i,
+                    },
+                    marketContext,
+                    historySoFar,
+                );
             }
             if (shouldBuyRes?.buy === true) {
                 const txDetails = simulateSolTransactionDetails(
@@ -143,10 +145,15 @@ export default class PumpfunBacktester {
                 holdingsRaw += calculateRawTokenHoldings(buyAmountSol, price);
                 balanceLamports += txDetails.netTransferredLamports;
 
-                const buyPosition: TradeTransaction<BacktestTradeOrigin & PumpfunBuyPositionMetadata & {buyRes: {
-                    reason: string;
-                    data?: Record<string, unknown>
-                    }}> = {
+                const buyPosition: TradeTransaction<
+                    BacktestTradeOrigin &
+                        PumpfunBuyPositionMetadata & {
+                            buyRes: {
+                                reason: string;
+                                data?: Record<string, unknown>;
+                            };
+                        }
+                > = {
                     timestamp: Date.now(),
                     transactionType: 'buy',
                     subCategory: tradeHistory.find(e => e.transactionType === 'buy') ? 'accumulation' : 'newPosition',
@@ -173,8 +180,8 @@ export default class PumpfunBacktester {
                         pumpBuyPriceInSol: buyPrice,
                         buyRes: {
                             reason: shouldBuyRes.reason,
-                            ...(shouldBuyRes.data? {data: shouldBuyRes.data} : {})
-                        }
+                            ...(shouldBuyRes.data ? { data: shouldBuyRes.data } : {}),
+                        },
                     },
                 };
                 tradeHistory.push(buyPosition);
@@ -209,10 +216,15 @@ export default class PumpfunBacktester {
             }
 
             if (strategy.buyPosition) {
-                const shouldSellRes = await strategy.shouldSell(tokenInfo.mint, {
-                    timestamp: marketContext.timestamp,
-                    index: i,
-                }, marketContext, historySoFar);
+                const shouldSellRes = await strategy.shouldSell(
+                    tokenInfo.mint,
+                    {
+                        timestamp: marketContext.timestamp,
+                        index: i,
+                    },
+                    marketContext,
+                    historySoFar,
+                );
                 if (shouldSellRes !== false) {
                     sell = {
                         reason: shouldSellRes.reason,
@@ -270,7 +282,8 @@ export default class PumpfunBacktester {
                         return {
                             sellPrice: sellPrice,
                             receivedAmountLamports:
-                                calculatePumpTokenLamportsValue(holdingsRaw, price) * (1 + sellPriceDiffPercentageDecimal),
+                                calculatePumpTokenLamportsValue(holdingsRaw, price) *
+                                (1 + sellPriceDiffPercentageDecimal),
                         };
                     } else {
                         throw new Error(`Unknown randomization.slippages mode ${randomization.slippages} was provided`);
@@ -307,7 +320,6 @@ export default class PumpfunBacktester {
                         pumpMinLamportsOutput: holdingsRaw,
                         sellPriceInSol: sellPrice,
                     },
-                    // eslint-disable-next-line prettier/prettier
                 } satisfies TradeTransaction<BacktestTradeOrigin & PumpfunSellPositionMetadata>);
 
                 balanceLamports += txDetails.netTransferredLamports;
@@ -377,7 +389,7 @@ function _generateFakeBacktestTransactionHash() {
 }
 
 export function getJitoTipLamports(jitoConfig?: JitoConfig): number {
-    return jitoConfig?.jitoEnabled ? jitoConfig.tipLamports ?? TIP_LAMPORTS : 0;
+    return jitoConfig?.jitoEnabled ? (jitoConfig.tipLamports ?? TIP_LAMPORTS) : 0;
 }
 
 function calculateRawTokenHoldings(amountSol: number, priceSol: number): number {

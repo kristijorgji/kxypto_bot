@@ -32,7 +32,10 @@ export default class StupidSniperStrategy extends LimitsBasedStrategy {
 
     readonly config: StupidSniperStrategyConfig = deepClone(StupidSniperStrategy.defaultConfig);
 
-    constructor(readonly logger: Logger, config?: Partial<StupidSniperStrategyConfig>) {
+    constructor(
+        readonly logger: Logger,
+        config?: Partial<StupidSniperStrategyConfig>,
+    ) {
         super(logger);
         if (config) {
             this.config = {

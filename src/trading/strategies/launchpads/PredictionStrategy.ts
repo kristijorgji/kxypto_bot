@@ -9,7 +9,7 @@ import { IntervalConfig, StrategyConfig, StrategySellConfig } from '../types';
 import { shouldBuyStateless, shouldExitLaunchpadToken } from './common';
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
 import { variantFromBuyContext, variantFromSellConfig } from './variant-builder';
-import {deepClone} from '../../../utils/data/data';
+import { deepClone } from '../../../utils/data/data';
 import { deepEqual } from '../../../utils/data/equals';
 import { HistoryRef } from '../../bots/blockchains/solana/types';
 
@@ -98,7 +98,7 @@ export default class PredictionStrategy extends LimitsBasedStrategy {
             trailingStopLossPercentage: 15,
             takeProfitPercentage: 15,
         },
-    }
+    };
 
     readonly config: PredictionStrategyConfig = deepClone(PredictionStrategy.defaultConfig);
 
@@ -183,8 +183,8 @@ export default class PredictionStrategy extends LimitsBasedStrategy {
                         holdersCount: e.holdersCount,
                         devHoldingPercentage: e.devHoldingPercentage,
                         topTenHoldingPercentage: e.topTenHoldingPercentage,
-                        // eslint-disable-next-line prettier/prettier
-            } satisfies PredictPricesRequest['features'][number])),
+                    }) satisfies PredictPricesRequest['features'][number],
+            ),
         };
 
         // because the scaler will use 0 value if all features are exactly same objects, while excluding the timestamp that always changes

@@ -127,7 +127,6 @@ describe(PumpfunBot.name, () => {
 
     it('should fail to construct when buyMonitorWaitPeriodMs is not a multiple of sellMonitorWaitPeriodMs', () => {
         expect(() => {
-            // eslint-disable-next-line no-new
             new PumpfunBot({
                 logger: logger,
                 pumpfun: pumpfun,

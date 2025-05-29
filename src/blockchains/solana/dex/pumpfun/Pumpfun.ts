@@ -1,3 +1,5 @@
+import { clearTimeout } from 'node:timers';
+
 import { deserializeMetadata } from '@metaplex-foundation/mpl-token-metadata';
 import { RpcAccount } from '@metaplex-foundation/umi';
 import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } from '@solana/spl-token';
@@ -72,6 +74,7 @@ export default class Pumpfun implements PumpfunListener {
 
     private listeningToNewTokens = false;
     private ws: WebSocket | undefined;
+    private relistenTimeout: ReturnType<typeof setTimeout> | undefined;
 
     private static readonly getTxDetailsRetryConfig: RetryConfig = {
         maxRetries: 10,
@@ -138,7 +141,7 @@ export default class Pumpfun implements PumpfunListener {
             this.ws!.on('close', async (code, reason) => {
                 if (this.listeningToNewTokens) {
                     logger.debug(`Connection closed, code ${code}, reason ${reason}. Reconnecting in 5 seconds...`);
-                    await setTimeout(() => {
+                    this.relistenTimeout = setTimeout(() => {
                         this.listenForPumpFunTokens(onNewToken);
                     }, 5000);
                 } else {
@@ -150,7 +153,7 @@ export default class Pumpfun implements PumpfunListener {
 
             if (this.listeningToNewTokens) {
                 logger.debug('Reconnecting in 5 seconds...');
-                await setTimeout(() => {
+                this.relistenTimeout = setTimeout(() => {
                     this.listenForPumpFunTokens(onNewToken);
                 }, 5000);
             } else {
@@ -160,11 +163,12 @@ export default class Pumpfun implements PumpfunListener {
     }
 
     stopListeningToNewTokens(): void {
+        clearTimeout(this.relistenTimeout);
         this.listeningToNewTokens = false;
         if (this.ws) {
-            this.ws.removeAllListeners();
-            if (this.ws.readyState === WebSocket.OPEN) {
-                this.ws.close();
+            this.ws?.removeAllListeners && this.ws?.removeAllListeners();
+            if (this.ws?.readyState === WebSocket.OPEN) {
+                this.ws?.close();
             }
             this.ws = undefined;
         }
@@ -387,9 +391,8 @@ export default class Pumpfun implements PumpfunListener {
             tokenAccount = tokenAccountAddress;
         }
 
-        const { virtualTokenReserves, virtualSolReserves, priceInSol } = await this.getTokenBondingCurveStats(
-            tokenBondingCurve,
-        );
+        const { virtualTokenReserves, virtualSolReserves, priceInSol } =
+            await this.getTokenBondingCurveStats(tokenBondingCurve);
 
         const minLamportsOutput = Math.floor(
             (tokenBalance! * (1 - slippageDecimal) * virtualSolReserves) / virtualTokenReserves,

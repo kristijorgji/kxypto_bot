@@ -1,7 +1,10 @@
 export default class StopLossPercentage {
     private readonly _stopPrice: number;
 
-    constructor(entryPrice: number, public readonly stopPercentage: number) {
+    constructor(
+        entryPrice: number,
+        public readonly stopPercentage: number,
+    ) {
         if (entryPrice <= 0) {
             throw new Error('Entry price must be a positive value.');
         }

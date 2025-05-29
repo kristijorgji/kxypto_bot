@@ -49,7 +49,10 @@ export default class RiseStrategy extends LimitsBasedStrategy {
 
     readonly config: RiseStrategyConfig = deepClone(RiseStrategy.defaultConfig);
 
-    constructor(readonly logger: Logger, config?: Partial<RiseStrategyConfig>) {
+    constructor(
+        readonly logger: Logger,
+        config?: Partial<RiseStrategyConfig>,
+    ) {
         super(logger);
         if (config) {
             this.config = {

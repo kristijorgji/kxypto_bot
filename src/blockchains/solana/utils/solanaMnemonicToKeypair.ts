@@ -1,5 +1,3 @@
-/* eslint-disable quotes */
-
 import { Keypair } from '@solana/web3.js';
 import * as bip39 from 'bip39';
 import bs58 from 'bs58';

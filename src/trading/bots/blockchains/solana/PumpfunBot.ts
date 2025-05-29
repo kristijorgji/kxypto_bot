@@ -288,7 +288,6 @@ export default class PumpfunBot {
                 }
             }
 
-            // eslint-disable-next-line no-unreachable
             if (!actionInProgress && !strategy.buyPosition && buy) {
                 logger.info('We will start the buy buyInProgress=true');
                 buyInProgress = true;

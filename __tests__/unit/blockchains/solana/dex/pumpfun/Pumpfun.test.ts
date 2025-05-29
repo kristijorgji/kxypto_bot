@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies,import/no-named-as-default
 import WS from 'jest-websocket-mock';
 
 import Pumpfun, {
@@ -19,6 +18,7 @@ describe(Pumpfun.name, () => {
     afterEach(() => {
         WS.clean();
         jest.clearAllMocks();
+        pumpfun && pumpfun.stopListeningToNewTokens();
     });
 
     it('should monitor new tokens and notify with correctly parsed token data', async () => {
@@ -62,72 +62,72 @@ describe(Pumpfun.name, () => {
             },
         ]);
     });
+});
 
-    describe(simulatePumpBuyLatencyMs.name, () => {
-        it('should use randomised values when varyLatency is set to true', () => {
-            const firstValue = simulatePumpBuyLatencyMs(
-                0.005,
-                {
-                    jitoEnabled: false,
-                },
-                true,
-            );
-            const secondValue = simulatePumpBuyLatencyMs(
-                0.005,
-                {
-                    jitoEnabled: false,
-                },
-                true,
-            );
+describe(simulatePumpBuyLatencyMs.name, () => {
+    it('should use randomised values when varyLatency is set to true', () => {
+        const firstValue = simulatePumpBuyLatencyMs(
+            0.005,
+            {
+                jitoEnabled: false,
+            },
+            true,
+        );
+        const secondValue = simulatePumpBuyLatencyMs(
+            0.005,
+            {
+                jitoEnabled: false,
+            },
+            true,
+        );
 
-            expect(firstValue).not.toEqual(secondValue);
-        });
-
-        it('should use static avg value when varyLatency is set to false', () => {
-            for (let i = 0; i < 10; i++) {
-                const value = simulatePumpBuyLatencyMs(
-                    0.005,
-                    {
-                        jitoEnabled: false,
-                    },
-                    false,
-                );
-                expect(value).toEqual(2455.4174165);
-            }
-        });
+        expect(firstValue).not.toEqual(secondValue);
     });
 
-    describe(simulatePumpSellLatencyMs.name, () => {
-        it('should use randomised values when varyLatency is set to true', () => {
-            const firstValue = simulatePumpSellLatencyMs(
+    it('should use static avg value when varyLatency is set to false', () => {
+        for (let i = 0; i < 10; i++) {
+            const value = simulatePumpBuyLatencyMs(
                 0.005,
                 {
                     jitoEnabled: false,
                 },
-                true,
+                false,
             );
-            const secondValue = simulatePumpSellLatencyMs(
+            expect(value).toEqual(2455.4174165);
+        }
+    });
+});
+
+describe(simulatePumpSellLatencyMs.name, () => {
+    it('should use randomised values when varyLatency is set to true', () => {
+        const firstValue = simulatePumpSellLatencyMs(
+            0.005,
+            {
+                jitoEnabled: false,
+            },
+            true,
+        );
+        const secondValue = simulatePumpSellLatencyMs(
+            0.005,
+            {
+                jitoEnabled: false,
+            },
+            true,
+        );
+
+        expect(firstValue).not.toEqual(secondValue);
+    });
+
+    it('should use static avg value when varyLatency is set to false', () => {
+        for (let i = 0; i < 10; i++) {
+            const value = simulatePumpSellLatencyMs(
                 0.005,
                 {
                     jitoEnabled: false,
                 },
-                true,
+                false,
             );
-
-            expect(firstValue).not.toEqual(secondValue);
-        });
-
-        it('should use static avg value when varyLatency is set to false', () => {
-            for (let i = 0; i < 10; i++) {
-                const value = simulatePumpSellLatencyMs(
-                    0.005,
-                    {
-                        jitoEnabled: false,
-                    },
-                    false,
-                );
-                expect(value).toEqual(1941.5134375);
-            }
-        });
+            expect(value).toEqual(1941.5134375);
+        }
     });
 });

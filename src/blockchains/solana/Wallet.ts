@@ -17,7 +17,6 @@ export default class Wallet {
     private simulate: boolean = false;
     private _balanceLamports: number = -1;
 
-    // eslint-disable-next-line no-useless-constructor
     constructor(
         private readonly connection: Connection,
         private readonly config: { mnemonic: string; provider: keyof typeof SolanaWalletProviders },

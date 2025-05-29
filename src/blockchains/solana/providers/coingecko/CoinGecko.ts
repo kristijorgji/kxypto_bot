@@ -4,7 +4,6 @@ import { CoinGeckoExchangeRateResponse, ExchangeRateConfig, ExchangeRateResponse
 import { logger } from '../../../../logger';
 
 export default class CoinGecko {
-    // eslint-disable-next-line no-useless-constructor
     constructor(private readonly axios: AxiosInstance) {}
 
     async getExchangeRate({ coin, currency }: ExchangeRateConfig): Promise<ExchangeRateResponse> {

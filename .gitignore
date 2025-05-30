@@ -115,6 +115,7 @@ reports
 
 .env*
 !.env.example
+!.env.test
 build/
 /data/
 

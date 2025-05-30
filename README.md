@@ -38,6 +38,7 @@ Features:
 
 1. run `yarn install`
 2. copy `.env.example` into `.env.` and fill in your values
+3. fill in proper values to `.env.test` when running tests with jest
 
 It is recommended to use fast Solana nodes.
 

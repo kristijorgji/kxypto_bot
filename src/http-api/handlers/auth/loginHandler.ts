@@ -12,6 +12,15 @@ type RequestBody = {
     password: string;
 };
 
+export type LoginResponse = {
+    userId: string;
+    sessionId: string;
+    accessToken: string;
+    accessTokenExpiresAt: string;
+    refreshToken: string;
+    refreshTokenExpiresAt: string;
+};
+
 export default async (req: Request, res: ExpressResponse) => {
     const body = req.body as RequestBody;
 
@@ -74,5 +83,5 @@ export default async (req: Request, res: ExpressResponse) => {
         accessTokenExpiresAt: formatDateIso8601WithOffset(accessToken.expiresAt),
         refreshToken: refreshToken.token,
         refreshTokenExpiresAt: formatDateIso8601WithOffset(refreshToken.expiresAt),
-    });
+    } satisfies LoginResponse);
 };

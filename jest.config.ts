@@ -6,7 +6,9 @@ const SRC_PATH = '<rootDir>';
 export default {
     testEnvironment: 'node',
     preset: 'ts-jest',
-    setupFilesAfterEnv: ['<rootDir>/jest-setup.ts'],
+    setupFilesAfterEnv: ['<rootDir>/jest/setup.ts'],
+    globalSetup: '<rootDir>/jest/globalSetup.ts',
+    globalTeardown: '<rootDir>/jest/globalTeardown.ts',
     testMatch: ['**/__tests__/**/*.test.ts'],
     collectCoverage: true,
     collectCoverageFrom: [
@@ -18,10 +20,10 @@ export default {
     ],
     coverageThreshold: {
         global: {
-            statements: 49,
+            statements: 50,
             branches: 50,
             functions: 40,
-            lines: 45,
+            lines: 50,
         },
     },
     moduleNameMapper: {

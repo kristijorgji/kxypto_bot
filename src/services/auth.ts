@@ -57,7 +57,7 @@ export async function generateAccessToken(
             config.secret,
             {
                 issuer: config.issuer,
-                expiresIn: config.expiry,
+                expiresIn: expiresInMs,
             },
         ),
         expiresAt: expiryDate,
@@ -89,7 +89,7 @@ export async function generateRefreshToken(
         config.secret,
         {
             issuer: config.issuer,
-            expiresIn: config.expiry,
+            expiresIn: expiresInMs,
         },
     );
 

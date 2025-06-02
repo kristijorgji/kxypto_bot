@@ -1,5 +1,5 @@
 import { MarketContext } from '../../bots/launchpads/types';
-import { IntervalConfig, StrategySellConfig } from '../types';
+import { IntervalConfig, StrategyPredictionConfig, StrategySellConfig } from '../types';
 
 export function variantFromBuyContext(context: Partial<Record<keyof MarketContext, IntervalConfig>>): string {
     const abbreviations: Record<keyof MarketContext, string> = {
@@ -66,6 +66,29 @@ export function variantFromSellConfig(c: StrategySellConfig): string {
             r += `${abbreviations[cKey]}:${value}`;
         }
 
+        first = false;
+    }
+
+    return r;
+}
+
+export function variantFromPredictionConfig(c: StrategyPredictionConfig): string {
+    const parts: Record<string, string | undefined | boolean | number> = {
+        skf: c.skipAllSameFeatures,
+        rql: c.requiredFeaturesLength,
+        upfl: c.upToFeaturesLength,
+    };
+
+    let r = '';
+    let first = true;
+
+    for (const key in parts) {
+        const val = parts[key];
+        if (val === undefined) {
+            continue;
+        }
+
+        r = `${r}${first ? '' : '_'}${key}:${val?.toString()}`;
         first = false;
     }
 

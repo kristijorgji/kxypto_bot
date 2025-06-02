@@ -261,6 +261,59 @@ describe('runStrategy', () => {
 
         expect(actual).toEqual(readLocalFixture<FullTestExpectation>('utils/4.json').result);
     });
+
+    it('5 - should stop checking next mints if remaining balance is less than buy amount', async () => {
+        const histories: Record<string, HistoryEntry[]> = {
+            fla: [
+                // it will buy here as we set all conditions to match the strategy buy config
+                formHistoryEntry({
+                    timestamp: 1,
+                    price: 10,
+                }),
+                // it will sell here
+                formHistoryEntry({
+                    timestamp: 2,
+                    price: 3,
+                }),
+            ],
+            flb: [
+                // should buy here but this will be skipped as won't have enough balance
+                formHistoryEntry({
+                    timestamp: 1,
+                    price: 8,
+                }),
+            ],
+        };
+        mockFsReadFileSync(histories);
+
+        const actual = await runStrategy(
+            runStrategyDeps,
+            {
+                ...runConfig,
+                strategy: new StupidSniperStrategy(logger, {
+                    sell: {
+                        takeProfitPercentage: 100,
+                        stopLossPercentage: 10,
+                    },
+                }),
+            },
+            Object.keys(histories).map(key => ({
+                fullPath: `tmp_test/${key}.json`,
+                name: `${key}.json`,
+                creationTime: new Date(),
+            })),
+        );
+
+        const expectedData = readLocalFixture<FullTestExpectation>('utils/5.json');
+
+        expect(actual).toEqual(expectedData.result);
+        expect(logs).toEqual(expectedData.logs);
+        expect(
+            logs.some(l =>
+                l.message.includes('[0] Stopping because reached balance (0.473145 SOL) <= buyAmount (0.5 SOL)'),
+            ),
+        ).toBeTruthy();
+    });
 });
 
 function mockFsReadFileSync(histories: Record<string, HistoryEntry[]>) {

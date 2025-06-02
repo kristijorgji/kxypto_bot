@@ -7,17 +7,20 @@ import { LogEntry, createLogger, format } from 'winston';
 import ArrayTransport from '../../../../../src/logger/transports/ArrayTransport';
 import { HistoryRef } from '../../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry } from '../../../../../src/trading/bots/launchpads/types';
-import PredictionStrategy, {
-    PredictPricesRequest,
+import PricePredictionStrategy, {
+    PricePredictionStrategyConfig,
+} from '../../../../../src/trading/strategies/launchpads/PricePredictionStrategy';
+import {
+    PredictionRequest,
     PredictionSource,
-    PredictionStrategyConfig,
-} from '../../../../../src/trading/strategies/launchpads/PredictionStrategy';
+    StrategyPredictionConfig,
+} from '../../../../../src/trading/strategies/types';
 import { deepEqual } from '../../../../../src/utils/data/equals';
 import { readFixture, readLocalFixture } from '../../../../__utils/data';
 
 const mockServer = setupServer();
 
-describe('PredictionStrategy', () => {
+describe('PricePredictionStrategy', () => {
     let logs: LogEntry[] = [];
     const logger = createLogger({
         level: 'silly',
@@ -28,16 +31,29 @@ describe('PredictionStrategy', () => {
         endpoint: process.env.PRICE_PREDICTION_ENDPOINT as string,
     };
     const config = {
-        requiredFeaturesLength: 10,
+        prediction: {
+            requiredFeaturesLength: 10,
+            skipAllSameFeatures: true,
+        } satisfies StrategyPredictionConfig,
         buy: {
             minPredictedPriceIncreasePercentage: 15,
         },
     };
-    let strategy: PredictionStrategy;
+    let strategy: PricePredictionStrategy;
 
     const historyRef: HistoryRef = {
         timestamp: 1740056426861,
         index: 10,
+    };
+    const mint = '2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx';
+    const history: HistoryEntry[] = readFixture<{ history: HistoryEntry[] }>(
+        'backtest/pumpfun/B6eQdRcdYhuFxXKx75jumoMGkZCE4LCeobSDgZNzpump',
+    ).history;
+    const dummyApiSuccessResponse = {
+        predicted_prices: [
+            1.890614874462375e-7, 1.990614874462375e-7, 2.110614874462375e-7, 2.120614874462375e-7,
+            2.1931132543763547e-7,
+        ],
     };
 
     beforeAll(() => {
@@ -48,7 +64,7 @@ describe('PredictionStrategy', () => {
         logs = [];
         logger.clear().add(new ArrayTransport({ array: logs, json: true, format: format.splat() }));
 
-        strategy = new PredictionStrategy(logger, redisMockInstance, sourceConfig, config);
+        strategy = new PricePredictionStrategy(logger, redisMockInstance, sourceConfig, config);
     });
 
     afterEach(() => {
@@ -59,19 +75,6 @@ describe('PredictionStrategy', () => {
     afterAll(() => {
         mockServer.close();
     });
-
-    const mint = '2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx';
-
-    const history: HistoryEntry[] = readFixture<{ history: HistoryEntry[] }>(
-        'backtest/pumpfun/B6eQdRcdYhuFxXKx75jumoMGkZCE4LCeobSDgZNzpump',
-    ).history;
-
-    const dummyApiSuccessResponse = {
-        predicted_prices: [
-            1.890614874462375e-7, 1.990614874462375e-7, 2.110614874462375e-7, 2.120614874462375e-7,
-            2.1931132543763547e-7,
-        ],
-    };
 
     describe('shouldBuy', () => {
         const mswPredictPriceWillIncreaseHandler = http.post(
@@ -99,7 +102,7 @@ describe('PredictionStrategy', () => {
         });
 
         it('should not buy when predicted price increases with the expected threshold but consecutivePredictionConfirmations is less than required consecutive confirmations', async () => {
-            strategy = new PredictionStrategy(logger, redisMockInstance, sourceConfig, {
+            strategy = new PricePredictionStrategy(logger, redisMockInstance, sourceConfig, {
                 ...config,
                 buy: { ...config.buy, minConsecutivePredictionConfirmations: 3 },
             });
@@ -160,13 +163,16 @@ describe('PredictionStrategy', () => {
             });
 
             it('should send upToFeaturesLength features when it is less than history length', async () => {
-                strategy = new PredictionStrategy(logger, redisMockInstance, sourceConfig, {
+                strategy = new PricePredictionStrategy(logger, redisMockInstance, sourceConfig, {
                     ...config,
-                    upToFeaturesLength: 380,
+                    prediction: {
+                        ...config.prediction,
+                        upToFeaturesLength: 380,
+                    },
                 });
                 mockServer.use(
                     http.post(process.env.PRICE_PREDICTION_ENDPOINT as string, async ({ request }) => {
-                        const body = (await request.json()) as PredictPricesRequest;
+                        const body = (await request.json()) as PredictionRequest;
                         if (body.features.length !== 380) {
                             return HttpResponse.json({}, { status: 400 });
                         }
@@ -186,13 +192,16 @@ describe('PredictionStrategy', () => {
             });
 
             it('should send all available features when history is shorter than upToFeaturesLength', async () => {
-                strategy = new PredictionStrategy(logger, redisMockInstance, sourceConfig, {
+                strategy = new PricePredictionStrategy(logger, redisMockInstance, sourceConfig, {
                     ...config,
-                    upToFeaturesLength: 2000,
+                    prediction: {
+                        ...config.prediction,
+                        upToFeaturesLength: 2000,
+                    },
                 });
                 mockServer.use(
                     http.post(process.env.PRICE_PREDICTION_ENDPOINT as string, async ({ request }) => {
-                        const body = (await request.json()) as PredictPricesRequest;
+                        const body = (await request.json()) as PredictionRequest;
                         if (body.features.length !== 1256) {
                             return HttpResponse.json({}, { status: 400 });
                         }
@@ -236,14 +245,17 @@ describe('PredictionStrategy', () => {
             });
 
             it('should make HTTP request even if all features are the same when skipAllSameFeatures is false', async () => {
-                strategy = new PredictionStrategy(logger, redisMockInstance, sourceConfig, {
+                strategy = new PricePredictionStrategy(logger, redisMockInstance, sourceConfig, {
                     ...config,
-                    skipAllSameFeatures: false,
+                    prediction: {
+                        ...config.prediction,
+                        skipAllSameFeatures: false,
+                    },
                 });
 
                 mockServer.use(
                     http.post(process.env.PRICE_PREDICTION_ENDPOINT as string, async ({ request }) => {
-                        const body = (await request.json()) as PredictPricesRequest;
+                        const body = (await request.json()) as PredictionRequest;
                         if (body.features.length !== 10) {
                             return HttpResponse.json({}, { status: 400 });
                         }
@@ -267,8 +279,11 @@ describe('PredictionStrategy', () => {
 
         it('should not buy when the predicted price increases with the expected threshold and context limits do not match', async () => {
             mockServer.use(mswPredictPriceWillIncreaseHandler);
-            strategy = new PredictionStrategy(logger, redisMockInstance, sourceConfig, {
-                requiredFeaturesLength: 10,
+            strategy = new PricePredictionStrategy(logger, redisMockInstance, sourceConfig, {
+                prediction: {
+                    ...config.prediction,
+                    requiredFeaturesLength: 10,
+                },
                 buy: {
                     minPredictedPriceIncreasePercentage: 15,
                     context: {
@@ -349,7 +364,7 @@ describe('PredictionStrategy', () => {
         });
 
         it('should use the cache correctly', async () => {
-            strategy = new PredictionStrategy(logger, redisMockInstance, sourceConfig, {
+            strategy = new PricePredictionStrategy(logger, redisMockInstance, sourceConfig, {
                 ...config,
                 buy: {
                     ...config.buy,
@@ -389,7 +404,7 @@ describe('PredictionStrategy', () => {
                     ),
                 ),
             ).toEqual({
-                'p.test_rsi7_skf:true_rql:10_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10':
+                'pp.test_rsi7_skf:true_rql:10_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10':
                     '{"predicted_prices":[1.890614874462375e-7]}',
             });
 
@@ -406,15 +421,17 @@ describe('PredictionStrategy', () => {
     });
 
     describe('formVariant', () => {
-        function getVariant(customConfig: Partial<PredictionStrategyConfig> = {}) {
-            return new PredictionStrategy(logger, redisMockInstance, sourceConfig, customConfig).config.variant;
+        function getVariant(customConfig: Partial<PricePredictionStrategyConfig> = {}) {
+            return new PricePredictionStrategy(logger, redisMockInstance, sourceConfig, customConfig).config.variant;
         }
 
         it('should full variant key with all values', () => {
             const key = getVariant({
-                skipAllSameFeatures: false,
-                requiredFeaturesLength: 3,
-                upToFeaturesLength: 5,
+                prediction: {
+                    skipAllSameFeatures: false,
+                    requiredFeaturesLength: 3,
+                    upToFeaturesLength: 5,
+                },
                 buy: {
                     minPredictedPriceIncreasePercentage: 10,
                     minConsecutivePredictionConfirmations: 3,
@@ -440,13 +457,17 @@ describe('PredictionStrategy', () => {
                 },
             });
             expect(key).toBe(
-                'test_rsi7_b(skf:false_rql:3_upfl:5)_buy(mppip:10_mcpc:3_c(hc:l1-h2_mc:l2-h77))_sell(tpp:10_tslp:15_slp:33_ttp(pp:30:sp:5))',
+                'test_rsi7_p(skf:false_rql:3_upfl:5)_buy(mppip:10_mcpc:3_c(hc:l1-h2_mc:l2-h77))_sell(tpp:10_tslp:15_slp:33_ttp(pp:30:sp:5))',
             );
         });
 
         it('should exclude undefined values and use model defaults', () => {
             const key = getVariant({
-                upToFeaturesLength: undefined,
+                prediction: {
+                    requiredFeaturesLength: 10,
+                    upToFeaturesLength: undefined,
+                    skipAllSameFeatures: true,
+                },
                 buy: {
                     minPredictedPriceIncreasePercentage: 15,
                 },
@@ -454,7 +475,7 @@ describe('PredictionStrategy', () => {
                     takeProfitPercentage: 17,
                 },
             });
-            expect(key).toBe('test_rsi7_b(skf:true_rql:10)_buy(mppip:15)_sell(tpp:17)');
+            expect(key).toBe('test_rsi7_p(skf:true_rql:10)_buy(mppip:15)_sell(tpp:17)');
         });
     });
 
@@ -463,17 +484,19 @@ describe('PredictionStrategy', () => {
             endpoint: process.env.PRICE_PREDICTION_ENDPOINT as string,
             model: 'm1',
         };
-        const defaultConfig: Partial<PredictionStrategyConfig> = {
-            skipAllSameFeatures: false,
-            requiredFeaturesLength: 3,
-            upToFeaturesLength: 5,
+        const defaultConfig: Partial<PricePredictionStrategyConfig> = {
+            prediction: {
+                skipAllSameFeatures: false,
+                requiredFeaturesLength: 3,
+                upToFeaturesLength: 5,
+            },
             buy: {
                 minPredictedPriceIncreasePercentage: 100,
             },
         };
 
-        function getKeyFromConfig(customConfig: Partial<PredictionStrategyConfig> = {}) {
-            const strategy = new PredictionStrategy(logger, redisMockInstance, sourceConfig, {
+        function getKeyFromConfig(customConfig: Partial<PricePredictionStrategyConfig> = {}) {
+            const strategy = new PricePredictionStrategy(logger, redisMockInstance, sourceConfig, {
                 ...defaultConfig,
                 ...customConfig,
             });
@@ -482,37 +505,49 @@ describe('PredictionStrategy', () => {
 
         it('should generate full cache key with all values', () => {
             const key = getKeyFromConfig();
-            expect(key).toBe('p.m1_skf:false_rql:3_upfl:5');
+            expect(key).toBe('pp.m1_skf:false_rql:3_upfl:5');
         });
 
         it('should exclude undefined values from the cache key', () => {
             const key = getKeyFromConfig({
                 variant: undefined,
-                skipAllSameFeatures: undefined,
+                prediction: {
+                    ...defaultConfig.prediction,
+                    // @ts-ignore
+                    skipAllSameFeatures: undefined,
+                },
             });
-            expect(key).toBe('p.m1_rql:3_upfl:5');
+            expect(key).toBe('pp.m1_rql:3_upfl:5');
         });
 
         it('should handle boolean true correctly', () => {
-            const key = getKeyFromConfig({ skipAllSameFeatures: true });
+            const key = getKeyFromConfig({
+                prediction: { requiredFeaturesLength: 3, upToFeaturesLength: 5, skipAllSameFeatures: true },
+            });
             expect(key).toContain('_skf:true');
-            expect(key).toBe('p.m1_skf:true_rql:3_upfl:5');
+            expect(key).toBe('pp.m1_skf:true_rql:3_upfl:5');
         });
 
         it('should handle boolean false correctly', () => {
-            const key = getKeyFromConfig({ skipAllSameFeatures: false });
+            const key = getKeyFromConfig({
+                prediction: { requiredFeaturesLength: 3, upToFeaturesLength: 5, skipAllSameFeatures: false },
+            });
             expect(key).toContain('_skf:false');
-            expect(key).toBe('p.m1_skf:false_rql:3_upfl:5');
+            expect(key).toBe('pp.m1_skf:false_rql:3_upfl:5');
         });
 
         it('should return only model prefix if everything else is undefined', () => {
             const key = getKeyFromConfig({
                 variant: undefined,
-                skipAllSameFeatures: undefined,
-                requiredFeaturesLength: undefined,
-                upToFeaturesLength: undefined,
+                prediction: {
+                    // @ts-ignore
+                    skipAllSameFeatures: undefined,
+                    // @ts-ignore
+                    requiredFeaturesLength: undefined,
+                    upToFeaturesLength: undefined,
+                },
             });
-            expect(key).toBe('p.m1');
+            expect(key).toBe('pp.m1');
         });
     });
 });

@@ -18,11 +18,11 @@ import { formPumpfunStatsDataFolder } from '../../trading/backtesting/data/pumpf
 import { logStrategyResult, runStrategy } from '../../trading/backtesting/utils';
 import PumpfunBacktester from '../../trading/bots/blockchains/solana/PumpfunBacktester';
 import { BacktestRunConfig } from '../../trading/bots/blockchains/solana/types';
+import BuyPredictionStrategy, {
+    BuyPredictionStrategyConfig,
+} from '../../trading/strategies/launchpads/BuyPredictionStrategy';
 import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
-import PredictionStrategy, {
-    PredictionSource,
-    PredictionStrategyConfig,
-} from '../../trading/strategies/launchpads/PredictionStrategy';
+import { PredictionSource } from '../../trading/strategies/types';
 import { walkDirFilesSyncRecursive } from '../../utils/files';
 import { formatElapsedTime } from '../../utils/time';
 
@@ -115,15 +115,17 @@ async function findBestStrategy(args: { backtestId?: string }) {
     }
 
     const source: PredictionSource = {
-        endpoint: process.env.PRICE_PREDICTION_ENDPOINT as string,
-        model: 'v13_gru',
+        endpoint: process.env.BUY_PREDICTION_ENDPOINT as string,
+        model: 'b.v1',
     };
-    const config: Partial<PredictionStrategyConfig> = {
-        requiredFeaturesLength: 10,
-        upToFeaturesLength: 500,
-        skipAllSameFeatures: true,
+    const config: Partial<BuyPredictionStrategyConfig> = {
+        prediction: {
+            requiredFeaturesLength: 10,
+            upToFeaturesLength: 500,
+            skipAllSameFeatures: true,
+        },
         buy: {
-            minPredictedPriceIncreasePercentage: 20,
+            minPredictedConfidence: 0.7,
         },
         sell: {
             takeProfitPercentage: 10,
@@ -132,22 +134,22 @@ async function findBestStrategy(args: { backtestId?: string }) {
     };
 
     const strategies: LaunchpadBotStrategy[] = [
-        new PredictionStrategy(silentLogger, redis, source, {
+        new BuyPredictionStrategy(silentLogger, redis, source, {
             ...config,
             buy: {
-                minPredictedPriceIncreasePercentage: 20,
+                minPredictedConfidence: 0.7,
             },
         }),
-        new PredictionStrategy(silentLogger, redis, source, {
+        new BuyPredictionStrategy(silentLogger, redis, source, {
             ...config,
             buy: {
-                minPredictedPriceIncreasePercentage: 15,
+                minPredictedConfidence: 0.8,
             },
         }),
-        new PredictionStrategy(silentLogger, redis, source, {
+        new BuyPredictionStrategy(silentLogger, redis, source, {
             ...config,
             buy: {
-                minPredictedPriceIncreasePercentage: 10,
+                minPredictedConfidence: 0.4,
             },
         }),
     ];

@@ -24,6 +24,53 @@ export type LaunchpadBuyPosition = {
     transaction: TradeTransaction;
 };
 
+export type PredictionSource = {
+    endpoint: string;
+    /**
+     * The model of the prediction, example: 'v1_rsi7_macd5'
+     */
+    model: string;
+};
+
+export type StrategyPredictionConfig = {
+    /**
+     * The number of most recent features that must be present for a prediction to proceed.
+     */
+    requiredFeaturesLength: number;
+
+    /**
+     * Optional upper limit on the number of features to consider for predictions.
+     */
+    upToFeaturesLength?: number;
+
+    /**
+     * Whether to skip predictions if all features are the same.
+     * Useful to avoid redundant signals when data has no variation.
+     */
+    skipAllSameFeatures: boolean;
+};
+
+export type PredictionRequest = {
+    mint: string;
+    features: {
+        timestamp: number;
+        timeFromStartMs: number;
+        price: number;
+        marketCap: number;
+        bondingCurveProgress: number;
+        holdersCount: number;
+        devHoldingPercentage: number;
+        topTenHoldingPercentage: number;
+    }[];
+};
+
+export type PredictionStrategyShouldBuyResponseReason =
+    | 'requiredFeaturesLength'
+    | 'shouldBuyStateless'
+    | 'noVariationInFeatures'
+    | 'consecutivePredictionConfirmations'
+    | 'prediction_error';
+
 export type LaunchpadStrategyBuyConfig = Partial<Record<keyof MarketContext, IntervalConfig>>;
 
 export type StrategySellConfig = {

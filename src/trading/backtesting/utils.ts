@@ -4,7 +4,7 @@ import { Logger } from 'winston';
 
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import { forceGetPumpCoinInitialData } from '../../blockchains/solana/dex/pumpfun/utils';
-import { lamportsToSol } from '../../blockchains/utils/amount';
+import { lamportsToSol, solToLamports } from '../../blockchains/utils/amount';
 import { pumpfunRepository } from '../../db/repositories/PumpfunRepository';
 import { HandlePumpTokenBotReport } from '../../scripts/pumpfun/bot';
 import { FileInfo } from '../../utils/files';
@@ -44,6 +44,7 @@ export async function runStrategy(
     let processed = 0;
     const maxToProcess: number | null = null;
 
+    const buyAmountLamports = solToLamports(runConfig.buyAmountSol);
     let balanceLamports = runConfig.initialBalanceLamports;
     let highestPeakLamports = runConfig.initialBalanceLamports;
     let lowestTroughLamports = runConfig.initialBalanceLamports;
@@ -224,6 +225,16 @@ export async function runStrategy(
                         '[%d] Stopping because reached <=0 balance: %s SOL',
                         processed,
                         lamportsToSol(balanceLamports),
+                    );
+                    break;
+                }
+
+                if (balanceLamports <= buyAmountLamports) {
+                    logger.info(
+                        '[%d] Stopping because reached balance (%s SOL) <= buyAmount (%s SOL)',
+                        processed,
+                        lamportsToSol(balanceLamports),
+                        runConfig.buyAmountSol,
                     );
                     break;
                 }

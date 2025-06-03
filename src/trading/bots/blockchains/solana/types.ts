@@ -97,9 +97,9 @@ export type BacktestTradeResponse = {
 export type BacktestResponse = BacktestExitResponse | BacktestTradeResponse;
 
 /**
- * Configuration options for running a backtest simulation.
+ * Configuration options for running a backtest simulation for a particular strategy.
  */
-export type BacktestRunConfig = {
+export type BacktestStrategyRunConfig = {
     /**
      * The initial balance for the backtest, denominated in lamports (1 SOL = 1,000,000,000 lamports).
      */
@@ -156,6 +156,17 @@ export type BacktestRunConfig = {
      * are closed by the end of the backtest.
      */
     sellUnclosedPositionsAtEnd: boolean;
+};
+
+export type BacktestRunConfig = Omit<BacktestStrategyRunConfig, 'strategy'> & {
+    data: {
+        path: string;
+        filesCount: number;
+        /**
+         * If one of the provided includes matches, the file is included
+         */
+        includeIfPathContains?: string[];
+    };
 };
 
 export type StrategyMintBacktestResult = {

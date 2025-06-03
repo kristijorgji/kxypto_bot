@@ -9,7 +9,10 @@ import PumpfunBacktester, {
     getClosestEntryIndex,
     getNextEntryIndex,
 } from '../../../../../../src/trading/bots/blockchains/solana/PumpfunBacktester';
-import { BacktestRunConfig, BacktestTradeResponse } from '../../../../../../src/trading/bots/blockchains/solana/types';
+import {
+    BacktestStrategyRunConfig,
+    BacktestTradeResponse,
+} from '../../../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry } from '../../../../../../src/trading/bots/launchpads/types';
 import RiseStrategy, { RiseStrategyConfig } from '../../../../../../src/trading/strategies/launchpads/RiseStrategy';
 import { formHistoryEntry } from '../../../../../__utils/blockchains/solana';
@@ -49,7 +52,7 @@ describe(PumpfunBacktester.name, () => {
         },
     });
 
-    const runConfig: BacktestRunConfig = {
+    const runConfig: BacktestStrategyRunConfig = {
         initialBalanceLamports: solToLamports(1),
         buyAmountSol: 0.4,
         jitoConfig: {

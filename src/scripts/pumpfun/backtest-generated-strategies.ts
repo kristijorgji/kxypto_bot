@@ -11,12 +11,15 @@ import { formPumpfunStatsDataFolder } from '../../trading/backtesting/data/pumpf
 import RiseStrategyConfigGenerator, {
     StartState,
 } from '../../trading/backtesting/strategies/RiseStrategyConfigGenerator';
-import { logStrategyResult, runStrategy } from '../../trading/backtesting/utils';
+import { getBacktestFiles, logStrategyResult, runStrategy } from '../../trading/backtesting/utils';
 import PumpfunBacktester from '../../trading/bots/blockchains/solana/PumpfunBacktester';
-import { BacktestRunConfig, StrategyBacktestResult } from '../../trading/bots/blockchains/solana/types';
+import {
+    BacktestRunConfig,
+    BacktestStrategyRunConfig,
+    StrategyBacktestResult,
+} from '../../trading/bots/blockchains/solana/types';
 import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
 import RiseStrategy, { RiseStrategyConfig } from '../../trading/strategies/launchpads/RiseStrategy';
-import { walkDirFilesSyncRecursive } from '../../utils/files';
 
 const riseStrategyConfigGenerator = new RiseStrategyConfigGenerator();
 
@@ -69,13 +72,12 @@ async function findBestStrategy() {
     });
     const backtester = new PumpfunBacktester(logger);
 
-    const pumpfunStatsPath = formPumpfunStatsDataFolder();
-    const files = walkDirFilesSyncRecursive(pumpfunStatsPath, [], 'json').filter(
-        el => el.fullPath.includes('no_trade/no_pump') || el.fullPath.includes('/trade/'),
-    );
-    let tested = 0;
-
-    const baseRunConfig: Omit<BacktestRunConfig, 'strategy'> = {
+    const dataConfig = {
+        path: formPumpfunStatsDataFolder(),
+        includeIfPathContains: ['no_trade/no_pump', '/trade/'],
+    };
+    const files = getBacktestFiles(dataConfig);
+    const runConfig: BacktestRunConfig = {
         initialBalanceLamports: solToLamports(1),
         buyAmountSol: 0.4,
         jitoConfig: {
@@ -88,17 +90,17 @@ async function findBestStrategy() {
         },
         onlyOneFullTrade: true,
         sellUnclosedPositionsAtEnd: false,
+        data: {
+            path: dataConfig.path,
+            filesCount: files.length,
+            includeIfPathContains: dataConfig.includeIfPathContains,
+        },
     };
 
     await storeBacktest({
         id: backtestId,
-        config: {
-            data: {
-                path: pumpfunStatsPath,
-                filesCount: files.length,
-            },
-            ...baseRunConfig,
-        },
+        name: `gen_${Date.now()}`,
+        config: runConfig,
     });
 
     const results: {
@@ -122,9 +124,11 @@ async function findBestStrategy() {
         priorityFeeInSol: 0.007,
     };
 
+    let tested = 0;
+
     for (const config of riseStrategyConfigGenerator.formConfigs(s)) {
-        const runConfig: BacktestRunConfig = {
-            ...baseRunConfig,
+        const backtestStrategyRunConfig: BacktestStrategyRunConfig = {
+            ...runConfig,
             strategy: new RiseStrategy(silentLogger, {
                 ...baseConfig,
                 ...config,
@@ -134,8 +138,8 @@ async function findBestStrategy() {
         logger.info(
             '[%d] Will test strategy %s with variant config: %s against %d historical data\n%s',
             tested,
-            runConfig.strategy.identifier,
-            runConfig.strategy.configVariant,
+            backtestStrategyRunConfig.strategy.identifier,
+            backtestStrategyRunConfig.strategy.configVariant,
             files.length,
             '='.repeat(100),
         );
@@ -147,11 +151,11 @@ async function findBestStrategy() {
                 pumpfun: pumpfun,
                 logger: logger,
             },
-            runConfig,
+            backtestStrategyRunConfig,
             files,
         );
         results.push({
-            strategy: runConfig.strategy,
+            strategy: backtestStrategyRunConfig.strategy,
             result: sr,
         });
         const executionTime = process.hrtime(strategyStartTime);
@@ -160,14 +164,14 @@ async function findBestStrategy() {
         logStrategyResult(
             logger,
             {
-                strategyId: runConfig.strategy.identifier,
+                strategyId: backtestStrategyRunConfig.strategy.identifier,
                 tested: tested,
                 total: total,
                 executionTimeInS: executionTimeInS,
             },
             sr,
         );
-        await storeBacktestStrategyResult(backtestId, runConfig.strategy, sr, executionTimeInS);
+        await storeBacktestStrategyResult(backtestId, backtestStrategyRunConfig.strategy, sr, executionTimeInS);
 
         tested++;
     }
@@ -177,9 +181,9 @@ async function findBestStrategy() {
     const diff = process.hrtime(start);
     const timeInNs = diff[0] * 1e9 + diff[1];
 
-    logger.info('Finished testing %d strategies in %s seconds', tested, timeInNs / 1e9);
+    logger.info('Finished testing %d strategies in %s seconds\n', tested, timeInNs / 1e9);
     logger.info(
-        'The best strategy is: %s with variant config: %s, config: %o',
+        'The best strategy of this backtest is: %s with variant config: %s, config: %o',
         results[0].strategy.identifier,
         results[0].strategy.configVariant,
         results[0].strategy.config,

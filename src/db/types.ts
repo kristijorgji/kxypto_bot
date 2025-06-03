@@ -1,4 +1,5 @@
 import { FileStorageType } from '../core/types';
+import { BacktestRunConfig } from '../trading/bots/blockchains/solana/types';
 import { ExitMonitoringReason, SellReason } from '../trading/bots/types';
 
 // example 2023-03-20 12:57:02
@@ -42,12 +43,7 @@ export type Token<T = Record<string, unknown>> = {
 export type Backtest = {
     id: string;
     name?: string | null;
-    config: Record<string, unknown> & {
-        data: {
-            path: string;
-            filesCount: number;
-        };
-    };
+    config: BacktestRunConfig;
 };
 
 export type BacktestStrategyResult = {

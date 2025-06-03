@@ -11,7 +11,7 @@ import { pumpfunRepository } from '../../../../src/db/repositories/PumpfunReposi
 import ArrayTransport from '../../../../src/logger/transports/ArrayTransport';
 import { runStrategy } from '../../../../src/trading/backtesting/utils';
 import PumpfunBacktester from '../../../../src/trading/bots/blockchains/solana/PumpfunBacktester';
-import { BacktestRunConfig } from '../../../../src/trading/bots/blockchains/solana/types';
+import { BacktestStrategyRunConfig } from '../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry } from '../../../../src/trading/bots/launchpads/types';
 import RiseStrategy from '../../../../src/trading/strategies/launchpads/RiseStrategy';
 import StupidSniperStrategy from '../../../../src/trading/strategies/launchpads/StupidSniperStrategy';
@@ -41,7 +41,7 @@ describe('runStrategy', () => {
         pumpfun: pumpfun,
         logger: logger,
     };
-    const runConfig: BacktestRunConfig = {
+    const runConfig: BacktestStrategyRunConfig = {
         initialBalanceLamports: solToLamports(1),
         strategy: new StupidSniperStrategy(logger, {
             sell: {

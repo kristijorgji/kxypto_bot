@@ -3,7 +3,7 @@ import { Logger } from 'winston';
 import { formSolBoughtOrSold, formTokenBoughtOrSold } from './PumpfunBot';
 import {
     BacktestResponse,
-    BacktestRunConfig,
+    BacktestStrategyRunConfig,
     BacktestTradeOrigin,
     PumpfunBuyPositionMetadata,
     PumpfunSellPositionMetadata,
@@ -44,7 +44,7 @@ export default class PumpfunBacktester {
             randomization,
             onlyOneFullTrade,
             sellUnclosedPositionsAtEnd,
-        }: BacktestRunConfig,
+        }: BacktestStrategyRunConfig,
         tokenInfo: PumpfunInitialCoinData,
         history: HistoryEntry[],
     ): Promise<BacktestResponse> {

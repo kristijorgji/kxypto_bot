@@ -7,13 +7,14 @@ import { forceGetPumpCoinInitialData } from '../../blockchains/solana/dex/pumpfu
 import { lamportsToSol, solToLamports } from '../../blockchains/utils/amount';
 import { pumpfunRepository } from '../../db/repositories/PumpfunRepository';
 import { HandlePumpTokenBotReport } from '../../scripts/pumpfun/bot';
-import { FileInfo } from '../../utils/files';
+import { FileInfo, walkDirFilesSyncRecursive } from '../../utils/files';
 import { formatElapsedTime } from '../../utils/time';
 import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
 import {
     BacktestExitResponse,
     BacktestResponse,
     BacktestRunConfig,
+    BacktestStrategyRunConfig,
     BacktestTradeOrigin,
     BacktestTradeResponse,
     PumpfunSellPositionMetadata,
@@ -33,7 +34,7 @@ export async function runStrategy(
         pumpfun: Pumpfun;
         logger: Logger;
     },
-    runConfig: BacktestRunConfig,
+    runConfig: BacktestStrategyRunConfig,
     files: FileInfo[],
     config?: {
         verbose?: boolean;
@@ -331,4 +332,15 @@ export function logStrategyResult(
     logger.info('Lowest trough: %s SOL', lamportsToSol(sr.lowestTroughLamports));
     logger.info('Max Drawdown: %s%%', sr.maxDrawdownPercentage);
     logger.info('Total progress %s%%\n', (info.tested / info.total) * 100);
+}
+
+export function getBacktestFiles(dataConfig: Omit<BacktestRunConfig['data'], 'filesCount'>): FileInfo[] {
+    let files = walkDirFilesSyncRecursive(dataConfig.path, [], 'json');
+    if (dataConfig.includeIfPathContains) {
+        files = files.filter(el =>
+            dataConfig.includeIfPathContains!.some(substring => el.fullPath.includes(substring)),
+        );
+    }
+
+    return files;
 }

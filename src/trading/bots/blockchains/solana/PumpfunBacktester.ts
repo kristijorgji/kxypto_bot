@@ -64,6 +64,11 @@ export default class PumpfunBacktester {
 
         for (let i = 0; i < history.length; i++) {
             const marketContext = history[i];
+            if (marketContext.price === null) {
+                this.logger.warn(`Skipping entry: marketContext.price = null at index ${i}`);
+                continue;
+            }
+
             historySoFar.push(marketContext);
             const { price, marketCap } = marketContext;
 

@@ -32,6 +32,7 @@
     "pumpfun-backtest": "ts-node -r dotenv/config src/scripts/pumpfun/backtest-strategy.ts",
     "pumpfun-backtest-generated-strategies": "ts-node -r dotenv/config src/scripts/pumpfun/backtest-generated-strategies.ts",
     "pumpfun-mark-backtest-files": "ts-node -r dotenv/config src/scripts/pumpfun/mark-backtest-files.ts",
+    "pumpfun-validate-backtest-files": "ts-node -r dotenv/config src/scripts/pumpfun/validate-backtest-files.ts",
     "example:pumpfun": "ts-node -r dotenv/config src/examples/pumpfun.ts",
     "example:raydium": "ts-node -r dotenv/config src/examples/raydium.ts",
     "example:exchange_rate": "ts-node -r dotenv/config src/examples/getExchangeRate.ts",

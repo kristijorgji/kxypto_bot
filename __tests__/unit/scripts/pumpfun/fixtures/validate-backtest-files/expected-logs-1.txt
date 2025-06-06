@@ -1,0 +1,8 @@
+[
+  "2021-03-19 10:00:00 [INFO]: Started processing 3 files with config={\n  dataSource: {\n    path: './data',\n    includeIfPathContains: [ 'foo', 'bar', [length]: 2 ]\n  },\n  rules: { nulls: true }\n}\n",
+  "2021-03-19 10:00:00 [INFO]: 3 files were processed",
+  "2021-03-19 10:00:00 [INFO]: 1 files were found to be valid",
+  "2021-03-19 10:00:00 [INFO]: 1 files were found to be invalid",
+  "2021-03-19 10:00:00 [INFO]: 1 files had no history",
+  "2021-03-19 10:00:00 [INFO]: Invalid files: {\n  'data/a.json': {\n    price: {\n      null: {\n        '1': { startTimestamp: 2, count: 2 },\n        '4': { startTimestamp: 5, count: 1 }\n      }\n    },\n    holdersCount: { null: { '3': { startTimestamp: 4, count: 1 } } },\n    topTenHoldingPercentage: { null: { '5': { startTimestamp: 6, count: 1 } } }\n  }\n}"
+]

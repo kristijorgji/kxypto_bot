@@ -69,6 +69,17 @@ describe('BuyPredictionStrategy', () => {
         mockServer.close();
     });
 
+    describe('constructor', () => {
+        it('should fail to construct if config.prediction has missing values', () => {
+            expect(
+                () =>
+                    new BuyPredictionStrategy(logger, redisMockInstance, sourceConfig, {
+                        prediction: {} as StrategyPredictionConfig,
+                    }),
+            ).toThrow(new Error('requiredFeaturesLength is required;skipAllSameFeatures is required'));
+        });
+    });
+
     describe('shouldBuy', () => {
         const mswPredictAboveThresholdBuyHandler = http.post(
             process.env.BUY_PREDICTION_ENDPOINT as string,
@@ -397,11 +408,19 @@ describe('BuyPredictionStrategy', () => {
             },
         };
 
-        function getKeyFromConfig(customConfig: Partial<BuyPredictionStrategyConfig> = {}) {
-            const strategy = new BuyPredictionStrategy(logger, redisMockInstance, sourceConfig, {
-                ...defaultConfig,
-                ...customConfig,
-            });
+        function getKeyFromConfig(customConfig: Partial<BuyPredictionStrategyConfig> = {}, ignoreValidation = false) {
+            let strategy: BuyPredictionStrategy;
+            if (ignoreValidation) {
+                strategy = new BuyPredictionStrategy(logger, redisMockInstance, sourceConfig, defaultConfig);
+                // @ts-ignore create the strategy with the default config to pass validations, then assing ours
+                strategy.config.prediction = customConfig.prediction;
+            } else {
+                strategy = new BuyPredictionStrategy(logger, redisMockInstance, sourceConfig, {
+                    ...defaultConfig,
+                    ...customConfig,
+                });
+            }
+
             return (strategy as unknown as { formBaseCacheKey: () => string }).formBaseCacheKey();
         }
 
@@ -411,14 +430,17 @@ describe('BuyPredictionStrategy', () => {
         });
 
         it('should exclude undefined values from the cache key', () => {
-            const key = getKeyFromConfig({
-                variant: undefined,
-                prediction: {
-                    ...defaultConfig.prediction,
-                    // @ts-ignore
-                    skipAllSameFeatures: undefined,
+            const key = getKeyFromConfig(
+                {
+                    variant: undefined,
+                    prediction: {
+                        ...defaultConfig.prediction,
+                        // @ts-ignore
+                        skipAllSameFeatures: undefined,
+                    },
                 },
-            });
+                true,
+            );
             expect(key).toBe('bp.m1_rql:3_upfl:5');
         });
 
@@ -439,16 +461,19 @@ describe('BuyPredictionStrategy', () => {
         });
 
         it('should return only model prefix if everything else is undefined', () => {
-            const key = getKeyFromConfig({
-                variant: undefined,
-                prediction: {
-                    // @ts-ignore
-                    skipAllSameFeatures: undefined,
-                    // @ts-ignore
-                    requiredFeaturesLength: undefined,
-                    upToFeaturesLength: undefined,
+            const key = getKeyFromConfig(
+                {
+                    variant: undefined,
+                    prediction: {
+                        // @ts-ignore
+                        skipAllSameFeatures: undefined,
+                        // @ts-ignore
+                        requiredFeaturesLength: undefined,
+                        upToFeaturesLength: undefined,
+                    },
                 },
-            });
+                true,
+            );
             expect(key).toBe('bp.m1');
         });
     });

@@ -168,6 +168,14 @@ export default class PumpfunBot {
                 index: historyIndex,
             };
 
+            if (lastHistoryEntry.price === null) {
+                this.logger.warn(`lastHistoryEntry.price = null at index ${historyIndex}`);
+                if (!strategy.buyPosition && !buyInProgress) {
+                    this.logger.warn('Skipping this entry');
+                    continue;
+                }
+            }
+
             /**
              * We will continue to monitor for the specified period after are "done" with this particular token
              * either with exit without trade or with a trade done

@@ -17,6 +17,7 @@ import {
 import { shouldExitLaunchpadToken } from './common';
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
 import { shouldBuyCommon } from './prediction-common';
+import { validatePredictionConfig } from './validators';
 import { variantFromBuyContext, variantFromPredictionConfig, variantFromSellConfig } from './variant-builder';
 import { deepClone } from '../../../utils/data/data';
 import { HistoryRef } from '../../bots/blockchains/solana/types';
@@ -93,6 +94,7 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
                 ...config,
             };
         }
+        validatePredictionConfig(this.config.prediction);
 
         if ((this.config?.variant ?? '') === '') {
             this.config.variant = BuyPredictionStrategy.formVariant(source, this.config);

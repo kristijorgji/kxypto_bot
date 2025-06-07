@@ -1,58 +1,64 @@
-# crypto_bot
+# 🤖 crypto_bot
 
-# Table of Contents
+---
 
-1. [Project Overview](#project-overview)
-2. [Getting Started](#getting-started)
-    1. [Dependencies and environment](#dependencies-and-environment)
-    2. [Database setup](#database-setup)
-    3. [Help](#help)
-3. [CLI](#cli)
-4. [Server](#server)
-5. [Example Scripts](#example-scripts)
-6. [Troubleshooting](#troubleshooting)
-    1. [How can I find my wallet private key if I have only the recovery phrase](#how-can-i-find-my-wallet-private-key-if-i-have-only-the-recovery-phrase)
-7. [Package.json Scripts](#packagejson-scripts)
-8. [Contributing](./docs/CONTRIBUTING.md)
-9. [License](#license)
+## 📑 Table of Contents
 
-# Project Overview
+1. [📘 Project Overview](#-project-overview)
+2. [🚀 Getting Started](#-getting-started)
+    1. [🔧 Dependencies and Environment](#-dependencies-and-environment)
+    2. [🗄️ Database Setup](#-database-setup)
+    3. [❓ Help](#-help)
+3. [🖥️ CLI](#-cli)
+4. [🌐 Server](#-server)
+5. [📜 Example Scripts](#-example-scripts)
+6. [🧪 Scratch Code](#-scratch-code-scratch)
+7. [🛠️ Troubleshooting](#-troubleshooting)
+    1. [🔑 Wallet Private Key Recovery From Secret Phrase](#-how-can-i-find-my-wallet-private-key-if-i-have-only-the-recovery-phrase)
+8. [📦 Package.json Scripts](#-packagejson-main-scripts)
+9. [🤝 Contributing](./docs/CONTRIBUTING.md)
+10. [📄 License](#-license)
 
-This crypto bot is using
+---
 
-* typescript
-* jest
-* lint and fix tools using my personal best standards
-  from https://www.npmjs.com/package/@kristijorgji/eslint-config-typescript
-* fully debug compatible
+## 📘 Project Overview
 
-Features:
+This crypto bot is built using:
 
-- pumpfun bot
-- multiple trade strategies implemented
-- backtest strategies framework
+- TypeScript
+- Jest
+- Lint and fix tools using my personal best standards from  
+  [`@kristijorgji/eslint-config-typescript`](https://www.npmjs.com/package/@kristijorgji/eslint-config-typescript)
+- Fully debug compatible
+- Express for the api
 
-# Getting started
+### ✨ Features
 
-## Dependencies and environment
+- Pump.fun bot
+- Multiple trading strategies implemented
+- Strategy backtesting framework
 
-1. run `yarn install`
-2. copy `.env.example` into `.env.` and fill in your values
-3. fill in proper values to `.env.test` when running tests with jest
+---
 
-It is recommended to use fast Solana nodes.
+## 🚀 Getting Started
 
-Private ones like https://chainstack.com/ work better
+### 🔧 Dependencies and Environment
 
-## Database setup
+1. Run `yarn install`
+2. Copy `.env.example` to `.env` and fill in your values
+3. Configure `.env.test` for running tests with Jest
 
-This project uses `knex` tool for migrating and seeding the MySQL database.
+**Tip:** Use fast Solana nodes. Private nodes like [Chainstack](https://chainstack.com/) tend to perform better.
 
-You can use the `package.json` commands for creating migrations, seeds or running them.
+### 🗄️ Database Setup
 
-Ensure the database referred in the `.env` file exists and uses the same credentials and name.
+This project uses **Knex** for migrating and seeding the MySQL database.
 
-You can create one locally for development purpose by using the attached
+Use `package.json` scripts to create/run migrations and seeds.
+
+Ensure the database defined in your `.env` file exists and credentials are correct.
+
+You can create a database locally for development purpose by using the attached
 docker-file [docker-compose.yml](docker%2Fdocker-compose.yml)
 
 ```shell
@@ -61,66 +67,96 @@ cp .env.example .env
 docker-compose up -d
 ```
 
-After you have the database up and running, you can run the migrations:
+Then, apply migrations:
 
 ```shell
 yarn migrate:latest
 ```
 
-This will create all the tables
+This creates all required tables.
 
-## Help
+### ❓ Help
 
-You can use `Makefile` for common development actions.
+Use the provided `Makefile` for common dev tasks.  
+Additional documentation is available under the [`docs`](docs) folder.
 
-There is more knowledge about different domains under [docs](docs).
+## 🖥️ CLI
 
-# CLI
-
-This project offers a cli for the most frequently needed standalone commands
-
-Run
+Run standalone commands via:
 
 ```shell
 ts-node src/console/cli.ts
 ```
 
-to see list of the available commands
+This will show a list of all available CLI commands.
 
-# Server
+---
 
-This project exposes one express server
+## 🌐 Server
 
-* [server entry point](src/http-api/server.ts)
+This project includes an Express server with endpoints for:
 
-with a couple of useful endpoints like
+- Login
+- Logout
+- Refreshing access tokens
+- More endpoints coming soon
 
-* login
-* logout
-* refresh access token
-* others -coming soon
+in order to manage remotely the bot.
 
-in order to manage remotely the bots.
+📂 Server entry point:  
+[`src/http-api/server.ts`](src/http-api/server.ts)
 
-# Example scripts
+---
 
-The folder `src/examples` contains `standalone` scripts that you can run.
+## 📜 Example Scripts
 
-They use the specified `.env` variables
+The `src/examples` folder contains simple, standalone demo scripts.
 
-Example:
+These scripts rely on environment variables defined in your project’s `.env` file. There are two ways to ensure these
+variables are loaded:
+
+- **Preferred (Explicit Import):**  
+  At the top of your script, import the custom environment loader:
+  ```ts
+  import '@src/loadEnv';
+  ```
+  This ensures consistent `.env` loading using your project's root marker logic.
+
+- **Alternative (Runtime Require):**  
+  When running the script via `ts-node`, preload `dotenv/config`:
+  ```bash
+  ts-node -r dotenv/config src/examples/myScript.ts
+  ```
+  This method works for quick tests but doesn't support custom `.env` resolution logic (e.g., `.root` marker).
+
+**Example:**
 
 ```shell
 ts-node src/examples/getExchangeRate.ts
 ```
 
-# Standalone scripts
+---
 
-The folder `src/scripts` contains `standalone` scripts that you can run.
+## 🛠️ Standalone Scripts
 
-The difference between the example script is that these scripts here have a clear purpose and are useful, not just
-demonstrative.
-They use the specified `.env` variables
+The `src/scripts` folder contains standalone scripts with real utility (not just examples).
+
+These scripts rely on environment variables defined in your project’s `.env` file. There are two ways to ensure these
+variables are loaded:
+
+- **Preferred (Explicit Import):**  
+  At the top of your script, import the custom environment loader:
+  ```ts
+  import '@src/loadEnv';
+  ```
+  This ensures consistent `.env` loading using your project's root marker logic.
+
+- **Alternative (Runtime Require):**  
+  When running the script via `ts-node`, preload `dotenv/config`:
+  ```bash
+  ts-node -r dotenv/config src/scripts/backtest-strategy.ts
+  ```
+  This method works for quick tests but doesn't support custom `.env` resolution logic (e.g., `.root` marker).
 
 Examples:
 
@@ -146,11 +182,27 @@ ts-node -r dotenv/config src/scripts/pumpfun/backtest-strategy.ts
 ts-node src/scripts/pumpfun/bot.ts
 ```
 
-# Troubleshooting
+---
 
-## How can I find my wallet private key if I have only the recovery phrase
+## 🧪 Scratch Code (`.scratch/`)
 
-You can run the helper CLI command
+The `.scratch` folder is a local workspace for prototyping, experimenting, and testing ideas.  
+It’s intentionally **excluded from version control** via `.gitignore`, so you can freely write temporary scripts without
+affecting the repository.
+
+- Use it for quick experiments (e.g., queries, utility tests, isolated logic).
+- You can import code from the main `src/` directory.
+- TypeScript is configured to support this folder (see [tsconfig.json](tsconfig.json)).
+
+> ⚠️ Note: Since `.scratch/` is not committed, avoid placing any important or long-term code here.
+
+---
+
+## 🛠️ Troubleshooting
+
+### 🔑 How can I find my wallet private key if I have only the recovery phrase?
+
+Run the following CLI command:
 
 **walletInfo:solana**
 
@@ -158,25 +210,31 @@ You can run the helper CLI command
  ts-node src/console/cli.ts walletInfo:solana --recoveryPhrasePath=k --provider=TrustWallet
 ```
 
-# Package.json main scripts
+---
 
-you can run them by `yarn commmand` or `npm run command`
+## 📦 Package.json Main Scripts
 
-| Command | Description                                                                                                          |
-|---------|----------------------------------------------------------------------------------------------------------------------|
-| test    | run jest tests under __tests__ directory                                                                             |
-| start   | starts the code using ts-node, also can be used under intellJ under debug mode to develop and debug at the same time |
-| compile | compiles the code so you can execute it as plain node if don't want to use start command                             |
-| lint    | lints your code and fails if some issue is found                                                                     |
-| fix     | makes changes to your code to fix the styling issues and whatever other fixable code standard                        |
+Run using `yarn <command>` or `npm run <command>`:
 
-# Contributing
+| Command | Description                                                     |
+|---------|-----------------------------------------------------------------|
+| test    | Run Jest tests under the `__tests__` directory                  |
+| start   | Run code using ts-node (useful with IntelliJ debug mode)        |
+| compile | Compile the code to plain Node.js (for running without ts-node) |
+| lint    | Lint your code and fail on violations                           |
+| fix     | Automatically fix style and code standard issues                |
 
-See the [docs/Contributing](./docs/CONTRIBUTING.md) file.
+---
 
-# License
+## 🤝 Contributing
+
+See [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md).
+
+---
+
+## 📄 License
 
 This project is licensed under the **Proprietary License - Restricted Access**. By using this software, you agree to the
 terms and conditions of this license.
 
-For more details, see the [LICENSE](./LICENSE.md) file.
+See [LICENSE](./LICENSE.md) for details.

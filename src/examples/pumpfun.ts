@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+import '@src/loadEnv';
 
 import { measureExecutionTime } from '../apm/apm';
 import { SolanaWalletProviders } from '../blockchains/solana/constants/walletProviders';
@@ -16,8 +16,6 @@ import { solanaConnection } from '../blockchains/solana/utils/connection';
 import Wallet from '../blockchains/solana/Wallet';
 import { logger } from '../logger';
 import { sleep } from '../utils/functions';
-
-dotenv.config();
 
 /**
  * Example standalone script that demos buying a newly created token in pumpfun and selling it after 7 seconds

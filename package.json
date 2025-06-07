@@ -25,18 +25,19 @@
     "migrate:rollback": "npm run knex:run -- migrate:rollback --all --debug",
     "seed:make": "npm run knex:run -- seed:make --",
     "seed:run": "npm run knex:run -- seed:run --debug",
-    "pumpfun-bot": "ts-node -r dotenv/config src/scripts/pumpfun/bot.ts",
-    "pumpfun-organize": "ts-node -r dotenv/config src/scripts/pumpfun/organize-stats.ts",
-    "pumpfun-migrate-stats": "ts-node -r dotenv/config src/scripts/pumpfun/migrate-stats.ts",
-    "pumpfun-migrate-stats-to-db": "ts-node -r dotenv/config src/scripts/pumpfun/migrate-stats-to-db.ts",
-    "pumpfun-backtest": "ts-node -r dotenv/config src/scripts/pumpfun/backtest-strategy.ts",
-    "pumpfun-backtest-generated-strategies": "ts-node -r dotenv/config src/scripts/pumpfun/backtest-generated-strategies.ts",
-    "pumpfun-mark-backtest-files": "ts-node -r dotenv/config src/scripts/pumpfun/mark-backtest-files.ts",
-    "pumpfun-validate-backtest-files": "ts-node -r dotenv/config src/scripts/pumpfun/validate-backtest-files.ts",
-    "example:pumpfun": "ts-node -r dotenv/config src/examples/pumpfun.ts",
-    "example:raydium": "ts-node -r dotenv/config src/examples/raydium.ts",
-    "example:exchange_rate": "ts-node -r dotenv/config src/examples/getExchangeRate.ts",
-    "example:wallet_balance": "ts-node -r dotenv/config src/examples/getWalletBalance.ts"
+    "run:script": "ts-node -r tsconfig-paths/register -r dotenv/config",
+    "pumpfun-bot": "yarn run:script src/scripts/pumpfun/bot.ts",
+    "pumpfun-organize": "yarn run:script src/scripts/pumpfun/organize-stats.ts",
+    "pumpfun-migrate-stats": "yarn run:script src/scripts/pumpfun/migrate-stats.ts",
+    "pumpfun-migrate-stats-to-db": "yarn run:script src/scripts/pumpfun/migrate-stats-to-db.ts",
+    "pumpfun-backtest": "yarn run:script src/scripts/pumpfun/backtest-strategy.ts",
+    "pumpfun-backtest-generated-strategies": "yarn run:script src/scripts/pumpfun/backtest-generated-strategies.ts",
+    "pumpfun-mark-backtest-files": "yarn run:script src/scripts/pumpfun/mark-backtest-files.ts",
+    "pumpfun-validate-backtest-files": "yarn run:script src/scripts/pumpfun/validate-backtest-files.ts",
+    "example:pumpfun": "yarn run:script src/examples/pumpfun.ts",
+    "example:raydium": "yarn run:script src/examples/raydium.ts",
+    "example:exchange_rate": "yarn run:script src/examples/getExchangeRate.ts",
+    "example:wallet_balance": "yarn run:script src/examples/getWalletBalance.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
@@ -104,6 +105,7 @@
     "supertest": "^7.1.1",
     "ts-jest": "^29.3.4",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3"
   }
 }

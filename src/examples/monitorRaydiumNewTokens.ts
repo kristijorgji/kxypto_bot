@@ -1,13 +1,10 @@
+import '@src/loadEnv';
 import fs from 'fs';
-
-import dotenv from 'dotenv';
 
 import { monitorNewTokens } from '../blockchains/solana/dex/raydium/monitorNewTokens';
 import { solanaConnection } from '../blockchains/solana/utils/connection';
 import { logger } from '../logger';
 import { ensureDataFolder } from '../utils/storage';
-
-dotenv.config();
 
 /**
  * Example standalone script that listens for new raydium liquidity pool transactions, extracts the necessary information for additional use, and stores it

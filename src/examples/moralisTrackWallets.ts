@@ -1,8 +1,6 @@
-import dotenv from 'dotenv';
+import '@src/loadEnv';
 
 import Moralis from '../blockchains/solana/providers/moralis/Moralis';
-
-dotenv.config();
 
 /**
  * Example standalone script that checks the trades and portfolio of a requested walletyar

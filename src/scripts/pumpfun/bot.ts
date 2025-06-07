@@ -1,7 +1,6 @@
 import fs from 'fs';
 
-import dotenv from 'dotenv';
-dotenv.config();
+import '@src/loadEnv';
 import { Logger } from 'winston';
 
 import { startApm } from '../../apm/apm';

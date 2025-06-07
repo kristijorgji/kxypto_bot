@@ -118,6 +118,7 @@ reports
 !.env.test
 build/
 /data/
+.scratch/
 
 docker/data/
 logs/

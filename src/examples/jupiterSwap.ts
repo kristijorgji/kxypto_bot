@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+import '@src/loadEnv';
 
 import { SolanaTokenMints } from '../blockchains/solana/constants/SolanaTokenMints';
 import { SolanaWalletProviders } from '../blockchains/solana/constants/walletProviders';
@@ -8,8 +8,6 @@ import solanaMnemonicToKeypair from '../blockchains/solana/utils/solanaMnemonicT
 import { solanaPrivateKeyToKeypair } from '../blockchains/solana/utils/solanaPrivateKeyToKeypair';
 import { calculateTokenRawAmount } from '../blockchains/solana/utils/tokens';
 import { logger } from '../logger';
-
-dotenv.config();
 
 /**
  * Example standalone script buys & sells token by swapping using Jupiter DEX

@@ -1,11 +1,9 @@
-import dotenv from 'dotenv';
+import '@src/loadEnv';
 
 import Moralis from '../blockchains/solana/providers/moralis/Moralis';
 import SolanaAdapter from '../blockchains/solana/SolanaAdapter';
 import { solanaConnection } from '../blockchains/solana/utils/connection';
 import { getDateSecondsAgo } from '../utils/time';
-
-dotenv.config();
 
 /**
  * Example standalone script that uses Moralis provider to get token data and price, also tokens pair trades and ino

@@ -1,9 +1,7 @@
-import dotenv from 'dotenv';
+import '@src/loadEnv';
 
 import HeliusProvider from '../blockchains/solana/providers/helius/HeliusProvider';
 import { logger } from '../logger';
-
-dotenv.config();
 
 /**
  * Example standalone script that gets the holders of a token using Helius

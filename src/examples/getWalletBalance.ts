@@ -1,12 +1,10 @@
-import dotenv from 'dotenv';
+import '@src/loadEnv';
 
 import { SolanaWalletProviders } from '../blockchains/solana/constants/walletProviders';
 import { solanaConnection } from '../blockchains/solana/utils/connection';
 import Wallet from '../blockchains/solana/Wallet';
 import { lamportsToSol } from '../blockchains/utils/amount';
 import { logger } from '../logger';
-
-dotenv.config();
 
 /**
  * Example standalone script that gets and prints wallet balance

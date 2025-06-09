@@ -2,12 +2,13 @@ import fs from 'fs';
 
 import { Command } from 'commander';
 
+import { logger } from '@src/logger';
+import { NewMarketContextFactory } from '@src/testdata/factories/launchpad';
+import { formPumpfunStatsDataFolder } from '@src/trading/backtesting/data/pumpfun/utils';
+import { getBacktestFiles } from '@src/trading/backtesting/utils';
+import { MarketContext } from '@src/trading/bots/launchpads/types';
+
 import { HandlePumpTokenBotReport, HandlePumpTokenReport } from './bot';
-import { logger } from '../../logger';
-import { NewMarketContextFactory } from '../../testdata/factories/launchpad';
-import { formPumpfunStatsDataFolder } from '../../trading/backtesting/data/pumpfun/utils';
-import { getBacktestFiles } from '../../trading/backtesting/utils';
-import { MarketContext } from '../../trading/bots/launchpads/types';
 
 export const validateBacktestFilesProgram = new Command();
 validateBacktestFilesProgram

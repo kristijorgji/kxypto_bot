@@ -1,4 +1,4 @@
-import { organizePumpfunFiles } from '../../trading/backtesting/data/pumpfun/utils';
+import { organizePumpfunFiles } from '@src/trading/backtesting/data/pumpfun/utils';
 
 (async () => {
     await start();

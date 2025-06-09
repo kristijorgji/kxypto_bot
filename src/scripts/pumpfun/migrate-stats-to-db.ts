@@ -1,13 +1,14 @@
 import fs from 'fs';
 
+import { db } from '@src/db/knex';
+import { Tables } from '@src/db/tables';
+import { LaunchpadTokenResult } from '@src/db/types';
+import { logger } from '@src/logger';
+import { formPumpfunStatsDataFolder } from '@src/trading/backtesting/data/pumpfun/utils';
+import { BotExitResponse, BotTradeResponse } from '@src/trading/bots/blockchains/solana/types';
+import { walkDirFilesSyncRecursive } from '@src/utils/files';
+
 import { HandlePumpTokenReport } from './bot';
-import { db } from '../../db/knex';
-import { Tables } from '../../db/tables';
-import { LaunchpadTokenResult } from '../../db/types';
-import { logger } from '../../logger';
-import { formPumpfunStatsDataFolder } from '../../trading/backtesting/data/pumpfun/utils';
-import { BotExitResponse, BotTradeResponse } from '../../trading/bots/blockchains/solana/types';
-import { walkDirFilesSyncRecursive } from '../../utils/files';
 
 (async () => {
     start().finally(() => {

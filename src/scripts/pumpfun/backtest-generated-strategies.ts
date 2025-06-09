@@ -1,23 +1,24 @@
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from 'winston';
 
-import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
-import { solToLamports } from '../../blockchains/utils/amount';
-import { redis } from '../../cache/cache';
-import { db } from '../../db/knex';
-import { storeBacktest, storeBacktestStrategyResult } from '../../db/repositories/backtests';
-import { logger } from '../../logger';
-import { formPumpfunStatsDataFolder } from '../../trading/backtesting/data/pumpfun/utils';
-import RiseStrategyConfigGenerator, {
-    StartState,
-} from '../../trading/backtesting/strategies/RiseStrategyConfigGenerator';
-import { getBacktestFiles, logStrategyResult, runStrategy } from '../../trading/backtesting/utils';
-import PumpfunBacktester from '../../trading/bots/blockchains/solana/PumpfunBacktester';
+import { solToLamports } from '@src/blockchains/utils/amount';
+import { redis } from '@src/cache/cache';
+import { db } from '@src/db/knex';
+import { storeBacktest, storeBacktestStrategyResult } from '@src/db/repositories/backtests';
+import { logger } from '@src/logger';
+import { formPumpfunStatsDataFolder } from '@src/trading/backtesting/data/pumpfun/utils';
+import { getBacktestFiles, logStrategyResult, runStrategy } from '@src/trading/backtesting/utils';
 import {
     BacktestRunConfig,
     BacktestStrategyRunConfig,
     StrategyBacktestResult,
-} from '../../trading/bots/blockchains/solana/types';
+} from '@src/trading/bots/blockchains/solana/types';
+
+import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
+import RiseStrategyConfigGenerator, {
+    StartState,
+} from '../../trading/backtesting/strategies/RiseStrategyConfigGenerator';
+import PumpfunBacktester from '../../trading/bots/blockchains/solana/PumpfunBacktester';
 import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
 import RiseStrategy, { RiseStrategyConfig } from '../../trading/strategies/launchpads/RiseStrategy';
 

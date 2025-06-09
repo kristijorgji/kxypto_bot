@@ -3,33 +3,34 @@ import fs from 'fs';
 import '@src/loadEnv';
 import { Logger } from 'winston';
 
-import { startApm } from '../../apm/apm';
-import { SolanaWalletProviders } from '../../blockchains/solana/constants/walletProviders';
-import { pumpCoinDataToInitialCoinData } from '../../blockchains/solana/dex/pumpfun/mappers/mappers';
+import { startApm } from '@src/apm/apm';
+import { SolanaWalletProviders } from '@src/blockchains/solana/constants/walletProviders';
+import { pumpCoinDataToInitialCoinData } from '@src/blockchains/solana/dex/pumpfun/mappers/mappers';
+import { NewPumpFunTokenData } from '@src/blockchains/solana/dex/pumpfun/types';
+import { formPumpfunTokenUrl } from '@src/blockchains/solana/dex/pumpfun/utils';
+import { solanaConnection } from '@src/blockchains/solana/utils/connection';
+import { lamportsToSol } from '@src/blockchains/utils/amount';
+import { db } from '@src/db/knex';
+import { pumpfunRepository } from '@src/db/repositories/PumpfunRepository';
+import { insertLaunchpadTokenResult } from '@src/db/repositories/tokenAnalytics';
+import { logger } from '@src/logger';
+import { BotExitResponse, BotResponse, BotTradeResponse } from '@src/trading/bots/blockchains/solana/types';
+import { BotConfig } from '@src/trading/bots/types';
+import { randomInt } from '@src/utils/data/data';
+import { sleep } from '@src/utils/functions';
+import { ensureDataFolder } from '@src/utils/storage';
+import { getSecondsDifference } from '@src/utils/time';
+
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunMarketContextProvider from '../../blockchains/solana/dex/pumpfun/PumpfunMarketContextProvider';
-import { NewPumpFunTokenData } from '../../blockchains/solana/dex/pumpfun/types';
-import { formPumpfunTokenUrl } from '../../blockchains/solana/dex/pumpfun/utils';
 import PumpfunQueuedListener from '../../blockchains/solana/dex/PumpfunQueuedListener';
 import SolanaAdapter from '../../blockchains/solana/SolanaAdapter';
-import { solanaConnection } from '../../blockchains/solana/utils/connection';
 import Wallet from '../../blockchains/solana/Wallet';
-import { lamportsToSol } from '../../blockchains/utils/amount';
-import { db } from '../../db/knex';
-import { pumpfunRepository } from '../../db/repositories/PumpfunRepository';
-import { insertLaunchpadTokenResult } from '../../db/repositories/tokenAnalytics';
-import { logger } from '../../logger';
 import isTokenCreatorSafe from '../../trading/bots/blockchains/solana/isTokenCreatorSafe';
 import PumpfunBot, { ErrorMessage } from '../../trading/bots/blockchains/solana/PumpfunBot';
 import PumpfunBotEventBus from '../../trading/bots/blockchains/solana/PumpfunBotEventBus';
 import PumpfunBotsTradeManager from '../../trading/bots/blockchains/solana/PumpfunBotsTradeManager';
-import { BotExitResponse, BotResponse, BotTradeResponse } from '../../trading/bots/blockchains/solana/types';
-import { BotConfig } from '../../trading/bots/types';
 import RiseStrategy from '../../trading/strategies/launchpads/RiseStrategy';
-import { randomInt } from '../../utils/data/data';
-import { sleep } from '../../utils/functions';
-import { ensureDataFolder } from '../../utils/storage';
-import { getSecondsDifference } from '../../utils/time';
 
 /**
  * Configuration options for the bot's processing behavior.

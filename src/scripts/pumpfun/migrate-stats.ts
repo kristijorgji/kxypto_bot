@@ -1,11 +1,12 @@
 import fs from 'fs';
 
+import { logger } from '@src/logger';
+import { formPumpfunStatsDataFolder, organizePumpfunFiles } from '@src/trading/backtesting/data/pumpfun/utils';
+import { insertKeysAfter } from '@src/utils/data/records';
+import { walkDirFilesSyncRecursive } from '@src/utils/files';
+import { getSecondsDifference } from '@src/utils/time';
+
 import { HandlePumpTokenReport } from './bot';
-import { logger } from '../../logger';
-import { formPumpfunStatsDataFolder, organizePumpfunFiles } from '../../trading/backtesting/data/pumpfun/utils';
-import { insertKeysAfter } from '../../utils/data/records';
-import { walkDirFilesSyncRecursive } from '../../utils/files';
-import { getSecondsDifference } from '../../utils/time';
 
 (async () => {
     await start();

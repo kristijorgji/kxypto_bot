@@ -1,9 +1,10 @@
 import fs from 'fs';
 
+import { logger } from '@src/logger';
+import { formPumpfunStatsDataFolder } from '@src/trading/backtesting/data/pumpfun/utils';
+import { walkDirFilesSyncRecursive } from '@src/utils/files';
+
 import { HandlePumpTokenBotReport, HandlePumpTokenReport } from './bot';
-import { logger } from '../../logger';
-import { formPumpfunStatsDataFolder } from '../../trading/backtesting/data/pumpfun/utils';
-import { walkDirFilesSyncRecursive } from '../../utils/files';
 
 if (require.main === module) {
     (async () => {

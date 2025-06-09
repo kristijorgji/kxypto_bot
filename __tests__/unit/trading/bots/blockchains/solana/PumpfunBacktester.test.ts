@@ -1,6 +1,7 @@
 import { createLogger } from 'winston';
 
-import * as pumpfun from '../../../../../../src/blockchains/solana/dex/pumpfun/Pumpfun';
+import * as pumpSimulation from '@src/blockchains/solana/dex/pumpfun/pump-simulation';
+
 import { PumpfunInitialCoinData } from '../../../../../../src/blockchains/solana/dex/pumpfun/types';
 import { calculatePumpTokenLamportsValue } from '../../../../../../src/blockchains/solana/dex/pumpfun/utils';
 import { TIP_LAMPORTS } from '../../../../../../src/blockchains/solana/Jito';
@@ -90,14 +91,14 @@ describe(PumpfunBacktester.name, () => {
         // @ts-ignore
         jest.spyOn(Date, 'now').mockImplementation(() => startDateMs++);
 
-        // @ts-ignore
-        simulatePumpBuyLatencyMsSpy = jest.spyOn(pumpfun, 'simulatePumpBuyLatencyMs').mockImplementation(() => {
+        simulatePumpBuyLatencyMsSpy = jest.spyOn(pumpSimulation, 'simulatePumpBuyLatencyMs').mockImplementation(() => {
             return 1;
         });
-        // @ts-ignore
-        simulatePumpSellLatencyMsSpy = jest.spyOn(pumpfun, 'simulatePumpSellLatencyMs').mockImplementation(() => {
-            return 1;
-        });
+        simulatePumpSellLatencyMsSpy = jest
+            .spyOn(pumpSimulation, 'simulatePumpSellLatencyMs')
+            .mockImplementation(() => {
+                return 1;
+            });
     });
 
     afterEach(() => {

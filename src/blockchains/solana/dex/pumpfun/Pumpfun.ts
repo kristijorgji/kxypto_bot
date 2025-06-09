@@ -3,26 +3,38 @@ import { clearTimeout } from 'node:timers';
 import { deserializeMetadata } from '@metaplex-foundation/mpl-token-metadata';
 import { RpcAccount } from '@metaplex-foundation/umi';
 import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } from '@solana/spl-token';
-import { AccountMeta, Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
+import { AccountMeta, Connection, Keypair, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
 import axios, { AxiosError } from 'axios';
-import BN from 'bn.js';
 import bs58 from 'bs58';
-import CircuitBreaker from 'opossum';
 import WebSocket, { MessageEvent } from 'ws';
 
 import {
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-    FEE_RECIPIENT,
-    GLOBAL,
-    PUMPFUN_TOKEN_DECIMALS,
+    computeBondingCurveMetrics,
+    getAssociatedBondingCurveAddress,
+    getCreatorVaultAddress,
+    getTokenBondingCurveState,
+} from '@src/blockchains/solana/dex/pumpfun/pump-base';
+import {
+    simulatePumpBuyLatencyMs,
+    simulatePumpSellLatencyMs,
+} from '@src/blockchains/solana/dex/pumpfun/pump-simulation';
+import { RetryConfig } from '@src/core/types';
+import { logger } from '@src/logger';
+import { getJitoTipLamports } from '@src/trading/bots/blockchains/solana/PumpfunBacktester';
+import { TransactionType } from '@src/trading/bots/types';
+import { bufferFromUInt64, randomInt } from '@src/utils/data/data';
+import { sleep } from '@src/utils/functions';
+
+import {
+    PUMP_BUY_BUFFER,
+    PUMP_FEE_RECIPIENT,
     PUMP_FUN_ACCOUNT,
     PUMP_FUN_PROGRAM,
-    RENT,
+    PUMP_GLOBAL,
+    PUMP_SELL_BUFFER,
     SYSTEM_PROGRAM_ID,
     TOKEN_PROGRAM_ID,
 } from './constants';
-import { pumpfunBuyLatencies, pumpfunSellLatencies } from './data/latencies';
-import BondingCurveState from './domain/BondingCurveState';
 import {
     NewPumpFunTokenData,
     PumpFunCoinData,
@@ -33,19 +45,12 @@ import {
     PumpfunTokenBcStats,
 } from './types';
 import { calculatePumpTokenLamportsValue } from './utils';
-import { RetryConfig } from '../../../../core/types';
-import { logger } from '../../../../logger';
-import { getJitoTipLamports } from '../../../../trading/bots/blockchains/solana/PumpfunBacktester';
-import { bufferFromUInt64, randomInt } from '../../../../utils/data/data';
-import { sleep } from '../../../../utils/functions';
-import { computeSimulatedLatencyNs } from '../../../../utils/simulations';
-import { lamportsToSol, solToLamports } from '../../../utils/amount';
+import { solToLamports } from '../../../utils/amount';
 import { JitoConfig } from '../../Jito';
 import { getMetadataPDA } from '../../SolanaAdapter';
 import { TransactionMode, WssMessage } from '../../types';
 import { DEFAULT_COMMITMENT, DEFAULT_FINALITY, getKeyPairFromPrivateKey, sendTx } from '../../utils/helpers';
 import {
-    getLatencyMetrics,
     simulatePriceWithHigherSlippage,
     simulatePriceWithLowerSlippage,
     simulateSolTransactionDetails,
@@ -53,9 +58,15 @@ import {
 import { getTokenIfpsMetadata } from '../../utils/tokens';
 import { getSolTransactionDetails } from '../../utils/transactions';
 
-type VirtualReserves = {
-    virtualSolReserves: number;
-    virtualTokenReserves: number;
+type SwapBaseParams = {
+    transactionMode: TransactionMode;
+    payerPrivateKey: string;
+    tokenMint: string;
+    tokenBondingCurve: string;
+    tokenAssociatedBondingCurve: string;
+    priorityFeeInSol?: number;
+    slippageDecimal?: number;
+    jitoConfig?: JitoConfig;
 };
 
 /**
@@ -175,12 +186,10 @@ export default class Pumpfun implements PumpfunListener {
     }
 
     async getInitialCoinBaseData(mint: string): Promise<PumpfunInitialCoinData> {
-        const mintAddress = new PublicKey(mint);
+        const mintKey = new PublicKey(mint);
+        const bcState = await getTokenBondingCurveState(this.connection, { mint: mint });
 
-        const bondingCurveAdddress = await this.getBondingCurveAddress(mintAddress);
-        const associatedBondingCurveAddress = this.getAssociatedBondingCurveAddress(bondingCurveAdddress, mintAddress);
-
-        const metadataPDA = await getMetadataPDA(new PublicKey(mint));
+        const metadataPDA = await getMetadataPDA(mintKey);
         const metaDataAccountInfo = await this.connection.getAccountInfo(metadataPDA);
         const metadata = deserializeMetadata(metaDataAccountInfo! as unknown as RpcAccount);
 
@@ -188,11 +197,11 @@ export default class Pumpfun implements PumpfunListener {
 
         return {
             mint: mint,
-            // TODO find a way to fetch these 2 below natively via Pumpfun.getInitialCoinBaseData
-            creator: '_not_implemented_',
+            creator: bcState.dev,
+            // TODO find a way to fetch createdTimestamp via Pumpfun.getInitialCoinBaseData
             createdTimestamp: Date.now(),
-            bondingCurve: bondingCurveAdddress.toBase58(),
-            associatedBondingCurve: associatedBondingCurveAddress.toBase58(),
+            bondingCurve: bcState.bondingCurve.toBase58(),
+            associatedBondingCurve: getAssociatedBondingCurveAddress(bcState.bondingCurve, mintKey).toBase58(),
             name: ipfsMetadata.name,
             symbol: ipfsMetadata.symbol,
             description: ipfsMetadata.description,
@@ -203,80 +212,27 @@ export default class Pumpfun implements PumpfunListener {
         };
     }
 
-    async buy({
-        transactionMode,
-        payerPrivateKey,
-        tokenMint,
-        tokenBondingCurve,
-        tokenAssociatedBondingCurve,
-        solIn,
-        priorityFeeInSol = Pumpfun.defaultPriorityInSol,
-        slippageDecimal = Pumpfun.defaultSlippageDecimal,
-        jitoConfig,
-    }: {
-        transactionMode: TransactionMode;
-        payerPrivateKey: string;
-        tokenMint: string;
-        tokenBondingCurve: string;
-        tokenAssociatedBondingCurve: string;
-        solIn: number;
-        priorityFeeInSol?: number;
-        slippageDecimal?: number;
-        jitoConfig?: JitoConfig;
-    }): Promise<PumpfunBuyResponse> {
-        const payer = await getKeyPairFromPrivateKey(payerPrivateKey);
-        const mint = new PublicKey(tokenMint);
+    async buy(
+        p: {
+            solIn: number;
+        } & SwapBaseParams,
+    ): Promise<PumpfunBuyResponse> {
+        const priorityFeeInSol = p.priorityFeeInSol ?? Pumpfun.defaultPriorityInSol;
+        const slippageDecimal = p.slippageDecimal ?? Pumpfun.defaultSlippageDecimal;
 
-        const txBuilder = new Transaction();
+        const bcs = await getTokenBondingCurveState(this.connection, {
+            bondingCurve: new PublicKey(p.tokenBondingCurve),
+        });
+        const { payer, txBuilder, keys } = await this.buildTxCommon(p, 'buy', bcs.dev);
 
-        const tokenAccountAddress = await getAssociatedTokenAddress(mint, payer.publicKey, false);
-
-        const tokenAccountInfo = await this.connection.getAccountInfo(tokenAccountAddress);
-
-        let tokenAccount: PublicKey;
-        if (!tokenAccountInfo) {
-            txBuilder.add(
-                createAssociatedTokenAccountInstruction(payer.publicKey, tokenAccountAddress, payer.publicKey, mint),
-            );
-            tokenAccount = tokenAccountAddress;
-        } else {
-            tokenAccount = tokenAccountAddress;
-        }
-
-        const { virtualTokenReserves, virtualSolReserves } = await this.getBcReserves(tokenMint, tokenBondingCurve);
-
-        const solInLamports = solToLamports(solIn);
-        const tokenOut = Math.floor((solInLamports * virtualTokenReserves) / virtualSolReserves);
-
-        const solInWithSlippage = solIn * (1 + slippageDecimal);
+        const solInLamports = solToLamports(p.solIn);
+        const tokenOut = Math.floor(
+            (solInLamports * bcs.virtualTokenReserves.toNumber()) / bcs.virtualSolReserves.toNumber(),
+        );
+        const solInWithSlippage = p.solIn * (1 + slippageDecimal);
         const maxSolCost = Math.floor(solToLamports(solInWithSlippage));
-        const ASSOCIATED_USER = tokenAccount;
-        const USER = payer.publicKey;
-        const BONDING_CURVE = new PublicKey(tokenBondingCurve);
-        const ASSOCIATED_BONDING_CURVE = new PublicKey(tokenAssociatedBondingCurve);
+        const data: Buffer = Buffer.concat([PUMP_BUY_BUFFER, bufferFromUInt64(tokenOut), bufferFromUInt64(maxSolCost)]);
 
-        const keys: Array<AccountMeta> = [
-            { pubkey: GLOBAL, isSigner: false, isWritable: false },
-            { pubkey: FEE_RECIPIENT, isSigner: false, isWritable: true },
-            { pubkey: mint, isSigner: false, isWritable: false },
-            { pubkey: BONDING_CURVE, isSigner: false, isWritable: true },
-            { pubkey: ASSOCIATED_BONDING_CURVE, isSigner: false, isWritable: true },
-            { pubkey: ASSOCIATED_USER, isSigner: false, isWritable: true },
-            { pubkey: USER, isSigner: false, isWritable: true },
-            { pubkey: SYSTEM_PROGRAM_ID, isSigner: false, isWritable: false },
-            { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-            { pubkey: RENT, isSigner: false, isWritable: false },
-            { pubkey: PUMP_FUN_ACCOUNT, isSigner: false, isWritable: false },
-            { pubkey: PUMP_FUN_PROGRAM, isSigner: false, isWritable: false },
-        ];
-
-        const data: Buffer = Buffer.concat([
-            bufferFromUInt64('16927863322537952870'),
-            bufferFromUInt64(tokenOut),
-            bufferFromUInt64(maxSolCost),
-        ]);
-
-        // @ts-ignore
         const instruction = new TransactionInstruction({
             keys: keys,
             programId: PUMP_FUN_PROGRAM,
@@ -284,7 +240,7 @@ export default class Pumpfun implements PumpfunListener {
         });
         txBuilder.add(instruction);
 
-        if (transactionMode === TransactionMode.Execution) {
+        if (p.transactionMode === TransactionMode.Execution) {
             const buyResult = await sendTx(
                 this.connection,
                 txBuilder,
@@ -296,9 +252,9 @@ export default class Pumpfun implements PumpfunListener {
                 },
                 DEFAULT_COMMITMENT,
                 DEFAULT_FINALITY,
-                jitoConfig?.jitoEnabled,
-                jitoConfig?.tipLamports,
-                jitoConfig?.endpoint,
+                p.jitoConfig?.jitoEnabled,
+                p.jitoConfig?.tipLamports,
+                p.jitoConfig?.endpoint,
             );
 
             if (buyResult.error) {
@@ -328,7 +284,7 @@ export default class Pumpfun implements PumpfunListener {
             await sleep(
                 simulatePumpBuyLatencyMs(
                     priorityFeeInSol,
-                    jitoConfig ?? {
+                    p.jitoConfig ?? {
                         jitoEnabled: false,
                     },
                     true,
@@ -344,82 +300,37 @@ export default class Pumpfun implements PumpfunListener {
                     -Math.min(
                         simulatePriceWithHigherSlippage(solInLamports, slippageDecimal),
                         solToLamports(maxSolCost),
-                    ) - getJitoTipLamports(jitoConfig),
+                    ) - getJitoTipLamports(p.jitoConfig),
                     solToLamports(priorityFeeInSol),
                 ),
             };
         }
     }
 
-    async sell({
-        transactionMode,
-        payerPrivateKey,
-        tokenMint,
-        tokenBondingCurve,
-        tokenAssociatedBondingCurve,
-        tokenBalance,
-        priorityFeeInSol = Pumpfun.defaultPriorityInSol,
-        slippageDecimal = Pumpfun.defaultSlippageDecimal,
-        jitoConfig,
-    }: {
-        transactionMode: TransactionMode;
-        payerPrivateKey: string;
-        tokenMint: string;
-        tokenBondingCurve: string;
-        tokenAssociatedBondingCurve: string;
-        tokenBalance: number;
-        priorityFeeInSol?: number;
-        slippageDecimal?: number;
-        jitoConfig?: JitoConfig;
-    }): Promise<PumpfunSellResponse> {
-        const payer = await getKeyPairFromPrivateKey(payerPrivateKey);
-        const mint = new PublicKey(tokenMint);
+    async sell(
+        p: {
+            tokenBalance: number;
+        } & SwapBaseParams,
+    ): Promise<PumpfunSellResponse> {
+        const priorityFeeInSol = p.priorityFeeInSol ?? Pumpfun.defaultPriorityInSol;
+        const slippageDecimal = p.slippageDecimal ?? Pumpfun.defaultSlippageDecimal;
 
-        const txBuilder = new Transaction();
-
-        const tokenAccountAddress = await getAssociatedTokenAddress(mint, payer.publicKey, false);
-
-        const tokenAccountInfo = await this.connection.getAccountInfo(tokenAccountAddress);
-
-        let tokenAccount: PublicKey;
-        if (!tokenAccountInfo) {
-            txBuilder.add(
-                createAssociatedTokenAccountInstruction(payer.publicKey, tokenAccountAddress, payer.publicKey, mint),
-            );
-            tokenAccount = tokenAccountAddress;
-        } else {
-            tokenAccount = tokenAccountAddress;
-        }
-
-        const { virtualTokenReserves, virtualSolReserves, priceInSol } =
-            await this.getTokenBondingCurveStats(tokenBondingCurve);
+        const bcs = await getTokenBondingCurveState(this.connection, {
+            bondingCurve: new PublicKey(p.tokenBondingCurve),
+        });
+        const { priceInSol } = computeBondingCurveMetrics(bcs);
+        const { payer, txBuilder, keys } = await this.buildTxCommon(p, 'sell', bcs.dev);
 
         const minLamportsOutput = Math.floor(
-            (tokenBalance! * (1 - slippageDecimal) * virtualSolReserves) / virtualTokenReserves,
+            (p.tokenBalance! * (1 - slippageDecimal) * bcs.virtualSolReserves.toNumber()) /
+                bcs.virtualTokenReserves.toNumber(),
         );
-
-        const keys: Array<AccountMeta> = [
-            { pubkey: GLOBAL, isSigner: false, isWritable: false },
-            { pubkey: FEE_RECIPIENT, isSigner: false, isWritable: true },
-            { pubkey: mint, isSigner: false, isWritable: false },
-            { pubkey: new PublicKey(tokenBondingCurve), isSigner: false, isWritable: true },
-            { pubkey: new PublicKey(tokenAssociatedBondingCurve), isSigner: false, isWritable: true },
-            { pubkey: tokenAccount, isSigner: false, isWritable: true },
-            { pubkey: payer.publicKey, isSigner: false, isWritable: true },
-            { pubkey: SYSTEM_PROGRAM_ID, isSigner: false, isWritable: false },
-            { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-            { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-            { pubkey: PUMP_FUN_ACCOUNT, isSigner: false, isWritable: false },
-            { pubkey: PUMP_FUN_PROGRAM, isSigner: false, isWritable: false },
-        ];
-
         const data = Buffer.concat([
-            bufferFromUInt64('12502976635542562355'),
-            bufferFromUInt64(tokenBalance),
+            PUMP_SELL_BUFFER,
+            bufferFromUInt64(p.tokenBalance),
             bufferFromUInt64(minLamportsOutput),
         ]);
 
-        // @ts-ignore
         const instruction = new TransactionInstruction({
             keys: keys,
             programId: PUMP_FUN_PROGRAM,
@@ -427,7 +338,7 @@ export default class Pumpfun implements PumpfunListener {
         });
         txBuilder.add(instruction);
 
-        if (transactionMode === TransactionMode.Execution) {
+        if (p.transactionMode === TransactionMode.Execution) {
             const sellResult = await sendTx(
                 this.connection,
                 txBuilder,
@@ -439,9 +350,9 @@ export default class Pumpfun implements PumpfunListener {
                 },
                 DEFAULT_COMMITMENT,
                 DEFAULT_FINALITY,
-                jitoConfig?.jitoEnabled,
-                jitoConfig?.tipLamports,
-                jitoConfig?.endpoint,
+                p.jitoConfig?.jitoEnabled,
+                p.jitoConfig?.tipLamports,
+                p.jitoConfig?.endpoint,
             );
 
             if (sellResult.error) {
@@ -453,7 +364,7 @@ export default class Pumpfun implements PumpfunListener {
 
             return {
                 signature: signature!,
-                soldRawAmount: tokenBalance,
+                soldRawAmount: p.tokenBalance,
                 minLamportsOutput: minLamportsOutput,
                 txDetails: await getSolTransactionDetails(
                     this.connection,
@@ -470,7 +381,7 @@ export default class Pumpfun implements PumpfunListener {
             await sleep(
                 simulatePumpSellLatencyMs(
                     priorityFeeInSol,
-                    jitoConfig ?? {
+                    p.jitoConfig ?? {
                         jitoEnabled: false,
                     },
                     true,
@@ -479,16 +390,16 @@ export default class Pumpfun implements PumpfunListener {
 
             return {
                 signature: _generateFakeSimulationTransactionHash(),
-                soldRawAmount: tokenBalance,
+                soldRawAmount: p.tokenBalance,
                 minLamportsOutput: minLamportsOutput,
                 txDetails: simulateSolTransactionDetails(
                     Math.max(
                         minLamportsOutput,
                         simulatePriceWithLowerSlippage(
-                            calculatePumpTokenLamportsValue(tokenBalance, priceInSol),
+                            calculatePumpTokenLamportsValue(p.tokenBalance, priceInSol),
                             slippageDecimal,
                         ),
-                    ) - getJitoTipLamports(jitoConfig),
+                    ) - getJitoTipLamports(p.jitoConfig),
                     solToLamports(priorityFeeInSol),
                 ),
             };
@@ -545,48 +456,18 @@ export default class Pumpfun implements PumpfunListener {
     }
 
     async getTokenBondingCurveStats(tokenBondingCurve: string): Promise<PumpfunTokenBcStats> {
-        const tokenBondingCurvePk = new PublicKey(tokenBondingCurve);
-
-        const bondingCurveAccountInfo = (await this.connection.getAccountInfo(tokenBondingCurvePk))!;
-        const bondingCurveState = new BondingCurveState(bondingCurveAccountInfo.data as Buffer);
-
-        const marketCap = lamportsToSol(Number(bondingCurveState.virtual_sol_reserves));
-        // dividing by 10^6 (as pump.fun has value till 6 decimal places)
-        const totalCoins = Number(bondingCurveState.virtual_token_reserves) / 10 ** PUMPFUN_TOKEN_DECIMALS;
-        const price = marketCap / totalCoins;
-
-        // We multiply by 1000_000 as coin have value in 6 decimals
-        const reservedTokens = new BN(206900000).mul(new BN(1000_000));
-        const initialRealTokenReserves = new BN(Number(bondingCurveState.token_total_supply)).sub(reservedTokens);
-        const bondingCurveProgress = new BN(100).sub(
-            new BN(Number(bondingCurveState.real_token_reserves)).mul(new BN(100)).div(initialRealTokenReserves),
-        );
+        const bcState = await getTokenBondingCurveState(this.connection, {
+            bondingCurve: new PublicKey(tokenBondingCurve),
+        });
+        const bcMetrics = computeBondingCurveMetrics(bcState);
 
         return {
-            marketCapInSol: marketCap,
-            priceInSol: price,
-            bondingCurveProgress: bondingCurveProgress.toNumber(),
-            virtualSolReserves: Number(bondingCurveState.virtual_sol_reserves),
-            virtualTokenReserves: Number(bondingCurveState.virtual_token_reserves),
+            marketCapInSol: bcMetrics.marketCapInSol,
+            priceInSol: bcMetrics.priceInSol,
+            bondingCurveProgress: bcMetrics.bondingCurveProgress,
+            virtualSolReserves: bcState.virtualSolReserves.toNumber(),
+            virtualTokenReserves: bcState.virtualTokenReserves.toNumber(),
         };
-    }
-
-    public getBondingCurveAddress(mintAddress: PublicKey): PublicKey {
-        const [bondingCurve] = PublicKey.findProgramAddressSync(
-            [Buffer.from('bonding-curve'), mintAddress.toBytes()],
-            PUMP_FUN_PROGRAM,
-        );
-
-        return bondingCurve;
-    }
-
-    public getAssociatedBondingCurveAddress(bondingCurveAddress: PublicKey, mintAddress: PublicKey) {
-        const [associatedBondingCurve] = PublicKey.findProgramAddressSync(
-            [bondingCurveAddress.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mintAddress.toBuffer()],
-            ASSOCIATED_TOKEN_PROGRAM_ID,
-        );
-
-        return associatedBondingCurve;
     }
 
     async getCoinData(tokenMint: string): Promise<PumpFunCoinData> {
@@ -614,60 +495,60 @@ export default class Pumpfun implements PumpfunListener {
         throw new Error(`Error fetching coinData ${response.status}`);
     }
 
-    /**
-     * Trying several ways to get the bonding curve data, this is mandatory to perform a buy or sell
-     */
-    private async getBcReserves(
-        tokenMint: string,
-        tokenBondingCurve: string,
+    async buildTxCommon(
+        p: SwapBaseParams,
+        transactionType: TransactionType,
+        dev: string,
     ): Promise<{
-        virtualSolReserves: number;
-        virtualTokenReserves: number;
+        payer: Keypair;
+        txBuilder: Transaction;
+        keys: Array<AccountMeta>;
     }> {
-        const maxTimeoutMs = 1200;
+        const payer = await getKeyPairFromPrivateKey(p.payerPrivateKey);
+        const mintKey = new PublicKey(p.tokenMint);
+        const txBuilder = new Transaction();
 
-        const [txData, txFromFeApi]: [
-            VirtualReserves | null,
-            VirtualReserves | null,
-            // @ts-ignore
-        ] = await Promise.all([
-            (async () => {
-                try {
-                    const r = await new CircuitBreaker(() => this.getTokenBondingCurveStats(tokenBondingCurve), {
-                        timeout: maxTimeoutMs,
-                    }).fire();
+        const tokenAccountAddress = await getAssociatedTokenAddress(mintKey, payer.publicKey, false);
+        const tokenAccountInfo = await this.connection.getAccountInfo(tokenAccountAddress);
 
-                    return {
-                        virtualSolReserves: r.virtualSolReserves,
-                        virtualTokenReserves: r.virtualTokenReserves,
-                    };
-                } catch (_) {
-                    return null;
-                }
-            })(),
-            (async () => {
-                try {
-                    const r = await new CircuitBreaker(() => this.getCoinData(tokenMint), {
-                        timeout: maxTimeoutMs,
-                    }).fire();
-
-                    return {
-                        virtualSolReserves: r.virtual_sol_reserves,
-                        virtualTokenReserves: r.virtual_token_reserves,
-                    };
-                } catch (_) {
-                    return null;
-                }
-            })(),
-        ]);
-
-        if (txData === null && txFromFeApi === null) {
-            throw new Error(
-                `Could not fetch bondingCurve sol and token reserves for mint ${tokenMint}, bc: ${tokenBondingCurve}`,
+        let tokenAccount: PublicKey;
+        if (!tokenAccountInfo) {
+            txBuilder.add(
+                createAssociatedTokenAccountInstruction(payer.publicKey, tokenAccountAddress, payer.publicKey, mintKey),
             );
+            tokenAccount = tokenAccountAddress;
+        } else {
+            tokenAccount = tokenAccountAddress;
         }
 
-        return txData ?? txFromFeApi!;
+        const creatorFeeVault = getCreatorVaultAddress(dev);
+
+        return {
+            payer: payer,
+            txBuilder: txBuilder,
+            keys: [
+                { pubkey: PUMP_GLOBAL, isSigner: false, isWritable: false },
+                { pubkey: PUMP_FEE_RECIPIENT, isSigner: false, isWritable: true },
+                { pubkey: mintKey, isSigner: false, isWritable: false },
+                { pubkey: new PublicKey(p.tokenBondingCurve), isSigner: false, isWritable: true },
+                { pubkey: new PublicKey(p.tokenAssociatedBondingCurve), isSigner: false, isWritable: true },
+                { pubkey: tokenAccount, isSigner: false, isWritable: true },
+                { pubkey: payer.publicKey, isSigner: false, isWritable: true },
+                { pubkey: SYSTEM_PROGRAM_ID, isSigner: false, isWritable: false },
+                {
+                    pubkey: transactionType === 'buy' ? TOKEN_PROGRAM_ID : creatorFeeVault,
+                    isSigner: false,
+                    isWritable: true,
+                },
+                {
+                    pubkey: transactionType === 'buy' ? creatorFeeVault : TOKEN_PROGRAM_ID,
+                    isSigner: false,
+                    isWritable: true,
+                },
+                { pubkey: PUMP_FUN_ACCOUNT, isSigner: false, isWritable: false },
+                { pubkey: PUMP_FUN_PROGRAM, isSigner: false, isWritable: false },
+            ],
+        };
     }
 }
 
@@ -710,24 +591,4 @@ function parseCreateInstruction(data: Buffer): NewPumpFunTokenData | null {
 
 function _generateFakeSimulationTransactionHash() {
     return `_simulation_${Date.now()}`;
-}
-
-export function simulatePumpBuyLatencyMs(
-    priorityFeeInSol: number,
-    jitoConfig: JitoConfig,
-    varyLatency: boolean,
-): number {
-    const latencies = getLatencyMetrics(pumpfunBuyLatencies, priorityFeeInSol, jitoConfig);
-
-    return varyLatency ? computeSimulatedLatencyNs(latencies) / 1e6 : latencies.avgTimeNs / 1e6;
-}
-
-export function simulatePumpSellLatencyMs(
-    priorityFeeInSol: number,
-    jitoConfig: JitoConfig,
-    varyLatency: boolean,
-): number {
-    const latencies = getLatencyMetrics(pumpfunSellLatencies, priorityFeeInSol, jitoConfig);
-
-    return varyLatency ? computeSimulatedLatencyNs(latencies) / 1e6 : latencies.avgTimeNs / 1e6;
 }

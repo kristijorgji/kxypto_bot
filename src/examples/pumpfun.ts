@@ -78,8 +78,10 @@ async function start() {
         }
 
         try {
+            const beforeBuyMsSleep = 5e3;
             const inSol = 0.001;
-            logger.info(`Will buy ${inSol} sol`);
+            logger.info(`Will buy ${inSol} sol after ${beforeBuyMsSleep / 1000}s`);
+            await sleep(beforeBuyMsSleep);
             const buyRes = (await measureExecutionTime(
                 () =>
                     pumpfun.buy({
@@ -106,8 +108,8 @@ async function start() {
                 buyRes,
             );
 
-            logger.info('Sleeping 5s then selling');
-            await sleep(7000);
+            logger.info('Sleeping 10s then selling');
+            await sleep(10000);
 
             const sellRes = (await measureExecutionTime(
                 () =>

@@ -1,14 +1,16 @@
 import { PublicKey } from '@solana/web3.js';
 
+import { measureExecutionTime } from '@src/apm/apm';
+import { RetryConfig } from '@src/core/types';
+import { logger } from '@src/logger';
+import { sleep } from '@src/utils/functions';
+
 import { PUMPFUN_TOKEN_DECIMALS } from './constants';
 import { pumpCoinDataToInitialCoinData } from './mappers/mappers';
+import { getAssociatedBondingCurveAddress, getBondingCurveAddress } from './pump-base';
 import Pumpfun from './Pumpfun';
 import { PumpfunInitialCoinData, PumpfunSellResponse } from './types';
-import { measureExecutionTime } from '../../../../apm/apm';
-import { RetryConfig } from '../../../../core/types';
 import PumpfunRepository, { pumpfunRepository } from '../../../../db/repositories/PumpfunRepository';
-import { logger } from '../../../../logger';
-import { sleep } from '../../../../utils/functions';
 import { solToLamports } from '../../../utils/amount';
 import SolanaAdapter from '../../SolanaAdapter';
 import { TransactionMode } from '../../types';
@@ -81,8 +83,8 @@ export async function sellPumpfunTokens({
         );
 
         const mintAddress = new PublicKey(token.mint);
-        const bondingCurve = await pumpfun.getBondingCurveAddress(mintAddress);
-        const associatedBondingCurve = await pumpfun.getAssociatedBondingCurveAddress(bondingCurve, mintAddress);
+        const bondingCurve = getBondingCurveAddress(mintAddress);
+        const associatedBondingCurve = getAssociatedBondingCurveAddress(bondingCurve, mintAddress);
 
         const sellRes = (await measureExecutionTime(
             () =>

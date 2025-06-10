@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-import { LogEntry, createLogger, format } from 'winston';
+import { LogEntry, Logger, createLogger, format } from 'winston';
 
 import { pumpCoinDataToInitialCoinData } from '../../../../src/blockchains/solana/dex/pumpfun/mappers/mappers';
 import Pumpfun from '../../../../src/blockchains/solana/dex/pumpfun/Pumpfun';
@@ -17,7 +17,7 @@ import { db } from '../../../../src/db/knex';
 import { pumpfunRepository } from '../../../../src/db/repositories/PumpfunRepository';
 import { insertLaunchpadTokenResult } from '../../../../src/db/repositories/tokenAnalytics';
 import ArrayTransport from '../../../../src/logger/transports/ArrayTransport';
-import { Config, start } from '../../../../src/scripts/pumpfun/bot';
+import { start } from '../../../../src/scripts/pumpfun/bot';
 import { NewPumpFunCoinDataFactory, NewPumpFunTokenDataFactory } from '../../../../src/testdata/factories/pumpfun';
 import isTokenCreatorSafe from '../../../../src/trading/bots/blockchains/solana/isTokenCreatorSafe';
 import PumpfunBot, { ErrorMessage } from '../../../../src/trading/bots/blockchains/solana/PumpfunBot';
@@ -28,6 +28,7 @@ import {
     BotTradeResponse,
     TradeTransaction,
 } from '../../../../src/trading/bots/blockchains/solana/types';
+import { BotManagerConfig } from '../../../../src/trading/bots/types';
 import { readLocalFixture } from '../../../__utils/data';
 import { FullTestExpectation } from '../../../__utils/types';
 
@@ -114,11 +115,18 @@ describe('bot', () => {
     let logs: LogEntry[] = [];
     let mockReturnsState = emptyMockReturnsState();
 
+    let queuedListenerTokens: NewPumpFunTokenData[] | null | undefined;
+
     const pumpfunBotMock = {
         run: jest.fn(),
     };
 
-    const botEventBus = new PumpfunBotEventBus();
+    let mockPumpfunQueuedListenerInstance: jest.Mocked<PumpfunQueuedListener>;
+    let botEventBus: PumpfunBotEventBus;
+    let startDeps: {
+        logger: Logger;
+        botEventBus: PumpfunBotEventBus;
+    };
 
     beforeAll(() => {
         jest.useFakeTimers();
@@ -129,33 +137,46 @@ describe('bot', () => {
         logs = [];
         logger.clear().add(new ArrayTransport({ array: logs, json: true, format: format.splat() }));
 
+        botEventBus = new PumpfunBotEventBus();
+        startDeps = {
+            logger: logger,
+            botEventBus: botEventBus,
+        };
+
         (solanaConnection.getBalance as jest.Mock).mockResolvedValue(solToLamports(1.52));
 
+        queuedListenerTokens = [
+            NewPumpFunTokenDataFactory({
+                mint: 'm_1',
+                name: 'token_1',
+                symbol: 'token_1_symbol',
+                user: 'creator_1',
+            }),
+            NewPumpFunTokenDataFactory({
+                mint: 'm_2',
+                name: 'token_2',
+                symbol: 'token_2_symbol',
+                user: 'creator_2',
+            }),
+            NewPumpFunTokenDataFactory({
+                mint: 'm_3',
+                name: 'token_3',
+                symbol: 'token_3_symbol',
+                user: 'creator_3',
+            }),
+        ];
         (PumpfunQueuedListener as jest.Mock).mockImplementation(
             (...args: ConstructorParameters<typeof PumpfunQueuedListener>) => {
-                return mockPumpfunQueuedListener(args, data => mockReturnsState.dispatchedPumpfunTokens.push(data), {
-                    sleepTime: 500,
-                    tokens: [
-                        NewPumpFunTokenDataFactory({
-                            mint: 'm_1',
-                            name: 'token_1',
-                            symbol: 'token_1_symbol',
-                            user: 'creator_1',
-                        }),
-                        NewPumpFunTokenDataFactory({
-                            mint: 'm_2',
-                            name: 'token_2',
-                            symbol: 'token_2_symbol',
-                            user: 'creator_2',
-                        }),
-                        NewPumpFunTokenDataFactory({
-                            mint: 'm_3',
-                            name: 'token_3',
-                            symbol: 'token_3_symbol',
-                            user: 'creator_3',
-                        }),
-                    ],
-                });
+                mockPumpfunQueuedListenerInstance = mockPumpfunQueuedListener(
+                    args,
+                    data => mockReturnsState.dispatchedPumpfunTokens.push(data),
+                    {
+                        sleepTime: 500,
+                        tokens: queuedListenerTokens,
+                    },
+                ) as jest.Mocked<PumpfunQueuedListener>;
+
+                return mockPumpfunQueuedListenerInstance;
             },
         );
 
@@ -187,26 +208,23 @@ describe('bot', () => {
     afterEach(() => {
         jest.clearAllMocks();
         mockReturnsState = emptyMockReturnsState();
+        pumpfunBotMock.run.mockReset();
     });
 
     afterAll(() => {
         jest.useRealTimers();
     });
 
-    const startConfig: Config = {
+    const startConfig: BotManagerConfig = {
         simulate: true,
         maxTokensToProcessInParallel: 10,
+        maxOpenPositions: null,
         buyMonitorWaitPeriodMs: 1000,
         sellMonitorWaitPeriodMs: 250,
         maxWaitMonitorAfterResultMs: 120 * 1e3,
         buyInSol: 0.4,
         maxFullTrades: null,
         stopAtMinWalletBalanceLamports: null,
-    };
-
-    const startDeps = {
-        logger: logger,
-        botEventBus: botEventBus,
     };
 
     it('1 - should receive tokens, create bots for each of them and store the results', async () => {
@@ -258,6 +276,8 @@ describe('bot', () => {
 
         const expected = readLocalFixture<FullTestExpectation>('bot/1');
 
+        expect(mockPumpfunQueuedListenerInstance.startListening as jest.Mock).toHaveBeenCalledTimes(4);
+
         expect(pumpfunRepository.insertToken as jest.Mock).toHaveBeenCalledTimes(3);
         expect((pumpfunRepository.insertToken as jest.Mock).mock.calls).toEqual([
             [pumpCoinDataToInitialCoinData(mockReturnsState.returnedCoinDataWithRetries[0])],
@@ -299,13 +319,88 @@ describe('bot', () => {
         expect((mockedFs.writeFileSync as jest.Mock).mock.calls).toEqual(expected.fnsCallArgs['fs.writeFileSync']);
     });
 
-    xit('3 - should stop all bots when the trade manager reaches maxFullTrades', async () => {
-        // TODO
+    it('3 - should stop all bots when the trade manager reaches maxFullTrades', async () => {
+        const onStopBotSpy = jest.fn();
+        botEventBus.onStopBot(onStopBotSpy);
+
+        let pumpfunBotRunCallsCount = 0;
+        pumpfunBotMock.run.mockImplementation(async (): Promise<BotResponse> => {
+            if (pumpfunBotRunCallsCount++ === 0) {
+                botEventBus.botTradeResponse({
+                    netPnl: {
+                        inSol: 0.1,
+                        inLamports: solToLamports(0.1),
+                    },
+                    transactions: [],
+                    history: [],
+                } satisfies BotTradeResponse);
+            }
+
+            return {
+                exitCode: 'DUMPED',
+                exitReason:
+                    'Stopped monitoring token because it was probably dumped and current market cap is less than the initial one',
+                history: [],
+            } satisfies BotExitResponse;
+        });
+
+        await start({ ...startConfig, maxFullTrades: 1 }, startDeps);
+
+        const expected = readLocalFixture<FullTestExpectation>('bot/3-handles-max-full-trades');
+
+        expect(pumpfunBotMock.run).toHaveBeenCalledTimes(3);
+
+        expect(onStopBotSpy).toHaveBeenCalledTimes(1);
+        expect(onStopBotSpy).toHaveBeenCalledWith({ reason: 'max_full_trades' });
+
+        expect(mockPumpfunQueuedListenerInstance.stopListening as jest.Mock).toHaveBeenCalledTimes(1);
+        expect(mockPumpfunQueuedListenerInstance.stopListening as jest.Mock).toHaveBeenCalledWith(true);
+        expect(mockPumpfunQueuedListenerInstance.startListening as jest.Mock).toHaveBeenCalledTimes(1);
+
+        expect(mockedFs.writeFileSync as jest.Mock).toHaveBeenCalledTimes(3);
+        expect((mockedFs.writeFileSync as jest.Mock).mock.calls).toEqual(expected.fnsCallArgs['fs.writeFileSync']);
+
+        expect(logs).toEqual(expected.logs);
     });
 
-    xit('4 - should stop all bots when the trade manager reaches minWalletBalanceLamports', () => {
-        // TODO
-        // assert botEventBus.onStopBot is called
+    it('4 - should stop all bots when the trade manager reaches minWalletBalanceLamports', async () => {
+        const onStopBotSpy = jest.fn();
+        botEventBus.onStopBot(onStopBotSpy);
+
+        let pumpfunBotRunCallsCount = 0;
+        pumpfunBotMock.run.mockImplementation(async (): Promise<BotResponse> => {
+            if (pumpfunBotRunCallsCount++ === 0) {
+                botEventBus.tradeExecuted({
+                    transactionType: 'buy',
+                    netTransferredLamports: -solToLamports(0.59),
+                } as TradeTransaction);
+            }
+
+            return {
+                exitCode: 'DUMPED',
+                exitReason:
+                    'Stopped monitoring token because it was probably dumped and current market cap is less than the initial one',
+                history: [],
+            } satisfies BotExitResponse;
+        });
+
+        await start({ ...startConfig, stopAtMinWalletBalanceLamports: solToLamports(1) }, startDeps);
+
+        const expected = readLocalFixture<FullTestExpectation>('bot/4-handles-min-wallet-balance-lamports');
+
+        expect(pumpfunBotMock.run).toHaveBeenCalledTimes(3);
+
+        expect(onStopBotSpy).toHaveBeenCalledTimes(1);
+        expect(onStopBotSpy).toHaveBeenCalledWith({ reason: 'min_wallet_balance' });
+
+        expect(mockPumpfunQueuedListenerInstance.stopListening as jest.Mock).toHaveBeenCalledTimes(1);
+        expect(mockPumpfunQueuedListenerInstance.stopListening as jest.Mock).toHaveBeenCalledWith(true);
+        expect(mockPumpfunQueuedListenerInstance.startListening as jest.Mock).toHaveBeenCalledTimes(1);
+
+        expect(mockedFs.writeFileSync as jest.Mock).toHaveBeenCalledTimes(3);
+        expect((mockedFs.writeFileSync as jest.Mock).mock.calls).toEqual(expected.fnsCallArgs['fs.writeFileSync']);
+
+        expect(logs).toEqual(expected.logs);
     });
 
     it('5 - should stop all bots when one bot run throws insufficient funds error', async () => {
@@ -340,6 +435,51 @@ describe('bot', () => {
         expect(timesCalledBusStopBot).toEqual(2);
 
         expect(mockedFs.writeFileSync as jest.Mock).toHaveBeenCalledTimes(1);
+        expect((mockedFs.writeFileSync as jest.Mock).mock.calls).toEqual(expected.fnsCallArgs['fs.writeFileSync']);
+
+        expect(logs).toEqual(expected.logs);
+    });
+
+    it('should stop bots and pause listening to new tokens when the trade manager reaches maxOpenPositions and resume afterwards', async () => {
+        const onStopBotSpy = jest.fn();
+        botEventBus.onStopBot(onStopBotSpy);
+
+        let pumpfunBotRunCallsCount = 0;
+        pumpfunBotMock.run.mockImplementation(async (): Promise<BotResponse> => {
+            if (pumpfunBotRunCallsCount++ === 0) {
+                botEventBus.tradeExecuted({
+                    transactionType: 'buy',
+                    netTransferredLamports: -solToLamports(startConfig.buyInSol!),
+                } as TradeTransaction);
+            } else {
+                botEventBus.tradeExecuted({
+                    transactionType: 'sell',
+                    netTransferredLamports: solToLamports(startConfig.buyInSol! + 0.234),
+                } as TradeTransaction);
+            }
+
+            return {
+                exitCode: 'DUMPED',
+                exitReason:
+                    'Stopped monitoring token because it was probably dumped and current market cap is less than the initial one',
+                history: [],
+            } satisfies BotExitResponse;
+        });
+
+        await start({ ...startConfig, maxOpenPositions: 1 }, startDeps);
+
+        const expected = readLocalFixture<FullTestExpectation>('bot/handles-max-open-positions');
+
+        expect(pumpfunBotMock.run).toHaveBeenCalledTimes(3);
+
+        expect(onStopBotSpy).toHaveBeenCalledTimes(1);
+        expect(onStopBotSpy).toHaveBeenCalledWith({ reason: 'max_open_positions' });
+
+        expect(mockPumpfunQueuedListenerInstance.stopListening as jest.Mock).toHaveBeenCalledTimes(1);
+        expect(mockPumpfunQueuedListenerInstance.stopListening as jest.Mock).toHaveBeenCalledWith(false);
+        expect(mockPumpfunQueuedListenerInstance.startListening as jest.Mock).toHaveBeenCalledTimes(5);
+
+        expect(mockedFs.writeFileSync as jest.Mock).toHaveBeenCalledTimes(3);
         expect((mockedFs.writeFileSync as jest.Mock).mock.calls).toEqual(expected.fnsCallArgs['fs.writeFileSync']);
 
         expect(logs).toEqual(expected.logs);

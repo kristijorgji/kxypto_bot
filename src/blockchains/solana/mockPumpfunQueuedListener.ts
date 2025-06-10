@@ -10,7 +10,7 @@ export default function mockPumpfunQueuedListener(
         maxTokens?: number | null;
         tokens?: NewPumpFunTokenData[] | null;
     },
-) {
+): PumpfunQueuedListener {
     const mockName = 'MockPumpfunQueuedListener';
     const [logger, , maxConcurrent, processTokenFn] = args;
     let isListening = false;

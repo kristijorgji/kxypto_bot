@@ -331,7 +331,11 @@ export function logStrategyResult(
     logger.info('Highest peak: %s SOL', lamportsToSol(sr.highestPeakLamports));
     logger.info('Lowest trough: %s SOL', lamportsToSol(sr.lowestTroughLamports));
     logger.info('Max Drawdown: %s%%', sr.maxDrawdownPercentage);
-    logger.info('Total progress %s%%\n', (info.tested / info.total) * 100);
+    logger.info(
+        'Total progress %s%%, %s\n',
+        ((info.tested + 1) / info.total) * 100,
+        `${info.tested + 1} / ${info.total}`,
+    );
 }
 
 export function getBacktestFiles(dataConfig: Omit<BacktestRunConfig['data'], 'filesCount'>): FileInfo[] {

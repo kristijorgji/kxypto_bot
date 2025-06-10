@@ -15,7 +15,7 @@ import { pumpfunRepository } from '@src/db/repositories/PumpfunRepository';
 import { insertLaunchpadTokenResult } from '@src/db/repositories/tokenAnalytics';
 import { logger } from '@src/logger';
 import { BotExitResponse, BotResponse, BotTradeResponse } from '@src/trading/bots/blockchains/solana/types';
-import { BotConfig } from '@src/trading/bots/types';
+import { BotManagerConfig } from '@src/trading/bots/types';
 import { randomInt } from '@src/utils/data/data';
 import { sleep } from '@src/utils/functions';
 import { ensureDataFolder } from '@src/utils/storage';
@@ -29,34 +29,8 @@ import Wallet from '../../blockchains/solana/Wallet';
 import isTokenCreatorSafe from '../../trading/bots/blockchains/solana/isTokenCreatorSafe';
 import PumpfunBot, { ErrorMessage } from '../../trading/bots/blockchains/solana/PumpfunBot';
 import PumpfunBotEventBus from '../../trading/bots/blockchains/solana/PumpfunBotEventBus';
-import PumpfunBotsTradeManager from '../../trading/bots/blockchains/solana/PumpfunBotsTradeManager';
+import PumpfunBotTradeManager from '../../trading/bots/blockchains/solana/PumpfunBotTradeManager';
 import RiseStrategy from '../../trading/strategies/launchpads/RiseStrategy';
-
-/**
- * Configuration options for the bot's processing behavior.
- */
-export type Config = {
-    /**
-     * The maximum number of tokens that can be processed in parallel.
-     * - If set to `null`, there is no limit on parallel processing.
-     * - If set to a number (e.g., `3`), the bot will process up to that many tokens simultaneously.
-     */
-    maxTokensToProcessInParallel: number | null;
-
-    /**
-     * The amount of full trades.
-     * - If set to a number, the bot will process up to maximum 1 full trade (1 buy, 1 sell)
-     * - If set to `null`, the bot will process trades as long as it has enough balance
-     */
-    maxFullTrades: number | null;
-
-    /**
-     * Stop bots if this minimum balance is reached
-     * - If set to a number, the bots will stop when this balance or lower is reached
-     * - If set to `null`, the bot will process trades as long as it has enough balance
-     */
-    stopAtMinWalletBalanceLamports: number | null;
-} & BotConfig;
 
 type HandlePumpTokenBaseReport = {
     /**
@@ -97,9 +71,10 @@ export type HandlePumpTokenBotReport = HandlePumpTokenBaseReport & {
 
 export type HandlePumpTokenReport = HandlePumpTokenExitReport | HandlePumpTokenBotReport;
 
-const config: Config = {
+const config: BotManagerConfig = {
     simulate: false,
     maxTokensToProcessInParallel: 70,
+    maxOpenPositions: 2,
     buyMonitorWaitPeriodMs: 2500,
     sellMonitorWaitPeriodMs: 250,
     maxWaitMonitorAfterResultMs: 30 * 1e3,
@@ -119,7 +94,7 @@ if (require.main === module) {
 }
 
 export async function start(
-    config: Config,
+    config: BotManagerConfig,
     {
         logger,
         botEventBus,
@@ -146,10 +121,24 @@ export async function start(
 
     logger.info(`Started with balance ${lamportsToSol(await wallet.getBalanceLamports())} SOL`);
 
-    const pumpfunBotsTradeManager = new PumpfunBotsTradeManager(logger, botEventBus, wallet, {
-        maxFullTrades: config.maxFullTrades,
-        minWalletBalanceLamports: config.stopAtMinWalletBalanceLamports,
-    });
+    const pumpfunBotTradeManager = new PumpfunBotTradeManager(
+        logger,
+        botEventBus,
+        wallet,
+        {
+            maxOpenPositions: config.maxOpenPositions,
+            maxFullTrades: config.maxFullTrades,
+            minWalletBalanceLamports: config.stopAtMinWalletBalanceLamports,
+        },
+        {
+            resumeListening: () => {
+                logger.info(
+                    'botManager - resuming token monitoring — open positions are now below maxOpenPositions limit',
+                );
+                pumpfunListener.startListening();
+            },
+        },
+    );
 
     const pumpfunListener = new PumpfunQueuedListener(
         logger,
@@ -187,7 +176,7 @@ export async function start(
 
                 if ((e as Error).message === ErrorMessage.insufficientFundsToBuy) {
                     logger.warn('We got error %s and will stop all bots', ErrorMessage.insufficientFundsToBuy);
-                    pumpfunBotsTradeManager.stopAllBots();
+                    pumpfunBotTradeManager.stopAllBots('insufficient_funds');
                 } else {
                     logger.error(e);
                 }
@@ -195,9 +184,9 @@ export async function start(
         },
     );
 
-    botEventBus.onStopBot(async () => {
-        logger.info('bot - onStopBot asking pumpfunQueuedListener to stop');
-        await pumpfunListener.stopListening(true);
+    botEventBus.onStopBot(async ({ reason }) => {
+        logger.info('botManager - onStopBot asking pumpfunQueuedListener to stop with reason %s', reason);
+        await pumpfunListener.stopListening(reason !== 'max_open_positions');
     });
 
     pumpfunListener.startListening();
@@ -232,7 +221,7 @@ async function handlePumpToken(
         tokenData,
     }: {
         identifier: string;
-        config: Config;
+        config: BotManagerConfig;
         wallet: Wallet;
         tokenData: NewPumpFunTokenData;
     },

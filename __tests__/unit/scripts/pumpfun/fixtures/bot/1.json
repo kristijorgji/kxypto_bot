@@ -68,7 +68,7 @@
   "logs": [
     {
       "level": "info",
-      "message": "🚀 Bot started with config={\n  simulate: true,\n  maxTokensToProcessInParallel: 10,\n  buyMonitorWaitPeriodMs: 1000,\n  sellMonitorWaitPeriodMs: 250,\n  maxWaitMonitorAfterResultMs: 120000,\n  buyInSol: 0.4,\n  maxFullTrades: null,\n  stopAtMinWalletBalanceLamports: null\n}"
+      "message": "🚀 Bot started with config={\n  simulate: true,\n  maxTokensToProcessInParallel: 10,\n  maxOpenPositions: null,\n  buyMonitorWaitPeriodMs: 1000,\n  sellMonitorWaitPeriodMs: 250,\n  maxWaitMonitorAfterResultMs: 120000,\n  buyInSol: 0.4,\n  maxFullTrades: null,\n  stopAtMinWalletBalanceLamports: null\n}"
     },
     {
       "level": "info",

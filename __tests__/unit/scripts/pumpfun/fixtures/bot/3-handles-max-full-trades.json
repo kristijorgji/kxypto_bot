@@ -1,0 +1,60 @@
+{
+  "fnsCallArgs": {
+    "fs.writeFileSync": [
+      [
+        "./data/pumpfun-stats/tmp/m_1.json",
+        "{\n  \"$schema\": {\n    \"version\": 1.1\n  },\n  \"simulation\": true,\n  \"strategy\": {\n    \"id\": \"RiseStrategy_5cb9dcf7\",\n    \"name\": \"RiseStrategy\",\n    \"configVariant\": \"hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17\"\n  },\n  \"mint\": \"m_1\",\n  \"name\": \"token_1\",\n  \"url\": \"https://pump.fun/coin/m_1\",\n  \"bullXUrl\": \"https://neo.bullx.io/terminal?chainId=1399811149&address=m_1\",\n  \"creator\": \"creator_1\",\n  \"startedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"endedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"elapsedSeconds\": 0,\n  \"monitor\": {\n    \"buyTimeframeMs\": 2500,\n    \"sellTimeframeMs\": 250\n  },\n  \"exitCode\": \"DUMPED\",\n  \"exitReason\": \"Stopped monitoring token because it was probably dumped and current market cap is less than the initial one\",\n  \"history\": []\n}"
+      ],
+      [
+        "./data/pumpfun-stats/tmp/m_2.json",
+        "{\n  \"$schema\": {\n    \"version\": 1.1\n  },\n  \"simulation\": true,\n  \"strategy\": {\n    \"id\": \"RiseStrategy_5cb9dcf7\",\n    \"name\": \"RiseStrategy\",\n    \"configVariant\": \"hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17\"\n  },\n  \"mint\": \"m_2\",\n  \"name\": \"token_2\",\n  \"url\": \"https://pump.fun/coin/m_2\",\n  \"bullXUrl\": \"https://neo.bullx.io/terminal?chainId=1399811149&address=m_2\",\n  \"creator\": \"creator_2\",\n  \"startedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"endedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"elapsedSeconds\": 0,\n  \"monitor\": {\n    \"buyTimeframeMs\": 2500,\n    \"sellTimeframeMs\": 250\n  },\n  \"exitCode\": \"DUMPED\",\n  \"exitReason\": \"Stopped monitoring token because it was probably dumped and current market cap is less than the initial one\",\n  \"history\": []\n}"
+      ],
+      [
+        "./data/pumpfun-stats/tmp/m_3.json",
+        "{\n  \"$schema\": {\n    \"version\": 1.1\n  },\n  \"simulation\": true,\n  \"strategy\": {\n    \"id\": \"RiseStrategy_5cb9dcf7\",\n    \"name\": \"RiseStrategy\",\n    \"configVariant\": \"hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17\"\n  },\n  \"mint\": \"m_3\",\n  \"name\": \"token_3\",\n  \"url\": \"https://pump.fun/coin/m_3\",\n  \"bullXUrl\": \"https://neo.bullx.io/terminal?chainId=1399811149&address=m_3\",\n  \"creator\": \"creator_3\",\n  \"startedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"endedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"elapsedSeconds\": 0,\n  \"monitor\": {\n    \"buyTimeframeMs\": 2500,\n    \"sellTimeframeMs\": 250\n  },\n  \"exitCode\": \"DUMPED\",\n  \"exitReason\": \"Stopped monitoring token because it was probably dumped and current market cap is less than the initial one\",\n  \"history\": []\n}"
+      ]
+    ]
+  },
+  "logs": [
+    {
+      "level": "info",
+      "message": "🚀 Bot started with config={\n  simulate: true,\n  maxTokensToProcessInParallel: 10,\n  maxOpenPositions: null,\n  buyMonitorWaitPeriodMs: 1000,\n  sellMonitorWaitPeriodMs: 250,\n  maxWaitMonitorAfterResultMs: 120000,\n  buyInSol: 0.4,\n  maxFullTrades: 1,\n  stopAtMinWalletBalanceLamports: null\n}"
+    },
+    {
+      "level": "info",
+      "message": "Started with balance 1.52 SOL"
+    },
+    {
+      "level": "info",
+      "message": "[0] Received newly created token: token_1, https://pump.fun/coin/m_1"
+    },
+    {
+      "level": "info",
+      "message": "[1] Received newly created token: token_2, https://pump.fun/coin/m_2"
+    },
+    {
+      "level": "info",
+      "message": "[2] Received newly created token: token_3, https://pump.fun/coin/m_3"
+    },
+    {
+      "level": "info",
+      "message": "[PumpfunBotTradeManager] - Max full trades 1 reached, emitting stop bot"
+    },
+    {
+      "level": "info",
+      "message": "botManager - onStopBot asking pumpfunQueuedListener to stop with reason max_full_trades"
+    },
+    {
+      "level": "info",
+      "message": "[MockPumpfunQueuedListener] - Stopped listening force=true."
+    },
+    {
+      "level": "info",
+      "message": "We are done. The listener is force stopped and all items are processed"
+    },
+    {
+      "level": "info",
+      "message": "Balance: 1.52 SOL"
+    }
+  ]
+}

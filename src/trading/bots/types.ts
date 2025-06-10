@@ -35,6 +35,40 @@ export type BotConfig = {
     buyInSol: number | null;
 };
 
+/**
+ * Configuration options for the bot manager's processing behavior.
+ */
+export type BotManagerConfig = {
+    /**
+     * The maximum number of tokens that can be processed in parallel.
+     * - If set to `null`, there is no limit on parallel processing.
+     * - If set to a number (e.g., `3`), the bot will process up to that many tokens simultaneously.
+     */
+    maxTokensToProcessInParallel: number | null;
+
+    /**
+     * Maximum number of open positions the bot can hold simultaneously.
+     * - If set to `null`, the bot has no limit on open positions.
+     * - If set to a number (e.g., `3`), the bot will pause listening for new coins
+     *   until the current open positions are closed (sold) and fall below this limit.
+     */
+    maxOpenPositions: number | null;
+
+    /**
+     * The amount of full trades.
+     * - If set to a number, the bot will process up to maximum 1 full trade (1 buy, 1 sell)
+     * - If set to `null`, the bot will process trades as long as it has enough balance
+     */
+    maxFullTrades: number | null;
+
+    /**
+     * Stop bots if this minimum balance is reached
+     * - If set to a number, the bots will stop when this balance or lower is reached
+     * - If set to `null`, the bot will process trades as long as it has enough balance
+     */
+    stopAtMinWalletBalanceLamports: number | null;
+} & BotConfig;
+
 export type SellReason =
     | 'DUMPED'
     | 'TRAILING_STOP_LOSS'

@@ -64,7 +64,7 @@ export default class PumpfunQueuedListener {
             return;
         }
         this.isListening = false;
-        await this.pumpfun.stopListeningToNewTokens();
+        this.pumpfun.stopListeningToNewTokens();
     }
 
     isDone(): boolean {

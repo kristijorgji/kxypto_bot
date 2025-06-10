@@ -2,6 +2,8 @@ import EventEmitter from 'node:events';
 
 import { BotTradeResponse, TradeTransaction } from './types';
 
+export type StopBotReason = 'max_open_positions' | 'max_full_trades' | 'min_wallet_balance' | 'insufficient_funds';
+
 export default class PumpfunBotEventBus {
     private readonly eventEmitter: EventEmitter = new EventEmitter();
 
@@ -25,11 +27,13 @@ export default class PumpfunBotEventBus {
         this.eventEmitter.on('botResponse', listener);
     }
 
-    stopBot(): void {
-        this.eventEmitter.emit('stopBot');
+    stopBot(reason: StopBotReason): void {
+        this.eventEmitter.emit('stopBot', {
+            reason: reason,
+        });
     }
 
-    onStopBot(listener: () => void): void {
+    onStopBot(listener: (args: { reason: StopBotReason }) => void): void {
         this.eventEmitter.on('stopBot', listener);
     }
 }

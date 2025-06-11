@@ -415,7 +415,7 @@ describe('PricePredictionStrategy', () => {
                     ),
                 ),
             ).toEqual({
-                'pp.test_rsi7_skf:true_rql:10_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10':
+                'pp.test_rsi7_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10':
                     '{"predicted_prices":[1.890614874462375e-7]}',
             });
 
@@ -523,7 +523,7 @@ describe('PricePredictionStrategy', () => {
 
         it('should generate full cache key with all values', () => {
             const key = getKeyFromConfig();
-            expect(key).toBe('pp.m1_skf:false_rql:3_upfl:5');
+            expect(key).toBe('pp.m1_skf:false');
         });
 
         it('should exclude undefined values from the cache key', () => {
@@ -538,7 +538,7 @@ describe('PricePredictionStrategy', () => {
                 },
                 true,
             );
-            expect(key).toBe('pp.m1_rql:3_upfl:5');
+            expect(key).toBe('pp.m1');
         });
 
         it('should handle boolean true correctly', () => {
@@ -546,7 +546,7 @@ describe('PricePredictionStrategy', () => {
                 prediction: { requiredFeaturesLength: 3, upToFeaturesLength: 5, skipAllSameFeatures: true },
             });
             expect(key).toContain('_skf:true');
-            expect(key).toBe('pp.m1_skf:true_rql:3_upfl:5');
+            expect(key).toBe('pp.m1_skf:true');
         });
 
         it('should handle boolean false correctly', () => {
@@ -554,7 +554,7 @@ describe('PricePredictionStrategy', () => {
                 prediction: { requiredFeaturesLength: 3, upToFeaturesLength: 5, skipAllSameFeatures: false },
             });
             expect(key).toContain('_skf:false');
-            expect(key).toBe('pp.m1_skf:false_rql:3_upfl:5');
+            expect(key).toBe('pp.m1_skf:false');
         });
 
         it('should return only model prefix if everything else is undefined', () => {

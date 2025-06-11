@@ -127,19 +127,17 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
         if ((r as ShouldBuyResponse)?.reason) {
             return r as ShouldBuyResponse<PricePredictionStrategyShouldBuyResponseReason>;
         }
+        const predictionRequest = r as PredictionRequest;
 
         let predictionResponse: AxiosResponse | undefined;
         let prediction: PredictPricesResponse | undefined;
 
-        const cacheKey = `${this.cacheBaseKey}_${mint}_${historyRef.index}`;
+        const cacheKey = `${this.cacheBaseKey}_${mint}_${historyRef.index}:${predictionRequest.features.length}`;
         const cached = await this.cache.get(cacheKey);
         if (cached) {
             prediction = JSON.parse(cached);
         } else {
-            predictionResponse = await this.client.post<PredictPricesResponse>(
-                this.source.endpoint,
-                r as PredictionRequest,
-            );
+            predictionResponse = await this.client.post<PredictPricesResponse>(this.source.endpoint, predictionRequest);
             if (predictionResponse.status === 200) {
                 prediction = predictionResponse.data as PredictPricesResponse;
                 this.cache.set(cacheKey, JSON.stringify(prediction), 'EX', 3600 * 24 * 7);
@@ -219,7 +217,10 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
     }
 
     private formBaseCacheKey(): string {
-        const pc = variantFromPredictionConfig(this.config.prediction);
+        const pc =
+            this.config.prediction.skipAllSameFeatures !== undefined
+                ? `skf:${this.config.prediction.skipAllSameFeatures}`
+                : '';
         return `pp.${this.source.model}${pc.length === 0 ? '' : `_${pc}`}`;
     }
 }

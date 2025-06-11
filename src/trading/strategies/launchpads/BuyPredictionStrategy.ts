@@ -130,19 +130,17 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
         if ((r as ShouldBuyResponse)?.reason) {
             return r as ShouldBuyResponse<BuyPredictionStrategyShouldBuyResponseReason>;
         }
+        const predictionRequest = r as PredictionRequest;
 
         let predictionResponse: AxiosResponse | undefined;
         let prediction: BuyPredictionResponse | undefined;
 
-        const cacheKey = `${this.cacheBaseKey}_${mint}_${historyRef.index}`;
+        const cacheKey = `${this.cacheBaseKey}_${mint}_${historyRef.index}:${predictionRequest.features.length}`;
         const cached = await this.cache.get(cacheKey);
         if (cached) {
             prediction = JSON.parse(cached);
         } else {
-            predictionResponse = await this.client.post<BuyPredictionResponse>(
-                this.source.endpoint,
-                r as PredictionRequest,
-            );
+            predictionResponse = await this.client.post<BuyPredictionResponse>(this.source.endpoint, predictionRequest);
             if (predictionResponse.status === 200) {
                 if (predictionResponse.data.confidence === undefined) {
                     throw new Error(
@@ -225,7 +223,10 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
     }
 
     private formBaseCacheKey(): string {
-        const pc = variantFromPredictionConfig(this.config.prediction);
+        const pc =
+            this.config.prediction.skipAllSameFeatures !== undefined
+                ? `skf:${this.config.prediction.skipAllSameFeatures}`
+                : '';
         return `bp.${this.source.model}${pc.length === 0 ? '' : `_${pc}`}`;
     }
 }

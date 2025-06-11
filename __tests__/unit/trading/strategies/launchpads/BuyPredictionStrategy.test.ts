@@ -270,7 +270,7 @@ describe('BuyPredictionStrategy', () => {
                     ),
                 ),
             ).toEqual({
-                'bp.test_rsi7_skf:true_rql:10_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10': '{"confidence":0.2}',
+                'bp.test_rsi7_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10': '{"confidence":0.2}',
             });
 
             expect(await strategy.shouldBuy(mint, historyRef, history[4], history)).toEqual({
@@ -426,7 +426,7 @@ describe('BuyPredictionStrategy', () => {
 
         it('should generate full cache key with all values', () => {
             const key = getKeyFromConfig();
-            expect(key).toBe('bp.m1_skf:false_rql:3_upfl:5');
+            expect(key).toBe('bp.m1_skf:false');
         });
 
         it('should exclude undefined values from the cache key', () => {
@@ -441,7 +441,7 @@ describe('BuyPredictionStrategy', () => {
                 },
                 true,
             );
-            expect(key).toBe('bp.m1_rql:3_upfl:5');
+            expect(key).toBe('bp.m1');
         });
 
         it('should handle boolean true correctly', () => {
@@ -449,7 +449,7 @@ describe('BuyPredictionStrategy', () => {
                 prediction: { requiredFeaturesLength: 3, upToFeaturesLength: 5, skipAllSameFeatures: true },
             });
             expect(key).toContain('_skf:true');
-            expect(key).toBe('bp.m1_skf:true_rql:3_upfl:5');
+            expect(key).toBe('bp.m1_skf:true');
         });
 
         it('should handle boolean false correctly', () => {
@@ -457,7 +457,7 @@ describe('BuyPredictionStrategy', () => {
                 prediction: { requiredFeaturesLength: 3, upToFeaturesLength: 5, skipAllSameFeatures: false },
             });
             expect(key).toContain('_skf:false');
-            expect(key).toBe('bp.m1_skf:false_rql:3_upfl:5');
+            expect(key).toBe('bp.m1_skf:false');
         });
 
         it('should return only model prefix if everything else is undefined', () => {

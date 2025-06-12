@@ -4,9 +4,9 @@ import { Command } from 'commander';
 
 import { logger } from '@src/logger';
 import { NewMarketContextFactory } from '@src/testdata/factories/launchpad';
-import { formPumpfunStatsDataFolder } from '@src/trading/backtesting/data/pumpfun/utils';
 import { getBacktestFiles } from '@src/trading/backtesting/utils';
 import { MarketContext } from '@src/trading/bots/launchpads/types';
+import { moveFile } from '@src/utils/files';
 
 import { HandlePumpTokenBotReport, HandlePumpTokenReport } from './bot';
 
@@ -14,18 +14,20 @@ export const validateBacktestFilesProgram = new Command();
 validateBacktestFilesProgram
     .name('validate-backtest-files')
     .description(
-        'Validates JSON files in the specified directory by checking for null values in the marketContext and other anomalies.',
+        'Validates files in the specified directory by checking for null values in the marketContext and other anomalies.',
     )
     .version('0.0.0')
-    .option('--path <string>', 'Path to the folder containing the JSON result files to be validated.')
+    .requiredOption('--path <string>', 'Path to the folder containing the JSON result files to be validated.')
     .option(
         '--includeIfPathContains <string>',
         'Comma-separated list of keywords. Only files whose paths include at least one of these values will be processed.',
     )
+    .option('--extractTo <string>', 'Destination folder to move invalid files')
     .action(async args => {
         await start({
             path: args.path,
             includeIfPathContains: args.includeIfPathContains,
+            extractTo: args.extractTo,
         });
     });
 
@@ -37,22 +39,29 @@ if (require.main === module) {
  * It will check all the backtest files under default dir `./data/pumpfun-stats`
  * and provide a summary of how many are valid, how many invalid (e.g., have price = null)
  */
-async function start(args: { path?: string; includeIfPathContains?: string }) {
+async function start(args: { path: string; includeIfPathContains: string; extractTo?: string }) {
     const config = {
         dataSource: {
-            path: args.path ?? formPumpfunStatsDataFolder(),
-            includeIfPathContains: args.includeIfPathContains ? args.includeIfPathContains.split(',') : ['no_trade'],
+            path: args.path,
+            includeIfPathContains: args.includeIfPathContains ? args.includeIfPathContains.split(',') : undefined,
         },
         rules: {
+            notJson: true,
             nulls: true,
+            noHistory: true,
         },
+        extractTo: args.extractTo,
     };
-    const files = getBacktestFiles(config.dataSource);
+    const files = getBacktestFiles(config.dataSource, null);
     const marketContextKeys = Object.keys(NewMarketContextFactory()) as (keyof MarketContext)[];
 
     logger.info('Started processing %d files with config=%o\n', files.length, config);
 
-    let withoutHistory = 0;
+    if (config.extractTo && !fs.existsSync(config.extractTo)) {
+        logger.info('Will create missing extract-to directory %s', config.extractTo);
+        fs.mkdirSync(config.extractTo, { recursive: true });
+    }
+
     let processed = 0;
     let validFiles = 0;
 
@@ -75,22 +84,42 @@ async function start(args: { path?: string; includeIfPathContains?: string }) {
     type IntervalsMap = Record<number, Interval>;
     const invalidFiles: Record<
         string,
-        Partial<
-            Record<
-                keyof MarketContext,
-                {
-                    null: IntervalsMap;
-                }
-            >
-        >
+        {
+            nonJson?: boolean;
+            withoutHistory?: boolean;
+            context?: Partial<
+                Record<
+                    keyof MarketContext,
+                    {
+                        null: IntervalsMap;
+                    }
+                >
+            >;
+        }
     > = {};
 
     for (const file of files) {
+        if (config.rules.notJson && !file.name.includes('.json')) {
+            processed++;
+            if (config.extractTo) {
+                await moveFile(file.fullPath, `${config.extractTo}/not_json/${file.name}`);
+            }
+            invalidFiles[file.fullPath] = {
+                nonJson: true,
+            };
+            continue;
+        }
+
         const content = JSON.parse(fs.readFileSync(file.fullPath).toString()) as HandlePumpTokenReport;
 
-        if (!(content as HandlePumpTokenBotReport)?.history) {
-            withoutHistory++;
+        if (config.rules.noHistory && !(content as HandlePumpTokenBotReport)?.history) {
             processed++;
+            if (config.extractTo) {
+                await moveFile(file.fullPath, `${config.extractTo}/without_history/${file.name}`);
+            }
+            invalidFiles[file.fullPath] = {
+                withoutHistory: true,
+            };
             continue;
         }
 
@@ -103,18 +132,21 @@ async function start(args: { path?: string; includeIfPathContains?: string }) {
             for (const mKey of marketContextKeys) {
                 if (historyEntry[mKey] === null) {
                     if (!invalidFiles[file.fullPath]) {
-                        invalidFiles[file.fullPath] = {};
+                        invalidFiles[file.fullPath] = {
+                            context: {},
+                        };
                     }
-                    if (!invalidFiles[file.fullPath][mKey]) {
-                        invalidFiles[file.fullPath][mKey] = {
+                    if (!invalidFiles[file.fullPath].context![mKey]) {
+                        invalidFiles[file.fullPath].context![mKey] = {
                             null: {},
                         };
                     }
 
                     if (i > 0 && pc.history[i - 1][mKey] === null) {
                         lastNullIntervals![mKey]!.count++;
-                        invalidFiles[file.fullPath][mKey]!.null[lastNullIntervals![mKey]!.startRef.index].count =
-                            lastNullIntervals![mKey]!.count;
+                        invalidFiles[file.fullPath].context![mKey]!.null[
+                            lastNullIntervals![mKey]!.startRef.index
+                        ].count = lastNullIntervals![mKey]!.count;
                     } else {
                         lastNullIntervals[mKey] = {
                             startRef: {
@@ -123,7 +155,7 @@ async function start(args: { path?: string; includeIfPathContains?: string }) {
                             },
                             count: 1,
                         };
-                        invalidFiles[file.fullPath][mKey]!.null[lastNullIntervals[mKey].startRef.index] = {
+                        invalidFiles[file.fullPath].context![mKey]!.null[lastNullIntervals[mKey].startRef.index] = {
                             startTimestamp: lastNullIntervals[mKey].startRef.timestamp,
                             count: 1,
                         };
@@ -135,14 +167,35 @@ async function start(args: { path?: string; includeIfPathContains?: string }) {
         }
         if (!invalidFiles[file.fullPath]) {
             validFiles++;
+        } else if (config.extractTo) {
+            await moveFile(file.fullPath, `${config.extractTo}/nulls/${file.name}`);
         }
 
         processed++;
     }
 
+    const invalidReasonCounts: Record<'context' | 'nonJson' | 'withoutHistory', number> = {
+        nonJson: 0,
+        context: 0,
+        withoutHistory: 0,
+    };
+    let invalidFilesCount = 0;
+    for (const [_, value] of Object.entries(invalidFiles)) {
+        invalidFilesCount++;
+        if (value.nonJson === true) {
+            invalidReasonCounts.nonJson++;
+        }
+        if (value.withoutHistory === true) {
+            invalidReasonCounts.withoutHistory++;
+        }
+        if (value.context) {
+            invalidReasonCounts.context++;
+        }
+    }
+
     logger.info('%d files were processed', processed);
     logger.info('%d files were found to be valid', validFiles);
-    logger.info('%d files were found to be invalid', Object.keys(invalidFiles).length);
-    logger.info('%d files had no history', withoutHistory);
+    logger.info('%d files were found to be invalid', invalidFilesCount);
+    logger.info('Invalid files invalidReasonCounts by reason: %o', invalidReasonCounts);
     logger.info('Invalid files: %o', invalidFiles);
 }

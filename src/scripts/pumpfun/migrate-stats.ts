@@ -60,6 +60,8 @@ async function migrateFilesToNewSchema() {
 
     if (changed > 0) {
         logger.info('Will re-organize the folders now');
-        await organizePumpfunFiles();
+        await organizePumpfunFiles({
+            path: formPumpfunStatsDataFolder(),
+        });
     }
 }

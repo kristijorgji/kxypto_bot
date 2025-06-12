@@ -2,13 +2,14 @@ import fs from 'fs';
 
 import { Logger } from 'winston';
 
+import { forceGetPumpCoinInitialData } from '@src/blockchains/solana/dex/pumpfun/utils';
+import { lamportsToSol, solToLamports } from '@src/blockchains/utils/amount';
+import { pumpfunRepository } from '@src/db/repositories/PumpfunRepository';
+import { HandlePumpTokenBotReport } from '@src/scripts/pumpfun/bot';
+import { FileInfo, walkDirFilesSyncRecursive } from '@src/utils/files';
+import { formatElapsedTime } from '@src/utils/time';
+
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
-import { forceGetPumpCoinInitialData } from '../../blockchains/solana/dex/pumpfun/utils';
-import { lamportsToSol, solToLamports } from '../../blockchains/utils/amount';
-import { pumpfunRepository } from '../../db/repositories/PumpfunRepository';
-import { HandlePumpTokenBotReport } from '../../scripts/pumpfun/bot';
-import { FileInfo, walkDirFilesSyncRecursive } from '../../utils/files';
-import { formatElapsedTime } from '../../utils/time';
 import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
 import {
     BacktestExitResponse,
@@ -338,8 +339,11 @@ export function logStrategyResult(
     );
 }
 
-export function getBacktestFiles(dataConfig: Omit<BacktestRunConfig['data'], 'filesCount'>): FileInfo[] {
-    let files = walkDirFilesSyncRecursive(dataConfig.path, [], 'json');
+export function getBacktestFiles(
+    dataConfig: Omit<BacktestRunConfig['data'], 'filesCount'>,
+    extension: string | null = 'json',
+): FileInfo[] {
+    let files = walkDirFilesSyncRecursive(dataConfig.path, [], extension);
     if (dataConfig.includeIfPathContains) {
         files = files.filter(el =>
             dataConfig.includeIfPathContains!.some(substring => el.fullPath.includes(substring)),

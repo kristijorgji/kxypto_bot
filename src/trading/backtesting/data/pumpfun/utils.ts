@@ -1,13 +1,10 @@
 import fs from 'fs';
 
-import { logger } from '../../../../logger';
-import {
-    HandlePumpTokenBotReport,
-    HandlePumpTokenExitReport,
-    HandlePumpTokenReport,
-} from '../../../../scripts/pumpfun/bot';
-import { comparePaths, moveFile, walkDirFilesSyncRecursive } from '../../../../utils/files';
-import { formDataFolder } from '../../../../utils/storage';
+import { logger } from '@src/logger';
+import { HandlePumpTokenBotReport, HandlePumpTokenExitReport, HandlePumpTokenReport } from '@src/scripts/pumpfun/bot';
+import { comparePaths, moveFile, walkDirFilesSyncRecursive } from '@src/utils/files';
+import { formDataFolder } from '@src/utils/storage';
+
 import { BotTradeResponse } from '../../../bots/blockchains/solana/types';
 import { ExitMonitoringReason } from '../../../bots/types';
 
@@ -15,12 +12,19 @@ export function formPumpfunStatsDataFolder(): string {
     return formDataFolder('pumpfun-stats');
 }
 
-export async function organizePumpfunFiles() {
-    const pumpfunStatsPath = formPumpfunStatsDataFolder();
-    const files = walkDirFilesSyncRecursive(pumpfunStatsPath, [], 'json');
+export async function organizePumpfunFiles(args: { path: string }) {
+    const config = {
+        path: args.path,
+    };
+
+    logger.info('Started with config=%o\n', config);
+
+    const files = walkDirFilesSyncRecursive(config.path, [], 'json');
     let skipped = 0;
     let changed = 0;
     let unchanged = 0;
+
+    logger.info('Will process %d files', files.length);
 
     for (const file of files) {
         let content: HandlePumpTokenReport;
@@ -36,7 +40,7 @@ export async function organizePumpfunFiles() {
             continue;
         }
 
-        let path = `${pumpfunStatsPath}/${content.simulation ? 'simulation' : 'real'}/${content.$schema.version}`;
+        let path = `${config.path}/${content.simulation ? 'simulation' : 'real'}/${content.$schema.version}`;
         if ((content as HandlePumpTokenBotReport).strategy) {
             const c = content as HandlePumpTokenBotReport;
             path = `${path}/${c.strategy.name}/${c.strategy.configVariant === '' ? '_' : c.strategy.configVariant}`;

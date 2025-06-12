@@ -1,3 +1,5 @@
+.DS_Store
+
 # Logs
 logs
 *.log
@@ -118,6 +120,7 @@ reports
 !.env.test
 build/
 /data/
+/kdata/
 .scratch/
 
 docker/data/

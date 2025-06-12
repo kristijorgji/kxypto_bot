@@ -1,14 +1,22 @@
+import { Command } from 'commander';
+
 import { organizePumpfunFiles } from '@src/trading/backtesting/data/pumpfun/utils';
 
-(async () => {
-    await start();
-})();
+const organizeStatsProgram = new Command();
+organizeStatsProgram
+    .name('organize-files')
+    .description(
+        `It will organize the files in the provided path and move them into proper folders 
+        based on the bot version, strategy, variant and  handling result`,
+    )
+    .version('0.0.0')
+    .requiredOption('--path <string>', 'Path to the folder containing the JSON result files.')
+    .action(async args => {
+        await organizePumpfunFiles({
+            path: args.path,
+        });
+    });
 
-/**
- * It will organize the files under `./data/pumpfun-stats`
- * and move them into proper folders based on the handling result
- * if it was a trade, win, loss or exit for a particular reason
- */
-async function start() {
-    await organizePumpfunFiles();
+if (require.main === module) {
+    organizeStatsProgram.parse(process.argv);
 }

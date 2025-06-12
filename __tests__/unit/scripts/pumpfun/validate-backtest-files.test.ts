@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { basename } from 'path';
 
 import { LogEntry, format } from 'winston';
 
@@ -6,7 +7,7 @@ import { logger } from '../../../../src/logger';
 import ArrayTransport from '../../../../src/logger/transports/ArrayTransport';
 import { validateBacktestFilesProgram } from '../../../../src/scripts/pumpfun/validate-backtest-files';
 import { getBacktestFiles } from '../../../../src/trading/backtesting/utils';
-import { FileInfo } from '../../../../src/utils/files';
+import { FileInfo, moveFile } from '../../../../src/utils/files';
 import { formHistoryEntry } from '../../../__utils/blockchains/solana';
 import { readLocalFixture } from '../../../__utils/data';
 
@@ -15,6 +16,8 @@ jest.mock('fs');
 const mockedFs = fs as jest.Mocked<typeof fs>;
 
 jest.mock('../../../../src/trading/backtesting/utils');
+
+jest.mock('@src/utils/files');
 
 let logs: LogEntry[] = [];
 
@@ -32,8 +35,8 @@ afterAll(() => {
     jest.useRealTimers();
 });
 
-it('should mark files containing nulls as invalid', () => {
-    mockFsReadFileSync({
+it('should mark files containing nulls as invalid', async () => {
+    const fileToContent: Record<string, object | string> = {
         'data/a.json': {
             history: [
                 formHistoryEntry({
@@ -77,35 +80,39 @@ it('should mark files containing nulls as invalid', () => {
         'data/no-history.json': {
             exit: 'sure',
         },
-    });
-    (getBacktestFiles as jest.Mock).mockReturnValue([
-        {
-            name: 'a.json',
-            fullPath: 'data/a.json',
+        'data/bla.txt': 'very secret file',
+    };
+    mockFsReadFileSync(fileToContent);
+    (getBacktestFiles as jest.Mock).mockReturnValue(
+        Object.keys(fileToContent).map(fullPath => ({
+            name: basename(fullPath),
+            fullPath: fullPath,
             creationTime: new Date(),
-        },
-        {
-            name: 'ok.json',
-            fullPath: 'data/ok.json',
-            creationTime: new Date(),
-        },
-        {
-            name: 'no-history.json',
-            fullPath: 'data/no-history.json',
-            creationTime: new Date(),
-        },
-    ] satisfies FileInfo[]);
+        })) satisfies FileInfo[],
+    );
 
-    validateBacktestFilesProgram.parse(['node', 'test', '--path', './data', '--includeIfPathContains', 'foo,bar']);
+    await runCommand(['--path', './data', '--includeIfPathContains', 'foo,bar', '--extractTo', './data/invalid']);
+
     expect(logs).toEqual(readLocalFixture('validate-backtest-files/expected-logs-1.txt'));
+    expect((moveFile as jest.Mock).mock.calls).toEqual([
+        ['data/a.json', './data/invalid/nulls/a.json'],
+        ['data/no-history.json', './data/invalid/without_history/no-history.json'],
+        ['data/bla.txt', './data/invalid/not_json/bla.txt'],
+    ]);
 });
 
-function mockFsReadFileSync(map: Record<string, object>) {
+async function runCommand(args: string[]): Promise<void> {
+    process.argv = ['node', 'command', ...args];
+    await validateBacktestFilesProgram.parseAsync(process.argv);
+}
+
+function mockFsReadFileSync(map: Record<string, object | string>) {
     (mockedFs.readFileSync as jest.Mock).mockImplementation((...args) => {
         const [path] = args;
+        const value = map[path];
 
-        if (map[path]) {
-            return JSON.stringify(map[path]);
+        if (value) {
+            return typeof value === 'object' ? JSON.stringify(value) : value;
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

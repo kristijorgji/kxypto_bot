@@ -10,7 +10,7 @@ export default {
     globalSetup: '<rootDir>/jest/globalSetup.ts',
     globalTeardown: '<rootDir>/jest/globalTeardown.ts',
     testMatch: ['**/__tests__/**/*.test.ts'],
-    collectCoverage: true,
+    collectCoverage: false,
     collectCoverageFrom: [
         'src/**/*.{js,jsx,ts,tsx}',
         '!src/db/migrations/**',

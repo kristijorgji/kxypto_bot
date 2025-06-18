@@ -1,1 +1,14 @@
-yarn fix && yarn lint && yarn test
+#!/bin/sh
+
+set -e
+
+yarn lint-staged
+
+# Disabled because it does not collect total coverage
+## Run related tests only if TypeScript files were changed
+#changed_ts_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.tsx?$' || echo "")
+#if [ -n "$changed_ts_files" ]; then
+#  yarn test --findRelatedTests $changed_ts_files
+#fi
+
+yarn test

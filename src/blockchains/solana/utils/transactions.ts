@@ -41,12 +41,21 @@ const _getSolTransactionDetails = async (
     let errorType: SolanaTransactionErrorType | undefined;
     if (transaction.meta?.err) {
         error = transaction.meta?.err;
-        const log = ((transaction.meta.logMessages ?? []) as string[]).find(e =>
-            (e as string).includes('Transfer: insufficient lamports'),
-        );
-        if (log) {
-            errorType = 'insufficient_lamports';
-        } else {
+
+        for (const log of transaction.meta.logMessages ?? []) {
+            if (log.includes('Transfer: insufficient lamports')) {
+                errorType = 'insufficient_lamports';
+            } else if (
+                log.includes('Error Message: slippage: Too much SOL required to buy the given amount of tokens..')
+            ) {
+                errorType = 'pumpfun_slippage_more_sol_required';
+            }
+
+            if (errorType) {
+                break;
+            }
+        }
+        if (!errorType) {
             errorType = 'unknown';
         }
     }

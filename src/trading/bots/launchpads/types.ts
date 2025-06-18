@@ -16,7 +16,14 @@ export type HistoryEntry = {
      * It is not needed elsewhere in backtests or other places
      */
     _metadata?: {
-        action?: 'startBuy' | 'buyCompleted' | 'startSell' | 'sellCompleted' | 'sellError' | 'strategyExit';
+        action?:
+            | 'startBuy'
+            | 'buyCompleted'
+            | 'buyError'
+            | 'startSell'
+            | 'sellCompleted'
+            | 'sellError'
+            | 'strategyExit';
         diffSincePurchase?: {
             percent: number;
             inSol: number;

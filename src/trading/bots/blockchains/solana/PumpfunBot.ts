@@ -1,5 +1,19 @@
 import { Logger } from 'winston';
 
+import { measureExecutionTime } from '@src/apm/apm';
+import { SolanaTokenMints } from '@src/blockchains/solana/constants/SolanaTokenMints';
+import { PumpfunInitialCoinData } from '@src/blockchains/solana/dex/pumpfun/types';
+import {
+    calculatePumpTokenLamportsValue,
+    sellPumpfunTokensWithRetries,
+} from '@src/blockchains/solana/dex/pumpfun/utils';
+import { JitoConfig, TIP_LAMPORTS } from '@src/blockchains/solana/Jito';
+import { SolTransactionDetails, TransactionMode } from '@src/blockchains/solana/types';
+import { lamportsToSol, solToLamports } from '@src/blockchains/utils/amount';
+import { closePosition, insertPosition } from '@src/db/repositories/positions';
+import { InsertPosition } from '@src/db/types';
+import { sleep } from '@src/utils/functions';
+
 import PumpfunBotEventBus from './PumpfunBotEventBus';
 import {
     BotExitResponse,
@@ -11,23 +25,10 @@ import {
     PumpfunSellPositionMetadata,
     TradeTransaction,
 } from './types';
-import { measureExecutionTime } from '../../../../apm/apm';
-import { SolanaTokenMints } from '../../../../blockchains/solana/constants/SolanaTokenMints';
 import Pumpfun from '../../../../blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunMarketContextProvider from '../../../../blockchains/solana/dex/pumpfun/PumpfunMarketContextProvider';
-import { PumpfunInitialCoinData } from '../../../../blockchains/solana/dex/pumpfun/types';
-import {
-    calculatePumpTokenLamportsValue,
-    sellPumpfunTokensWithRetries,
-} from '../../../../blockchains/solana/dex/pumpfun/utils';
-import { JitoConfig, TIP_LAMPORTS } from '../../../../blockchains/solana/Jito';
 import SolanaAdapter from '../../../../blockchains/solana/SolanaAdapter';
-import { SolTransactionDetails, TransactionMode } from '../../../../blockchains/solana/types';
 import Wallet from '../../../../blockchains/solana/Wallet';
-import { lamportsToSol, solToLamports } from '../../../../blockchains/utils/amount';
-import { closePosition, insertPosition } from '../../../../db/repositories/positions';
-import { InsertPosition } from '../../../../db/types';
-import { sleep } from '../../../../utils/functions';
 import LaunchpadBotStrategy from '../../../strategies/launchpads/LaunchpadBotStrategy';
 import { generateTradeId } from '../../../utils/generateTradeId';
 import { HistoryEntry } from '../../launchpads/types';
@@ -35,7 +36,7 @@ import { BotConfig, SellReason } from '../../types';
 
 export const ErrorMessage = {
     insufficientFundsToBuy: 'no_funds_to_buy',
-    errorBuyingFallbackSellAll: 'error_buying_fallback_sell_all',
+    unknownBuyError: 'unknown_buying_error',
 };
 
 const DefaultPriorityFeeSol = 0.005;
@@ -129,6 +130,25 @@ export default class PumpfunBot {
         const history: HistoryEntry[] = [];
         let fatalError: Error | undefined;
         let result: BotResponse | undefined;
+
+        const fallbackSellToken = async () => {
+            const fn = () =>
+                sellPumpfunTokensWithRetries({
+                    pumpfun: this.pumpfun,
+                    wallet: this.wallet,
+                    solanaAdapter: this.solanaAdapter,
+                    mint: tokenMint,
+                    retryConfig: {
+                        sleepMs: 150,
+                        maxRetries: 5,
+                    },
+                });
+            logger.warn('Token will be sold immediately, with a re-attempt in 250ms to ensure completion.');
+            await fn();
+            await sleep(250);
+            logger.warn('Retrying sale attempt after 250ms delay to ensure all holdings are sold.');
+            await fn();
+        };
 
         while (this.isRunning || strategy.buyPosition || sellInProgress || buyInProgress) {
             if (fatalError) {
@@ -232,6 +252,9 @@ export default class PumpfunBot {
                 continue;
             }
 
+            // TODO calculate dynamically based on the situation if it is not provided
+            const buyInSol = this.config.buyInSol ?? 0.4;
+
             if (
                 !actionInProgress &&
                 !strategy.buyPosition &&
@@ -310,8 +333,7 @@ export default class PumpfunBot {
                     marketCapInSol: marketCapInSol,
                     marketContext: marketContext,
                 };
-                // TODO calculate dynamically based on the situation if it is not provided
-                const inSol = this.config.buyInSol ?? 0.4;
+
                 const buyPriorityFeeInSol =
                     strategy.config.buyPriorityFeeInSol ?? strategy.config.priorityFeeInSol ?? DefaultPriorityFeeSol;
                 measureExecutionTime(
@@ -324,7 +346,7 @@ export default class PumpfunBot {
                             tokenMint: tokenMint,
                             tokenBondingCurve: tokenInfo.bondingCurve,
                             tokenAssociatedBondingCurve: tokenInfo.associatedBondingCurve,
-                            solIn: inSol,
+                            solIn: buyInSol,
                             priorityFeeInSol: buyPriorityFeeInSol,
                             slippageDecimal: strategy.config.buySlippageDecimal,
                             jitoConfig: jitoConfig,
@@ -350,7 +372,7 @@ export default class PumpfunBot {
                             },
                             marketCap: dataAtBuyTime.marketCapInSol,
                             metadata: {
-                                pumpInSol: inSol,
+                                pumpInSol: buyInSol,
                                 pumpMaxSolCost: buyRes.pumpMaxSolCost,
                                 pumpTokenOut: buyRes.pumpTokenOut,
                                 pumpBuyPriceInSol: priceInSol, // TODO use the correct real used price
@@ -401,7 +423,7 @@ export default class PumpfunBot {
                         logger.info(
                             'Bought successfully %s amountRaw for %s sol. buyRes=%o',
                             buyRes!.boughtAmountRaw,
-                            inSol,
+                            buyInSol,
                             buyRes,
                         );
 
@@ -416,38 +438,44 @@ export default class PumpfunBot {
                     .catch(async e => {
                         // TODO handle properly and double check if it really failed or was block height transaction timeout
                         logger.error('Error while buying, e=%o', e);
+                        history[history.length - 1]._metadata = {
+                            action: 'buyError',
+                        };
+
+                        fatalError = new Error(ErrorMessage.unknownBuyError);
+
+                        if ((e as SolTransactionDetails).error?.type === 'pumpfun_slippage_more_sol_required') {
+                            const currentBalanceSol = lamportsToSol(await this.wallet.getBalanceLamports());
+                            const buyInWithoutSlippage = buyInSol * (1 - strategy.config.buySlippageDecimal);
+                            if (currentBalanceSol <= buyInWithoutSlippage) {
+                                logger.error(
+                                    'Current balance %s SOL is less than the required buyIn amount including slippage %s',
+                                    currentBalanceSol,
+                                    buyInWithoutSlippage,
+                                );
+                                fatalError = new Error(ErrorMessage.insufficientFundsToBuy);
+                            } else {
+                                return;
+                            }
+                        }
 
                         if ((e as SolTransactionDetails).error?.type === 'insufficient_lamports') {
                             fatalError = new Error(ErrorMessage.insufficientFundsToBuy);
+                        }
+
+                        const failedToBuy =
+                            fatalError && [ErrorMessage.insufficientFundsToBuy].includes(fatalError.message);
+                        if (!failedToBuy) {
+                            // TODO check the wallet if the buy was successful and timed out and proceed monitoring normally
+                            // TODO make a proper sell only for this mint if we hold it and get back transaction details to store it into a tradehistory etc
+                            await fallbackSellToken();
+                        }
+
+                        if (fatalError) {
                             buy = false;
                             buyInProgress = false;
                             return;
                         }
-
-                        // TODO check the wallet if the buy was successful and timed out and proceed monitoring normally
-                        // TODO make a proper sell only for this mint if we hold it and get back transaction details to store it into a tradehistory etc
-                        const fallbackSell = async () =>
-                            await sellPumpfunTokensWithRetries({
-                                pumpfun: this.pumpfun,
-                                wallet: this.wallet,
-                                solanaAdapter: this.solanaAdapter,
-                                mint: tokenMint,
-                                retryConfig: {
-                                    sleepMs: 150,
-                                    maxRetries: 5,
-                                },
-                            });
-                        logger.warn(
-                            'Will sell the token immediately, and try to sell it again after 250ms to make sure is sold',
-                        );
-                        await fallbackSell();
-                        await sleep(250);
-                        logger.warn('Slept 250ms and will try to sell again to ensure any holdings is sold');
-                        await fallbackSell();
-
-                        fatalError = new Error(ErrorMessage.errorBuyingFallbackSellAll);
-                        buy = false;
-                        buyInProgress = false;
                     });
             }
 
@@ -485,6 +513,10 @@ export default class PumpfunBot {
                     { storeImmediately: true },
                 )
                     .then(sellRes => {
+                        if (sellRes.txDetails.error) {
+                            throw sellRes.txDetails;
+                        }
+
                         logger.info(
                             'We sold successfully %s amountRaw with reason %s and received net %s sol. sellRes=%o',
                             sellRes.soldRawAmount,
@@ -548,11 +580,27 @@ export default class PumpfunBot {
                     })
                     .catch(async e => {
                         // TODO handle errors, some error might be false negative example block height timeout, sell might be successful but we get error
+                        logger.error('Error while selling');
+                        logger.error((e as Error).message ? (e as Error).message : e);
                         history[history.length - 1]._metadata = {
                             action: 'sellError',
                         };
-                        logger.error('Error while selling');
-                        logger.error((e as Error).message ? (e as Error).message : e);
+
+                        if ((e as SolTransactionDetails).error?.object) {
+                            const errorObj = (e as SolTransactionDetails).error?.object as {
+                                InstructionError?: (number | string)[];
+                            };
+                            if (errorObj.InstructionError) {
+                                if (
+                                    errorObj.InstructionError.length === 2 &&
+                                    errorObj.InstructionError[0] === 3 &&
+                                    errorObj.InstructionError[1] === 'IllegalOwner'
+                                ) {
+                                    logger.error('Account creation failed: Token-associated account already exists.');
+                                    logger.info('Retrying sale operation on next tick...');
+                                }
+                            }
+                        }
                     })
                     .finally(() => {
                         sell = undefined;

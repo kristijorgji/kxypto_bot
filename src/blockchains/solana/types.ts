@@ -124,7 +124,8 @@ export type WssMessage = {
     };
 };
 
-export type SolanaTransactionErrorType = 'insufficient_lamports' | 'unknown';
+export type PumpfunTransactionErrorType = 'pumpfun_slippage_more_sol_required';
+export type SolanaTransactionErrorType = PumpfunTransactionErrorType | 'insufficient_lamports' | 'unknown';
 
 export type SolTransactionDetails = {
     grossTransferredLamports: number; // Amount before fees

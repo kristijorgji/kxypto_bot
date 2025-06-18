@@ -36,6 +36,8 @@ import StupidSniperStrategy from '../../../../../../src/trading/strategies/launc
 import { generateTradeId } from '../../../../../../src/trading/utils/generateTradeId';
 import { formMarketContext } from '../../../../../__utils/blockchains/solana';
 import { readFixture, readLocalFixture } from '../../../../../__utils/data';
+import { FullTestMultiCaseExpectation, MultiCaseFixture } from '../../../../../__utils/types';
+import { TxWithIllegalOwnerError } from '../../../../blockchains/solana/utils/transactions.test';
 
 jest.mock('../../../../../../src/apm/apm');
 
@@ -589,10 +591,8 @@ describe(PumpfunBot.name, () => {
         } as unknown as PumpfunBuyResponse);
         (sellPumpfunTokensWithRetries as jest.Mock).mockResolvedValue(undefined);
 
-        await expect(pumpfunBot.run('a', initialCoinData, strategy)).rejects.toEqual(
-            new Error('error_buying_fallback_sell_all'),
-        );
-        expect(marketContextProvider.get as jest.Mock).toHaveBeenCalledTimes(5);
+        await expect(pumpfunBot.run('a', initialCoinData, strategy)).rejects.toEqual(new Error('unknown_buying_error'));
+        expect(marketContextProvider.get as jest.Mock).toHaveBeenCalledTimes(3);
         expect(pumpfun.sell as jest.Mock).not.toHaveBeenCalled();
         expect(sellPumpfunTokensWithRetries as jest.Mock).toHaveBeenCalledTimes(2);
     });
@@ -637,71 +637,108 @@ describe(PumpfunBot.name, () => {
         await expect(pumpfunBot.run('a', initialCoinData, strategy)).rejects.toEqual(new Error('no_funds_to_buy'));
     });
 
-    it('should handle sell error properly, log error and try to sell on next try if conditions still meet', async () => {
-        const mockReturnedMarketContexts: MarketContext[] = [
-            // buys here
-            formMarketContext({
-                price: 3.2e-8,
-            }),
-            // won't try to sell here as buy is still in progress
-            formMarketContext({
-                price: 4.2e-8,
-            }),
-            // tries to sell and fails on first try due to our mock reject
-            formMarketContext({
-                price: 4.21e-8,
-            }),
-            // does nothing as previous sell is in progress
-            formMarketContext({
-                price: 4.22e-8,
-            }),
-            formMarketContext({
-                price: 4.23e-8,
-            }),
-            formMarketContext({
-                price: 4.24e-8,
-            }),
-            // retries again as sell conditions are met and succeeds here
-            formMarketContext({
-                price: 4.25e-8,
-            }),
-            ...Array(4)
-                .fill(0)
-                .map((_, i) =>
-                    formMarketContext({
-                        price: (3.141 + i / 1000) * 1e-8,
-                    }),
-                ),
-        ];
-        mockReturnedMarketContexts.forEach(mr => (marketContextProvider.get as jest.Mock).mockResolvedValueOnce(mr));
+    const mockMarketContextThatBuysSellFailsResellOnNext: MarketContext[] = [
+        // buys here
+        formMarketContext({
+            price: 3.2e-8,
+        }),
+        // won't try to sell here as buy is still in progress
+        formMarketContext({
+            price: 4.2e-8,
+        }),
+        // tries to sell and fails on first try due to our mock reject
+        formMarketContext({
+            price: 4.21e-8,
+        }),
+        // does nothing as previous sell is in progress
+        formMarketContext({
+            price: 4.22e-8,
+        }),
+        formMarketContext({
+            price: 4.23e-8,
+        }),
+        formMarketContext({
+            price: 4.24e-8,
+        }),
+        // retries again as sell conditions are met and succeeds here
+        formMarketContext({
+            price: 4.25e-8,
+        }),
+        ...Array(4)
+            .fill(0)
+            .map((_, i) =>
+                formMarketContext({
+                    price: (3.141 + i / 1000) * 1e-8,
+                }),
+            ),
+    ];
 
-        const strategy = new RiseStrategy(logger, {
-            buy: {
-                marketCap: {
-                    min: 1,
+    test.each([
+        [
+            'unknown',
+            mockMarketContextThatBuysSellFailsResellOnNext,
+            new Error('sell_error'),
+            {
+                path: 'pumpfun-bot/sell-error-that-is-ignored-and-continues-on-next-tick',
+                case: 'unknownError',
+            },
+        ],
+        [
+            'recreating_existing_associated_token_account',
+            mockMarketContextThatBuysSellFailsResellOnNext,
+            {
+                ...dummyPumpfunSellResponse,
+                txDetails: TxWithIllegalOwnerError,
+            } satisfies PumpfunSellResponse,
+            {
+                path: 'pumpfun-bot/sell-error-that-is-ignored-and-continues-on-next-tick',
+                case: 'recreatingExistingAssociatedTokenAccountError',
+            },
+        ],
+    ] satisfies [string, MarketContext[], Error | PumpfunSellResponse, MultiCaseFixture][])(
+        'should handle sell error of type %s properly, log error and try to sell on next try if conditions still meet',
+        async (_, mockReturnedMarketContexts, pumpfunSellResponseOrError, localFixtureInfo) => {
+            mockReturnedMarketContexts.forEach(mr =>
+                (marketContextProvider.get as jest.Mock).mockResolvedValueOnce(mr),
+            );
+
+            const strategy = new RiseStrategy(logger, {
+                buy: {
+                    marketCap: {
+                        min: 1,
+                    },
                 },
-            },
-            sell: {
-                takeProfitPercentage: 10,
-            },
-        });
+                sell: {
+                    takeProfitPercentage: 10,
+                },
+            });
 
-        (pumpfun.buy as jest.Mock).mockResolvedValue(dummyPumpfunBuyResponse);
-        (insertPosition as jest.Mock).mockResolvedValue(undefined);
-        (pumpfun.sell as jest.Mock)
-            .mockRejectedValueOnce(new Error('sell_error'))
-            .mockResolvedValueOnce(dummyPumpfunSellResponse);
-        (closePosition as jest.Mock).mockResolvedValue(undefined);
+            (pumpfun.buy as jest.Mock).mockResolvedValue(dummyPumpfunBuyResponse);
+            (insertPosition as jest.Mock).mockResolvedValue(undefined);
+            if (pumpfunSellResponseOrError instanceof Error) {
+                (pumpfun.sell as jest.Mock)
+                    .mockRejectedValueOnce(new Error('sell_error'))
+                    .mockResolvedValueOnce(dummyPumpfunSellResponse);
+            } else {
+                (pumpfun.sell as jest.Mock)
+                    .mockResolvedValueOnce(pumpfunSellResponseOrError)
+                    .mockResolvedValueOnce(dummyPumpfunSellResponse);
+            }
 
-        expect(await pumpfunBot.run('a', initialCoinData, strategy)).toEqual(
-            readLocalFixture<BotTradeResponse>('pumpfun-bot/sell-error/trade-recovered-response'),
-        );
-        expect(logs).toEqual(readLocalFixture('pumpfun-bot/sell-error/logs'));
-        expect(marketContextProvider.get as jest.Mock).toHaveBeenCalledTimes(11);
-        expect(pumpfun.buy as jest.Mock).toHaveBeenCalledTimes(1);
-        expect(pumpfun.sell as jest.Mock).toHaveBeenCalledTimes(2);
-        expect(closePosition).toHaveBeenCalledTimes(1);
-    });
+            (closePosition as jest.Mock).mockResolvedValue(undefined);
+
+            const expected = readLocalFixture<FullTestMultiCaseExpectation>(localFixtureInfo.path);
+
+            expect(await pumpfunBot.run('a', initialCoinData, strategy)).toEqual(
+                expected[localFixtureInfo.case]?.result ?? expected['default'].result,
+            );
+            expect(logs).toEqual(expected[localFixtureInfo.case]?.logs ?? expected['default'].logs);
+            expect(marketContextProvider.get as jest.Mock).toHaveBeenCalledTimes(11);
+            expect(pumpfun.buy as jest.Mock).toHaveBeenCalledTimes(1);
+            expect(pumpfun.sell as jest.Mock).toHaveBeenCalledTimes(2);
+            expect(closePosition).toHaveBeenCalledTimes(1);
+        },
+    );
 
     it('should throw error if you try to run while it is already running', async () => {
         defaultMockReturnedMarketContexts();

@@ -1,0 +1,349 @@
+{
+  "blockTime": 1750011422,
+  "meta": {
+    "computeUnitsConsumed": 49700,
+    "err": {
+      "InstructionError": [
+        4,
+        {
+          "Custom": 6002
+        }
+      ]
+    },
+    "fee": 7005000,
+    "innerInstructions": [
+      {
+        "index": 3,
+        "instructions": [
+          {
+            "parsed": {
+              "info": {
+                "extensionTypes": [
+                  "immutableOwner"
+                ],
+                "mint": "CroFzhZkeqQt3x3gbiSkgjL98vPz7FYjiCUWTqF8pump"
+              },
+              "type": "getAccountDataSize"
+            },
+            "program": "spl-token",
+            "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            "stackHeight": 2
+          },
+          {
+            "parsed": {
+              "info": {
+                "lamports": 2039280,
+                "newAccount": "FjeRGZZRJjjQRDJWHxJs5hu2g4gRuAiqG15fHERR7FLZ",
+                "owner": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+                "source": "CPp14jCnVJMt5nPA3A37S58gjxQEnc8Bn5U1J72LiWD1",
+                "space": 165
+              },
+              "type": "createAccount"
+            },
+            "program": "system",
+            "programId": "11111111111111111111111111111111",
+            "stackHeight": 2
+          },
+          {
+            "parsed": {
+              "info": {
+                "account": "FjeRGZZRJjjQRDJWHxJs5hu2g4gRuAiqG15fHERR7FLZ"
+              },
+              "type": "initializeImmutableOwner"
+            },
+            "program": "spl-token",
+            "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            "stackHeight": 2
+          },
+          {
+            "parsed": {
+              "info": {
+                "account": "FjeRGZZRJjjQRDJWHxJs5hu2g4gRuAiqG15fHERR7FLZ",
+                "mint": "CroFzhZkeqQt3x3gbiSkgjL98vPz7FYjiCUWTqF8pump",
+                "owner": "CPp14jCnVJMt5nPA3A37S58gjxQEnc8Bn5U1J72LiWD1"
+              },
+              "type": "initializeAccount3"
+            },
+            "program": "spl-token",
+            "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            "stackHeight": 2
+          }
+        ]
+      }
+    ],
+    "logMessages": [
+      "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+      "Program ComputeBudget111111111111111111111111111111 success",
+      "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+      "Program ComputeBudget111111111111111111111111111111 success",
+      "Program 11111111111111111111111111111111 invoke [1]",
+      "Program 11111111111111111111111111111111 success",
+      "Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL invoke [1]",
+      "Program log: Create",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]",
+      "Program log: Instruction: GetAccountDataSize",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 1569 of 1392685 compute units",
+      "Program return: TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA pQAAAAAAAAA=",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+      "Program 11111111111111111111111111111111 invoke [2]",
+      "Program 11111111111111111111111111111111 success",
+      "Program log: Initialize the associated token account",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]",
+      "Program log: Instruction: InitializeImmutableOwner",
+      "Program log: Please upgrade to SPL Token 2022 for immutable owner support",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 1405 of 1386099 compute units",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]",
+      "Program log: Instruction: InitializeAccount3",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4188 of 1382218 compute units",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+      "Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL consumed 21803 of 1399550 compute units",
+      "Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL success",
+      "Program 6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P invoke [1]",
+      "Program log: Instruction: Buy",
+      "Program log: AnchorError thrown in programs/pump/src/lib.rs:283. Error Code: TooMuchSolRequired. Error Number: 6002. Error Message: slippage: Too much SOL required to buy the given amount of tokens..",
+      "Program log: Left: 1250000000",
+      "Program log: Right: 1312710836",
+      "Program 6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P consumed 27447 of 1377747 compute units",
+      "Program 6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P failed: custom program error: 0x1772"
+    ],
+    "postBalances": [
+      1932767064,
+      8510614,
+      0,
+      934087680,
+      11413312971231,
+      11420631710,
+      2039280,
+      17144022,
+      1,
+      1,
+      731913600,
+      1461600,
+      1141440,
+      301898467,
+      147104464
+    ],
+    "postTokenBalances": [
+      {
+        "accountIndex": 6,
+        "mint": "CroFzhZkeqQt3x3gbiSkgjL98vPz7FYjiCUWTqF8pump",
+        "owner": "EQp6p7rw5CMPtasmVGaZRFYdDDtpXQiLpiZG4sSCAbBr",
+        "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "uiTokenAmount": {
+          "amount": "704185244456858",
+          "decimals": 6,
+          "uiAmount": 704185244.456858,
+          "uiAmountString": "704185244.456858"
+        }
+      }
+    ],
+    "preBalances": [
+      1939772064,
+      8510614,
+      0,
+      934087680,
+      11413312971231,
+      11420631710,
+      2039280,
+      17144022,
+      1,
+      1,
+      731913600,
+      1461600,
+      1141440,
+      301898467,
+      147104464
+    ],
+    "preTokenBalances": [
+      {
+        "accountIndex": 6,
+        "mint": "CroFzhZkeqQt3x3gbiSkgjL98vPz7FYjiCUWTqF8pump",
+        "owner": "EQp6p7rw5CMPtasmVGaZRFYdDDtpXQiLpiZG4sSCAbBr",
+        "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "uiTokenAmount": {
+          "amount": "704185244456858",
+          "decimals": 6,
+          "uiAmount": 704185244.456858,
+          "uiAmountString": "704185244.456858"
+        }
+      }
+    ],
+    "rewards": [],
+    "status": {
+      "Err": {
+        "InstructionError": [
+          4,
+          {
+            "Custom": 6002
+          }
+        ]
+      }
+    }
+  },
+  "slot": 347006755,
+  "transaction": {
+    "message": {
+      "accountKeys": [
+        {
+          "pubkey": "CPp14jCnVJMt5nPA3A37S58gjxQEnc8Bn5U1J72LiWD1",
+          "signer": true,
+          "source": "transaction",
+          "writable": true
+        },
+        {
+          "pubkey": "ADaUMid9yfUytqMBgopwjb2DTLSokTSzL1zt6iGPaS49",
+          "signer": false,
+          "source": "transaction",
+          "writable": true
+        },
+        {
+          "pubkey": "FjeRGZZRJjjQRDJWHxJs5hu2g4gRuAiqG15fHERR7FLZ",
+          "signer": false,
+          "source": "transaction",
+          "writable": true
+        },
+        {
+          "pubkey": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+          "signer": false,
+          "source": "transaction",
+          "writable": true
+        },
+        {
+          "pubkey": "CebN5WGQ4jvEPvsVU4EoHEpgzq1VV7AbicfhtW4xC9iM",
+          "signer": false,
+          "source": "transaction",
+          "writable": true
+        },
+        {
+          "pubkey": "EQp6p7rw5CMPtasmVGaZRFYdDDtpXQiLpiZG4sSCAbBr",
+          "signer": false,
+          "source": "transaction",
+          "writable": true
+        },
+        {
+          "pubkey": "73sFEC51kvGWcepi6sVVCrDzXGdW6qTjYHCv1neRpiPG",
+          "signer": false,
+          "source": "transaction",
+          "writable": true
+        },
+        {
+          "pubkey": "3j7Aot1NPoQwtGtNK4nXmbqmN3heKNrqu8rkjxpxmBGi",
+          "signer": false,
+          "source": "transaction",
+          "writable": true
+        },
+        {
+          "pubkey": "ComputeBudget111111111111111111111111111111",
+          "signer": false,
+          "source": "transaction",
+          "writable": false
+        },
+        {
+          "pubkey": "11111111111111111111111111111111",
+          "signer": false,
+          "source": "transaction",
+          "writable": false
+        },
+        {
+          "pubkey": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+          "signer": false,
+          "source": "transaction",
+          "writable": false
+        },
+        {
+          "pubkey": "CroFzhZkeqQt3x3gbiSkgjL98vPz7FYjiCUWTqF8pump",
+          "signer": false,
+          "source": "transaction",
+          "writable": false
+        },
+        {
+          "pubkey": "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P",
+          "signer": false,
+          "source": "transaction",
+          "writable": false
+        },
+        {
+          "pubkey": "4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf",
+          "signer": false,
+          "source": "transaction",
+          "writable": false
+        },
+        {
+          "pubkey": "Ce6TQqeHC9p8KetsN6JsjHK7UTZk7nasjjnr7XxXp9F1",
+          "signer": false,
+          "source": "transaction",
+          "writable": false
+        }
+      ],
+      "addressTableLookups": [],
+      "instructions": [
+        {
+          "accounts": [],
+          "data": "K1FDJ7",
+          "programId": "ComputeBudget111111111111111111111111111111",
+          "stackHeight": null
+        },
+        {
+          "accounts": [],
+          "data": "3QDJ9TwUE2Dm",
+          "programId": "ComputeBudget111111111111111111111111111111",
+          "stackHeight": null
+        },
+        {
+          "parsed": {
+            "info": {
+              "destination": "ADaUMid9yfUytqMBgopwjb2DTLSokTSzL1zt6iGPaS49",
+              "lamports": 150000,
+              "source": "CPp14jCnVJMt5nPA3A37S58gjxQEnc8Bn5U1J72LiWD1"
+            },
+            "type": "transfer"
+          },
+          "program": "system",
+          "programId": "11111111111111111111111111111111",
+          "stackHeight": null
+        },
+        {
+          "parsed": {
+            "info": {
+              "account": "FjeRGZZRJjjQRDJWHxJs5hu2g4gRuAiqG15fHERR7FLZ",
+              "mint": "CroFzhZkeqQt3x3gbiSkgjL98vPz7FYjiCUWTqF8pump",
+              "source": "CPp14jCnVJMt5nPA3A37S58gjxQEnc8Bn5U1J72LiWD1",
+              "systemProgram": "11111111111111111111111111111111",
+              "tokenProgram": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+              "wallet": "CPp14jCnVJMt5nPA3A37S58gjxQEnc8Bn5U1J72LiWD1"
+            },
+            "type": "create"
+          },
+          "program": "spl-associated-token-account",
+          "programId": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+          "stackHeight": null
+        },
+        {
+          "accounts": [
+            "4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf",
+            "CebN5WGQ4jvEPvsVU4EoHEpgzq1VV7AbicfhtW4xC9iM",
+            "CroFzhZkeqQt3x3gbiSkgjL98vPz7FYjiCUWTqF8pump",
+            "EQp6p7rw5CMPtasmVGaZRFYdDDtpXQiLpiZG4sSCAbBr",
+            "73sFEC51kvGWcepi6sVVCrDzXGdW6qTjYHCv1neRpiPG",
+            "FjeRGZZRJjjQRDJWHxJs5hu2g4gRuAiqG15fHERR7FLZ",
+            "CPp14jCnVJMt5nPA3A37S58gjxQEnc8Bn5U1J72LiWD1",
+            "11111111111111111111111111111111",
+            "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            "3j7Aot1NPoQwtGtNK4nXmbqmN3heKNrqu8rkjxpxmBGi",
+            "Ce6TQqeHC9p8KetsN6JsjHK7UTZk7nasjjnr7XxXp9F1",
+            "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P"
+          ],
+          "data": "AJTQ2h9DXrC15B73VTVNWK4YhUYGWZbSX",
+          "programId": "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P",
+          "stackHeight": null
+        }
+      ],
+      "recentBlockhash": "4jzxYH4rCN2Pyyu3pT4aforrJnVimWTBBn14NmVs9a3j"
+    },
+    "signatures": [
+      "2dq753a8CPQdV8LFjuT2e5Nd9rEbi8WJiPZYVDKMPkN5qZb7AbtRRAXtiYttfRTrLUQzNcrMFuyAX8kPrfBsY2HJ"
+    ]
+  },
+  "version": 0
+}

@@ -12,7 +12,13 @@ import { formHistoryEntry } from '../../../__utils/blockchains/solana';
 import { readLocalFixture } from '../../../__utils/data';
 
 const realFs = jest.requireActual('fs');
-jest.mock('fs');
+jest.mock('fs', () => {
+    return {
+        ...jest.requireActual('fs'),
+        readFileSync: jest.fn(),
+        mkdirSync: jest.fn(),
+    };
+});
 const mockedFs = fs as jest.Mocked<typeof fs>;
 
 jest.mock('../../../../src/trading/backtesting/utils');

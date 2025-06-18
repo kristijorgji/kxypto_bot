@@ -1,4 +1,4 @@
-import '@src/loadEnv';
+import '@src/core/loadEnv';
 
 import HeliusProvider from '../blockchains/solana/providers/helius/HeliusProvider';
 import { logger } from '../logger';

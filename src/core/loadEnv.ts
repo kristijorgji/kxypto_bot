@@ -15,6 +15,8 @@ import path from 'path';
 
 import dotenv from 'dotenv';
 
+import findRootDir from '@src/core/findRootDir';
+
 const markerFile = '.root';
 const envFileName = '.env';
 const startDir = __dirname;
@@ -32,25 +34,3 @@ if (!fs.existsSync(envPath)) {
 }
 
 dotenv.config({ path: envPath });
-
-/**
- * Recursively searches upwards from startDir to find the directory containing the marker file.
- * @param startDir Directory to start searching from
- * @param markerFile File name that marks the root directory (default '.root')
- * @returns The path to the root directory containing the marker file, or null if not found
- */
-function findRootDir(startDir: string, markerFile = '.root'): string | null {
-    let dir = startDir;
-
-    while (true) {
-        if (fs.existsSync(path.join(dir, markerFile))) {
-            return dir;
-        }
-        const parentDir = path.dirname(dir);
-        if (parentDir === dir) {
-            // Reached filesystem root, stop
-            return null;
-        }
-        dir = parentDir;
-    }
-}

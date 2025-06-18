@@ -1,4 +1,4 @@
-import '@src/loadEnv';
+import '@src/core/loadEnv';
 import fs from 'fs';
 
 import { monitorNewTokens } from '../blockchains/solana/dex/raydium/monitorNewTokens';

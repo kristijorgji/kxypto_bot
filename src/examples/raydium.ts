@@ -1,4 +1,4 @@
-import '@src/loadEnv';
+import '@src/core/loadEnv';
 
 import { SolanaTokenMints } from '../blockchains/solana/constants/SolanaTokenMints';
 import { SolanaWalletProviders } from '../blockchains/solana/constants/walletProviders';

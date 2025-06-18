@@ -1,4 +1,4 @@
-import '@src/loadEnv';
+import '@src/core/loadEnv';
 
 import Moralis from '../blockchains/solana/providers/moralis/Moralis';
 import SolanaAdapter from '../blockchains/solana/SolanaAdapter';

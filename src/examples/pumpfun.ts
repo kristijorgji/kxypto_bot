@@ -1,4 +1,4 @@
-import '@src/loadEnv';
+import '@src/core/loadEnv';
 
 import { measureExecutionTime } from '../apm/apm';
 import { SolanaWalletProviders } from '../blockchains/solana/constants/walletProviders';

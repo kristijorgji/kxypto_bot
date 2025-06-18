@@ -355,6 +355,10 @@ export default class PumpfunBot {
                     { storeImmediately: true },
                 )
                     .then(buyRes => {
+                        if (buyRes.txDetails.error) {
+                            throw buyRes.txDetails;
+                        }
+
                         const buyPosition: TradeTransaction<PumpfunBuyPositionMetadata> = {
                             timestamp: Date.now(),
                             transactionType: 'buy',
@@ -378,10 +382,6 @@ export default class PumpfunBot {
                                 pumpBuyPriceInSol: priceInSol, // TODO use the correct real used price
                             },
                         };
-
-                        if (buyRes.txDetails.error) {
-                            throw buyRes.txDetails;
-                        }
 
                         this.botEventBus.tradeExecuted(buyPosition);
                         /**

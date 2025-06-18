@@ -118,7 +118,7 @@ variables are loaded:
 - **Preferred (Explicit Import):**  
   At the top of your script, import the custom environment loader:
   ```ts
-  import '@src/loadEnv';
+  import '@src/core/loadEnv';
   ```
   This ensures consistent `.env` loading using your project's root marker logic.
 
@@ -147,7 +147,7 @@ variables are loaded:
 - **Preferred (Explicit Import):**  
   At the top of your script, import the custom environment loader:
   ```ts
-  import '@src/loadEnv';
+  import '@src/core/loadEnv';
   ```
   This ensures consistent `.env` loading using your project's root marker logic.
 

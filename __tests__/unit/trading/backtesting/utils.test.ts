@@ -25,7 +25,12 @@ jest.mock('../../../../src/blockchains/solana/dex/pumpfun/utils', () => ({
 }));
 
 const realFs = jest.requireActual('fs');
-jest.mock('fs');
+jest.mock('fs', () => {
+    return {
+        ...jest.requireActual('fs'),
+        readFileSync: jest.fn(),
+    };
+});
 const mockedFs = fs as jest.Mocked<typeof fs>;
 
 describe('runStrategy', () => {

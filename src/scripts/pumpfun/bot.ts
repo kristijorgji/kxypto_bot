@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-import '@src/loadEnv';
+import '@src/core/loadEnv';
 import { Logger } from 'winston';
 
 import { startApm } from '@src/apm/apm';

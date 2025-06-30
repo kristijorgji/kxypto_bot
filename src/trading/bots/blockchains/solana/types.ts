@@ -1,9 +1,10 @@
 import { JitoConfig } from '@src/blockchains/solana/Jito';
 import { FileStorageType } from '@src/core/types';
+import { StrategyFileConfig } from '@src/trading/config/types';
 
 import LaunchpadBotStrategy from '../../../strategies/launchpads/LaunchpadBotStrategy';
 import { HistoryEntry } from '../../launchpads/types';
-import { ExitMonitoringReason, SellReason, SwapSubCategory, TransactionType } from '../../types';
+import { BotManagerConfig, ExitMonitoringReason, SellReason, SwapSubCategory, TransactionType } from '../../types';
 
 export type SolanaValue = {
     inLamports: number;
@@ -78,6 +79,16 @@ export type BotExitResponse = {
 };
 
 export type BotResponse = BotTradeResponse | BotExitResponse;
+
+export type PumpfunBotConfig = {
+    runConfig: BotManagerConfig;
+    strategy: LaunchpadBotStrategy;
+};
+
+export type PumpfunBotFileConfig = {
+    runConfig: Omit<BotManagerConfig, 'reportSchema'>;
+    strategy: StrategyFileConfig;
+};
 
 export type BacktestExitResponse = {
     exitCode: ExitMonitoringReason;

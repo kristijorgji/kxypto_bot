@@ -1,24 +1,10 @@
-import { Backtest } from '../../db/types';
+import { Backtest } from '@src/db/types';
+import { LoggerType, StrategyFileConfig } from '@src/trading/config/types';
+
 import { BacktestRunConfig } from '../bots/blockchains/solana/types';
-import { BuyPredictionStrategyConfig } from '../strategies/launchpads/BuyPredictionStrategy';
 import LaunchpadBotStrategy from '../strategies/launchpads/LaunchpadBotStrategy';
-import { PricePredictionStrategyConfig } from '../strategies/launchpads/PricePredictionStrategy';
-import { PredictionSource } from '../strategies/types';
 
-type LoggerType = 'silent' | 'normal';
-
-type BacktestStrategiesFileConfig = ({ type: string; logger?: LoggerType } & (
-    | {
-          type: 'BuyPredictionStrategy';
-          source: PredictionSource;
-          config: Partial<BuyPredictionStrategyConfig>;
-      }
-    | {
-          type: 'PricePredictionStrategy';
-          source: PredictionSource;
-          config: Partial<PricePredictionStrategyConfig>;
-      }
-))[];
+type BacktestStrategiesFileConfig = StrategyFileConfig[];
 
 export type BacktestFileConfig = (
     | {

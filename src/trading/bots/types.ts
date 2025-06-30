@@ -35,6 +35,11 @@ export type BotConfig = {
     buyInSol: number | null;
 };
 
+export type Schema = {
+    version: number;
+    name?: string;
+};
+
 /**
  * Configuration options for the bot manager's processing behavior.
  */
@@ -44,10 +49,7 @@ export type BotManagerConfig = {
      * - `version` allows the report structure to evolve without breaking compatibility.
      * - `name` is optional and can be used to label or distinguish schema variants.
      */
-    reportSchema: {
-        version: number;
-        name?: string;
-    };
+    reportSchema: Schema;
 
     /**
      * The maximum number of tokens that can be processed in parallel.

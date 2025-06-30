@@ -18,7 +18,7 @@
   "logs": [
     {
       "level": "info",
-      "message": "🚀 Bot started with config={\n  reportSchema: { version: 1.1 },\n  simulate: true,\n  maxTokensToProcessInParallel: 10,\n  maxOpenPositions: 1,\n  buyMonitorWaitPeriodMs: 1000,\n  sellMonitorWaitPeriodMs: 250,\n  maxWaitMonitorAfterResultMs: 120000,\n  buyInSol: 0.4,\n  maxFullTrades: null,\n  stopAtMinWalletBalanceLamports: null\n}"
+      "message": "🚀 Bot started with config={\n  reportSchema: { version: 1.1 },\n  simulate: true,\n  maxTokensToProcessInParallel: 10,\n  maxOpenPositions: 1,\n  buyMonitorWaitPeriodMs: 2500,\n  sellMonitorWaitPeriodMs: 250,\n  maxWaitMonitorAfterResultMs: 120000,\n  buyInSol: 0.4,\n  maxFullTrades: null,\n  stopAtMinWalletBalanceLamports: null\n}\nUsing strategy RiseStrategy_5cb9dcf7 with variant config hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17, config:{\n  maxWaitMs: 420000,\n  buySlippageDecimal: 0.25,\n  sellSlippageDecimal: 0.25,\n  buy: {\n    holdersCount: { min: 10 },\n    bondingCurveProgress: { min: 22 },\n    devHoldingPercentage: { max: 7 },\n    topTenHoldingPercentage: { max: 10 }\n  },\n  sell: { takeProfitPercentage: 17, trailingStopLossPercentage: 10 },\n  variant: 'hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17',\n  priorityFeeInSol: 0.005\n}"
     },
     {
       "level": "info",

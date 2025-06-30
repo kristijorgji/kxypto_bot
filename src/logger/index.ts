@@ -105,3 +105,8 @@ function getRootCallerScriptRelativePathFromRoot(): string {
 
     return path.join(parsedPath.dir, parsedPath.name);
 }
+
+export const silentLogger = createLogger({
+    silent: true,
+    transports: [],
+});

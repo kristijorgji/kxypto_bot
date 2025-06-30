@@ -1,6 +1,7 @@
 import fs from 'fs';
 
 import '@src/core/loadEnv';
+import { Command } from 'commander';
 import { Logger } from 'winston';
 
 import { startApm } from '@src/apm/apm';
@@ -15,8 +16,9 @@ import { db } from '@src/db/knex';
 import { pumpfunRepository } from '@src/db/repositories/PumpfunRepository';
 import { insertLaunchpadTokenResult } from '@src/db/repositories/tokenAnalytics';
 import { logger } from '@src/logger';
+import { parsePumpfunBotFileConfig } from '@src/trading/bots/blockchains/solana/pumpfun-bot-config-parser';
 import { BotExitResponse, BotResponse, BotTradeResponse } from '@src/trading/bots/blockchains/solana/types';
-import { BotManagerConfig } from '@src/trading/bots/types';
+import { BotManagerConfig, Schema } from '@src/trading/bots/types';
 import LaunchpadBotStrategy from '@src/trading/strategies/launchpads/LaunchpadBotStrategy';
 import { randomInt } from '@src/utils/data/data';
 import { sleep } from '@src/utils/functions';
@@ -73,11 +75,13 @@ export type HandlePumpTokenBotReport = HandlePumpTokenBaseReport & {
 
 export type HandlePumpTokenReport = HandlePumpTokenExitReport | HandlePumpTokenBotReport;
 
-const config: BotManagerConfig = {
-    reportSchema: {
-        version: 1.2,
-        name: 'history_ref_and_entry',
-    },
+const ReportSchema: Schema = {
+    version: 1.2,
+    name: 'history_ref_and_entry',
+};
+
+const defaultConfig: BotManagerConfig = {
+    reportSchema: ReportSchema,
     simulate: false,
     maxTokensToProcessInParallel: 70,
     maxOpenPositions: 2,
@@ -89,34 +93,56 @@ const config: BotManagerConfig = {
     stopAtMinWalletBalanceLamports: null,
 };
 
+const runBotCommand = new Command();
+runBotCommand
+    .name('pumpfun-bot')
+    .description('It will run the bot with the desired config')
+    .version('0.0.0')
+    .option('--config <string>', 'path to a config file used for this run')
+    .action(async args => {
+        await prepareAndStart({
+            config: args.config,
+        });
+    });
+
 // ensures the code only auto-runs when the file is executed directly, not when imported
 if (require.main === module) {
-    (async () => {
-        await start(
-            config,
-            {
-                logger: logger,
-                botEventBus: new PumpfunBotEventBus(),
+    runBotCommand.parse();
+}
+
+async function prepareAndStart(args: { config?: string }) {
+    const startDeps = {
+        logger: logger,
+        botEventBus: new PumpfunBotEventBus(),
+    };
+
+    if (args.config) {
+        logger.info('Running bot with config file %s', args.config);
+        const config = parsePumpfunBotFileConfig(args.config, ReportSchema);
+        return await start(config.runConfig, startDeps, config.strategy);
+    }
+
+    await start(
+        defaultConfig,
+        startDeps,
+        new RiseStrategy(logger, {
+            variant: 'hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17',
+            buy: {
+                holdersCount: { min: 10 },
+                bondingCurveProgress: { min: 22 },
+                devHoldingPercentage: { max: 7 },
+                topTenHoldingPercentage: { max: 10 },
             },
-            new RiseStrategy(logger, {
-                variant: 'hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17',
-                buy: {
-                    holdersCount: { min: 10 },
-                    bondingCurveProgress: { min: 22 },
-                    devHoldingPercentage: { max: 7 },
-                    topTenHoldingPercentage: { max: 10 },
-                },
-                sell: {
-                    takeProfitPercentage: 17,
-                    trailingStopLossPercentage: 10,
-                },
-                maxWaitMs: 7 * 60 * 1e3,
-                priorityFeeInSol: 0.005,
-                buySlippageDecimal: 0.25,
-                sellSlippageDecimal: 0.25,
-            }),
-        );
-    })();
+            sell: {
+                takeProfitPercentage: 17,
+                trailingStopLossPercentage: 10,
+            },
+            maxWaitMs: 7 * 60 * 1e3,
+            priorityFeeInSol: 0.005,
+            buySlippageDecimal: 0.25,
+            sellSlippageDecimal: 0.25,
+        }),
+    );
 }
 
 export async function start(
@@ -132,7 +158,13 @@ export async function start(
 ) {
     startApm();
 
-    logger.info('🚀 Bot started with config=%o', config);
+    logger.info(
+        '🚀 Bot started with config=%o\nUsing strategy %s with variant config %s, config:%o',
+        config,
+        strategy.identifier,
+        strategy.configVariant,
+        strategy.config,
+    );
 
     const pumpfun = new Pumpfun({
         rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
@@ -341,8 +373,8 @@ async function handlePumpToken(
         endedAt: endedAt,
         elapsedSeconds: getSecondsDifference(startedAt, endedAt),
         monitor: {
-            buyTimeframeMs: config.buyMonitorWaitPeriodMs,
-            sellTimeframeMs: config.sellMonitorWaitPeriodMs,
+            buyTimeframeMs: c.buyMonitorWaitPeriodMs,
+            sellTimeframeMs: c.sellMonitorWaitPeriodMs,
         },
         ...handleRes,
     } as HandlePumpTokenBotReport);

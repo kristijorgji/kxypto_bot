@@ -223,7 +223,7 @@ describe('bot', () => {
         simulate: true,
         maxTokensToProcessInParallel: 10,
         maxOpenPositions: null,
-        buyMonitorWaitPeriodMs: 1000,
+        buyMonitorWaitPeriodMs: 2500,
         sellMonitorWaitPeriodMs: 250,
         maxWaitMonitorAfterResultMs: 120 * 1e3,
         buyInSol: 0.4,

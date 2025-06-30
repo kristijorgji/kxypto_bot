@@ -1,16 +1,13 @@
 import { v4 as uuidv4 } from 'uuid';
 
+import { getBacktestStrategyResults, storeBacktest, storeBacktestStrategyResult } from '@src/db/repositories/backtests';
+import { Backtest } from '@src/db/types';
+import { logger } from '@src/logger';
+import { formatElapsedTime } from '@src/utils/time';
+
 import { BacktestConfig } from './types';
 import { getBacktestFiles, logStrategyResult, runStrategy } from './utils';
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
-import {
-    getBacktestStrategyResults,
-    storeBacktest,
-    storeBacktestStrategyResult,
-} from '../../db/repositories/backtests';
-import { Backtest } from '../../db/types';
-import { logger } from '../../logger';
-import { formatElapsedTime } from '../../utils/time';
 import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
 import { BacktestRunConfig, BacktestStrategyRunConfig } from '../bots/blockchains/solana/types';
 

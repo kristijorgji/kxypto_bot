@@ -1,15 +1,19 @@
 import fs from 'fs';
 
 import { logger } from '@src/logger';
-import { HandlePumpTokenBotReport, HandlePumpTokenExitReport, HandlePumpTokenReport } from '@src/scripts/pumpfun/bot';
+import {
+    BotTradeResponse,
+    HandlePumpTokenBotReport,
+    HandlePumpTokenExitReport,
+    HandlePumpTokenReport,
+} from '@src/trading/bots/blockchains/solana/types';
 import { comparePaths, moveFile, walkDirFilesSyncRecursive } from '@src/utils/files';
 import { formDataFolder } from '@src/utils/storage';
 
-import { BotTradeResponse } from '../../../bots/blockchains/solana/types';
 import { ExitMonitoringReason } from '../../../bots/types';
 
-export function formPumpfunStatsDataFolder(): string {
-    return formDataFolder('pumpfun-stats');
+export function formPumpfunBacktestStatsDir(): string {
+    return formDataFolder('pumpfun-stats/backtest');
 }
 
 export async function organizePumpfunFiles(args: { path: string }) {

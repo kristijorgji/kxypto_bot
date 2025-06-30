@@ -4,11 +4,9 @@ import { db } from '@src/db/knex';
 import { Tables } from '@src/db/tables';
 import { LaunchpadTokenResult } from '@src/db/types';
 import { logger } from '@src/logger';
-import { formPumpfunStatsDataFolder } from '@src/trading/backtesting/data/pumpfun/utils';
-import { BotExitResponse, BotTradeResponse } from '@src/trading/bots/blockchains/solana/types';
+import { formPumpfunBacktestStatsDir } from '@src/trading/backtesting/data/pumpfun/utils';
+import { BotExitResponse, BotTradeResponse, HandlePumpTokenReport } from '@src/trading/bots/blockchains/solana/types';
 import { walkDirFilesSyncRecursive } from '@src/utils/files';
-
-import { HandlePumpTokenReport } from './bot';
 
 (async () => {
     start().finally(() => {
@@ -24,7 +22,7 @@ async function start() {
 }
 
 async function migrateFilesToDb() {
-    const pumpfunStatsPath = formPumpfunStatsDataFolder();
+    const pumpfunStatsPath = formPumpfunBacktestStatsDir();
     const files = walkDirFilesSyncRecursive(pumpfunStatsPath, [], 'json');
 
     const chain = 'solana';

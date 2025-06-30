@@ -5,10 +5,9 @@ import { Command } from 'commander';
 import { logger } from '@src/logger';
 import { NewMarketContextFactory } from '@src/testdata/factories/launchpad';
 import { getBacktestFiles } from '@src/trading/backtesting/utils';
+import { HandlePumpTokenBotReport, HandlePumpTokenReport } from '@src/trading/bots/blockchains/solana/types';
 import { MarketContext } from '@src/trading/bots/launchpads/types';
 import { moveFile } from '@src/utils/files';
-
-import { HandlePumpTokenBotReport, HandlePumpTokenReport } from './bot';
 
 export const validateBacktestFilesProgram = new Command();
 validateBacktestFilesProgram

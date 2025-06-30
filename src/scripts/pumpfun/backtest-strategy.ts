@@ -7,7 +7,7 @@ import { db } from '../../db/knex';
 import { getBacktest } from '../../db/repositories/backtests';
 import { logger } from '../../logger';
 import { parseBacktestFileConfig } from '../../trading/backtesting/config-parser';
-import { formPumpfunStatsDataFolder } from '../../trading/backtesting/data/pumpfun/utils';
+import { formPumpfunBacktestStatsDir } from '../../trading/backtesting/data/pumpfun/utils';
 import runAndSelectBestStrategy from '../../trading/backtesting/runAndSelectBestStrategy';
 import { getBacktestFiles } from '../../trading/backtesting/utils';
 import { BacktestRunConfig } from '../../trading/bots/blockchains/solana/types';
@@ -68,7 +68,7 @@ async function start(args: { backtestId?: string; config?: string }) {
 
 function getBacktestRunConfig(): BacktestRunConfig {
     const dataConfig = {
-        path: formPumpfunStatsDataFolder(),
+        path: formPumpfunBacktestStatsDir(),
         includeIfPathContains: ['no_trade'],
     };
     const files = getBacktestFiles(dataConfig);

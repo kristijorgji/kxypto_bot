@@ -6,7 +6,7 @@ import { redis } from '@src/cache/cache';
 import { db } from '@src/db/knex';
 import { storeBacktest, storeBacktestStrategyResult } from '@src/db/repositories/backtests';
 import { logger } from '@src/logger';
-import { formPumpfunStatsDataFolder } from '@src/trading/backtesting/data/pumpfun/utils';
+import { formPumpfunBacktestStatsDir } from '@src/trading/backtesting/data/pumpfun/utils';
 import { getBacktestFiles, logStrategyResult, runStrategy } from '@src/trading/backtesting/utils';
 import {
     BacktestRunConfig,
@@ -74,7 +74,7 @@ async function findBestStrategy() {
     const backtester = new PumpfunBacktester(logger);
 
     const dataConfig = {
-        path: formPumpfunStatsDataFolder(),
+        path: formPumpfunBacktestStatsDir(),
         includeIfPathContains: ['no_trade/no_pump', '/trade/'],
     };
     const files = getBacktestFiles(dataConfig);

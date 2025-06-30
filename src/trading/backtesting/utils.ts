@@ -5,7 +5,6 @@ import { Logger } from 'winston';
 import { forceGetPumpCoinInitialData } from '@src/blockchains/solana/dex/pumpfun/utils';
 import { lamportsToSol, solToLamports } from '@src/blockchains/utils/amount';
 import { pumpfunRepository } from '@src/db/repositories/PumpfunRepository';
-import { HandlePumpTokenBotReport } from '@src/scripts/pumpfun/bot';
 import { FileInfo, walkDirFilesSyncRecursive } from '@src/utils/files';
 import { formatElapsedTime } from '@src/utils/time';
 
@@ -17,6 +16,7 @@ import {
     BacktestRunConfig,
     BacktestStrategyRunConfig,
     BacktestTradeResponse,
+    HandlePumpTokenBotReport,
     PumpfunSellPositionMetadata,
     StrategyBacktestResult,
     StrategyMintBacktestResult,

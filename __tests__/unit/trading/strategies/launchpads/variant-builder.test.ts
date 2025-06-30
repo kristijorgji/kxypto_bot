@@ -8,6 +8,26 @@ describe('variantConfigFromContext', () => {
         expect(variantFromBuyContext({})).toBe('');
     });
 
+    it('formats zero values', () => {
+        expect(
+            variantFromBuyContext({
+                holdersCount: { min: 0, max: 1 },
+            }),
+        ).toBe('hc:l0-h1');
+
+        expect(
+            variantFromBuyContext({
+                holdersCount: { min: 0, max: 0 },
+            }),
+        ).toBe('hc:l0-h0');
+
+        expect(
+            variantFromBuyContext({
+                holdersCount: { max: 0 },
+            }),
+        ).toBe('hc:h0');
+    });
+
     it('formats single context with min and max', () => {
         expect(
             variantFromBuyContext({

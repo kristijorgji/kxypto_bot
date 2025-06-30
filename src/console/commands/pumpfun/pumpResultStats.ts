@@ -1,10 +1,9 @@
 import fs from 'fs';
 
-import { lamportsToSol } from '../../../blockchains/utils/amount';
-import { logger } from '../../../logger';
-import { HandlePumpTokenReport } from '../../../scripts/pumpfun/bot';
-import { BotTradeResponse } from '../../../trading/bots/blockchains/solana/types';
-import { walkDirFilesSyncRecursive } from '../../../utils/files';
+import { lamportsToSol } from '@src/blockchains/utils/amount';
+import { logger } from '@src/logger';
+import { BotTradeResponse, HandlePumpTokenReport } from '@src/trading/bots/blockchains/solana/types';
+import { walkDirFilesSyncRecursive } from '@src/utils/files';
 
 export default function pumpResultStats(args: { path: string }) {
     const pumpfunStatsPath = args.path;

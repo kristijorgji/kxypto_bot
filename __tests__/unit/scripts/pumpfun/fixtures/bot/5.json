@@ -3,7 +3,7 @@
     "fs.writeFileSync": [
       [
         "./data/pumpfun-stats/tmp/m_3.json",
-        "{\n  \"$schema\": {\n    \"version\": 1.1\n  },\n  \"simulation\": true,\n  \"strategy\": {\n    \"id\": \"RiseStrategy_5cb9dcf7\",\n    \"name\": \"RiseStrategy\",\n    \"configVariant\": \"hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17\"\n  },\n  \"mint\": \"m_3\",\n  \"name\": \"token_3\",\n  \"url\": \"https://pump.fun/coin/m_3\",\n  \"bullXUrl\": \"https://neo.bullx.io/terminal?chainId=1399811149&address=m_3\",\n  \"creator\": \"creator_3\",\n  \"startedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"endedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"elapsedSeconds\": 0,\n  \"monitor\": {\n    \"buyTimeframeMs\": 2500,\n    \"sellTimeframeMs\": 250\n  },\n  \"exitCode\": \"STOPPED\",\n  \"exitReason\": \"The bot was requested to stop\",\n  \"history\": []\n}"
+        "{\n  \"$schema\": {\n    \"version\": 1.1\n  },\n  \"simulation\": true,\n  \"rpcProvider\": {\n    \"domain\": \"cunat-mainnet-testing.test\"\n  },\n  \"strategy\": {\n    \"id\": \"RiseStrategy_5cb9dcf7\",\n    \"name\": \"RiseStrategy\",\n    \"configVariant\": \"hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17\"\n  },\n  \"mint\": \"m_3\",\n  \"name\": \"token_3\",\n  \"url\": \"https://pump.fun/coin/m_3\",\n  \"bullXUrl\": \"https://neo.bullx.io/terminal?chainId=1399811149&address=m_3\",\n  \"creator\": \"creator_3\",\n  \"startedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"endedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"elapsedSeconds\": 0,\n  \"monitor\": {\n    \"buyTimeframeMs\": 2500,\n    \"sellTimeframeMs\": 250\n  },\n  \"exitCode\": \"STOPPED\",\n  \"exitReason\": \"The bot was requested to stop\",\n  \"history\": []\n}"
       ]
     ]
   },

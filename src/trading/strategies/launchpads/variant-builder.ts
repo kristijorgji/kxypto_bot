@@ -17,17 +17,17 @@ export function variantFromBuyContext(context: Partial<Record<keyof MarketContex
     for (const key in context) {
         const interval = context[key as keyof MarketContext];
 
-        if (interval === undefined || (!interval?.min && !interval?.max)) {
+        if (interval === undefined || (interval?.min === undefined && interval?.max === undefined)) {
             continue;
         }
 
         variantConfig += `${first ? '' : '_'}${abbreviations[key as keyof MarketContext]}:`;
 
-        if (interval?.min) {
+        if (interval?.min !== undefined) {
             variantConfig += `l${interval.min}`;
         }
-        if (interval?.max) {
-            variantConfig += `${interval?.min ? '-' : ''}h${interval.max}`;
+        if (interval?.max !== undefined) {
+            variantConfig += `${interval?.min !== undefined ? '-' : ''}h${interval.max}`;
         }
 
         first = false;

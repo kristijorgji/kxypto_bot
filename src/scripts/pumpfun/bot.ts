@@ -17,11 +17,19 @@ import { pumpfunRepository } from '@src/db/repositories/PumpfunRepository';
 import { insertLaunchpadTokenResult } from '@src/db/repositories/tokenAnalytics';
 import { logger } from '@src/logger';
 import { parsePumpfunBotFileConfig } from '@src/trading/bots/blockchains/solana/pumpfun-bot-config-parser';
-import { BotExitResponse, BotResponse, BotTradeResponse } from '@src/trading/bots/blockchains/solana/types';
+import {
+    BotExitResponse,
+    BotResponse,
+    BotTradeResponse,
+    HandlePumpTokenBaseReport,
+    HandlePumpTokenBotReport,
+    HandlePumpTokenReport,
+} from '@src/trading/bots/blockchains/solana/types';
 import { BotManagerConfig, Schema } from '@src/trading/bots/types';
 import LaunchpadBotStrategy from '@src/trading/strategies/launchpads/LaunchpadBotStrategy';
 import { randomInt } from '@src/utils/data/data';
 import { sleep } from '@src/utils/functions';
+import { extractHostAndPort } from '@src/utils/http';
 import { ensureDataFolder } from '@src/utils/storage';
 import { getSecondsDifference } from '@src/utils/time';
 
@@ -36,48 +44,13 @@ import PumpfunBotEventBus from '../../trading/bots/blockchains/solana/PumpfunBot
 import PumpfunBotTradeManager from '../../trading/bots/blockchains/solana/PumpfunBotTradeManager';
 import RiseStrategy from '../../trading/strategies/launchpads/RiseStrategy';
 
-type HandlePumpTokenBaseReport = {
-    /**
-     * This information is used to understand the content of this report
-     * As it changes it is mandatory to document what version we stored for every report
-     */
-    $schema: {
-        version: number;
-        name?: string;
-    };
-    simulation: boolean;
-    mint: string;
-    name: string;
-    url: string;
-    bullXUrl: string;
-    creator: string;
-    startedAt: Date;
-    endedAt: Date;
-    elapsedSeconds: number;
-};
-
-export type HandlePumpTokenExitReport = HandlePumpTokenBaseReport & {
-    exitCode: 'BAD_CREATOR';
-    exitReason: string;
-};
-
-export type HandlePumpTokenBotReport = HandlePumpTokenBaseReport & {
-    strategy: {
-        id: string;
-        name: string;
-        configVariant: string;
-    };
-    monitor: {
-        buyTimeframeMs: number;
-        sellTimeframeMs: number;
-    };
-} & BotResponse;
-
-export type HandlePumpTokenReport = HandlePumpTokenExitReport | HandlePumpTokenBotReport;
-
 const ReportSchema: Schema = {
-    version: 1.2,
-    name: 'history_ref_and_entry',
+    version: 1.3,
+    name: 'history_ref_and_entry_rpc_provider',
+};
+
+const rpcProvider = {
+    domain: extractHostAndPort(process.env.SOLANA_RPC_ENDPOINT as string).host,
 };
 
 const defaultConfig: BotManagerConfig = {
@@ -310,6 +283,7 @@ async function handlePumpToken(
     const baseReport: HandlePumpTokenBaseReport = {
         $schema: c.reportSchema,
         simulation: c.simulate,
+        rpcProvider: rpcProvider,
         mint: tokenData.mint,
         name: tokenData.name,
         url: formPumpfunTokenUrl(tokenData.mint),
@@ -359,6 +333,7 @@ async function handlePumpToken(
     await storeResult({
         $schema: baseReport.$schema,
         simulation: baseReport.simulation,
+        rpcProvider: baseReport.rpcProvider,
         strategy: {
             id: strategy.identifier,
             name: strategy.name,
@@ -377,13 +352,13 @@ async function handlePumpToken(
             sellTimeframeMs: c.sellMonitorWaitPeriodMs,
         },
         ...handleRes,
-    } as HandlePumpTokenBotReport);
+    } satisfies HandlePumpTokenBotReport);
 
     return handleRes;
 }
 
 async function storeResult(report: HandlePumpTokenReport) {
-    await fs.writeFileSync(ensureDataFolder(`pumpfun-stats/tmp/${report.mint}.json`), JSON.stringify(report, null, 2));
+    fs.writeFileSync(ensureDataFolder(`pumpfun-stats/tmp/${report.mint}.json`), JSON.stringify(report, null, 2));
     await insertLaunchpadTokenResult({
         simulation: report.simulation,
         chain: 'solana',

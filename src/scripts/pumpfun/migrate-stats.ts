@@ -1,12 +1,11 @@
 import fs from 'fs';
 
 import { logger } from '@src/logger';
-import { formPumpfunStatsDataFolder, organizePumpfunFiles } from '@src/trading/backtesting/data/pumpfun/utils';
+import { formPumpfunBacktestStatsDir, organizePumpfunFiles } from '@src/trading/backtesting/data/pumpfun/utils';
+import { HandlePumpTokenReport } from '@src/trading/bots/blockchains/solana/types';
 import { insertKeysAfter } from '@src/utils/data/records';
 import { walkDirFilesSyncRecursive } from '@src/utils/files';
 import { getSecondsDifference } from '@src/utils/time';
-
-import { HandlePumpTokenReport } from './bot';
 
 (async () => {
     await start();
@@ -20,7 +19,7 @@ async function start() {
 }
 
 async function migrateFilesToNewSchema() {
-    const pumpfunStatsPath = formPumpfunStatsDataFolder();
+    const pumpfunStatsPath = formPumpfunBacktestStatsDir();
     const files = walkDirFilesSyncRecursive(pumpfunStatsPath, [], 'json');
     let skipped = 0;
     let changed = 0;
@@ -61,7 +60,7 @@ async function migrateFilesToNewSchema() {
     if (changed > 0) {
         logger.info('Will re-organize the folders now');
         await organizePumpfunFiles({
-            path: formPumpfunStatsDataFolder(),
+            path: formPumpfunBacktestStatsDir(),
         });
     }
 }

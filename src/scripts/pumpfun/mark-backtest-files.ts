@@ -1,10 +1,9 @@
 import fs from 'fs';
 
 import { logger } from '@src/logger';
-import { formPumpfunStatsDataFolder } from '@src/trading/backtesting/data/pumpfun/utils';
+import { formPumpfunBacktestStatsDir } from '@src/trading/backtesting/data/pumpfun/utils';
+import { HandlePumpTokenBotReport, HandlePumpTokenReport } from '@src/trading/bots/blockchains/solana/types';
 import { walkDirFilesSyncRecursive } from '@src/utils/files';
-
-import { HandlePumpTokenBotReport, HandlePumpTokenReport } from './bot';
 
 if (require.main === module) {
     (async () => {
@@ -17,7 +16,7 @@ if (require.main === module) {
  * and detect in which ones we could have traded for profit
  */
 async function start() {
-    const pumpfunStatsPath = formPumpfunStatsDataFolder();
+    const pumpfunStatsPath = formPumpfunBacktestStatsDir();
     const files = walkDirFilesSyncRecursive(pumpfunStatsPath, [], 'json').filter(el =>
         el.fullPath.includes('no_trade'),
     );

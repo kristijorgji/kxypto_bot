@@ -80,6 +80,49 @@ export type BotExitResponse = {
 
 export type BotResponse = BotTradeResponse | BotExitResponse;
 
+export type HandlePumpTokenBaseReport = {
+    /**
+     * This information is used to understand the content of this report
+     * As it changes it is mandatory to document what version we stored for every report
+     */
+    $schema: {
+        version: number;
+        name?: string;
+    };
+    simulation: boolean;
+    rpcProvider: {
+        providerName?: string;
+        domain: string;
+    };
+    mint: string;
+    name: string;
+    url: string;
+    bullXUrl: string;
+    creator: string;
+    startedAt: Date;
+    endedAt: Date;
+    elapsedSeconds: number;
+};
+
+export type HandlePumpTokenExitReport = HandlePumpTokenBaseReport & {
+    exitCode: 'BAD_CREATOR';
+    exitReason: string;
+};
+
+export type HandlePumpTokenBotReport = HandlePumpTokenBaseReport & {
+    strategy: {
+        id: string;
+        name: string;
+        configVariant: string;
+    };
+    monitor: {
+        buyTimeframeMs: number;
+        sellTimeframeMs: number;
+    };
+} & BotResponse;
+
+export type HandlePumpTokenReport = HandlePumpTokenExitReport | HandlePumpTokenBotReport;
+
 export type PumpfunBotConfig = {
     runConfig: BotManagerConfig;
     strategy: LaunchpadBotStrategy;

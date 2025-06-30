@@ -12,22 +12,38 @@
         "name": "Meme Mining Company",
         "symbol": "MMC"
       },
-      "grossTransferredLamports": 420000000,
+      "grossTransferredLamports": 4304805892.60817,
       "marketCap": 60,
       "metadata": {
-        "pumpBuyPriceInSol": 4.1e-7,
+        "historyEntry": {
+          "_metadata": {
+            "action": "startBuy"
+          },
+          "bondingCurveProgress": 50,
+          "devHoldingPercentage": 5,
+          "holdersCount": 70,
+          "marketCap": 60,
+          "price": 4.1e-7,
+          "timestamp": 1616175603000,
+          "topTenHoldingPercentage": 10
+        },
+        "historyRef": {
+          "index": 1,
+          "timestamp": 1616175603000
+        },
+        "pumpBuyPriceInSol": 4.0999999999999994e-7,
         "pumpInSol": 0.4,
         "pumpMaxSolCost": 0.55,
         "pumpTokenOut": 10499526567337
       },
       "netTransferredLamports": 414995000,
       "price": {
-        "inLamports": 410,
-        "inSol": 4.1e-7
+        "inLamports": 409.99999999999994,
+        "inSol": 4.0999999999999994e-7
       },
       "sold": {
         "address": "So11111111111111111111111111111111111111112",
-        "amount": 420000000,
+        "amount": 4304805892.60817,
         "name": "SOL",
         "symbol": "SOL"
       },
@@ -48,14 +64,30 @@
       "grossTransferredLamports": 670000000,
       "marketCap": 33.4,
       "metadata": {
+        "historyEntry": {
+          "_metadata": {
+            "action": "startSell"
+          },
+          "bondingCurveProgress": 2,
+          "devHoldingPercentage": 5,
+          "holdersCount": 1,
+          "marketCap": 33.4,
+          "price": 3.14e-8,
+          "timestamp": 1616175609000,
+          "topTenHoldingPercentage": 10
+        },
+        "historyRef": {
+          "index": 4,
+          "timestamp": 1616175609000
+        },
         "pumpMinLamportsOutput": 710000000,
         "reason": "DUMPED",
-        "sellPriceInSol": 3.14e-8
+        "sellPriceInSol": 6.381240103570997e-8
       },
       "netTransferredLamports": 664995000,
       "price": {
-        "inLamports": 31.400000000000002,
-        "inSol": 3.14e-8
+        "inLamports": 63.81240103570997,
+        "inSol": 6.381240103570997e-8
       },
       "sold": {
         "address": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump",

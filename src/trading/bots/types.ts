@@ -40,6 +40,16 @@ export type BotConfig = {
  */
 export type BotManagerConfig = {
     /**
+     * Schema metadata for this report file.
+     * - `version` allows the report structure to evolve without breaking compatibility.
+     * - `name` is optional and can be used to label or distinguish schema variants.
+     */
+    reportSchema: {
+        version: number;
+        name?: string;
+    };
+
+    /**
      * The maximum number of tokens that can be processed in parallel.
      * - If set to `null`, there is no limit on parallel processing.
      * - If set to a number (e.g., `3`), the bot will process up to that many tokens simultaneously.

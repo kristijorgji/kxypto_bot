@@ -89,9 +89,25 @@
         "name": "Meme Mining Company",
         "symbol": "MMC"
       },
-      "grossTransferredLamports": 420000000,
+      "grossTransferredLamports": 3359848501.54784,
       "marketCap": 60,
       "metadata": {
+        "historyEntry": {
+          "_metadata": {
+            "action": "startBuy"
+          },
+          "bondingCurveProgress": 50,
+          "devHoldingPercentage": 5,
+          "holdersCount": 70,
+          "marketCap": 60,
+          "price": 3.2e-7,
+          "timestamp": 1616175603000,
+          "topTenHoldingPercentage": 10
+        },
+        "historyRef": {
+          "index": 1,
+          "timestamp": 1616175603000
+        },
         "pumpBuyPriceInSol": 3.2e-7,
         "pumpInSol": 0.4,
         "pumpMaxSolCost": 0.55,
@@ -104,7 +120,7 @@
       },
       "sold": {
         "address": "So11111111111111111111111111111111111111112",
-        "amount": 420000000,
+        "amount": 3359848501.54784,
         "name": "SOL",
         "symbol": "SOL"
       },
@@ -125,14 +141,30 @@
       "grossTransferredLamports": 670000000,
       "marketCap": 60,
       "metadata": {
+        "historyEntry": {
+          "_metadata": {
+            "action": "startSell"
+          },
+          "bondingCurveProgress": 50,
+          "devHoldingPercentage": 5,
+          "holdersCount": 70,
+          "marketCap": 60,
+          "price": 3.2200000000000004e-8,
+          "timestamp": 1616175609000,
+          "topTenHoldingPercentage": 10
+        },
+        "historyRef": {
+          "index": 4,
+          "timestamp": 1616175609000
+        },
         "pumpMinLamportsOutput": 710000000,
         "reason": "TRAILING_STOP_LOSS",
-        "sellPriceInSol": 3.2200000000000004e-8
+        "sellPriceInSol": 6.381240103570997e-8
       },
       "netTransferredLamports": 664995000,
       "price": {
-        "inLamports": 32.2,
-        "inSol": 3.2200000000000004e-8
+        "inLamports": 63.81240103570997,
+        "inSol": 6.381240103570997e-8
       },
       "sold": {
         "address": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump",

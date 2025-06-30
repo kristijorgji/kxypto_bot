@@ -10,12 +10,14 @@ import { NewPumpFunTokenData } from '@src/blockchains/solana/dex/pumpfun/types';
 import { formPumpfunTokenUrl } from '@src/blockchains/solana/dex/pumpfun/utils';
 import { solanaConnection } from '@src/blockchains/solana/utils/connection';
 import { lamportsToSol } from '@src/blockchains/utils/amount';
+import { redis } from '@src/cache/cache';
 import { db } from '@src/db/knex';
 import { pumpfunRepository } from '@src/db/repositories/PumpfunRepository';
 import { insertLaunchpadTokenResult } from '@src/db/repositories/tokenAnalytics';
 import { logger } from '@src/logger';
 import { BotExitResponse, BotResponse, BotTradeResponse } from '@src/trading/bots/blockchains/solana/types';
 import { BotManagerConfig } from '@src/trading/bots/types';
+import LaunchpadBotStrategy from '@src/trading/strategies/launchpads/LaunchpadBotStrategy';
 import { randomInt } from '@src/utils/data/data';
 import { sleep } from '@src/utils/functions';
 import { ensureDataFolder } from '@src/utils/storage';
@@ -72,6 +74,10 @@ export type HandlePumpTokenBotReport = HandlePumpTokenBaseReport & {
 export type HandlePumpTokenReport = HandlePumpTokenExitReport | HandlePumpTokenBotReport;
 
 const config: BotManagerConfig = {
+    reportSchema: {
+        version: 1.2,
+        name: 'history_ref_and_entry',
+    },
     simulate: false,
     maxTokensToProcessInParallel: 70,
     maxOpenPositions: 2,
@@ -86,10 +92,30 @@ const config: BotManagerConfig = {
 // ensures the code only auto-runs when the file is executed directly, not when imported
 if (require.main === module) {
     (async () => {
-        await start(config, {
-            logger: logger,
-            botEventBus: new PumpfunBotEventBus(),
-        });
+        await start(
+            config,
+            {
+                logger: logger,
+                botEventBus: new PumpfunBotEventBus(),
+            },
+            new RiseStrategy(logger, {
+                variant: 'hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17',
+                buy: {
+                    holdersCount: { min: 10 },
+                    bondingCurveProgress: { min: 22 },
+                    devHoldingPercentage: { max: 7 },
+                    topTenHoldingPercentage: { max: 10 },
+                },
+                sell: {
+                    takeProfitPercentage: 17,
+                    trailingStopLossPercentage: 10,
+                },
+                maxWaitMs: 7 * 60 * 1e3,
+                priorityFeeInSol: 0.005,
+                buySlippageDecimal: 0.25,
+                sellSlippageDecimal: 0.25,
+            }),
+        );
     })();
 }
 
@@ -102,6 +128,7 @@ export async function start(
         logger: Logger;
         botEventBus: PumpfunBotEventBus;
     },
+    strategy: LaunchpadBotStrategy,
 ) {
     startApm();
 
@@ -160,6 +187,7 @@ export async function start(
                         wallet: wallet,
                         tokenData: data,
                     },
+                    strategy,
                 );
 
                 if (config.simulate) {
@@ -198,6 +226,7 @@ export async function start(
     logger.info('We are done. The listener is force stopped and all items are processed');
     logger.info('Balance: %s SOL', lamportsToSol(await wallet.getBalanceLamports()));
     await db.destroy();
+    redis.disconnect();
 }
 
 async function handlePumpToken(
@@ -225,6 +254,7 @@ async function handlePumpToken(
         wallet: Wallet;
         tokenData: NewPumpFunTokenData;
     },
+    strategy: LaunchpadBotStrategy,
 ): Promise<BotResponse | null> {
     const startedAt = new Date();
 
@@ -246,9 +276,7 @@ async function handlePumpToken(
     const isCreatorSafeResult = await isTokenCreatorSafe(initialCoinData.creator);
 
     const baseReport: HandlePumpTokenBaseReport = {
-        $schema: {
-            version: 1.1,
-        },
+        $schema: c.reportSchema,
         simulation: c.simulate,
         mint: tokenData.mint,
         name: tokenData.name,
@@ -293,23 +321,6 @@ async function handlePumpToken(
         botEventBus: botEventBus,
     });
 
-    const strategy = new RiseStrategy(logger, {
-        variant: 'hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17',
-        buy: {
-            holdersCount: { min: 10 },
-            bondingCurveProgress: { min: 22 },
-            devHoldingPercentage: { max: 7 },
-            topTenHoldingPercentage: { max: 10 },
-        },
-        sell: {
-            takeProfitPercentage: 17,
-            trailingStopLossPercentage: 10,
-        },
-        maxWaitMs: 7 * 60 * 1e3,
-        priorityFeeInSol: 0.005,
-        buySlippageDecimal: 0.25,
-        sellSlippageDecimal: 0.25,
-    });
     const handleRes = await pumpfunBot.run(identifier, initialCoinData, strategy);
 
     const endedAt = new Date();

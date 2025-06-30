@@ -18,7 +18,7 @@
   "logs": [
     {
       "level": "info",
-      "message": "🚀 Bot started with config={\n  simulate: true,\n  maxTokensToProcessInParallel: 10,\n  buyMonitorWaitPeriodMs: 1000,\n  sellMonitorWaitPeriodMs: 250,\n  maxWaitMonitorAfterResultMs: 120000,\n  buyInSol: 0.4,\n  maxFullTrades: null,\n  stopAtMinWalletBalanceLamports: null\n}"
+      "message": "🚀 Bot started with config={\n  reportSchema: { version: 1.1 },\n  simulate: true,\n  maxTokensToProcessInParallel: 10,\n  maxOpenPositions: null,\n  buyMonitorWaitPeriodMs: 1000,\n  sellMonitorWaitPeriodMs: 250,\n  maxWaitMonitorAfterResultMs: 120000,\n  buyInSol: 0.4,\n  maxFullTrades: null,\n  stopAtMinWalletBalanceLamports: null\n}"
     },
     {
       "level": "info",
@@ -38,11 +38,15 @@
     },
     {
       "level": "info",
-      "message": "[0] Simulated new balance: 1.52 SOL"
+      "message": "[0] Skipping this token because its creator creator_1 is not safe, already_flagged"
     },
     {
       "level": "info",
-      "message": "[1] Simulated new balance: 1.52 SOL"
+      "message": "[1] Skipping this token because its creator creator_2 is not safe, already_flagged"
+    },
+    {
+      "level": "info",
+      "message": "[2] Skipping this token because its creator creator_3 is not safe, already_flagged"
     },
     {
       "level": "info",

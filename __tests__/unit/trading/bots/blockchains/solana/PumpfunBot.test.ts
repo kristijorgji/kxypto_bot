@@ -3,6 +3,7 @@ import { LogEntry, createLogger, format } from 'winston';
 import { measureExecutionTime } from '../../../../../../src/apm/apm';
 import { BASE_FEE_LAMPORTS } from '../../../../../../src/blockchains/solana/constants/core';
 import { SolanaWalletProviders } from '../../../../../../src/blockchains/solana/constants/walletProviders';
+import { PUMPFUN_TOKEN_DECIMALS } from '../../../../../../src/blockchains/solana/dex/pumpfun/constants';
 import { pumpCoinDataToInitialCoinData } from '../../../../../../src/blockchains/solana/dex/pumpfun/mappers/mappers';
 import Pumpfun from '../../../../../../src/blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunMarketContextProvider from '../../../../../../src/blockchains/solana/dex/pumpfun/PumpfunMarketContextProvider';
@@ -36,7 +37,7 @@ import StupidSniperStrategy from '../../../../../../src/trading/strategies/launc
 import { generateTradeId } from '../../../../../../src/trading/utils/generateTradeId';
 import { formMarketContext } from '../../../../../__utils/blockchains/solana';
 import { readFixture, readLocalFixture } from '../../../../../__utils/data';
-import { FullTestMultiCaseExpectation, MultiCaseFixture } from '../../../../../__utils/types';
+import { FullTestExpectation, FullTestMultiCaseExpectation, MultiCaseFixture } from '../../../../../__utils/types';
 import { TxWithIllegalOwnerError } from '../../../../blockchains/solana/utils/transactions.test';
 
 jest.mock('../../../../../../src/apm/apm');
@@ -169,7 +170,7 @@ describe(PumpfunBot.name, () => {
      * should return BotTradeResponse with the correct data
      *
      */
-    it('should perform fine a single buy and sell using strategy defined priorities and slippages and return BotTradeResponse', async () => {
+    it('1 - should perform fine a single buy and sell using strategy defined priorities and slippages and return BotTradeResponse', async () => {
         const strategy = new StupidSniperStrategy(logger, {
             buySlippageDecimal: 0.1,
             sellSlippageDecimal: 0.25,
@@ -181,7 +182,8 @@ describe(PumpfunBot.name, () => {
             },
         });
 
-        const expectedBotTradeResponse = readLocalFixture<BotTradeResponse>('pumpfun-bot/trade-response-1');
+        const expected = readLocalFixture<FullTestExpectation>('pumpfun-bot/1-single-buy-sell');
+        const expectedBotTradeResponse = expected.result as BotTradeResponse;
         const expectedBuyTradeTransaction = expectedBotTradeResponse.transactions.find(
             e => e.transactionType === 'buy',
         )! as TradeTransaction<PumpfunBuyPositionMetadata>;
@@ -310,11 +312,11 @@ describe(PumpfunBot.name, () => {
             asset_mint: '3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump',
             asset_symbol: 'MMC',
             asset_name: 'Meme Mining Company',
-            entry_price: 3.1e-8,
-            in_amount: 11496621999445,
+            entry_price: 3.0999999999999517e-8,
+            in_amount: 14193548387097,
             stop_loss: null,
             trailing_sl_percent: 25,
-            take_profit: 3.41e-8,
+            take_profit: 3.409999999999947e-8,
             trailing_take_profit_percent: null,
             trailing_take_profit_stop_percent: null,
             tx_signature: '_test_1741177688106',
@@ -340,7 +342,7 @@ describe(PumpfunBot.name, () => {
             tokenMint: initialCoinData.mint,
             tokenBondingCurve: initialCoinData.bondingCurve,
             tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
-            tokenBalance: 11496621999445,
+            tokenBalance: 14193548387097,
             priorityFeeInSol: 0.001,
             slippageDecimal: 0.25,
             jitoConfig: {
@@ -362,7 +364,7 @@ describe(PumpfunBot.name, () => {
         expect(botEventBus.botTradeResponse as jest.Mock).toHaveBeenCalledTimes(1);
         expect(botEventBus.botTradeResponse as jest.Mock).toHaveBeenCalledWith(expectedBotTradeResponse);
 
-        expect(logs).toEqual(readLocalFixture('pumpfun-bot/expected-logs-1'));
+        expect(logs).toEqual(expected.logs);
     });
 
     it('should exit after wait time when the strategy.shouldExit = true and have no active buy position', async () => {
@@ -452,7 +454,7 @@ describe(PumpfunBot.name, () => {
             },
         });
 
-        (pumpfun.buy as jest.Mock).mockResolvedValue(dummyPumpfunBuyResponse);
+        (pumpfun.buy as jest.Mock).mockResolvedValue(calculatePumpfunBuyResponse(dummyPumpfunBuyResponse, 4.1e-7));
         (insertPosition as jest.Mock).mockResolvedValue(undefined);
         (pumpfun.sell as jest.Mock).mockResolvedValue(dummyPumpfunSellResponse);
         (closePosition as jest.Mock).mockResolvedValue(undefined);
@@ -477,7 +479,7 @@ describe(PumpfunBot.name, () => {
             },
         });
 
-        (pumpfun.buy as jest.Mock).mockResolvedValue(dummyPumpfunBuyResponse);
+        (pumpfun.buy as jest.Mock).mockResolvedValue(calculatePumpfunBuyResponse(dummyPumpfunBuyResponse, 4.1e-7));
         (insertPosition as jest.Mock).mockResolvedValue(undefined);
         (pumpfun.sell as jest.Mock).mockResolvedValue(dummyPumpfunSellResponse);
         (closePosition as jest.Mock).mockResolvedValue(undefined);
@@ -528,7 +530,7 @@ describe(PumpfunBot.name, () => {
             },
         });
 
-        (pumpfun.buy as jest.Mock).mockResolvedValue(dummyPumpfunBuyResponse);
+        (pumpfun.buy as jest.Mock).mockResolvedValue(calculatePumpfunBuyResponse(dummyPumpfunBuyResponse, 3.2e-7));
         (insertPosition as jest.Mock).mockResolvedValue(undefined);
         (pumpfun.sell as jest.Mock).mockResolvedValue(dummyPumpfunSellResponse);
         (closePosition as jest.Mock).mockResolvedValue(undefined);
@@ -713,7 +715,9 @@ describe(PumpfunBot.name, () => {
                 },
             });
 
-            (pumpfun.buy as jest.Mock).mockResolvedValue(dummyPumpfunBuyResponse);
+            (pumpfun.buy as jest.Mock).mockResolvedValue(
+                calculatePumpfunBuyResponse(dummyPumpfunBuyResponse, mockReturnedMarketContexts[0].price),
+            );
             (insertPosition as jest.Mock).mockResolvedValue(undefined);
             if (pumpfunSellResponseOrError instanceof Error) {
                 (pumpfun.sell as jest.Mock)
@@ -771,3 +775,21 @@ describe(PumpfunBot.name, () => {
         mockReturnedMarketContexts.forEach(mr => (marketContextProvider.get as jest.Mock).mockResolvedValueOnce(mr));
     }
 });
+
+/**
+ * A test util function to calculate the transaction gross transferred lamports
+ * which do match the provided amount and desired price in sol
+ */
+function calculateGrossTransferredLamports(amountRaw: number, desiredPriceInSol: number): number {
+    return (amountRaw * solToLamports(desiredPriceInSol)) / 10 ** PUMPFUN_TOKEN_DECIMALS;
+}
+
+function calculatePumpfunBuyResponse(r: PumpfunBuyResponse, desiredPriceInSol: number): PumpfunBuyResponse {
+    return {
+        ...r,
+        txDetails: {
+            ...r.txDetails,
+            grossTransferredLamports: calculateGrossTransferredLamports(r.boughtAmountRaw, desiredPriceInSol),
+        },
+    };
+}

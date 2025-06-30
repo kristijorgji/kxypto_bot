@@ -44,6 +44,15 @@
                   "index": 0,
                   "timestamp": 1
                 },
+                "historyEntry": {
+                  "bondingCurveProgress": 25,
+                  "devHoldingPercentage": 10,
+                  "holdersCount": 15,
+                  "marketCap": 31.770000079,
+                  "price": 1,
+                  "timestamp": 1,
+                  "topTenHoldingPercentage": 35
+                },
                 "pumpBuyPriceInSol": 1.25,
                 "pumpInSol": 0.625,
                 "pumpMaxSolCost": 0.625,
@@ -83,6 +92,15 @@
                 "historyRef": {
                   "index": 1,
                   "timestamp": 2
+                },
+                "historyEntry": {
+                  "bondingCurveProgress": 25,
+                  "devHoldingPercentage": 10,
+                  "holdersCount": 15,
+                  "marketCap": 31.770000079,
+                  "price": 2,
+                  "timestamp": 2,
+                  "topTenHoldingPercentage": 35
                 },
                 "pumpMinLamportsOutput": 500000,
                 "reason": "TAKE_PROFIT",
@@ -135,6 +153,15 @@
                 "historyRef": {
                   "index": 0,
                   "timestamp": 1
+                },
+                "historyEntry": {
+                  "bondingCurveProgress": 25,
+                  "devHoldingPercentage": 10,
+                  "holdersCount": 15,
+                  "marketCap": 31.770000079,
+                  "price": 2.2,
+                  "timestamp": 1,
+                  "topTenHoldingPercentage": 35
                 },
                 "pumpBuyPriceInSol": 2.75,
                 "pumpInSol": 0.625,

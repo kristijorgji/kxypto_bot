@@ -1,5 +1,6 @@
-import { JitoConfig } from '../../../../blockchains/solana/Jito';
-import { FileStorageType } from '../../../../core/types';
+import { JitoConfig } from '@src/blockchains/solana/Jito';
+import { FileStorageType } from '@src/core/types';
+
 import LaunchpadBotStrategy from '../../../strategies/launchpads/LaunchpadBotStrategy';
 import { HistoryEntry } from '../../launchpads/types';
 import { ExitMonitoringReason, SellReason, SwapSubCategory, TransactionType } from '../../types';
@@ -27,8 +28,9 @@ export type HistoryRef = {
     index: number;
 };
 
-export type BacktestTradeOrigin = {
+type TradeOrigin = {
     historyRef: HistoryRef;
+    historyEntry: HistoryEntry;
 };
 
 export type BoughtSold = {
@@ -60,7 +62,7 @@ export type TradeTransaction<T = Record<string, unknown>> = {
     /**
      * This is optional for troubleshooting only and should not be used in any logic
      */
-    metadata?: T;
+    metadata?: TradeOrigin & T;
 };
 
 export type BotTradeResponse = {

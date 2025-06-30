@@ -29,6 +29,7 @@ import {
     TradeTransaction,
 } from '../../../../src/trading/bots/blockchains/solana/types';
 import { BotManagerConfig } from '../../../../src/trading/bots/types';
+import RiseStrategy from '../../../../src/trading/strategies/launchpads/RiseStrategy';
 import { readLocalFixture } from '../../../__utils/data';
 import { FullTestExpectation } from '../../../__utils/types';
 
@@ -216,6 +217,9 @@ describe('bot', () => {
     });
 
     const startConfig: BotManagerConfig = {
+        reportSchema: {
+            version: 1.1,
+        },
         simulate: true,
         maxTokensToProcessInParallel: 10,
         maxOpenPositions: null,
@@ -226,6 +230,24 @@ describe('bot', () => {
         maxFullTrades: null,
         stopAtMinWalletBalanceLamports: null,
     };
+
+    const strategy = new RiseStrategy(logger, {
+        variant: 'hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17',
+        buy: {
+            holdersCount: { min: 10 },
+            bondingCurveProgress: { min: 22 },
+            devHoldingPercentage: { max: 7 },
+            topTenHoldingPercentage: { max: 10 },
+        },
+        sell: {
+            takeProfitPercentage: 17,
+            trailingStopLossPercentage: 10,
+        },
+        maxWaitMs: 7 * 60 * 1e3,
+        priorityFeeInSol: 0.005,
+        buySlippageDecimal: 0.25,
+        sellSlippageDecimal: 0.25,
+    });
 
     it('1 - should receive tokens, create bots for each of them and store the results', async () => {
         pumpfunBotMock.run.mockImplementation(
@@ -272,7 +294,7 @@ describe('bot', () => {
             },
         );
 
-        await start(startConfig, startDeps);
+        await start(startConfig, startDeps, strategy);
 
         const expected = readLocalFixture<FullTestExpectation>('bot/1');
 
@@ -309,7 +331,7 @@ describe('bot', () => {
             reason: 'already_flagged',
         });
 
-        await start(startConfig, startDeps);
+        await start(startConfig, startDeps, strategy);
 
         const expected = readLocalFixture<FullTestExpectation>('bot/2');
 
@@ -317,6 +339,7 @@ describe('bot', () => {
 
         expect(mockedFs.writeFileSync as jest.Mock).toHaveBeenCalledTimes(3);
         expect((mockedFs.writeFileSync as jest.Mock).mock.calls).toEqual(expected.fnsCallArgs['fs.writeFileSync']);
+        expect(logs).toEqual(expected.logs);
     });
 
     it('3 - should stop all bots when the trade manager reaches maxFullTrades', async () => {
@@ -344,7 +367,7 @@ describe('bot', () => {
             } satisfies BotExitResponse;
         });
 
-        await start({ ...startConfig, maxFullTrades: 1 }, startDeps);
+        await start({ ...startConfig, maxFullTrades: 1 }, startDeps, strategy);
 
         const expected = readLocalFixture<FullTestExpectation>('bot/3-handles-max-full-trades');
 
@@ -384,7 +407,7 @@ describe('bot', () => {
             } satisfies BotExitResponse;
         });
 
-        await start({ ...startConfig, stopAtMinWalletBalanceLamports: solToLamports(1) }, startDeps);
+        await start({ ...startConfig, stopAtMinWalletBalanceLamports: solToLamports(1) }, startDeps, strategy);
 
         const expected = readLocalFixture<FullTestExpectation>('bot/4-handles-min-wallet-balance-lamports');
 
@@ -427,6 +450,7 @@ describe('bot', () => {
                 maxFullTrades: 1,
             },
             startDeps,
+            strategy,
         );
 
         const expected = readLocalFixture<FullTestExpectation>('bot/5');
@@ -466,7 +490,7 @@ describe('bot', () => {
             } satisfies BotExitResponse;
         });
 
-        await start({ ...startConfig, maxOpenPositions: 1 }, startDeps);
+        await start({ ...startConfig, maxOpenPositions: 1 }, startDeps, strategy);
 
         const expected = readLocalFixture<FullTestExpectation>('bot/handles-max-open-positions');
 

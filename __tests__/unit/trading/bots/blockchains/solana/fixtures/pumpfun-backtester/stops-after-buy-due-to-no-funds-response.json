@@ -26,6 +26,15 @@
           "index": 0,
           "timestamp": 7
         },
+        "historyEntry": {
+          "bondingCurveProgress": 25,
+          "devHoldingPercentage": 10,
+          "holdersCount": 15,
+          "marketCap": 150,
+          "price": 2.77,
+          "timestamp": 7,
+          "topTenHoldingPercentage": 35
+        },
         "pumpBuyPriceInSol": 3.4625,
         "pumpInSol": 0.5,
         "pumpMaxSolCost": 0.5,
@@ -70,6 +79,15 @@
         "historyRef": {
           "index": 1,
           "timestamp": 8
+        },
+        "historyEntry": {
+          "bondingCurveProgress": 25,
+          "devHoldingPercentage": 10,
+          "holdersCount": 15,
+          "marketCap": 1.5,
+          "price": 0.2,
+          "timestamp": 8,
+          "topTenHoldingPercentage": 35
         },
         "pumpMinLamportsOutput": 144404.3321299639,
         "reason": "TRAILING_STOP_LOSS",

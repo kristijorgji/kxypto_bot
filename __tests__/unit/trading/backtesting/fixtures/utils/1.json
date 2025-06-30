@@ -44,6 +44,15 @@
                   "index": 0,
                   "timestamp": 1
                 },
+                "historyEntry": {
+                  "bondingCurveProgress": 25,
+                  "devHoldingPercentage": 10,
+                  "holdersCount": 15,
+                  "marketCap": 31.770000079,
+                  "price": 1,
+                  "timestamp": 1,
+                  "topTenHoldingPercentage": 35
+                },
                 "pumpBuyPriceInSol": 1.25,
                 "pumpInSol": 0.625,
                 "pumpMaxSolCost": 0.625,
@@ -83,6 +92,15 @@
                 "historyRef": {
                   "index": 1,
                   "timestamp": 2
+                },
+                "historyEntry": {
+                  "bondingCurveProgress": 25,
+                  "devHoldingPercentage": 10,
+                  "holdersCount": 15,
+                  "marketCap": 31.770000079,
+                  "price": 2,
+                  "timestamp": 2,
+                  "topTenHoldingPercentage": 35
                 },
                 "pumpMinLamportsOutput": 500000,
                 "reason": "TAKE_PROFIT",
@@ -136,6 +154,15 @@
                   "index": 0,
                   "timestamp": 1
                 },
+                "historyEntry": {
+                  "bondingCurveProgress": 25,
+                  "devHoldingPercentage": 10,
+                  "holdersCount": 15,
+                  "marketCap": 31.770000079,
+                  "price": 2.2,
+                  "timestamp": 1,
+                  "topTenHoldingPercentage": 35
+                },
                 "pumpBuyPriceInSol": 2.75,
                 "pumpInSol": 0.625,
                 "pumpMaxSolCost": 0.625,
@@ -175,6 +202,15 @@
                 "historyRef": {
                   "index": 1,
                   "timestamp": 2
+                },
+                "historyEntry": {
+                  "bondingCurveProgress": 25,
+                  "devHoldingPercentage": 10,
+                  "holdersCount": 15,
+                  "marketCap": 31.770000079,
+                  "price": 2.421,
+                  "timestamp": 2,
+                  "topTenHoldingPercentage": 35
                 },
                 "pumpMinLamportsOutput": 227272.72727272726,
                 "reason": "TAKE_PROFIT",
@@ -237,7 +273,7 @@
     },
     {
       "level": "info",
-      "message": "[0] Trades=[\n  {\n    timestamp: 1616148000000,\n    transactionType: 'buy',\n    subCategory: 'newPosition',\n    historyRef: {\n      timestamp: 1,\n      index: 0,\n      price: { inLamports: 1000000000, inSol: 1 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: -629195000,\n    netTransferredLamports: -634200000,\n    amountRaw: 500000,\n    metadata: {\n      pumpInSol: 0.625,\n      pumpMaxSolCost: 0.625,\n      pumpTokenOut: 500000,\n      pumpBuyPriceInSol: 1.25,\n      buyRes: { reason: 'always' }\n    }\n  },\n  {\n    timestamp: 1616148000000,\n    transactionType: 'sell',\n    subCategory: 'sellAll',\n    historyRef: {\n      timestamp: 2,\n      index: 1,\n      price: { inSol: 2, inLamports: 2000000000 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: 749850000,\n    netTransferredLamports: 744845000,\n    amountRaw: 500000,\n    metadata: {\n      reason: 'TAKE_PROFIT',\n      pumpMinLamportsOutput: 500000,\n      sellPriceInSol: 1.5\n    }\n  },\n  [length]: 2\n]\n"
+      "message": "[0] Trades=[\n  {\n    timestamp: 1616148000000,\n    transactionType: 'buy',\n    subCategory: 'newPosition',\n    historyRef: {\n      timestamp: 1,\n      index: 0,\n      price: { inLamports: 1000000000, inSol: 1 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: -629195000,\n    netTransferredLamports: -634200000,\n    amountRaw: 500000,\n    metadata: {\n      historyEntry: {\n        timestamp: 1,\n        price: 1,\n        marketCap: 31.770000079,\n        bondingCurveProgress: 25,\n        holdersCount: 15,\n        devHoldingPercentage: 10,\n        topTenHoldingPercentage: 35\n      },\n      pumpInSol: 0.625,\n      pumpMaxSolCost: 0.625,\n      pumpTokenOut: 500000,\n      pumpBuyPriceInSol: 1.25,\n      buyRes: { reason: 'always' }\n    }\n  },\n  {\n    timestamp: 1616148000000,\n    transactionType: 'sell',\n    subCategory: 'sellAll',\n    historyRef: {\n      timestamp: 2,\n      index: 1,\n      price: { inSol: 2, inLamports: 2000000000 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: 749850000,\n    netTransferredLamports: 744845000,\n    amountRaw: 500000,\n    metadata: {\n      historyEntry: {\n        timestamp: 2,\n        price: 2,\n        marketCap: 31.770000079,\n        bondingCurveProgress: 25,\n        holdersCount: 15,\n        devHoldingPercentage: 10,\n        topTenHoldingPercentage: 35\n      },\n      reason: 'TAKE_PROFIT',\n      pumpMinLamportsOutput: 500000,\n      sellPriceInSol: 1.5\n    }\n  },\n  [length]: 2\n]\n"
     },
     {
       "level": "info",
@@ -273,7 +309,7 @@
     },
     {
       "level": "info",
-      "message": "[1] Trades=[\n  {\n    timestamp: 1616148000000,\n    transactionType: 'buy',\n    subCategory: 'newPosition',\n    historyRef: {\n      timestamp: 1,\n      index: 0,\n      price: { inLamports: 2200000000, inSol: 2.2 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: -629195000,\n    netTransferredLamports: -634200000,\n    amountRaw: 227272.72727272726,\n    metadata: {\n      pumpInSol: 0.625,\n      pumpMaxSolCost: 0.625,\n      pumpTokenOut: 227272.72727272726,\n      pumpBuyPriceInSol: 2.75,\n      buyRes: { reason: 'always' }\n    }\n  },\n  {\n    timestamp: 1616148000000,\n    transactionType: 'sell',\n    subCategory: 'sellAll',\n    historyRef: {\n      timestamp: 2,\n      index: 1,\n      price: { inSol: 2.421, inLamports: 2421000000 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: 412520454.5454545,\n    netTransferredLamports: 407515454.5454545,\n    amountRaw: 227272.72727272726,\n    metadata: {\n      reason: 'TAKE_PROFIT',\n      pumpMinLamportsOutput: 227272.72727272726,\n      sellPriceInSol: 1.81575\n    }\n  },\n  [length]: 2\n]\n"
+      "message": "[1] Trades=[\n  {\n    timestamp: 1616148000000,\n    transactionType: 'buy',\n    subCategory: 'newPosition',\n    historyRef: {\n      timestamp: 1,\n      index: 0,\n      price: { inLamports: 2200000000, inSol: 2.2 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: -629195000,\n    netTransferredLamports: -634200000,\n    amountRaw: 227272.72727272726,\n    metadata: {\n      historyEntry: {\n        timestamp: 1,\n        price: 2.2,\n        marketCap: 31.770000079,\n        bondingCurveProgress: 25,\n        holdersCount: 15,\n        devHoldingPercentage: 10,\n        topTenHoldingPercentage: 35\n      },\n      pumpInSol: 0.625,\n      pumpMaxSolCost: 0.625,\n      pumpTokenOut: 227272.72727272726,\n      pumpBuyPriceInSol: 2.75,\n      buyRes: { reason: 'always' }\n    }\n  },\n  {\n    timestamp: 1616148000000,\n    transactionType: 'sell',\n    subCategory: 'sellAll',\n    historyRef: {\n      timestamp: 2,\n      index: 1,\n      price: { inSol: 2.421, inLamports: 2421000000 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: 412520454.5454545,\n    netTransferredLamports: 407515454.5454545,\n    amountRaw: 227272.72727272726,\n    metadata: {\n      historyEntry: {\n        timestamp: 2,\n        price: 2.421,\n        marketCap: 31.770000079,\n        bondingCurveProgress: 25,\n        holdersCount: 15,\n        devHoldingPercentage: 10,\n        topTenHoldingPercentage: 35\n      },\n      reason: 'TAKE_PROFIT',\n      pumpMinLamportsOutput: 227272.72727272726,\n      sellPriceInSol: 1.81575\n    }\n  },\n  [length]: 2\n]\n"
     }
   ]
 }

@@ -5,13 +5,11 @@ import { RetryConfig } from '@src/core/types';
 import { logger } from '@src/logger';
 import { sleep } from '@src/utils/functions';
 
-import { PUMPFUN_TOKEN_DECIMALS } from './constants';
 import { pumpCoinDataToInitialCoinData } from './mappers/mappers';
 import { getAssociatedBondingCurveAddress, getBondingCurveAddress } from './pump-base';
 import Pumpfun from './Pumpfun';
 import { PumpfunInitialCoinData, PumpfunSellResponse } from './types';
 import PumpfunRepository, { pumpfunRepository } from '../../../../db/repositories/PumpfunRepository';
-import { solToLamports } from '../../../utils/amount';
 import SolanaAdapter from '../../SolanaAdapter';
 import { TransactionMode } from '../../types';
 import Wallet from '../../Wallet';
@@ -47,10 +45,6 @@ export async function forceGetPumpCoinInitialData(
     }
 
     return initialCoinData;
-}
-
-export function calculatePumpTokenLamportsValue(amountRaw: number, priceInSol: number): number {
-    return solToLamports(priceInSol * (amountRaw / 10 ** PUMPFUN_TOKEN_DECIMALS));
 }
 
 /**

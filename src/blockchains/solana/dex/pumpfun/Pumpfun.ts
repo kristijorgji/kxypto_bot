@@ -9,6 +9,7 @@ import bs58 from 'bs58';
 import WebSocket, { MessageEvent } from 'ws';
 
 import {
+    calculatePumpTokenLamportsValue,
     computeBondingCurveMetrics,
     getAssociatedBondingCurveAddress,
     getCreatorVaultAddress,
@@ -44,7 +45,6 @@ import {
     PumpfunSellResponse,
     PumpfunTokenBcStats,
 } from './types';
-import { calculatePumpTokenLamportsValue } from './utils';
 import { solToLamports } from '../../../utils/amount';
 import { JitoConfig } from '../../Jito';
 import { getMetadataPDA } from '../../SolanaAdapter';

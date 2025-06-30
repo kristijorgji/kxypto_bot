@@ -44,6 +44,15 @@
                   "index": 0,
                   "timestamp": 1
                 },
+                "historyEntry": {
+                  "bondingCurveProgress": 25,
+                  "devHoldingPercentage": 10,
+                  "holdersCount": 15,
+                  "marketCap": 31.770000079,
+                  "price": 10,
+                  "timestamp": 1,
+                  "topTenHoldingPercentage": 35
+                },
                 "pumpBuyPriceInSol": 12.5,
                 "pumpInSol": 0.625,
                 "pumpMaxSolCost": 0.625,
@@ -83,6 +92,15 @@
                 "historyRef": {
                   "index": 1,
                   "timestamp": 2
+                },
+                "historyEntry": {
+                  "bondingCurveProgress": 25,
+                  "devHoldingPercentage": 10,
+                  "holdersCount": 15,
+                  "marketCap": 31.770000079,
+                  "price": 7.3,
+                  "timestamp": 2,
+                  "topTenHoldingPercentage": 35
                 },
                 "pumpMinLamportsOutput": 50000,
                 "reason": "STOP_LOSS",
@@ -136,6 +154,15 @@
                   "index": 0,
                   "timestamp": 1
                 },
+                "historyEntry": {
+                  "bondingCurveProgress": 25,
+                  "devHoldingPercentage": 10,
+                  "holdersCount": 15,
+                  "marketCap": 31.770000079,
+                  "price": 8,
+                  "timestamp": 1,
+                  "topTenHoldingPercentage": 35
+                },
                 "pumpBuyPriceInSol": 10,
                 "pumpInSol": 0.625,
                 "pumpMaxSolCost": 0.625,
@@ -175,6 +202,15 @@
                 "historyRef": {
                   "index": 1,
                   "timestamp": 2
+                },
+                "historyEntry": {
+                  "bondingCurveProgress": 25,
+                  "devHoldingPercentage": 10,
+                  "holdersCount": 15,
+                  "marketCap": 31.770000079,
+                  "price": 0.1,
+                  "timestamp": 2,
+                  "topTenHoldingPercentage": 35
                 },
                 "pumpMinLamportsOutput": 62500,
                 "reason": "STOP_LOSS",

@@ -1,9 +1,9 @@
 import { createLogger } from 'winston';
 
+import { calculatePumpTokenLamportsValue } from '@src/blockchains/solana/dex/pumpfun/pump-base';
 import * as pumpSimulation from '@src/blockchains/solana/dex/pumpfun/pump-simulation';
 
 import { PumpfunInitialCoinData } from '../../../../../../src/blockchains/solana/dex/pumpfun/types';
-import { calculatePumpTokenLamportsValue } from '../../../../../../src/blockchains/solana/dex/pumpfun/utils';
 import { TIP_LAMPORTS } from '../../../../../../src/blockchains/solana/Jito';
 import { solToLamports } from '../../../../../../src/blockchains/utils/amount';
 import PumpfunBacktester, {
@@ -278,6 +278,15 @@ describe(PumpfunBacktester.name, () => {
                 historyRef: {
                     index: 1,
                     timestamp: 8,
+                },
+                historyEntry: {
+                    bondingCurveProgress: 25,
+                    devHoldingPercentage: 10,
+                    holdersCount: 15,
+                    marketCap: 31.770000079,
+                    price: 2.78,
+                    timestamp: 8,
+                    topTenHoldingPercentage: 35,
                 },
                 pumpMinLamportsOutput: 144404.3321299639,
                 reason: 'BEFORE_EXIT_MONITORING',

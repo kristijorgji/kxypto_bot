@@ -1,12 +1,12 @@
 import { Logger } from 'winston';
 
 import { PUMPFUN_TOKEN_DECIMALS } from '@src/blockchains/solana/dex/pumpfun/constants';
+import { calculatePumpTokenLamportsValue } from '@src/blockchains/solana/dex/pumpfun/pump-base';
 import {
     simulatePumpBuyLatencyMs,
     simulatePumpSellLatencyMs,
 } from '@src/blockchains/solana/dex/pumpfun/pump-simulation';
 import { PumpfunInitialCoinData } from '@src/blockchains/solana/dex/pumpfun/types';
-import { calculatePumpTokenLamportsValue } from '@src/blockchains/solana/dex/pumpfun/utils';
 import { JitoConfig, TIP_LAMPORTS } from '@src/blockchains/solana/Jito';
 import {
     simulatePriceWithHigherSlippage,
@@ -20,7 +20,6 @@ import { formSolBoughtOrSold, formTokenBoughtOrSold } from './PumpfunBot';
 import {
     BacktestResponse,
     BacktestStrategyRunConfig,
-    BacktestTradeOrigin,
     PumpfunBuyPositionMetadata,
     PumpfunSellPositionMetadata,
     TradeTransaction,
@@ -152,13 +151,12 @@ export default class PumpfunBacktester {
                 balanceLamports += txDetails.netTransferredLamports;
 
                 const buyPosition: TradeTransaction<
-                    BacktestTradeOrigin &
-                        PumpfunBuyPositionMetadata & {
-                            buyRes: {
-                                reason: string;
-                                data?: Record<string, unknown>;
-                            };
-                        }
+                    PumpfunBuyPositionMetadata & {
+                        buyRes: {
+                            reason: string;
+                            data?: Record<string, unknown>;
+                        };
+                    }
                 > = {
                     timestamp: Date.now(),
                     transactionType: 'buy',
@@ -180,6 +178,7 @@ export default class PumpfunBacktester {
                             timestamp: marketContext.timestamp,
                             index: i,
                         },
+                        historyEntry: marketContext,
                         pumpInSol: lamportsToSol(buyInLamports),
                         pumpMaxSolCost: lamportsToSol(buyInLamports),
                         pumpTokenOut: holdingsRaw,
@@ -322,11 +321,12 @@ export default class PumpfunBacktester {
                             timestamp: marketContext.timestamp,
                             index: i,
                         },
+                        historyEntry: marketContext,
                         reason: sell.reason,
                         pumpMinLamportsOutput: holdingsRaw,
                         sellPriceInSol: sellPrice,
                     },
-                } satisfies TradeTransaction<BacktestTradeOrigin & PumpfunSellPositionMetadata>);
+                } satisfies TradeTransaction<PumpfunSellPositionMetadata>);
 
                 balanceLamports += txDetails.netTransferredLamports;
                 holdingsRaw = 0;

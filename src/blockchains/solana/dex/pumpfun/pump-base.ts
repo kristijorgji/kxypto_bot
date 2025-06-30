@@ -8,7 +8,7 @@ import {
     PUMP_FUN_PROGRAM,
     TOKEN_PROGRAM_ID,
 } from '@src/blockchains/solana/dex/pumpfun/constants';
-import { lamportsToSol } from '@src/blockchains/utils/amount';
+import { lamportsToSol, solToLamports } from '@src/blockchains/utils/amount';
 
 export function getCreatorVaultAddress(dev: string): PublicKey {
     return PublicKey.findProgramAddressSync(
@@ -116,4 +116,18 @@ export function computeBondingCurveMetrics({
         priceInSol: price,
         bondingCurveProgress: bondingCurveProgress.toNumber(),
     };
+}
+
+export function calculatePumpTokenLamportsValue(amountRaw: number, priceInSol: number): number {
+    return solToLamports(priceInSol * (amountRaw / 10 ** PUMPFUN_TOKEN_DECIMALS));
+}
+
+export function calculateBuyPriceInLamports({
+    amountRaw,
+    grossTransferredLamports,
+}: {
+    amountRaw: number;
+    grossTransferredLamports: number;
+}): number {
+    return (Math.abs(grossTransferredLamports) / amountRaw) * 10 ** PUMPFUN_TOKEN_DECIMALS;
 }

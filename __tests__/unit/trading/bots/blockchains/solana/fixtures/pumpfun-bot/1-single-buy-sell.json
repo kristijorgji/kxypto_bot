@@ -1,0 +1,516 @@
+{
+  "result": {
+    "netPnl": {
+      "inLamports": -52975189.81992549,
+      "inSol": -0.05297518981992549
+    },
+    "transactions": [
+      {
+        "amountRaw": 14193548387097,
+        "bought": {
+          "address": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump",
+          "amount": 14193548387097,
+          "name": "Meme Mining Company",
+          "symbol": "MMC"
+        },
+        "grossTransferredLamports": -440000000.00000006,
+        "marketCap": 33.1,
+        "metadata": {
+          "historyEntry": {
+            "_metadata": {
+              "action": "startBuy"
+            },
+            "bondingCurveProgress": 3,
+            "devHoldingPercentage": 5,
+            "holdersCount": 2,
+            "marketCap": 33.1,
+            "price": 3.1e-8,
+            "timestamp": 1616175603000,
+            "topTenHoldingPercentage": 10
+          },
+          "historyRef": {
+            "index": 1,
+            "timestamp": 1616175603000
+          },
+          "pumpBuyPriceInSol": 3.0999999999999517e-8,
+          "pumpInSol": 0.4,
+          "pumpMaxSolCost": 0.5,
+          "pumpTokenOut": 11496621999445
+        },
+        "netTransferredLamports": -445005000.00000006,
+        "price": {
+          "inLamports": 30.999999999999517,
+          "inSol": 3.0999999999999517e-8
+        },
+        "sold": {
+          "address": "So11111111111111111111111111111111111111112",
+          "amount": 440000000.00000006,
+          "name": "SOL",
+          "symbol": "SOL"
+        },
+        "subCategory": "newPosition",
+        "timestamp": 1616175606000,
+        "transactionHash": "_test_1741177688106",
+        "transactionType": "buy",
+        "walletAddress": "mocked-address"
+      },
+      {
+        "amountRaw": 11496621999445,
+        "bought": {
+          "address": "So11111111111111111111111111111111111111112",
+          "amount": 392034810.18107456,
+          "name": "SOL",
+          "symbol": "SOL"
+        },
+        "grossTransferredLamports": 392034810.18107456,
+        "marketCap": 35,
+        "metadata": {
+          "historyEntry": {
+            "_metadata": {
+              "action": "startSell"
+            },
+            "bondingCurveProgress": 20,
+            "devHoldingPercentage": 4,
+            "holdersCount": 18,
+            "marketCap": 35,
+            "price": 3.41e-8,
+            "timestamp": 1616175613000,
+            "topTenHoldingPercentage": 7
+          },
+          "historyRef": {
+            "index": 6,
+            "timestamp": 1616175613000
+          },
+          "pumpMinLamportsOutput": 620000000,
+          "reason": "TAKE_PROFIT",
+          "sellPriceInSol": 3.41e-8
+        },
+        "netTransferredLamports": 392029810.1800746,
+        "price": {
+          "inLamports": 34.1,
+          "inSol": 3.41e-8
+        },
+        "sold": {
+          "address": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump",
+          "amount": 11496621999445,
+          "name": "Meme Mining Company",
+          "symbol": "MMC"
+        },
+        "subCategory": "sellAll",
+        "timestamp": 1616175616000,
+        "transactionHash": "_test_1742211111111",
+        "transactionType": "sell",
+        "walletAddress": "mocked-address"
+      }
+    ],
+    "history": [
+      {
+        "_metadata": {
+          "action": "startBuy"
+        },
+        "bondingCurveProgress": 3,
+        "devHoldingPercentage": 5,
+        "holdersCount": 2,
+        "marketCap": 33.1,
+        "price": 3.1e-8,
+        "timestamp": 1616175603000,
+        "topTenHoldingPercentage": 10
+      },
+      {
+        "_metadata": {
+          "action": "buyCompleted"
+        },
+        "bondingCurveProgress": 15,
+        "devHoldingPercentage": 6,
+        "holdersCount": 7,
+        "marketCap": 33.2,
+        "price": 3.12e-8,
+        "timestamp": 1616175605000,
+        "topTenHoldingPercentage": 8
+      },
+      {
+        "_metadata": {
+          "diffSincePurchase": {
+            "inSol": -0.0007469354838639498,
+            "percent": 0.967741935485447
+          }
+        },
+        "bondingCurveProgress": 15,
+        "devHoldingPercentage": 6,
+        "holdersCount": 7,
+        "marketCap": 33.3,
+        "price": 3.13e-8,
+        "timestamp": 1616175609000,
+        "topTenHoldingPercentage": 8
+      },
+      {
+        "_metadata": {
+          "diffSincePurchase": {
+            "inSol": 0.0006724193548457622,
+            "percent": 1.2903225806467469
+          }
+        },
+        "bondingCurveProgress": 15,
+        "devHoldingPercentage": 6,
+        "holdersCount": 7,
+        "marketCap": 33.4,
+        "price": 3.14e-8,
+        "timestamp": 1616175611000,
+        "topTenHoldingPercentage": 8
+      },
+      {
+        "_metadata": {
+          "action": "startSell"
+        },
+        "bondingCurveProgress": 20,
+        "devHoldingPercentage": 4,
+        "holdersCount": 18,
+        "marketCap": 35,
+        "price": 3.41e-8,
+        "timestamp": 1616175613000,
+        "topTenHoldingPercentage": 7
+      },
+      {
+        "_metadata": {
+          "action": "sellCompleted"
+        },
+        "bondingCurveProgress": 20,
+        "devHoldingPercentage": 4,
+        "holdersCount": 18,
+        "marketCap": 100,
+        "price": 3.42e-8,
+        "timestamp": 1616175615000,
+        "topTenHoldingPercentage": 7
+      },
+      {
+        "bondingCurveProgress": 20,
+        "devHoldingPercentage": 4,
+        "holdersCount": 18,
+        "marketCap": 100,
+        "price": 3.4299999999999996e-8,
+        "timestamp": 1616175618000,
+        "topTenHoldingPercentage": 7
+      },
+      {
+        "bondingCurveProgress": 20,
+        "devHoldingPercentage": 4,
+        "holdersCount": 18,
+        "marketCap": 100,
+        "price": 3.44e-8,
+        "timestamp": 1616175620000,
+        "topTenHoldingPercentage": 7
+      },
+      {
+        "bondingCurveProgress": 20,
+        "devHoldingPercentage": 4,
+        "holdersCount": 18,
+        "marketCap": 100,
+        "price": 3.45e-8,
+        "timestamp": 1616175622000,
+        "topTenHoldingPercentage": 7
+      }
+    ]
+  },
+  "logs": [
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.1e-8, marketCap=33.1, bondingCurveProgress=3%, entryTimestamp=1616175603000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=2, top ten holding 10%, dev holding 5%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "We set buy=true because the conditions are met"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "We will start the buy buyInProgress=true"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.12e-8, marketCap=33.2, bondingCurveProgress=15%, entryTimestamp=1616175605000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=7, top ten holding 8%, dev holding 6%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0.30211480362538196%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Bought successfully 14193548387097 amountRaw for 0.4 sol. buyRes={\n  signature: '_test_1741177688106',\n  boughtAmountRaw: 14193548387097,\n  pumpTokenOut: 11496621999445,\n  pumpMaxSolCost: 0.5,\n  txDetails: {\n    grossTransferredLamports: -440000000.00000006,\n    netTransferredLamports: -445005000.00000006,\n    baseFeeLamports: 5000,\n    priorityFeeLamports: 5000000,\n    totalFeeLamports: 5005000\n  }\n}"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.13e-8, marketCap=33.3, bondingCurveProgress=15%, entryTimestamp=1616175609000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=7, top ten holding 8%, dev holding 6%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0.6042296072507424%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 0.967741935485447%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff -0.0007469354838639498"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.14e-8, marketCap=33.4, bondingCurveProgress=15%, entryTimestamp=1616175611000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=7, top ten holding 8%, dev holding 6%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0.9063444108761244%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 1.2903225806467469%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff 0.0006724193548457622"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.41e-8, marketCap=35, bondingCurveProgress=20%, entryTimestamp=1616175613000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=18, top ten holding 7%, dev holding 4%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 5.7401812688821705%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 10.00000000000172%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff 0.03899500000000763"
+    },
+    {
+      "level": "info",
+      "message": "Triggered take profit at price 3.41e-8. TakeProfitPercentage {\n  _takeProfitPrice: 3.409999999999947e-8,\n  [takeProfitPrice]: [Getter]\n}"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "We will start the sell sellInProgress=true"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.42e-8, marketCap=100, bondingCurveProgress=20%, entryTimestamp=1616175615000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=18, top ten holding 7%, dev holding 4%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 202.11480362537765%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "We sold successfully 11496621999445 amountRaw with reason TAKE_PROFIT and received net 0.39202981018007454 sol. sellRes={\n  signature: '_test_1742211111111',\n  soldRawAmount: 11496621999445,\n  minLamportsOutput: 620000000,\n  txDetails: {\n    grossTransferredLamports: 392034810.18107456,\n    netTransferredLamports: 392029810.1800746,\n    baseFeeLamports: 5000,\n    priorityFeeLamports: 0.001,\n    totalFeeLamports: 5000.001\n  }\n}"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "We have the result already and are going to monitor 3 seconds more"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.4299999999999996e-8, marketCap=100, bondingCurveProgress=20%, entryTimestamp=1616175618000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=18, top ten holding 7%, dev holding 4%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 202.11480362537765%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.44e-8, marketCap=100, bondingCurveProgress=20%, entryTimestamp=1616175620000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=18, top ten holding 7%, dev holding 4%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 202.11480362537765%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Finished handling token - will return the result of type BotTradeResponse, netPnl=-0.05297518981992549 SOL"
+    }
+  ]
+}

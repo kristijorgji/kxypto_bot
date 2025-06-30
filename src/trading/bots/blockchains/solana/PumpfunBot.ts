@@ -2,11 +2,12 @@ import { Logger } from 'winston';
 
 import { measureExecutionTime } from '@src/apm/apm';
 import { SolanaTokenMints } from '@src/blockchains/solana/constants/SolanaTokenMints';
-import { PumpfunInitialCoinData } from '@src/blockchains/solana/dex/pumpfun/types';
 import {
+    calculateBuyPriceInLamports,
     calculatePumpTokenLamportsValue,
-    sellPumpfunTokensWithRetries,
-} from '@src/blockchains/solana/dex/pumpfun/utils';
+} from '@src/blockchains/solana/dex/pumpfun/pump-base';
+import { PumpfunInitialCoinData } from '@src/blockchains/solana/dex/pumpfun/types';
+import { sellPumpfunTokensWithRetries } from '@src/blockchains/solana/dex/pumpfun/utils';
 import { JitoConfig, TIP_LAMPORTS } from '@src/blockchains/solana/Jito';
 import { SolTransactionDetails, TransactionMode } from '@src/blockchains/solana/types';
 import { lamportsToSol, solToLamports } from '@src/blockchains/utils/amount';
@@ -35,8 +36,9 @@ import { HistoryEntry } from '../../launchpads/types';
 import { BotConfig, SellReason } from '../../types';
 
 export const ErrorMessage = {
-    insufficientFundsToBuy: 'no_funds_to_buy',
     unknownBuyError: 'unknown_buying_error',
+    insufficientFundsToBuy: 'no_funds_to_buy',
+    buySlippageMoreSolRequired: 'pumpfun_slippage_more_sol_required',
 };
 
 const DefaultPriorityFeeSol = 0.005;
@@ -329,8 +331,11 @@ export default class PumpfunBot {
                 };
 
                 const dataAtBuyTime = {
-                    priceInSol: priceInSol,
-                    marketCapInSol: marketCapInSol,
+                    historyRef: {
+                        timestamp: lastHistoryEntry.timestamp,
+                        index: historyIndex,
+                    },
+                    historyEntry: lastHistoryEntry,
                     marketContext: marketContext,
                 };
 
@@ -359,6 +364,13 @@ export default class PumpfunBot {
                             throw buyRes.txDetails;
                         }
 
+                        const actualBuyPriceSol = lamportsToSol(
+                            calculateBuyPriceInLamports({
+                                amountRaw: buyRes.boughtAmountRaw,
+                                grossTransferredLamports: buyRes.txDetails.grossTransferredLamports,
+                            }),
+                        );
+
                         const buyPosition: TradeTransaction<PumpfunBuyPositionMetadata> = {
                             timestamp: Date.now(),
                             transactionType: 'buy',
@@ -371,24 +383,23 @@ export default class PumpfunBot {
                             grossTransferredLamports: buyRes.txDetails.grossTransferredLamports,
                             netTransferredLamports: buyRes.txDetails.netTransferredLamports,
                             price: {
-                                inSol: dataAtBuyTime.priceInSol,
-                                inLamports: solToLamports(dataAtBuyTime.priceInSol),
+                                inSol: actualBuyPriceSol,
+                                inLamports: solToLamports(actualBuyPriceSol),
                             },
-                            marketCap: dataAtBuyTime.marketCapInSol,
+                            marketCap: dataAtBuyTime.marketContext.marketCap,
                             metadata: {
+                                historyRef: dataAtBuyTime.historyRef,
+                                historyEntry: dataAtBuyTime.historyEntry,
                                 pumpInSol: buyInSol,
                                 pumpMaxSolCost: buyRes.pumpMaxSolCost,
                                 pumpTokenOut: buyRes.pumpTokenOut,
-                                pumpBuyPriceInSol: priceInSol, // TODO use the correct real used price
+                                pumpBuyPriceInSol: actualBuyPriceSol,
                             },
                         };
 
                         this.botEventBus.tradeExecuted(buyPosition);
-                        /**
-                         * The longer the buy transaction takes the more likely price has changed, so need to put limit orders with most closely price to the one used to buy
-                         * TODO calculate real buy price based on buyRes details and set up the limits accordingly
-                         */
-                        const limits = strategy.afterBuy(dataAtBuyTime.priceInSol, {
+
+                        const limits = strategy.afterBuy(actualBuyPriceSol, {
                             marketContext: dataAtBuyTime.marketContext,
                             transaction: buyPosition,
                         });
@@ -445,6 +456,7 @@ export default class PumpfunBot {
                         fatalError = new Error(ErrorMessage.unknownBuyError);
 
                         if ((e as SolTransactionDetails).error?.type === 'pumpfun_slippage_more_sol_required') {
+                            fatalError = new Error(ErrorMessage.buySlippageMoreSolRequired);
                             const currentBalanceSol = lamportsToSol(await this.wallet.getBalanceLamports());
                             const buyInWithoutSlippage = buyInSol * (1 - strategy.config.buySlippageDecimal);
                             if (currentBalanceSol <= buyInWithoutSlippage) {
@@ -525,6 +537,13 @@ export default class PumpfunBot {
                             sellRes,
                         );
 
+                        const actualSellPriceSol = lamportsToSol(
+                            calculateBuyPriceInLamports({
+                                amountRaw: sellRes.soldRawAmount,
+                                grossTransferredLamports: sellRes.txDetails.grossTransferredLamports,
+                            }),
+                        );
+
                         const sellPosition: TradeTransaction<PumpfunSellPositionMetadata> = {
                             timestamp: Date.now(),
                             transactionType: 'sell',
@@ -537,14 +556,19 @@ export default class PumpfunBot {
                             grossTransferredLamports: sellRes.txDetails.grossTransferredLamports,
                             netTransferredLamports: sellRes.txDetails.netTransferredLamports,
                             price: {
-                                inSol: dataAtSellTime.priceInSol,
-                                inLamports: solToLamports(dataAtSellTime.priceInSol),
+                                inSol: actualSellPriceSol,
+                                inLamports: solToLamports(actualSellPriceSol),
                             },
                             marketCap: dataAtSellTime.marketCapInSol,
                             metadata: {
+                                historyRef: {
+                                    timestamp: lastHistoryEntry.timestamp,
+                                    index: historyIndex,
+                                },
+                                historyEntry: lastHistoryEntry,
                                 reason: dataAtSellTime.sellReason,
                                 pumpMinLamportsOutput: sellRes.minLamportsOutput,
-                                sellPriceInSol: priceInSol, // TODO use the correct real used price
+                                sellPriceInSol: actualSellPriceSol,
                             },
                         };
                         this.botEventBus.tradeExecuted(sellPosition);

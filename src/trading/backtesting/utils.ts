@@ -16,7 +16,6 @@ import {
     BacktestResponse,
     BacktestRunConfig,
     BacktestStrategyRunConfig,
-    BacktestTradeOrigin,
     BacktestTradeResponse,
     PumpfunSellPositionMetadata,
     StrategyBacktestResult,
@@ -170,10 +169,7 @@ export async function runStrategy(
                                 '[%d] Trades=%o\n',
                                 processed,
                                 pr.tradeHistory.map(e => {
-                                    const { historyRef, ...filteredMetadata } = e.metadata as Record<
-                                        string,
-                                        unknown
-                                    > & { historyRef: BacktestTradeOrigin };
+                                    const { historyRef, ...filteredMetadata } = e.metadata!;
 
                                     return {
                                         timestamp: e.timestamp,
@@ -318,8 +314,7 @@ export function logStrategyResult(
                     continue;
                 }
 
-                const sellReason = (tradeTransaction.metadata as BacktestTradeOrigin & PumpfunSellPositionMetadata)
-                    .reason;
+                const sellReason = (tradeTransaction.metadata as unknown as PumpfunSellPositionMetadata).reason;
                 if (!sellReasons[sellReason]) {
                     sellReasons[sellReason] = 0;
                 }

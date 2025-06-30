@@ -48,6 +48,14 @@ export type StrategyPredictionConfig = {
      * Useful to avoid redundant signals when data has no variation.
      */
     skipAllSameFeatures: boolean;
+
+    /**
+     * Caching behavior for model predictions.
+     */
+    cache?: {
+        enabled: boolean;
+        ttlSeconds?: number;
+    };
 };
 
 export type PredictionRequest = {

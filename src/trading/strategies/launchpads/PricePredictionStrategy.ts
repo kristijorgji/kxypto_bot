@@ -3,6 +3,8 @@ import axiosRateLimit, { RateLimitedAxiosInstance } from 'axios-rate-limit';
 import Redis from 'ioredis';
 import { Logger } from 'winston';
 
+import { deepClone } from '@src/utils/data/data';
+
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
 import { ShouldBuyResponse, ShouldExitMonitoringResponse } from '../../bots/types';
 import {
@@ -19,7 +21,6 @@ import { LimitsBasedStrategy } from './LimitsBasedStrategy';
 import { shouldBuyCommon } from './prediction-common';
 import { validatePredictionConfig } from './validators';
 import { variantFromBuyContext, variantFromPredictionConfig, variantFromSellConfig } from './variant-builder';
-import { deepClone } from '../../../utils/data/data';
 import { HistoryRef } from '../../bots/blockchains/solana/types';
 
 export type PricePredictionStrategyConfig = StrategyConfig<{
@@ -41,6 +42,8 @@ export type PricePredictionStrategyShouldBuyResponseReason =
     | PredictionStrategyShouldBuyResponseReason
     | 'minPredictedPriceIncreasePercentage';
 
+const CacheDefaultTtlSeconds = 3600 * 24 * 7;
+
 export default class PricePredictionStrategy extends LimitsBasedStrategy {
     readonly name = 'PricePredictionStrategy';
 
@@ -59,6 +62,9 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
         prediction: {
             requiredFeaturesLength: 10,
             skipAllSameFeatures: true,
+            cache: {
+                enabled: false,
+            },
         },
         buy: {
             minPredictedPriceIncreasePercentage: 15,
@@ -132,15 +138,27 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
         let predictionResponse: AxiosResponse | undefined;
         let prediction: PredictPricesResponse | undefined;
 
-        const cacheKey = `${this.cacheBaseKey}_${mint}_${historyRef.index}:${predictionRequest.features.length}`;
-        const cached = await this.cache.get(cacheKey);
+        let cacheKey: string | undefined;
+        let cached;
+        if (this.config.prediction.cache?.enabled) {
+            cacheKey = `${this.cacheBaseKey}_${mint}_${historyRef.index}:${predictionRequest.features.length}`;
+            cached = await this.cache.get(cacheKey);
+        }
+
         if (cached) {
             prediction = JSON.parse(cached);
         } else {
             predictionResponse = await this.client.post<PredictPricesResponse>(this.source.endpoint, predictionRequest);
             if (predictionResponse.status === 200) {
                 prediction = predictionResponse.data as PredictPricesResponse;
-                this.cache.set(cacheKey, JSON.stringify(prediction), 'EX', 3600 * 24 * 7);
+                if (this.config.prediction.cache?.enabled) {
+                    this.cache.set(
+                        cacheKey!,
+                        JSON.stringify(prediction),
+                        'EX',
+                        this.config.prediction.cache.ttlSeconds ?? CacheDefaultTtlSeconds,
+                    );
+                }
             } else {
                 this.logger.error('Error getting price prediction for mint %s, returning false', mint);
                 this.logger.error(predictionResponse);

@@ -100,7 +100,7 @@ describe('PricePredictionStrategy', () => {
             },
         );
 
-        it('should buy when predicted price exceeds threshold for required consecutive confirmations', async () => {
+        it('should buy when predicted price exceeds threshold for required consecutive confirmations and not use cache', async () => {
             mockServer.use(mswPredictPriceWillIncreaseHandler);
             expect(await strategy.shouldBuy(mint, historyRef, history[4], history)).toEqual({
                 buy: true,
@@ -110,6 +110,13 @@ describe('PricePredictionStrategy', () => {
                     lastNextVariance: null,
                 },
             });
+            expect(
+                Object.fromEntries(
+                    await Promise.all(
+                        (await redisMockInstance.keys('*')).map(async k => [k, await redisMockInstance.get(k)]),
+                    ),
+                ),
+            ).toEqual({});
         });
 
         it('should not buy when predicted price increases with the expected threshold but consecutivePredictionConfirmations is less than required consecutive confirmations', async () => {
@@ -377,6 +384,12 @@ describe('PricePredictionStrategy', () => {
         it('should use the cache correctly', async () => {
             strategy = new PricePredictionStrategy(logger, redisMockInstance, sourceConfig, {
                 ...config,
+                prediction: {
+                    ...config.prediction,
+                    cache: {
+                        enabled: true,
+                    },
+                },
                 buy: {
                     ...config.buy,
                     minPredictedPriceIncreasePercentage: 1e3,

@@ -93,7 +93,7 @@ describe('BuyPredictionStrategy', () => {
             },
         );
 
-        it('should buy when predicted confidence exceeds threshold for required consecutive confirmations', async () => {
+        it('should buy when predicted confidence exceeds threshold for required consecutive confirmations and not use cache', async () => {
             mockServer.use(mswPredictAboveThresholdBuyHandler);
             expect(await strategy.shouldBuy(mint, historyRef, history[4], history)).toEqual({
                 buy: true,
@@ -102,6 +102,13 @@ describe('BuyPredictionStrategy', () => {
                     predictedBuyConfidence: 0.51,
                 },
             });
+            expect(
+                Object.fromEntries(
+                    await Promise.all(
+                        (await redisMockInstance.keys('*')).map(async k => [k, await redisMockInstance.get(k)]),
+                    ),
+                ),
+            ).toEqual({});
         });
 
         it('should not buy when predicted confidence increases with the expected threshold but consecutivePredictionConfirmations is less than required consecutive confirmations', async () => {
@@ -233,6 +240,12 @@ describe('BuyPredictionStrategy', () => {
         it('should use the cache correctly', async () => {
             strategy = new BuyPredictionStrategy(logger, redisMockInstance, sourceConfig, {
                 ...config,
+                prediction: {
+                    ...config.prediction,
+                    cache: {
+                        enabled: true,
+                    },
+                },
                 buy: {
                     ...config.buy,
                     minPredictedConfidence: 0.7,

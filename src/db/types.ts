@@ -123,7 +123,7 @@ export type Position = {
 export type InsertPosition = Omit<Position, 'id' | 'opened_at' | 'created_at' | 'updated_at'>;
 
 export type LaunchpadTokenResult = {
-    id: string;
+    id: number;
     simulation: boolean;
     chain: Blockchain;
     platform: 'pumpfun';
@@ -132,4 +132,12 @@ export type LaunchpadTokenResult = {
     net_pnl: number | null;
     exit_code: ExitMonitoringReason | null;
     exit_reason: string | null;
+};
+
+export type LaunchpadTokenReport = {
+    id: number;
+    launchpad_token_result_id: number;
+    report: Record<string, unknown>;
+    created_at: Date;
+    updated_at: Date;
 };

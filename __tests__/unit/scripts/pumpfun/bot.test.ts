@@ -317,6 +317,22 @@ describe('bot', () => {
         expect((mockedFs.writeFileSync as jest.Mock).mock.calls).toEqual(expected.fnsCallArgs['fs.writeFileSync']);
 
         expect(insertLaunchpadTokenResult as jest.Mock).toHaveBeenCalledTimes(3);
+        expected.fnsCallArgs.insertLaunchpadTokenResult = (
+            expected.fnsCallArgs.insertLaunchpadTokenResult as [
+                never,
+                {
+                    startedAt: string;
+                    endedAt: string;
+                },
+            ][]
+        ).map(e => [
+            e[0],
+            {
+                ...e[1],
+                startedAt: new Date(e[1].startedAt),
+                endedAt: new Date(e[1].endedAt),
+            },
+        ]);
         expect((insertLaunchpadTokenResult as jest.Mock).mock.calls).toEqual(
             expected.fnsCallArgs.insertLaunchpadTokenResult,
         );

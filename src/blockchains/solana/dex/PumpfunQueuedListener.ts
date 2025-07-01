@@ -21,6 +21,10 @@ export default class PumpfunQueuedListener {
 
     async startListening() {
         if (this.isListening || this.forceStopped) {
+            this.logger.info('[%s] - Ignoring startListening, state=%o...', PumpfunQueuedListener.name, {
+                isListening: this.isListening,
+                forceStopped: this.forceStopped,
+            });
             return;
         }
         this.isListening = true;

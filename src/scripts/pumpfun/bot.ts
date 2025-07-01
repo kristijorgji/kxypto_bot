@@ -361,14 +361,17 @@ async function handlePumpToken(
 
 async function storeResult(report: HandlePumpTokenReport) {
     fs.writeFileSync(ensureDataFolder(`pumpfun-stats/tmp/${report.mint}.json`), JSON.stringify(report, null, 2));
-    await insertLaunchpadTokenResult({
-        simulation: report.simulation,
-        chain: 'solana',
-        platform: 'pumpfun',
-        mint: report.mint,
-        creator: report.creator,
-        net_pnl: (report as BotTradeResponse)?.netPnl?.inSol ?? null,
-        exit_code: (report as BotExitResponse)?.exitCode ?? null,
-        exit_reason: (report as BotExitResponse)?.exitReason ?? null,
-    });
+    await insertLaunchpadTokenResult(
+        {
+            simulation: report.simulation,
+            chain: 'solana',
+            platform: 'pumpfun',
+            mint: report.mint,
+            creator: report.creator,
+            net_pnl: (report as BotTradeResponse)?.netPnl?.inSol ?? null,
+            exit_code: (report as BotExitResponse)?.exitCode ?? null,
+            exit_reason: (report as BotExitResponse)?.exitReason ?? null,
+        },
+        report,
+    );
 }

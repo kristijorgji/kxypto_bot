@@ -37,6 +37,47 @@
           "net_pnl": 0.534,
           "platform": "pumpfun",
           "simulation": true
+        },
+        {
+          "$schema": {
+            "version": 1.1
+          },
+          "bullXUrl": "https://neo.bullx.io/terminal?chainId=1399811149&address=m_1",
+          "creator": "creator_1",
+          "elapsedSeconds": 0,
+          "endedAt": "2021-03-19T10:00:00.000Z",
+          "history": [],
+          "mint": "m_1",
+          "monitor": {
+            "buyTimeframeMs": 2500,
+            "sellTimeframeMs": 250
+          },
+          "name": "token_1",
+          "netPnl": {
+            "inLamports": 534000000.00000006,
+            "inSol": 0.534
+          },
+          "rpcProvider": {
+            "domain": "cunat-mainnet-testing.test"
+          },
+          "simulation": true,
+          "startedAt": "2021-03-19T10:00:00.000Z",
+          "strategy": {
+            "configVariant": "hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17",
+            "id": "RiseStrategy_5cb9dcf7",
+            "name": "RiseStrategy"
+          },
+          "transactions": [
+            {
+              "netTransferredLamports": -400000000,
+              "transactionType": "buy"
+            },
+            {
+              "netTransferredLamports": 934000000,
+              "transactionType": "sell"
+            }
+          ],
+          "url": "https://pump.fun/coin/m_1"
         }
       ],
       [
@@ -49,6 +90,47 @@
           "net_pnl": 0.772,
           "platform": "pumpfun",
           "simulation": true
+        },
+        {
+          "$schema": {
+            "version": 1.1
+          },
+          "bullXUrl": "https://neo.bullx.io/terminal?chainId=1399811149&address=m_2",
+          "creator": "creator_2",
+          "elapsedSeconds": 0,
+          "endedAt": "2021-03-19T10:00:00.000Z",
+          "history": [],
+          "mint": "m_2",
+          "monitor": {
+            "buyTimeframeMs": 2500,
+            "sellTimeframeMs": 250
+          },
+          "name": "token_2",
+          "netPnl": {
+            "inLamports": 772000000,
+            "inSol": 0.772
+          },
+          "rpcProvider": {
+            "domain": "cunat-mainnet-testing.test"
+          },
+          "simulation": true,
+          "startedAt": "2021-03-19T10:00:00.000Z",
+          "strategy": {
+            "configVariant": "hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17",
+            "id": "RiseStrategy_5cb9dcf7",
+            "name": "RiseStrategy"
+          },
+          "transactions": [
+            {
+              "netTransferredLamports": -400000000,
+              "transactionType": "buy"
+            },
+            {
+              "netTransferredLamports": 1172000000.0000002,
+              "transactionType": "sell"
+            }
+          ],
+          "url": "https://pump.fun/coin/m_2"
         }
       ],
       [
@@ -61,6 +143,35 @@
           "net_pnl": null,
           "platform": "pumpfun",
           "simulation": true
+        },
+        {
+          "$schema": {
+            "version": 1.1
+          },
+          "bullXUrl": "https://neo.bullx.io/terminal?chainId=1399811149&address=m_3",
+          "creator": "creator_3",
+          "elapsedSeconds": 0,
+          "endedAt": "2021-03-19T10:00:00.000Z",
+          "exitCode": "DUMPED",
+          "exitReason": "Stopped monitoring token because it was probably dumped and current market cap is less than the initial one",
+          "history": [],
+          "mint": "m_3",
+          "monitor": {
+            "buyTimeframeMs": 2500,
+            "sellTimeframeMs": 250
+          },
+          "name": "token_3",
+          "rpcProvider": {
+            "domain": "cunat-mainnet-testing.test"
+          },
+          "simulation": true,
+          "startedAt": "2021-03-19T10:00:00.000Z",
+          "strategy": {
+            "configVariant": "hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17",
+            "id": "RiseStrategy_5cb9dcf7",
+            "name": "RiseStrategy"
+          },
+          "url": "https://pump.fun/coin/m_3"
         }
       ]
     ]

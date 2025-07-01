@@ -1,11 +1,22 @@
+import { HandlePumpTokenReport } from '@src/trading/bots/blockchains/solana/types';
+import { ExitMonitoringReason } from '@src/trading/bots/types';
+
 import { db } from '../knex';
 import { Tables } from '../tables';
-import { LaunchpadTokenResult } from '../types';
+import { LaunchpadTokenReport, LaunchpadTokenResult } from '../types';
 import { CreatedOnPumpfun } from './PumpfunRepository';
-import { ExitMonitoringReason } from '../../trading/bots/types';
 
-export async function insertLaunchpadTokenResult(data: Omit<LaunchpadTokenResult, 'id'>): Promise<void> {
-    await db(Tables.LaunchpadTokenResults).insert(data);
+export async function insertLaunchpadTokenResult(
+    data: Omit<LaunchpadTokenResult, 'id'>,
+    report: HandlePumpTokenReport,
+): Promise<void> {
+    await db.transaction(async trx => {
+        const [launchpadTokenResultId] = (await trx(Tables.LaunchpadTokenResults).insert(data)) as [number];
+        await trx(Tables.LaunchpadTokenReports).insert({
+            launchpad_token_result_id: launchpadTokenResultId,
+            report: report,
+        } satisfies Omit<LaunchpadTokenReport, 'id' | 'created_at' | 'updated_at'>);
+    });
 }
 
 export type GetTokenCreatorStatsResult = {

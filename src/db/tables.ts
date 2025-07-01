@@ -8,4 +8,5 @@ export const Tables = {
     BacktestStrategyMintResults: 'backtest_strategy_mint_results',
     Positions: 'positions',
     LaunchpadTokenResults: 'launchpad_token_results',
+    LaunchpadTokenReports: 'launchpad_token_reports',
 };

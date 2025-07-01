@@ -35,7 +35,7 @@ describe(PumpfunQueuedListener.name, () => {
             callback(newTokenData);
         });
 
-        await pumpfunQueuedListener.startListening();
+        await pumpfunQueuedListener.startListening(false);
 
         expect(pumpfunListener.listenForPumpFunTokens).toHaveBeenCalled();
         expect(processTokenMock).toHaveBeenCalledWith(0, newTokenData);
@@ -53,10 +53,10 @@ describe(PumpfunQueuedListener.name, () => {
             }
         });
 
-        await pumpfunQueuedListener.startListening();
+        await pumpfunQueuedListener.startListening(false);
 
         expect(logger.info).toHaveBeenNthCalledWith(
-            2,
+            3,
             '[%s] - Max tokens in progress %d, stopping listener...',
             'PumpfunQueuedListener',
             3,
@@ -73,7 +73,7 @@ describe(PumpfunQueuedListener.name, () => {
             callback(NewPumpFunTokenDataFactory());
         });
 
-        await pumpfunQueuedListener.startListening();
+        await pumpfunQueuedListener.startListening(false);
 
         expect(pumpfunQueuedListener.getInProgressCount()).toBe(1);
         await waitForVariable(() => pumpfunQueuedListener.getInProgressCount(), 0, 100);

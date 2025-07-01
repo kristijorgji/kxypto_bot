@@ -517,8 +517,8 @@ describe('bot', () => {
         expect(onStopBotSpy).toHaveBeenCalledWith({ reason: 'max_open_positions' });
 
         expect(mockPumpfunQueuedListenerInstance.stopListening as jest.Mock).toHaveBeenCalledTimes(1);
-        expect(mockPumpfunQueuedListenerInstance.stopListening as jest.Mock).toHaveBeenCalledWith(false);
-        expect(mockPumpfunQueuedListenerInstance.startListening as jest.Mock).toHaveBeenCalledTimes(5);
+        expect(mockPumpfunQueuedListenerInstance.stopListening as jest.Mock).toHaveBeenCalledWith(true);
+        expect((mockPumpfunQueuedListenerInstance.startListening as jest.Mock).mock.calls).toEqual([[false], [true]]);
 
         expect(mockedFs.writeFileSync as jest.Mock).toHaveBeenCalledTimes(3);
         expect((mockedFs.writeFileSync as jest.Mock).mock.calls).toEqual(expected.fnsCallArgs['fs.writeFileSync']);

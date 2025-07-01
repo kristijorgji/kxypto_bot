@@ -39,7 +39,7 @@ export default function mockPumpfunQueuedListener(
                 processTokenFn(taskIndex++, data).finally(() => {
                     inProgress--;
                     if (!forceStopped && !isListening && (maxConcurrent === null || inProgress < maxConcurrent)) {
-                        mockQueueListener.startListening();
+                        mockQueueListener.startListening(false);
                     }
                 });
             });

@@ -46,7 +46,7 @@
     },
     {
       "level": "info",
-      "message": "[MockPumpfunQueuedListener] - Stopped listening force=false."
+      "message": "[MockPumpfunQueuedListener] - Stopped listening force=true."
     },
     {
       "level": "info",

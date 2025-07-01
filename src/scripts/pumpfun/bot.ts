@@ -168,7 +168,7 @@ export async function start(
                 logger.info(
                     'botManager - resuming token monitoring — open positions are now below maxOpenPositions limit',
                 );
-                pumpfunListener.startListening();
+                pumpfunListener.startListening(true);
             },
         },
     );
@@ -220,10 +220,10 @@ export async function start(
 
     botEventBus.onStopBot(async ({ reason }) => {
         logger.info('botManager - onStopBot asking pumpfunQueuedListener to stop with reason %s', reason);
-        await pumpfunListener.stopListening(reason !== 'max_open_positions');
+        await pumpfunListener.stopListening(true);
     });
 
-    pumpfunListener.startListening();
+    pumpfunListener.startListening(false);
 
     while (!pumpfunListener.isDone()) {
         await sleep(500);

@@ -19,8 +19,9 @@ export default class PumpfunQueuedListener {
         return this.inProgress;
     }
 
-    async startListening() {
-        if (this.isListening || this.forceStopped) {
+    async startListening(force: boolean) {
+        this.logger.info('[%s] - startListening force=%s', PumpfunQueuedListener.name, force);
+        if (!force && (this.isListening || this.forceStopped)) {
             this.logger.info('[%s] - Ignoring startListening, state=%o...', PumpfunQueuedListener.name, {
                 isListening: this.isListening,
                 forceStopped: this.forceStopped,
@@ -28,6 +29,9 @@ export default class PumpfunQueuedListener {
             return;
         }
         this.isListening = true;
+        if (force) {
+            this.forceStopped = false;
+        }
         this.logger.info('[%s] - Listening for new tokens...', PumpfunQueuedListener.name);
 
         await this.pumpfun.listenForPumpFunTokens(async data => {
@@ -55,7 +59,7 @@ export default class PumpfunQueuedListener {
                     !this.isListening &&
                     (this.maxConcurrent === null || this.inProgress < this.maxConcurrent)
                 ) {
-                    this.startListening();
+                    this.startListening(false);
                 }
             });
         });

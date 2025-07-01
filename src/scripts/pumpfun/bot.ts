@@ -91,29 +91,30 @@ async function prepareAndStart(args: { config?: string }) {
     if (args.config) {
         logger.info('Running bot with config file %s', args.config);
         const config = parsePumpfunBotFileConfig(args.config, ReportSchema);
-        return await start(config.runConfig, startDeps, config.strategy);
+        return await start(config.runConfig, startDeps, config.strategyFactory);
     }
 
     await start(
         defaultConfig,
         startDeps,
-        new RiseStrategy(logger, {
-            variant: 'hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17',
-            buy: {
-                holdersCount: { min: 10 },
-                bondingCurveProgress: { min: 22 },
-                devHoldingPercentage: { max: 7 },
-                topTenHoldingPercentage: { max: 10 },
-            },
-            sell: {
-                takeProfitPercentage: 17,
-                trailingStopLossPercentage: 10,
-            },
-            maxWaitMs: 7 * 60 * 1e3,
-            priorityFeeInSol: 0.005,
-            buySlippageDecimal: 0.25,
-            sellSlippageDecimal: 0.25,
-        }),
+        () =>
+            new RiseStrategy(logger, {
+                variant: 'hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17',
+                buy: {
+                    holdersCount: { min: 10 },
+                    bondingCurveProgress: { min: 22 },
+                    devHoldingPercentage: { max: 7 },
+                    topTenHoldingPercentage: { max: 10 },
+                },
+                sell: {
+                    takeProfitPercentage: 17,
+                    trailingStopLossPercentage: 10,
+                },
+                maxWaitMs: 7 * 60 * 1e3,
+                priorityFeeInSol: 0.005,
+                buySlippageDecimal: 0.25,
+                sellSlippageDecimal: 0.25,
+            }),
     );
 }
 
@@ -126,16 +127,17 @@ export async function start(
         logger: Logger;
         botEventBus: PumpfunBotEventBus;
     },
-    strategy: LaunchpadBotStrategy,
+    strategyFactory: () => LaunchpadBotStrategy,
 ) {
     startApm();
 
+    const _strategy = strategyFactory();
     logger.info(
         '🚀 Bot started with config=%o\nUsing strategy %s with variant config %s, config:%o',
         config,
-        strategy.identifier,
-        strategy.configVariant,
-        strategy.config,
+        _strategy.identifier,
+        _strategy.configVariant,
+        _strategy.config,
     );
 
     const pumpfun = new Pumpfun({
@@ -191,7 +193,7 @@ export async function start(
                         wallet: wallet,
                         tokenData: data,
                     },
-                    strategy,
+                    strategyFactory,
                 );
 
                 if (config.simulate) {
@@ -258,7 +260,7 @@ async function handlePumpToken(
         wallet: Wallet;
         tokenData: NewPumpFunTokenData;
     },
-    strategy: LaunchpadBotStrategy,
+    strategyFactory: () => LaunchpadBotStrategy,
 ): Promise<BotResponse | null> {
     const startedAt = new Date();
 
@@ -326,6 +328,7 @@ async function handlePumpToken(
         botEventBus: botEventBus,
     });
 
+    const strategy = strategyFactory();
     const handleRes = await pumpfunBot.run(identifier, initialCoinData, strategy);
 
     const endedAt = new Date();

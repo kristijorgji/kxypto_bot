@@ -125,7 +125,7 @@ export type HandlePumpTokenReport = HandlePumpTokenExitReport | HandlePumpTokenB
 
 export type PumpfunBotConfig = {
     runConfig: BotManagerConfig;
-    strategy: LaunchpadBotStrategy;
+    strategyFactory: () => LaunchpadBotStrategy;
 };
 
 export type PumpfunBotFileConfig = {

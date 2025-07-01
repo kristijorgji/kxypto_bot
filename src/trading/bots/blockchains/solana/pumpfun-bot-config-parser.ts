@@ -13,6 +13,6 @@ export function parsePumpfunBotFileConfig(path: string, reportSchema: Schema): P
             reportSchema: reportSchema,
             ...config.runConfig,
         },
-        strategy: strategyFromConfig(config.strategy, silentLogger),
+        strategyFactory: () => strategyFromConfig(config.strategy, silentLogger),
     };
 }

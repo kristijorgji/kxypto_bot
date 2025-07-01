@@ -118,7 +118,9 @@ export async function sendTx(
             errorMessage = `Program Error: ${e.msg || e.message}`;
             logs = e.logs;
         } else {
-            errorMessage = `Unknown Error: ${e instanceof Error ? e.message : String(e)}`;
+            errorMessage = `Unknown Error: ${
+                e instanceof Error ? e.message : typeof e === 'object' && e !== null ? JSON.stringify(e) : String(e)
+            }`;
         }
 
         const txError = new TransactionError(errorMessage, logs);

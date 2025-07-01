@@ -282,11 +282,13 @@ describe(PumpfunBacktester.name, () => {
                 historyEntry: {
                     bondingCurveProgress: 25,
                     devHoldingPercentage: 10,
+                    devHoldingPercentageCirculating: 20,
                     holdersCount: 15,
                     marketCap: 31.770000079,
                     price: 2.78,
                     timestamp: 8,
                     topTenHoldingPercentage: 35,
+                    topTenHoldingPercentageCirculating: 70,
                 },
                 pumpMinLamportsOutput: 144404.3321299639,
                 reason: 'BEFORE_EXIT_MONITORING',

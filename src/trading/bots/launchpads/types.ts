@@ -11,6 +11,8 @@ export type HistoryEntry = {
     holdersCount: number;
     devHoldingPercentage: number;
     topTenHoldingPercentage: number;
+    devHoldingPercentageCirculating: number;
+    topTenHoldingPercentageCirculating: number;
     /**
      * Optional field used only for troubleshooting and debugging
      * It is not needed elsewhere in backtests or other places
@@ -38,4 +40,6 @@ export type MarketContext = {
     holdersCount: number;
     devHoldingPercentage: number;
     topTenHoldingPercentage: number;
+    devHoldingPercentageCirculating: number;
+    topTenHoldingPercentageCirculating: number;
 };

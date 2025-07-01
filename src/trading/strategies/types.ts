@@ -69,6 +69,8 @@ export type PredictionRequest = {
         holdersCount: number;
         devHoldingPercentage: number;
         topTenHoldingPercentage: number;
+        devHoldingPercentageCirculating: number;
+        topTenHoldingPercentageCirculating: number;
     }[];
 };
 

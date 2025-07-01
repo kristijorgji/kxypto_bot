@@ -1,7 +1,8 @@
 import { Logger } from 'winston';
 
+import { deepEqual } from '@src/utils/data/equals';
+
 import { shouldBuyStateless } from './common';
-import { deepEqual } from '../../../utils/data/equals';
 import { HistoryRef } from '../../bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
 import { ShouldBuyResponse } from '../../bots/types';
@@ -53,6 +54,8 @@ export async function shouldBuyCommon(
                     holdersCount: e.holdersCount,
                     devHoldingPercentage: e.devHoldingPercentage,
                     topTenHoldingPercentage: e.topTenHoldingPercentage,
+                    devHoldingPercentageCirculating: e.devHoldingPercentageCirculating,
+                    topTenHoldingPercentageCirculating: e.topTenHoldingPercentageCirculating,
                 }) satisfies PredictionRequest['features'][number],
         ),
     };

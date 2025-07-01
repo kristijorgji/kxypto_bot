@@ -20,15 +20,15 @@
         "mintFileStorageType": "local",
         "mintFilePath": "tmp_test/nta.json",
         "backtestResponse": {
+          "tradeHistory": [],
           "finalBalanceLamports": 1000000000,
+          "profitLossLamports": 0,
           "holdings": {
             "amountRaw": 0,
             "lamportsValue": 0
           },
-          "maxDrawdownPercentage": 0,
-          "profitLossLamports": 0,
           "roi": 0,
-          "tradeHistory": []
+          "maxDrawdownPercentage": 0
         }
       }
     }

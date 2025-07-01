@@ -28,6 +28,8 @@ describe(RiseStrategy.name, () => {
         bondingCurveProgress: 50,
         devHoldingPercentage: 5,
         topTenHoldingPercentage: 20,
+        devHoldingPercentageCirculating: 20,
+        topTenHoldingPercentageCirculating: 70,
     };
 
     const buyTradeTransaction: TradeTransaction = {
@@ -72,6 +74,8 @@ describe(RiseStrategy.name, () => {
                             holdersCount: 15,
                             devHoldingPercentage: 10,
                             topTenHoldingPercentage: 35,
+                            devHoldingPercentageCirculating: 20,
+                            topTenHoldingPercentageCirculating: 70,
                         },
                     ],
                     {
@@ -144,6 +148,8 @@ describe(RiseStrategy.name, () => {
                         bondingCurveProgress: 50,
                         devHoldingPercentage: 5,
                         topTenHoldingPercentage: 20,
+                        devHoldingPercentageCirculating: 20,
+                        topTenHoldingPercentageCirculating: 70,
                     },
                     [
                         formHistoryEntry({

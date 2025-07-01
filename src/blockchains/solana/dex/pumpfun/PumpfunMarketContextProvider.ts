@@ -44,7 +44,7 @@ export default class PumpfunMarketContextProvider {
             'getPumpTokenStats',
         );
 
-        const { holdersCount, devHoldingPercentage, topTenHoldingPercentage } = calculateHoldersStats({
+        const holderStats = calculateHoldersStats({
             tokenHolders: tokenHolders,
             totalSupply: PUMPFUN_TOKEN_SUPPLY,
             creator: creator,
@@ -55,9 +55,11 @@ export default class PumpfunMarketContextProvider {
             price: priceInSol,
             marketCap: marketCapInSol,
             bondingCurveProgress: bondingCurveProgress,
-            holdersCount: holdersCount,
-            devHoldingPercentage: devHoldingPercentage,
-            topTenHoldingPercentage: topTenHoldingPercentage,
+            holdersCount: holderStats.holdersCount,
+            devHoldingPercentage: holderStats.devHoldingPercentage,
+            topTenHoldingPercentage: holderStats.topTenHoldingPercentage,
+            devHoldingPercentageCirculating: holderStats.devHoldingPercentageCirculating,
+            topTenHoldingPercentageCirculating: holderStats.topTenHoldingPercentageCirculating,
         };
     }
 }

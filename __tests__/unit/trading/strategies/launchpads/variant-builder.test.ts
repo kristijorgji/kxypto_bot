@@ -79,9 +79,17 @@ describe('variantConfigFromContext', () => {
             holdersCount: { min: 7, max: 8 },
             devHoldingPercentage: { min: 9, max: 10 },
             topTenHoldingPercentage: { min: 11, max: 12 },
+            devHoldingPercentageCirculating: {
+                min: 30,
+                max: 50,
+            },
+            topTenHoldingPercentageCirculating: {
+                min: 20,
+                max: 37,
+            },
         });
 
-        expect(result).toBe('p:l1-h2_mc:l3-h4_bcp:l5-h6_hc:l7-h8_dvp:l9-h10_tthp:l11-h12');
+        expect(result).toBe('p:l1-h2_mc:l3-h4_bcp:l5-h6_hc:l7-h8_dvp:l9-h10_tthp:l11-h12_dvpc:l30-h50_tthpc:l20-h37');
     });
 });
 

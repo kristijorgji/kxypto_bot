@@ -5,11 +5,13 @@
     {
       "bondingCurveProgress": 50,
       "devHoldingPercentage": 5,
+      "devHoldingPercentageCirculating": 20,
       "holdersCount": 70,
       "marketCap": 33,
       "price": 3.42e-8,
       "timestamp": 1616175603000,
-      "topTenHoldingPercentage": 10
+      "topTenHoldingPercentage": 10,
+      "topTenHoldingPercentageCirculating": 70
     }
   ]
 }

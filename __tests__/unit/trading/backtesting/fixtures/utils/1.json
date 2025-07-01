@@ -20,220 +20,228 @@
         "mintFileStorageType": "local",
         "mintFilePath": "tmp_test/a.json",
         "backtestResponse": {
-          "finalBalanceLamports": 1110645000,
-          "holdings": {
-            "amountRaw": 0,
-            "lamportsValue": 0
-          },
-          "maxDrawdownPercentage": 0,
-          "profitLossLamports": 110645000,
-          "roi": 11.064499999999999,
           "tradeHistory": [
             {
-              "amountRaw": 500000,
+              "timestamp": 1616148000000,
+              "transactionType": "buy",
+              "subCategory": "newPosition",
+              "transactionHash": "_backtest_1616148000000",
+              "walletAddress": "_backtest_",
               "bought": {
                 "address": "a",
-                "amount": 500000,
                 "name": "Meme Mining Company",
-                "symbol": "MMC"
+                "symbol": "MMC",
+                "amount": 500000
               },
+              "sold": {
+                "address": "So11111111111111111111111111111111111111112",
+                "name": "SOL",
+                "symbol": "SOL",
+                "amount": 629195000
+              },
+              "amountRaw": 500000,
               "grossTransferredLamports": -629195000,
-              "marketCap": 31.770000079,
-              "metadata": {
-                "historyRef": {
-                  "index": 0,
-                  "timestamp": 1
-                },
-                "historyEntry": {
-                  "bondingCurveProgress": 25,
-                  "devHoldingPercentage": 10,
-                  "holdersCount": 15,
-                  "marketCap": 31.770000079,
-                  "price": 1,
-                  "timestamp": 1,
-                  "topTenHoldingPercentage": 35
-                },
-                "pumpBuyPriceInSol": 1.25,
-                "pumpInSol": 0.625,
-                "pumpMaxSolCost": 0.625,
-                "pumpTokenOut": 500000,
-                "buyRes": {
-                  "reason": "always"
-                }
-              },
               "netTransferredLamports": -634200000,
               "price": {
                 "inLamports": 1000000000,
                 "inSol": 1
               },
-              "sold": {
-                "address": "So11111111111111111111111111111111111111112",
-                "amount": 629195000,
-                "name": "SOL",
-                "symbol": "SOL"
-              },
-              "subCategory": "newPosition",
-              "timestamp": 1616148000000,
-              "transactionHash": "_backtest_1616148000000",
-              "transactionType": "buy",
-              "walletAddress": "_backtest_"
-            },
-            {
-              "amountRaw": 500000,
-              "bought": {
-                "address": "So11111111111111111111111111111111111111112",
-                "amount": 749850000,
-                "name": "SOL",
-                "symbol": "SOL"
-              },
-              "grossTransferredLamports": 749850000,
               "marketCap": 31.770000079,
               "metadata": {
                 "historyRef": {
-                  "index": 1,
-                  "timestamp": 2
+                  "timestamp": 1,
+                  "index": 0
                 },
                 "historyEntry": {
-                  "bondingCurveProgress": 25,
-                  "devHoldingPercentage": 10,
-                  "holdersCount": 15,
+                  "timestamp": 1,
+                  "price": 1,
                   "marketCap": 31.770000079,
-                  "price": 2,
-                  "timestamp": 2,
-                  "topTenHoldingPercentage": 35
+                  "bondingCurveProgress": 25,
+                  "holdersCount": 15,
+                  "devHoldingPercentage": 10,
+                  "topTenHoldingPercentage": 35,
+                  "devHoldingPercentageCirculating": 20,
+                  "topTenHoldingPercentageCirculating": 70
                 },
-                "pumpMinLamportsOutput": 500000,
-                "reason": "TAKE_PROFIT",
-                "sellPriceInSol": 1.5
-              },
-              "netTransferredLamports": 744845000,
-              "price": {
-                "inLamports": 2000000000,
-                "inSol": 2
+                "pumpInSol": 0.625,
+                "pumpMaxSolCost": 0.625,
+                "pumpTokenOut": 500000,
+                "pumpBuyPriceInSol": 1.25,
+                "buyRes": {
+                  "reason": "always"
+                }
+              }
+            },
+            {
+              "timestamp": 1616148000000,
+              "transactionType": "sell",
+              "subCategory": "sellAll",
+              "transactionHash": "_backtest_1616148000000",
+              "walletAddress": "_backtest_",
+              "bought": {
+                "address": "So11111111111111111111111111111111111111112",
+                "name": "SOL",
+                "symbol": "SOL",
+                "amount": 749850000
               },
               "sold": {
                 "address": "a",
-                "amount": 500000,
                 "name": "Meme Mining Company",
-                "symbol": "MMC"
+                "symbol": "MMC",
+                "amount": 500000
               },
-              "subCategory": "sellAll",
-              "timestamp": 1616148000000,
-              "transactionHash": "_backtest_1616148000000",
-              "transactionType": "sell",
-              "walletAddress": "_backtest_"
+              "amountRaw": 500000,
+              "grossTransferredLamports": 749850000,
+              "netTransferredLamports": 744845000,
+              "price": {
+                "inSol": 2,
+                "inLamports": 2000000000
+              },
+              "marketCap": 31.770000079,
+              "metadata": {
+                "historyRef": {
+                  "timestamp": 2,
+                  "index": 1
+                },
+                "historyEntry": {
+                  "timestamp": 2,
+                  "price": 2,
+                  "marketCap": 31.770000079,
+                  "bondingCurveProgress": 25,
+                  "holdersCount": 15,
+                  "devHoldingPercentage": 10,
+                  "topTenHoldingPercentage": 35,
+                  "devHoldingPercentageCirculating": 20,
+                  "topTenHoldingPercentageCirculating": 70
+                },
+                "reason": "TAKE_PROFIT",
+                "pumpMinLamportsOutput": 500000,
+                "sellPriceInSol": 1.5
+              }
             }
-          ]
+          ],
+          "finalBalanceLamports": 1110645000,
+          "profitLossLamports": 110645000,
+          "holdings": {
+            "amountRaw": 0,
+            "lamportsValue": 0
+          },
+          "roi": 11.064499999999999,
+          "maxDrawdownPercentage": 0
         }
       },
       "b": {
         "mintFileStorageType": "local",
         "mintFilePath": "tmp_test/b.json",
         "backtestResponse": {
-          "finalBalanceLamports": 883960454.5454545,
-          "holdings": {
-            "amountRaw": 0,
-            "lamportsValue": 0
-          },
-          "maxDrawdownPercentage": 0,
-          "profitLossLamports": -226684545.4545455,
-          "roi": -20.41017115770975,
           "tradeHistory": [
             {
-              "amountRaw": 227272.72727272726,
+              "timestamp": 1616148000000,
+              "transactionType": "buy",
+              "subCategory": "newPosition",
+              "transactionHash": "_backtest_1616148000000",
+              "walletAddress": "_backtest_",
               "bought": {
                 "address": "b",
-                "amount": 227272.72727272726,
                 "name": "Meme Mining Company",
-                "symbol": "MMC"
+                "symbol": "MMC",
+                "amount": 227272.72727272726
               },
+              "sold": {
+                "address": "So11111111111111111111111111111111111111112",
+                "name": "SOL",
+                "symbol": "SOL",
+                "amount": 629195000
+              },
+              "amountRaw": 227272.72727272726,
               "grossTransferredLamports": -629195000,
-              "marketCap": 31.770000079,
-              "metadata": {
-                "historyRef": {
-                  "index": 0,
-                  "timestamp": 1
-                },
-                "historyEntry": {
-                  "bondingCurveProgress": 25,
-                  "devHoldingPercentage": 10,
-                  "holdersCount": 15,
-                  "marketCap": 31.770000079,
-                  "price": 2.2,
-                  "timestamp": 1,
-                  "topTenHoldingPercentage": 35
-                },
-                "pumpBuyPriceInSol": 2.75,
-                "pumpInSol": 0.625,
-                "pumpMaxSolCost": 0.625,
-                "pumpTokenOut": 227272.72727272726,
-                "buyRes": {
-                  "reason": "always"
-                }
-              },
               "netTransferredLamports": -634200000,
               "price": {
                 "inLamports": 2200000000,
                 "inSol": 2.2
               },
-              "sold": {
-                "address": "So11111111111111111111111111111111111111112",
-                "amount": 629195000,
-                "name": "SOL",
-                "symbol": "SOL"
-              },
-              "subCategory": "newPosition",
-              "timestamp": 1616148000000,
-              "transactionHash": "_backtest_1616148000000",
-              "transactionType": "buy",
-              "walletAddress": "_backtest_"
-            },
-            {
-              "amountRaw": 227272.72727272726,
-              "bought": {
-                "address": "So11111111111111111111111111111111111111112",
-                "amount": 412520454.5454545,
-                "name": "SOL",
-                "symbol": "SOL"
-              },
-              "grossTransferredLamports": 412520454.5454545,
               "marketCap": 31.770000079,
               "metadata": {
                 "historyRef": {
-                  "index": 1,
-                  "timestamp": 2
+                  "timestamp": 1,
+                  "index": 0
                 },
                 "historyEntry": {
-                  "bondingCurveProgress": 25,
-                  "devHoldingPercentage": 10,
-                  "holdersCount": 15,
+                  "timestamp": 1,
+                  "price": 2.2,
                   "marketCap": 31.770000079,
-                  "price": 2.421,
-                  "timestamp": 2,
-                  "topTenHoldingPercentage": 35
+                  "bondingCurveProgress": 25,
+                  "holdersCount": 15,
+                  "devHoldingPercentage": 10,
+                  "topTenHoldingPercentage": 35,
+                  "devHoldingPercentageCirculating": 20,
+                  "topTenHoldingPercentageCirculating": 70
                 },
-                "pumpMinLamportsOutput": 227272.72727272726,
-                "reason": "TAKE_PROFIT",
-                "sellPriceInSol": 1.81575
-              },
-              "netTransferredLamports": 407515454.5454545,
-              "price": {
-                "inLamports": 2421000000,
-                "inSol": 2.421
+                "pumpInSol": 0.625,
+                "pumpMaxSolCost": 0.625,
+                "pumpTokenOut": 227272.72727272726,
+                "pumpBuyPriceInSol": 2.75,
+                "buyRes": {
+                  "reason": "always"
+                }
+              }
+            },
+            {
+              "timestamp": 1616148000000,
+              "transactionType": "sell",
+              "subCategory": "sellAll",
+              "transactionHash": "_backtest_1616148000000",
+              "walletAddress": "_backtest_",
+              "bought": {
+                "address": "So11111111111111111111111111111111111111112",
+                "name": "SOL",
+                "symbol": "SOL",
+                "amount": 412520454.5454545
               },
               "sold": {
                 "address": "b",
-                "amount": 227272.72727272726,
                 "name": "Meme Mining Company",
-                "symbol": "MMC"
+                "symbol": "MMC",
+                "amount": 227272.72727272726
               },
-              "subCategory": "sellAll",
-              "timestamp": 1616148000000,
-              "transactionHash": "_backtest_1616148000000",
-              "transactionType": "sell",
-              "walletAddress": "_backtest_"
+              "amountRaw": 227272.72727272726,
+              "grossTransferredLamports": 412520454.5454545,
+              "netTransferredLamports": 407515454.5454545,
+              "price": {
+                "inSol": 2.421,
+                "inLamports": 2421000000
+              },
+              "marketCap": 31.770000079,
+              "metadata": {
+                "historyRef": {
+                  "timestamp": 2,
+                  "index": 1
+                },
+                "historyEntry": {
+                  "timestamp": 2,
+                  "price": 2.421,
+                  "marketCap": 31.770000079,
+                  "bondingCurveProgress": 25,
+                  "holdersCount": 15,
+                  "devHoldingPercentage": 10,
+                  "topTenHoldingPercentage": 35,
+                  "devHoldingPercentageCirculating": 20,
+                  "topTenHoldingPercentageCirculating": 70
+                },
+                "reason": "TAKE_PROFIT",
+                "pumpMinLamportsOutput": 227272.72727272726,
+                "sellPriceInSol": 1.81575
+              }
             }
-          ]
+          ],
+          "finalBalanceLamports": 883960454.5454545,
+          "profitLossLamports": -226684545.4545455,
+          "holdings": {
+            "amountRaw": 0,
+            "lamportsValue": 0
+          },
+          "roi": -20.41017115770975,
+          "maxDrawdownPercentage": 0
         }
       }
     }
@@ -273,7 +281,7 @@
     },
     {
       "level": "info",
-      "message": "[0] Trades=[\n  {\n    timestamp: 1616148000000,\n    transactionType: 'buy',\n    subCategory: 'newPosition',\n    historyRef: {\n      timestamp: 1,\n      index: 0,\n      price: { inLamports: 1000000000, inSol: 1 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: -629195000,\n    netTransferredLamports: -634200000,\n    amountRaw: 500000,\n    metadata: {\n      historyEntry: {\n        timestamp: 1,\n        price: 1,\n        marketCap: 31.770000079,\n        bondingCurveProgress: 25,\n        holdersCount: 15,\n        devHoldingPercentage: 10,\n        topTenHoldingPercentage: 35\n      },\n      pumpInSol: 0.625,\n      pumpMaxSolCost: 0.625,\n      pumpTokenOut: 500000,\n      pumpBuyPriceInSol: 1.25,\n      buyRes: { reason: 'always' }\n    }\n  },\n  {\n    timestamp: 1616148000000,\n    transactionType: 'sell',\n    subCategory: 'sellAll',\n    historyRef: {\n      timestamp: 2,\n      index: 1,\n      price: { inSol: 2, inLamports: 2000000000 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: 749850000,\n    netTransferredLamports: 744845000,\n    amountRaw: 500000,\n    metadata: {\n      historyEntry: {\n        timestamp: 2,\n        price: 2,\n        marketCap: 31.770000079,\n        bondingCurveProgress: 25,\n        holdersCount: 15,\n        devHoldingPercentage: 10,\n        topTenHoldingPercentage: 35\n      },\n      reason: 'TAKE_PROFIT',\n      pumpMinLamportsOutput: 500000,\n      sellPriceInSol: 1.5\n    }\n  },\n  [length]: 2\n]\n"
+      "message": "[0] Trades=[\n  {\n    timestamp: 1616148000000,\n    transactionType: 'buy',\n    subCategory: 'newPosition',\n    historyRef: {\n      timestamp: 1,\n      index: 0,\n      price: { inLamports: 1000000000, inSol: 1 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: -629195000,\n    netTransferredLamports: -634200000,\n    amountRaw: 500000,\n    metadata: {\n      historyEntry: {\n        timestamp: 1,\n        price: 1,\n        marketCap: 31.770000079,\n        bondingCurveProgress: 25,\n        holdersCount: 15,\n        devHoldingPercentage: 10,\n        topTenHoldingPercentage: 35,\n        devHoldingPercentageCirculating: 20,\n        topTenHoldingPercentageCirculating: 70\n      },\n      pumpInSol: 0.625,\n      pumpMaxSolCost: 0.625,\n      pumpTokenOut: 500000,\n      pumpBuyPriceInSol: 1.25,\n      buyRes: { reason: 'always' }\n    }\n  },\n  {\n    timestamp: 1616148000000,\n    transactionType: 'sell',\n    subCategory: 'sellAll',\n    historyRef: {\n      timestamp: 2,\n      index: 1,\n      price: { inSol: 2, inLamports: 2000000000 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: 749850000,\n    netTransferredLamports: 744845000,\n    amountRaw: 500000,\n    metadata: {\n      historyEntry: {\n        timestamp: 2,\n        price: 2,\n        marketCap: 31.770000079,\n        bondingCurveProgress: 25,\n        holdersCount: 15,\n        devHoldingPercentage: 10,\n        topTenHoldingPercentage: 35,\n        devHoldingPercentageCirculating: 20,\n        topTenHoldingPercentageCirculating: 70\n      },\n      reason: 'TAKE_PROFIT',\n      pumpMinLamportsOutput: 500000,\n      sellPriceInSol: 1.5\n    }\n  },\n  [length]: 2\n]\n"
     },
     {
       "level": "info",
@@ -309,7 +317,7 @@
     },
     {
       "level": "info",
-      "message": "[1] Trades=[\n  {\n    timestamp: 1616148000000,\n    transactionType: 'buy',\n    subCategory: 'newPosition',\n    historyRef: {\n      timestamp: 1,\n      index: 0,\n      price: { inLamports: 2200000000, inSol: 2.2 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: -629195000,\n    netTransferredLamports: -634200000,\n    amountRaw: 227272.72727272726,\n    metadata: {\n      historyEntry: {\n        timestamp: 1,\n        price: 2.2,\n        marketCap: 31.770000079,\n        bondingCurveProgress: 25,\n        holdersCount: 15,\n        devHoldingPercentage: 10,\n        topTenHoldingPercentage: 35\n      },\n      pumpInSol: 0.625,\n      pumpMaxSolCost: 0.625,\n      pumpTokenOut: 227272.72727272726,\n      pumpBuyPriceInSol: 2.75,\n      buyRes: { reason: 'always' }\n    }\n  },\n  {\n    timestamp: 1616148000000,\n    transactionType: 'sell',\n    subCategory: 'sellAll',\n    historyRef: {\n      timestamp: 2,\n      index: 1,\n      price: { inSol: 2.421, inLamports: 2421000000 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: 412520454.5454545,\n    netTransferredLamports: 407515454.5454545,\n    amountRaw: 227272.72727272726,\n    metadata: {\n      historyEntry: {\n        timestamp: 2,\n        price: 2.421,\n        marketCap: 31.770000079,\n        bondingCurveProgress: 25,\n        holdersCount: 15,\n        devHoldingPercentage: 10,\n        topTenHoldingPercentage: 35\n      },\n      reason: 'TAKE_PROFIT',\n      pumpMinLamportsOutput: 227272.72727272726,\n      sellPriceInSol: 1.81575\n    }\n  },\n  [length]: 2\n]\n"
+      "message": "[1] Trades=[\n  {\n    timestamp: 1616148000000,\n    transactionType: 'buy',\n    subCategory: 'newPosition',\n    historyRef: {\n      timestamp: 1,\n      index: 0,\n      price: { inLamports: 2200000000, inSol: 2.2 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: -629195000,\n    netTransferredLamports: -634200000,\n    amountRaw: 227272.72727272726,\n    metadata: {\n      historyEntry: {\n        timestamp: 1,\n        price: 2.2,\n        marketCap: 31.770000079,\n        bondingCurveProgress: 25,\n        holdersCount: 15,\n        devHoldingPercentage: 10,\n        topTenHoldingPercentage: 35,\n        devHoldingPercentageCirculating: 20,\n        topTenHoldingPercentageCirculating: 70\n      },\n      pumpInSol: 0.625,\n      pumpMaxSolCost: 0.625,\n      pumpTokenOut: 227272.72727272726,\n      pumpBuyPriceInSol: 2.75,\n      buyRes: { reason: 'always' }\n    }\n  },\n  {\n    timestamp: 1616148000000,\n    transactionType: 'sell',\n    subCategory: 'sellAll',\n    historyRef: {\n      timestamp: 2,\n      index: 1,\n      price: { inSol: 2.421, inLamports: 2421000000 },\n      marketCap: 31.770000079\n    },\n    grossTransferredLamports: 412520454.5454545,\n    netTransferredLamports: 407515454.5454545,\n    amountRaw: 227272.72727272726,\n    metadata: {\n      historyEntry: {\n        timestamp: 2,\n        price: 2.421,\n        marketCap: 31.770000079,\n        bondingCurveProgress: 25,\n        holdersCount: 15,\n        devHoldingPercentage: 10,\n        topTenHoldingPercentage: 35,\n        devHoldingPercentageCirculating: 20,\n        topTenHoldingPercentageCirculating: 70\n      },\n      reason: 'TAKE_PROFIT',\n      pumpMinLamportsOutput: 227272.72727272726,\n      sellPriceInSol: 1.81575\n    }\n  },\n  [length]: 2\n]\n"
     }
   ]
 }

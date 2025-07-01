@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
+import { Logger } from 'winston';
 
 import { getBacktestStrategyResults, storeBacktest, storeBacktestStrategyResult } from '@src/db/repositories/backtests';
 import { Backtest } from '@src/db/types';
-import { logger } from '@src/logger';
 import { formatElapsedTime } from '@src/utils/time';
 
 import { BacktestConfig } from './types';
@@ -11,7 +11,7 @@ import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
 import { BacktestRunConfig, BacktestStrategyRunConfig } from '../bots/blockchains/solana/types';
 
-export default async function runAndSelectBestStrategy(config: BacktestConfig): Promise<void> {
+export default async function runAndSelectBestStrategy(logger: Logger, config: BacktestConfig): Promise<void> {
     const start = process.hrtime();
 
     const pumpfun = new Pumpfun({
@@ -28,6 +28,7 @@ export default async function runAndSelectBestStrategy(config: BacktestConfig): 
         runConfig = backtest.config;
     } else {
         runConfig = (config as { runConfig: BacktestRunConfig }).runConfig;
+        logger.info('Storing backtest with id %s', backtestId);
         backtest = {
             id: backtestId,
             config: runConfig,

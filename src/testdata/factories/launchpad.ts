@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import { MarketContext } from '../../trading/bots/launchpads/types';
+import { MarketContext } from '@src/trading/bots/launchpads/types';
 
 export function NewMarketContextFactory(copy?: Partial<MarketContext>): MarketContext {
     return {
@@ -10,5 +10,9 @@ export function NewMarketContextFactory(copy?: Partial<MarketContext>): MarketCo
         holdersCount: copy?.holdersCount ?? faker.number.int(),
         devHoldingPercentage: copy?.devHoldingPercentage ?? faker.number.int({ min: 0, max: 100 }),
         topTenHoldingPercentage: copy?.topTenHoldingPercentage ?? faker.number.int({ min: 0, max: 100 }),
+        devHoldingPercentageCirculating:
+            copy?.devHoldingPercentageCirculating ?? faker.number.int({ min: 0, max: 100 }),
+        topTenHoldingPercentageCirculating:
+            copy?.topTenHoldingPercentageCirculating ?? faker.number.int({ min: 0, max: 100 }),
     };
 }

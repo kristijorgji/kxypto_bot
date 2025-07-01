@@ -45,8 +45,7 @@ import PumpfunBotTradeManager from '../../trading/bots/blockchains/solana/Pumpfu
 import RiseStrategy from '../../trading/strategies/launchpads/RiseStrategy';
 
 const ReportSchema: Schema = {
-    version: 1.3,
-    name: 'history_ref_and_entry_rpc_provider',
+    version: 1.4,
 };
 
 const rpcProvider = {

@@ -26,6 +26,8 @@ describe(shouldBuyStateless.name, () => {
             bondingCurveProgress: 50,
             devHoldingPercentage: 5,
             topTenHoldingPercentage: 20,
+            devHoldingPercentageCirculating: 20,
+            topTenHoldingPercentageCirculating: 70,
         };
 
         expect(shouldBuyStateless(buyConfig, marketContext)).toBe(true);
@@ -43,6 +45,8 @@ describe(shouldBuyStateless.name, () => {
             bondingCurveProgress: 50,
             devHoldingPercentage: 5,
             topTenHoldingPercentage: 20,
+            devHoldingPercentageCirculating: 20,
+            topTenHoldingPercentageCirculating: 70,
         };
 
         expect(shouldBuyStateless(buyConfig, marketContext)).toBe(false);
@@ -60,6 +64,8 @@ describe(shouldBuyStateless.name, () => {
             bondingCurveProgress: 95, // Above max
             devHoldingPercentage: 5,
             topTenHoldingPercentage: 20,
+            devHoldingPercentageCirculating: 20,
+            topTenHoldingPercentageCirculating: 70,
         };
 
         expect(shouldBuyStateless(buyConfig, marketContext)).toBe(false);
@@ -77,6 +83,8 @@ describe(shouldBuyStateless.name, () => {
             bondingCurveProgress: 50,
             devHoldingPercentage: 3, // Below min
             topTenHoldingPercentage: 20,
+            devHoldingPercentageCirculating: 20,
+            topTenHoldingPercentageCirculating: 70,
         };
 
         expect(shouldBuyStateless(buyConfig, marketContext)).toBe(false);
@@ -92,6 +100,8 @@ describe(shouldBuyStateless.name, () => {
             bondingCurveProgress: 50,
             devHoldingPercentage: 3,
             topTenHoldingPercentage: 20,
+            devHoldingPercentageCirculating: 20,
+            topTenHoldingPercentageCirculating: 70,
         };
 
         expect(shouldBuyStateless(buyConfig, marketContext)).toBe(true);
@@ -112,6 +122,8 @@ describe(shouldBuyStateless.name, () => {
             bondingCurveProgress: 50,
             devHoldingPercentage: 5,
             topTenHoldingPercentage: 20,
+            devHoldingPercentageCirculating: 20,
+            topTenHoldingPercentageCirculating: 70,
         };
 
         expect(shouldBuyStateless(buyConfig, marketContext)).toBe(false);

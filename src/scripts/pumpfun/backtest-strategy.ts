@@ -50,17 +50,17 @@ async function start(args: { backtestId?: string; config?: string }) {
 
     if (args.config) {
         logger.info('Running backtest using config file: %s', args.config);
-        return await runAndSelectBestStrategy(await parseBacktestFileConfig(args.config));
+        return await runAndSelectBestStrategy(logger, await parseBacktestFileConfig(args.config));
     }
 
     if (args.backtestId) {
-        return await runAndSelectBestStrategy({
+        return await runAndSelectBestStrategy(logger, {
             backtest: await getBacktest(args.backtestId),
             strategies: getStrategies(),
         });
     }
 
-    await runAndSelectBestStrategy({
+    await runAndSelectBestStrategy(logger, {
         runConfig: getBacktestRunConfig(),
         strategies: getStrategies(),
     });

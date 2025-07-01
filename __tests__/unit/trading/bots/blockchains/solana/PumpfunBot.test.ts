@@ -192,62 +192,34 @@ describe(PumpfunBot.name, () => {
         )! as TradeTransaction<PumpfunSellPositionMetadata>;
 
         const mockReturnedMarketContexts: MarketContext[] = [
-            {
+            formMarketContext({
                 // it will buy here
                 price: 3.1e-8,
-                marketCap: 33.1,
-                holdersCount: 2,
-                bondingCurveProgress: 3,
-                devHoldingPercentage: 5,
-                topTenHoldingPercentage: 10,
-            },
-            {
+            }),
+            formMarketContext({
                 // it will do nothing here
                 price: 3.12e-8,
-                marketCap: 33.2,
-                holdersCount: 7,
-                bondingCurveProgress: 15,
-                devHoldingPercentage: 6,
-                topTenHoldingPercentage: 8,
-            },
-            {
+            }),
+            formMarketContext({
                 // it will do nothing here
                 price: 3.13e-8,
-                marketCap: 33.3,
-                holdersCount: 7,
-                bondingCurveProgress: 15,
-                devHoldingPercentage: 6,
-                topTenHoldingPercentage: 8,
-            },
-            {
+            }),
+            formMarketContext({
                 // it will do nothing here
                 price: 3.14e-8,
-                marketCap: 33.4,
-                holdersCount: 7,
-                bondingCurveProgress: 15,
-                devHoldingPercentage: 6,
-                topTenHoldingPercentage: 8,
-            },
-            {
+            }),
+            formMarketContext({
                 // it will sell here
                 price: 3.41e-8,
-                marketCap: 35,
-                holdersCount: 18,
-                bondingCurveProgress: 20,
-                devHoldingPercentage: 4,
-                topTenHoldingPercentage: 7,
-            },
+            }),
             // fill at least maxWaitMonitorAfterResultSeconds + 1 values just so it does nothing but checks for the maxWaitMonitorAfterResultMs
             ...Array(4)
                 .fill(0)
-                .map((_, i) => ({
-                    price: (3.42 + i / 100) * 1e-8,
-                    marketCap: 100,
-                    holdersCount: 18,
-                    bondingCurveProgress: 20,
-                    devHoldingPercentage: 4,
-                    topTenHoldingPercentage: 7,
-                })),
+                .map((_, i) =>
+                    formMarketContext({
+                        price: (3.42 + i / 100) * 1e-8,
+                    }),
+                ),
         ];
         mockReturnedMarketContexts.forEach(mr => (marketContextProvider.get as jest.Mock).mockResolvedValueOnce(mr));
 
@@ -403,6 +375,8 @@ describe(PumpfunBot.name, () => {
             bondingCurveProgress: 50,
             devHoldingPercentage: 5,
             topTenHoldingPercentage: 10,
+            devHoldingPercentageCirculating: 20,
+            topTenHoldingPercentageCirculating: 70,
         };
         const mockReturnedMarketContexts: MarketContext[] = [
             firstMarketContext,

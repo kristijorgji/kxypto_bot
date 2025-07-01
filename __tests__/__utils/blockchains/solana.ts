@@ -21,6 +21,10 @@ export function formMarketContext(data: Partial<MarketContext>, copy?: MarketCon
         bondingCurveProgress: data.bondingCurveProgress ?? copy?.bondingCurveProgress ?? 50,
         devHoldingPercentage: data.devHoldingPercentage ?? copy?.devHoldingPercentage ?? 5,
         topTenHoldingPercentage: data.topTenHoldingPercentage ?? copy?.topTenHoldingPercentage ?? 10,
+        devHoldingPercentageCirculating:
+            data.devHoldingPercentageCirculating ?? copy?.devHoldingPercentageCirculating ?? 20,
+        topTenHoldingPercentageCirculating:
+            data.topTenHoldingPercentageCirculating ?? copy?.topTenHoldingPercentageCirculating ?? 70,
     };
 }
 
@@ -34,5 +38,9 @@ export function formHistoryEntry(data?: Partial<HistoryEntry>, copy?: HistoryEnt
         holdersCount: data?.holdersCount ?? copy?.holdersCount ?? 15,
         devHoldingPercentage: data?.devHoldingPercentage ?? copy?.devHoldingPercentage ?? 10,
         topTenHoldingPercentage: data?.topTenHoldingPercentage ?? copy?.topTenHoldingPercentage ?? 35,
+        devHoldingPercentageCirculating:
+            data?.devHoldingPercentageCirculating ?? copy?.devHoldingPercentageCirculating ?? 20,
+        topTenHoldingPercentageCirculating:
+            data?.topTenHoldingPercentageCirculating ?? copy?.topTenHoldingPercentageCirculating ?? 70,
     };
 }

@@ -172,9 +172,11 @@ export default class PumpfunBot {
                 holdersCount,
                 devHoldingPercentage,
                 topTenHoldingPercentage,
+                devHoldingPercentageCirculating,
+                topTenHoldingPercentageCirculating,
             } = marketContext;
 
-            const lastHistoryEntry = {
+            const lastHistoryEntry: HistoryEntry = {
                 timestamp: Date.now(),
                 price: priceInSol,
                 marketCap: marketCapInSol,
@@ -182,6 +184,8 @@ export default class PumpfunBot {
                 holdersCount: holdersCount,
                 devHoldingPercentage: devHoldingPercentage,
                 topTenHoldingPercentage: topTenHoldingPercentage,
+                devHoldingPercentageCirculating: devHoldingPercentageCirculating,
+                topTenHoldingPercentageCirculating: topTenHoldingPercentageCirculating,
             };
             history.push(lastHistoryEntry);
             historyIndex++;
@@ -240,10 +244,12 @@ export default class PumpfunBot {
                 history[history.length - 1].timestamp,
             );
             logger.debug(
-                'total holders=%d, top ten holding %s%%, dev holding %s%%',
+                'total holders=%d, top ten holding %s%%, dev holding %s%%, top ten circulating %s%%, dev holding circulating %s%%',
                 holdersCount,
                 topTenHoldingPercentage,
                 devHoldingPercentage,
+                topTenHoldingPercentageCirculating,
+                devHoldingPercentageCirculating,
             );
             logger.debug('Current vs initial market cap % difference: %s%%', mcDiffFromInitialPercentage);
 

@@ -9,6 +9,8 @@ export function variantFromBuyContext(context: Partial<Record<keyof MarketContex
         holdersCount: 'hc',
         devHoldingPercentage: 'dvp',
         topTenHoldingPercentage: 'tthp',
+        devHoldingPercentageCirculating: 'dvpc',
+        topTenHoldingPercentageCirculating: 'tthpc',
     };
 
     let variantConfig = '';

@@ -14,19 +14,21 @@
           "symbol": "MMC"
         },
         "grossTransferredLamports": -440000000.00000006,
-        "marketCap": 33.1,
+        "marketCap": 60,
         "metadata": {
           "historyEntry": {
             "_metadata": {
               "action": "startBuy"
             },
-            "bondingCurveProgress": 3,
+            "bondingCurveProgress": 50,
             "devHoldingPercentage": 5,
-            "holdersCount": 2,
-            "marketCap": 33.1,
+            "devHoldingPercentageCirculating": 20,
+            "holdersCount": 70,
+            "marketCap": 60,
             "price": 3.1e-8,
             "timestamp": 1616175603000,
-            "topTenHoldingPercentage": 10
+            "topTenHoldingPercentage": 10,
+            "topTenHoldingPercentageCirculating": 70
           },
           "historyRef": {
             "index": 1,
@@ -63,19 +65,21 @@
           "symbol": "SOL"
         },
         "grossTransferredLamports": 392034810.18107456,
-        "marketCap": 35,
+        "marketCap": 60,
         "metadata": {
           "historyEntry": {
             "_metadata": {
               "action": "startSell"
             },
-            "bondingCurveProgress": 20,
-            "devHoldingPercentage": 4,
-            "holdersCount": 18,
-            "marketCap": 35,
+            "bondingCurveProgress": 50,
+            "devHoldingPercentage": 5,
+            "devHoldingPercentageCirculating": 20,
+            "holdersCount": 70,
+            "marketCap": 60,
             "price": 3.41e-8,
             "timestamp": 1616175613000,
-            "topTenHoldingPercentage": 7
+            "topTenHoldingPercentage": 10,
+            "topTenHoldingPercentageCirculating": 70
           },
           "historyRef": {
             "index": 6,
@@ -108,25 +112,29 @@
         "_metadata": {
           "action": "startBuy"
         },
-        "bondingCurveProgress": 3,
+        "bondingCurveProgress": 50,
         "devHoldingPercentage": 5,
-        "holdersCount": 2,
-        "marketCap": 33.1,
+        "devHoldingPercentageCirculating": 20,
+        "holdersCount": 70,
+        "marketCap": 60,
         "price": 3.1e-8,
         "timestamp": 1616175603000,
-        "topTenHoldingPercentage": 10
+        "topTenHoldingPercentage": 10,
+        "topTenHoldingPercentageCirculating": 70
       },
       {
         "_metadata": {
           "action": "buyCompleted"
         },
-        "bondingCurveProgress": 15,
-        "devHoldingPercentage": 6,
-        "holdersCount": 7,
-        "marketCap": 33.2,
+        "bondingCurveProgress": 50,
+        "devHoldingPercentage": 5,
+        "devHoldingPercentageCirculating": 20,
+        "holdersCount": 70,
+        "marketCap": 60,
         "price": 3.12e-8,
         "timestamp": 1616175605000,
-        "topTenHoldingPercentage": 8
+        "topTenHoldingPercentage": 10,
+        "topTenHoldingPercentageCirculating": 70
       },
       {
         "_metadata": {
@@ -135,13 +143,15 @@
             "percent": 0.967741935485447
           }
         },
-        "bondingCurveProgress": 15,
-        "devHoldingPercentage": 6,
-        "holdersCount": 7,
-        "marketCap": 33.3,
+        "bondingCurveProgress": 50,
+        "devHoldingPercentage": 5,
+        "devHoldingPercentageCirculating": 20,
+        "holdersCount": 70,
+        "marketCap": 60,
         "price": 3.13e-8,
         "timestamp": 1616175609000,
-        "topTenHoldingPercentage": 8
+        "topTenHoldingPercentage": 10,
+        "topTenHoldingPercentageCirculating": 70
       },
       {
         "_metadata": {
@@ -150,64 +160,76 @@
             "percent": 1.2903225806467469
           }
         },
-        "bondingCurveProgress": 15,
-        "devHoldingPercentage": 6,
-        "holdersCount": 7,
-        "marketCap": 33.4,
+        "bondingCurveProgress": 50,
+        "devHoldingPercentage": 5,
+        "devHoldingPercentageCirculating": 20,
+        "holdersCount": 70,
+        "marketCap": 60,
         "price": 3.14e-8,
         "timestamp": 1616175611000,
-        "topTenHoldingPercentage": 8
+        "topTenHoldingPercentage": 10,
+        "topTenHoldingPercentageCirculating": 70
       },
       {
         "_metadata": {
           "action": "startSell"
         },
-        "bondingCurveProgress": 20,
-        "devHoldingPercentage": 4,
-        "holdersCount": 18,
-        "marketCap": 35,
+        "bondingCurveProgress": 50,
+        "devHoldingPercentage": 5,
+        "devHoldingPercentageCirculating": 20,
+        "holdersCount": 70,
+        "marketCap": 60,
         "price": 3.41e-8,
         "timestamp": 1616175613000,
-        "topTenHoldingPercentage": 7
+        "topTenHoldingPercentage": 10,
+        "topTenHoldingPercentageCirculating": 70
       },
       {
         "_metadata": {
           "action": "sellCompleted"
         },
-        "bondingCurveProgress": 20,
-        "devHoldingPercentage": 4,
-        "holdersCount": 18,
-        "marketCap": 100,
+        "bondingCurveProgress": 50,
+        "devHoldingPercentage": 5,
+        "devHoldingPercentageCirculating": 20,
+        "holdersCount": 70,
+        "marketCap": 60,
         "price": 3.42e-8,
         "timestamp": 1616175615000,
-        "topTenHoldingPercentage": 7
+        "topTenHoldingPercentage": 10,
+        "topTenHoldingPercentageCirculating": 70
       },
       {
-        "bondingCurveProgress": 20,
-        "devHoldingPercentage": 4,
-        "holdersCount": 18,
-        "marketCap": 100,
+        "bondingCurveProgress": 50,
+        "devHoldingPercentage": 5,
+        "devHoldingPercentageCirculating": 20,
+        "holdersCount": 70,
+        "marketCap": 60,
         "price": 3.4299999999999996e-8,
         "timestamp": 1616175618000,
-        "topTenHoldingPercentage": 7
+        "topTenHoldingPercentage": 10,
+        "topTenHoldingPercentageCirculating": 70
       },
       {
-        "bondingCurveProgress": 20,
-        "devHoldingPercentage": 4,
-        "holdersCount": 18,
-        "marketCap": 100,
+        "bondingCurveProgress": 50,
+        "devHoldingPercentage": 5,
+        "devHoldingPercentageCirculating": 20,
+        "holdersCount": 70,
+        "marketCap": 60,
         "price": 3.44e-8,
         "timestamp": 1616175620000,
-        "topTenHoldingPercentage": 7
+        "topTenHoldingPercentage": 10,
+        "topTenHoldingPercentageCirculating": 70
       },
       {
-        "bondingCurveProgress": 20,
-        "devHoldingPercentage": 4,
-        "holdersCount": 18,
-        "marketCap": 100,
+        "bondingCurveProgress": 50,
+        "devHoldingPercentage": 5,
+        "devHoldingPercentageCirculating": 20,
+        "holdersCount": 70,
+        "marketCap": 60,
         "price": 3.45e-8,
         "timestamp": 1616175622000,
-        "topTenHoldingPercentage": 7
+        "topTenHoldingPercentage": 10,
+        "topTenHoldingPercentageCirculating": 70
       }
     ]
   },
@@ -218,7 +240,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "price=3.1e-8, marketCap=33.1, bondingCurveProgress=3%, entryTimestamp=1616175603000"
+      "message": "price=3.1e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175603000"
     },
     {
       "contextMap": {
@@ -226,7 +248,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=2, top ten holding 10%, dev holding 5%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
     },
     {
       "contextMap": {
@@ -258,7 +280,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "price=3.12e-8, marketCap=33.2, bondingCurveProgress=15%, entryTimestamp=1616175605000"
+      "message": "price=3.12e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175605000"
     },
     {
       "contextMap": {
@@ -266,7 +288,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=7, top ten holding 8%, dev holding 6%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
     },
     {
       "contextMap": {
@@ -274,7 +296,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "Current vs initial market cap % difference: 0.30211480362538196%"
+      "message": "Current vs initial market cap % difference: 0%"
     },
     {
       "contextMap": {
@@ -290,7 +312,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "price=3.13e-8, marketCap=33.3, bondingCurveProgress=15%, entryTimestamp=1616175609000"
+      "message": "price=3.13e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175609000"
     },
     {
       "contextMap": {
@@ -298,7 +320,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=7, top ten holding 8%, dev holding 6%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
     },
     {
       "contextMap": {
@@ -306,7 +328,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "Current vs initial market cap % difference: 0.6042296072507424%"
+      "message": "Current vs initial market cap % difference: 0%"
     },
     {
       "contextMap": {
@@ -330,7 +352,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "price=3.14e-8, marketCap=33.4, bondingCurveProgress=15%, entryTimestamp=1616175611000"
+      "message": "price=3.14e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175611000"
     },
     {
       "contextMap": {
@@ -338,7 +360,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=7, top ten holding 8%, dev holding 6%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
     },
     {
       "contextMap": {
@@ -346,7 +368,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "Current vs initial market cap % difference: 0.9063444108761244%"
+      "message": "Current vs initial market cap % difference: 0%"
     },
     {
       "contextMap": {
@@ -370,7 +392,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "price=3.41e-8, marketCap=35, bondingCurveProgress=20%, entryTimestamp=1616175613000"
+      "message": "price=3.41e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175613000"
     },
     {
       "contextMap": {
@@ -378,7 +400,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=18, top ten holding 7%, dev holding 4%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
     },
     {
       "contextMap": {
@@ -386,7 +408,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "Current vs initial market cap % difference: 5.7401812688821705%"
+      "message": "Current vs initial market cap % difference: 0%"
     },
     {
       "contextMap": {
@@ -422,7 +444,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "price=3.42e-8, marketCap=100, bondingCurveProgress=20%, entryTimestamp=1616175615000"
+      "message": "price=3.42e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175615000"
     },
     {
       "contextMap": {
@@ -430,7 +452,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=18, top ten holding 7%, dev holding 4%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
     },
     {
       "contextMap": {
@@ -438,7 +460,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "Current vs initial market cap % difference: 202.11480362537765%"
+      "message": "Current vs initial market cap % difference: 0%"
     },
     {
       "contextMap": {
@@ -462,7 +484,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "price=3.4299999999999996e-8, marketCap=100, bondingCurveProgress=20%, entryTimestamp=1616175618000"
+      "message": "price=3.4299999999999996e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175618000"
     },
     {
       "contextMap": {
@@ -470,7 +492,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=18, top ten holding 7%, dev holding 4%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
     },
     {
       "contextMap": {
@@ -478,7 +500,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "Current vs initial market cap % difference: 202.11480362537765%"
+      "message": "Current vs initial market cap % difference: 0%"
     },
     {
       "contextMap": {
@@ -486,7 +508,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "price=3.44e-8, marketCap=100, bondingCurveProgress=20%, entryTimestamp=1616175620000"
+      "message": "price=3.44e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175620000"
     },
     {
       "contextMap": {
@@ -494,7 +516,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=18, top ten holding 7%, dev holding 4%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
     },
     {
       "contextMap": {
@@ -502,7 +524,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "Current vs initial market cap % difference: 202.11480362537765%"
+      "message": "Current vs initial market cap % difference: 0%"
     },
     {
       "contextMap": {

@@ -40,6 +40,9 @@ describe(calculateHoldersStats.name, () => {
             holdersCount: 5,
             devHoldingPercentage: 0.0357547484171,
             topTenHoldingPercentage: 1.8265772478804998,
+            circulatingSupply: 18265772478805,
+            devHoldingPercentageCirculating: 1.9574725601443153,
+            topTenHoldingPercentageCirculating: 100,
         });
     });
 });

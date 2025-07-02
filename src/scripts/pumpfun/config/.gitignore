@@ -1,0 +1,5 @@
+# Ignore all JSON files
+*.json
+
+# do NOT ignore defaults JSON files
+!*.defaults.json

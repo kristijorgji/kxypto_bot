@@ -91,7 +91,7 @@ export type HandlePumpTokenBaseReport = {
     };
     simulation: boolean;
     rpcProvider: {
-        providerName?: string;
+        name?: string;
         domain: string;
     };
     mint: string;

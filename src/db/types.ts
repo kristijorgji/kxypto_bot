@@ -24,6 +24,7 @@ export type Session = {
 export type ApmEntry = {
     id: string;
     name: string;
+    provider: string;
     start_timestamp_ms: number;
     execution_time_ns: number;
 };
@@ -93,6 +94,7 @@ export type BacktestStrategyMintResult = {
 
 export type Position = {
     id: number;
+    mode: 'real' | 'simulation';
     trade_id: string;
     chain: Blockchain;
     exchange: 'pumpfun';

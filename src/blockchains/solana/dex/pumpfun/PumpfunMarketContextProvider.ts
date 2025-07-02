@@ -1,17 +1,25 @@
+import { measureExecutionTime } from '@src/apm/apm';
+import { MarketContext } from '@src/trading/bots/launchpads/types';
+
 import { PUMPFUN_TOKEN_SUPPLY } from './constants';
 import Pumpfun from './Pumpfun';
 import { PumpfunTokenBcStats } from './types';
-import { measureExecutionTime } from '../../../../apm/apm';
-import { MarketContext } from '../../../../trading/bots/launchpads/types';
 import calculateHoldersStats from '../../../../trading/bots/launchpads/utils/calculateHoldersStats';
 import SolanaAdapter from '../../SolanaAdapter';
 import { TokenHolder } from '../../types';
 
 export default class PumpfunMarketContextProvider {
+    private readonly measureFn: typeof measureExecutionTime;
+
     constructor(
         private readonly pumpfun: Pumpfun,
         private readonly solanaAdapter: SolanaAdapter,
-    ) {}
+        private readonly config: {
+            measureExecutionTime: boolean;
+        },
+    ) {
+        this.measureFn = this.config.measureExecutionTime ? measureExecutionTime : <T>(fn: () => T) => fn();
+    }
 
     async get({
         tokenMint,
@@ -22,21 +30,20 @@ export default class PumpfunMarketContextProvider {
         bondingCurve: string;
         creator: string;
     }): Promise<MarketContext> {
-        // @ts-ignore
         const [tokenHolders, { marketCapInSol, priceInSol, bondingCurveProgress }]: [
             TokenHolder[],
             PumpfunTokenBcStats,
-        ] = await measureExecutionTime(
+        ] = await this.measureFn(
             () =>
                 Promise.all([
-                    measureExecutionTime(
+                    this.measureFn(
                         () =>
                             this.solanaAdapter.getTokenHolders({
                                 tokenMint: tokenMint,
                             }),
                         'solanaAdapter.getTokenHolders',
                     ),
-                    measureExecutionTime(
+                    this.measureFn(
                         () => this.pumpfun.getTokenBondingCurveStats(bondingCurve),
                         'pumpfun.getTokenBondingCurveStats',
                     ),

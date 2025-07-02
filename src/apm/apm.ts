@@ -8,7 +8,10 @@ import { logger } from '../logger';
 const batched: ApmEntry[] = [];
 const batchSize = 1000;
 
-export function startApm(): void {
+let globalProvider: string = '_';
+
+export function startApm(provider: string): void {
+    globalProvider = provider;
     process.on('SIGINT', async () => {
         try {
             logger.debug('APM - Graceful shutdown');
@@ -37,6 +40,7 @@ export async function measureExecutionTime<T>(
     fn: () => Promise<T>,
     functionName: string,
     config?: {
+        provider?: string;
         storeImmediately: boolean;
     },
 ): Promise<T> {
@@ -51,6 +55,7 @@ export async function measureExecutionTime<T>(
     const apmEntry: ApmEntry = {
         id: uuidv4(),
         name: functionName,
+        provider: config?.provider ?? globalProvider,
         start_timestamp_ms: unixTimestampInMs,
         execution_time_ns: timeInNs,
     };

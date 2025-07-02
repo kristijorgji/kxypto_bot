@@ -5,6 +5,7 @@ import { Tables } from '../tables';
 export async function up(knex: Knex): Promise<void> {
     await knex.schema.createTable(Tables.Positions, table => {
         table.bigIncrements('id').primary();
+        table.enum('mode', ['real', 'simulation']).notNullable().index();
         table.string('trade_id', 50).unique().notNullable();
         table.enum('chain', ['solana']).notNullable().index();
         table.string('exchange', 50).notNullable().index();

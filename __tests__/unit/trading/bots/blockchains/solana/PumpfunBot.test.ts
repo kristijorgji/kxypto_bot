@@ -74,7 +74,9 @@ describe(PumpfunBot.name, () => {
         wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
     });
     const solanaAdapter = new SolanaAdapter(solanaConnection);
-    const marketContextProvider = new PumpfunMarketContextProvider(pumpfun, solanaAdapter);
+    const marketContextProvider = new PumpfunMarketContextProvider(pumpfun, solanaAdapter, {
+        measureExecutionTime: true,
+    });
     const wallet = new Wallet(solanaConnection, {
         provider: SolanaWalletProviders.TrustWallet,
         mnemonic: process.env.WALLET_MNEMONIC_PHRASE as string,
@@ -277,6 +279,7 @@ describe(PumpfunBot.name, () => {
         });
         expect(insertPosition).toHaveBeenCalledTimes(1);
         const expectedInsertPosition: InsertPosition = {
+            mode: 'simulation',
             trade_id: 'solana-MMC-test-1616175607000',
             chain: 'solana',
             exchange: 'pumpfun',

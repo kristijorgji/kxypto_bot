@@ -1,8 +1,10 @@
 import fs from 'fs';
+import path from 'path';
 
 import '@src/core/loadEnv';
 import { Command } from 'commander';
 import { Logger } from 'winston';
+import { z } from 'zod';
 
 import { startApm } from '@src/apm/apm';
 import { SolanaWalletProviders } from '@src/blockchains/solana/constants/walletProviders';
@@ -44,11 +46,19 @@ import PumpfunBotEventBus from '../../trading/bots/blockchains/solana/PumpfunBot
 import PumpfunBotTradeManager from '../../trading/bots/blockchains/solana/PumpfunBotTradeManager';
 import RiseStrategy from '../../trading/strategies/launchpads/RiseStrategy';
 
+const EnvConfigSchema = z.object({
+    marketContextProvider: z.object({
+        measureExecutionTime: z.boolean(),
+    }),
+});
+
+type EnvConfig = z.infer<typeof EnvConfigSchema>;
+
 const ReportSchema: Schema = {
     version: 1.4,
 };
 
-const rpcProvider = {
+const rpcProvider: HandlePumpTokenBaseReport['rpcProvider'] = {
     domain: extractHostAndPort(process.env.SOLANA_RPC_ENDPOINT as string).host,
 };
 
@@ -129,23 +139,29 @@ export async function start(
     },
     strategyFactory: () => LaunchpadBotStrategy,
 ) {
-    startApm();
+    const envConfig = getBotEnvConfig();
+    startApm(rpcProvider.domain);
 
-    const _strategy = strategyFactory();
-    logger.info(
-        '🚀 Bot started with config=%o\nUsing strategy %s with variant config %s, config:%o',
-        config,
-        _strategy.identifier,
-        _strategy.configVariant,
-        _strategy.config,
-    );
+    {
+        const _strategy = strategyFactory();
+        logger.info(
+            '🚀 Bot started with config=%o\nenvConfig=%o\nstrategy %s with variant config %s, config:%o',
+            config,
+            envConfig,
+            _strategy.identifier,
+            _strategy.configVariant,
+            _strategy.config,
+        );
+    }
 
     const pumpfun = new Pumpfun({
         rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
         wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
     });
     const solanaAdapter = new SolanaAdapter(solanaConnection);
-    const marketContextProvider = new PumpfunMarketContextProvider(pumpfun, solanaAdapter);
+    const marketContextProvider = new PumpfunMarketContextProvider(pumpfun, solanaAdapter, {
+        measureExecutionTime: envConfig.marketContextProvider.measureExecutionTime,
+    });
 
     const wallet = await new Wallet(solanaConnection, {
         provider: SolanaWalletProviders.TrustWallet,
@@ -374,4 +390,19 @@ async function storeResult(report: HandlePumpTokenReport) {
         },
         report,
     );
+}
+
+function getBotEnvConfig(): EnvConfig {
+    const file = path.join(__dirname, 'config/bot.json');
+    const defaultsFile = path.join(__dirname, 'config/bot.defaults.json');
+
+    if (fs.existsSync(file)) {
+        return EnvConfigSchema.parse(JSON.parse(fs.readFileSync(file).toString()));
+    }
+
+    if (fs.existsSync(defaultsFile)) {
+        return EnvConfigSchema.parse(JSON.parse(fs.readFileSync(defaultsFile, 'utf-8')));
+    }
+
+    throw new Error('No config found: please create config/bot.json or config/bot.defaults.json');
 }

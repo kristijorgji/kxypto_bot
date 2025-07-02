@@ -363,7 +363,7 @@ export default class PumpfunBot {
                             jitoConfig: jitoConfig,
                         }),
                     formPumpfunApmTransactionName(this.config.simulate, 'buy', buyPriorityFeeInSol, jitoConfig),
-                    { storeImmediately: true },
+                    { storeImmediately: true, provider: jitoConfig.jitoEnabled ? 'jito' : undefined },
                 )
                     .then(buyRes => {
                         if (buyRes.txDetails.error) {
@@ -410,6 +410,7 @@ export default class PumpfunBot {
                             transaction: buyPosition,
                         });
                         position = {
+                            mode: this.config.simulate ? 'simulation' : 'real',
                             trade_id: generateTradeId('solana', tokenInfo.symbol),
                             chain: 'solana',
                             exchange: 'pumpfun',
@@ -528,7 +529,7 @@ export default class PumpfunBot {
                             jitoConfig: jitoConfig,
                         }),
                     formPumpfunApmTransactionName(this.config.simulate, 'sell', sellPriorityFeeInSol, jitoConfig),
-                    { storeImmediately: true },
+                    { storeImmediately: true, provider: jitoConfig.jitoEnabled ? 'jito' : undefined },
                 )
                     .then(sellRes => {
                         if (sellRes.txDetails.error) {

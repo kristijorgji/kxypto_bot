@@ -34,19 +34,45 @@ if (require.main === module) {
     validateBacktestFilesProgram.parse(process.argv);
 }
 
+type Config = {
+    dataSource: {
+        path: string;
+        includeIfPathContains: string[] | undefined;
+    };
+    rules: {
+        notJson: boolean;
+        nulls: {
+            enabled: boolean;
+            exclude: Partial<Record<keyof MarketContext, { upToIndex?: number }>>;
+        };
+        noHistory: boolean;
+    };
+    extractTo: string | undefined;
+};
+
 /**
  * It will check all the backtest files under default dir `./data/pumpfun-stats`
  * and provide a summary of how many are valid, how many invalid (e.g., have price = null)
  */
 async function start(args: { path: string; includeIfPathContains: string; extractTo?: string }) {
-    const config = {
+    const config: Config = {
         dataSource: {
             path: args.path,
             includeIfPathContains: args.includeIfPathContains ? args.includeIfPathContains.split(',') : undefined,
         },
         rules: {
             notJson: true,
-            nulls: true,
+            nulls: {
+                enabled: true,
+                exclude: {
+                    devHoldingPercentageCirculating: {
+                        upToIndex: 12,
+                    },
+                    topTenHoldingPercentageCirculating: {
+                        upToIndex: 12,
+                    },
+                },
+            },
             noHistory: true,
         },
         extractTo: args.extractTo,
@@ -129,6 +155,11 @@ async function start(args: { path: string; includeIfPathContains: string; extrac
             const historyEntry = pc.history[i];
 
             for (const mKey of marketContextKeys) {
+                const excludeRule = config.rules.nulls.exclude[mKey];
+                if (excludeRule && (excludeRule?.upToIndex === undefined || excludeRule.upToIndex >= i)) {
+                    continue;
+                }
+
                 if (historyEntry[mKey] === null) {
                     if (!invalidFiles[file.fullPath]) {
                         invalidFiles[file.fullPath] = {
@@ -141,12 +172,7 @@ async function start(args: { path: string; includeIfPathContains: string; extrac
                         };
                     }
 
-                    if (i > 0 && pc.history[i - 1][mKey] === null) {
-                        lastNullIntervals![mKey]!.count++;
-                        invalidFiles[file.fullPath].context![mKey]!.null[
-                            lastNullIntervals![mKey]!.startRef.index
-                        ].count = lastNullIntervals![mKey]!.count;
-                    } else {
+                    if (!lastNullIntervals[mKey]) {
                         lastNullIntervals[mKey] = {
                             startRef: {
                                 timestamp: historyEntry.timestamp,
@@ -158,6 +184,17 @@ async function start(args: { path: string; includeIfPathContains: string; extrac
                             startTimestamp: lastNullIntervals[mKey].startRef.timestamp,
                             count: 1,
                         };
+                    }
+
+                    if (
+                        i > 0 &&
+                        !(excludeRule && excludeRule.upToIndex && excludeRule.upToIndex + 1 === i) &&
+                        pc.history[i - 1][mKey] === null
+                    ) {
+                        lastNullIntervals![mKey]!.count++;
+                        invalidFiles[file.fullPath].context![mKey]!.null[
+                            lastNullIntervals![mKey]!.startRef.index
+                        ].count = lastNullIntervals![mKey]!.count;
                     }
                 } else {
                     lastNullIntervals[mKey] = null;

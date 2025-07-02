@@ -78,6 +78,32 @@ it('should mark files containing nulls as invalid', async () => {
                     }),
                     topTenHoldingPercentage: null,
                 },
+                {
+                    ...formHistoryEntry({
+                        timestamp: 7,
+                    }),
+                    devHoldingPercentageCirculating: null,
+                    topTenHoldingPercentageCirculating: null,
+                },
+                ...Array(5)
+                    .fill(0)
+                    .map((_, index) => formHistoryEntry({ timestamp: 7 + index + 1 })),
+                // matches upToIndex and should be excluded
+                {
+                    ...formHistoryEntry({
+                        timestamp: 13,
+                    }),
+                    devHoldingPercentageCirculating: null,
+                    topTenHoldingPercentageCirculating: null,
+                },
+                // should detect this null after upToIndex
+                {
+                    ...formHistoryEntry({
+                        timestamp: 14,
+                    }),
+                    devHoldingPercentageCirculating: null,
+                    topTenHoldingPercentageCirculating: null,
+                },
             ],
         },
         'data/ok.json': {

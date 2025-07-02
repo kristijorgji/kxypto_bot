@@ -5,12 +5,12 @@ import { Backtest } from '@src/db/types';
 import { logger, silentLogger } from '@src/logger';
 import { strategyFromConfig } from '@src/trading/strategies/launchpads/config-parser';
 
-import { BacktestConfig, BacktestFileConfig } from './types';
+import { BacktestConfig, BacktestFileConfig, backtestFileConfigSchema } from './types';
 import { BacktestRunConfig } from '../bots/blockchains/solana/types';
 import LaunchpadBotStrategy from '../strategies/launchpads/LaunchpadBotStrategy';
 
 export async function parseBacktestFileConfig(path: string): Promise<BacktestConfig> {
-    const config = JSON.parse(fs.readFileSync(path).toString()) as BacktestFileConfig;
+    const config = backtestFileConfigSchema.parse(JSON.parse(fs.readFileSync(path).toString()));
 
     let backtest: Backtest | undefined;
     if ((config as { backtestId?: string })?.backtestId) {

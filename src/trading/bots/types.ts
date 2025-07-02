@@ -1,62 +1,60 @@
+import { z } from 'zod';
+
 export type TransactionType = 'buy' | 'sell';
 
 export type SwapSubCategory = 'accumulation' | 'newPosition' | 'partialSell' | 'sellAll';
 
-export type BotConfig = {
+const botConfigSchema = z.object({
     /**
      * Whether the bot should run in simulation mode.
      * If true, no real transactions will be executed.
      */
-    simulate: boolean;
+    simulate: z.boolean(),
 
     /**
      * The interval (in milliseconds) at which market data is fetched while monitoring before a buy occurs.
      * This value must be greater than or equal to `sellMonitorWaitPeriodMs`.
      * Additionally, `buyMonitorWaitPeriodMs / sellMonitorWaitPeriodMs` must be a whole number.
      */
-    buyMonitorWaitPeriodMs: number;
+    buyMonitorWaitPeriodMs: z.number().positive(),
 
     /**
      * The interval (in milliseconds) at which market data is fetched while monitoring after a buy occurs.
      * This value must be less than or equal to `buyMonitorWaitPeriodMs`.
      */
-    sellMonitorWaitPeriodMs: number;
+    sellMonitorWaitPeriodMs: z.number().positive(),
 
     /**
      * The time (in milliseconds) to wait after a result is processed before returning the result.
      */
-    maxWaitMonitorAfterResultMs: number;
+    maxWaitMonitorAfterResultMs: z.number().positive(),
 
     /**
      * The amount of SOL to use for buying tokens.
      * - If set to `null`, the bot will dynamically determine the optimal value based on market conditions.
      * - If set to a number, it specifies a fixed buy-in amount in SOL.
      */
-    buyInSol: number | null;
-};
+    buyInSol: z.number().positive().nullable(),
+});
+export type BotConfig = z.infer<typeof botConfigSchema>;
 
-export type Schema = {
-    version: number;
-    name?: string;
-};
-
-/**
- * Configuration options for the bot manager's processing behavior.
- */
-export type BotManagerConfig = {
+const botManagerConfigSpecificSchema = z.object({
     /**
      * Schema metadata for this report file.
      * - `version` allows the report structure to evolve without breaking compatibility.
      * - `name` is optional and can be used to label or distinguish schema variants.
      */
-    reportSchema: Schema;
+    reportSchema: z.object({
+        version: z.number(),
+        name: z.string().optional(),
+    }),
 
     /**
      * The maximum number of tokens that can be processed in parallel.
      * - If set to `null`, there is no limit on parallel processing.
      * - If set to a number (e.g., `3`), the bot will process up to that many tokens simultaneously.
      */
-    maxTokensToProcessInParallel: number | null;
+    maxTokensToProcessInParallel: z.number().positive().nullable(),
 
     /**
      * Maximum number of open positions the bot can hold simultaneously.
@@ -64,22 +62,30 @@ export type BotManagerConfig = {
      * - If set to a number (e.g., `3`), the bot will pause listening for new coins
      *   until the current open positions are closed (sold) and fall below this limit.
      */
-    maxOpenPositions: number | null;
+    maxOpenPositions: z.number().positive().nullable(),
 
     /**
      * The amount of full trades.
      * - If set to a number, the bot will process up to maximum 1 full trade (1 buy, 1 sell)
      * - If set to `null`, the bot will process trades as long as it has enough balance
      */
-    maxFullTrades: number | null;
+    maxFullTrades: z.number().positive().nullable(),
 
     /**
      * Stop bots if this minimum balance is reached
      * - If set to a number, the bots will stop when this balance or lower is reached
      * - If set to `null`, the bot will process trades as long as it has enough balance
      */
-    stopAtMinWalletBalanceLamports: number | null;
-} & BotConfig;
+    stopAtMinWalletBalanceLamports: z.number().positive().nullable(),
+});
+
+export const botManagerConfigSchema = botConfigSchema.merge(botManagerConfigSpecificSchema).strict();
+/**
+ * Configuration options for the bot manager's processing behavior.
+ */
+export type BotManagerConfig = z.infer<typeof botManagerConfigSchema>;
+
+export type Schema = BotManagerConfig['reportSchema'];
 
 export type SellReason =
     | 'DUMPED'

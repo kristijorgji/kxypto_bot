@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 const JITO_MAINNET_ENDPOINTS = [
     'https://amsterdam.mainnet.block-engine.jito.wtf',
     'https://mainnet.block-engine.jito.wtf',
@@ -24,11 +26,12 @@ const getRandomJitoMainnetEndpoint = (): JitoEndpoint => {
     return JITO_MAINNET_ENDPOINTS[Math.floor(Math.random() * JITO_MAINNET_ENDPOINTS.length)] as JitoEndpoint;
 };
 
-export type JitoConfig = {
-    jitoEnabled: boolean;
-    endpoint?: JitoEndpoint;
-    tipLamports?: number;
-};
+export const jitoConfigSchema = z.object({
+    jitoEnabled: z.boolean(),
+    endpoint: z.enum(JITO_MAINNET_ENDPOINTS).optional(),
+    tipLamports: z.number().positive().optional(),
+});
+export type JitoConfig = z.infer<typeof jitoConfigSchema>;
 
 export const TIP_LAMPORTS = 150000; // 0,00015 SOL
 

@@ -1,15 +1,23 @@
 import { Logger } from 'winston';
+import { z } from 'zod';
+
+import { deepClone } from '@src/utils/data/data';
 
 import { shouldBuyStateless, shouldExitLaunchpadToken } from './common';
-import { deepClone } from '../../../utils/data/data';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
 import { ShouldBuyResponse, ShouldExitMonitoringResponse, ShouldSellResponse } from '../../bots/types';
-import { LaunchpadStrategyBuyConfig, StrategyConfig, StrategySellConfig } from '../types';
+import { marketContextIntervalConfigSchema, strategyConfigSchema, strategySellConfigSchema } from '../types';
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
 import { variantFromBuyContext, variantFromSellConfig } from './variant-builder';
 import { HistoryRef } from '../../bots/blockchains/solana/types';
 
-export type RiseStrategyConfig = StrategyConfig<{ buy: LaunchpadStrategyBuyConfig; sell: StrategySellConfig }>;
+export const riseStrategyConfigSchema = strategyConfigSchema.merge(
+    z.object({
+        buy: marketContextIntervalConfigSchema,
+        sell: strategySellConfigSchema,
+    }),
+);
+export type RiseStrategyConfig = z.infer<typeof riseStrategyConfigSchema>;
 
 type RiseStrategyShouldBuyResponseReason = 'shouldBuyStateless';
 

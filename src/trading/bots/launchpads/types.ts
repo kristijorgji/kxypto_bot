@@ -2,6 +2,7 @@
  * A launchpad bot is used for trading SMALL tokens that are launched via platforms like pumpfun, moonshot etc.
  * These bots can be used to trade with holders up to 1k or so and are not effective in larger more stable coins
  */
+import { z } from 'zod';
 
 export type HistoryEntry = {
     timestamp: number;
@@ -33,13 +34,27 @@ export type HistoryEntry = {
     };
 };
 
-export type MarketContext = {
-    price: number;
-    marketCap: number;
-    bondingCurveProgress: number;
-    holdersCount: number;
-    devHoldingPercentage: number;
-    topTenHoldingPercentage: number;
-    devHoldingPercentageCirculating: number;
-    topTenHoldingPercentageCirculating: number;
-};
+export const marketContextSchema = z.object({
+    price: z.number().gte(0),
+    marketCap: z.number().gte(0),
+    bondingCurveProgress: z.number().gte(0),
+    holdersCount: z.number().gte(0),
+    devHoldingPercentage: z.number().gte(0),
+    topTenHoldingPercentage: z.number().gte(0),
+    devHoldingPercentageCirculating: z.number().gte(0),
+    topTenHoldingPercentageCirculating: z.number().gte(0),
+});
+export type MarketContext = z.infer<typeof marketContextSchema>;
+
+export const marketContextKeys = [
+    'price',
+    'marketCap',
+    'bondingCurveProgress',
+    'holdersCount',
+    'devHoldingPercentage',
+    'topTenHoldingPercentage',
+    'devHoldingPercentageCirculating',
+    'topTenHoldingPercentageCirculating',
+] as const;
+
+export type MarketContextKey = (typeof marketContextKeys)[number];

@@ -1,10 +1,19 @@
-import { JitoConfig } from '@src/blockchains/solana/Jito';
+import { z } from 'zod';
+
+import { jitoConfigSchema } from '@src/blockchains/solana/Jito';
 import { FileStorageType } from '@src/core/types';
-import { StrategyFileConfig } from '@src/trading/config/types';
+import { strategyFileConfigSchema } from '@src/trading/config/types';
 
 import LaunchpadBotStrategy from '../../../strategies/launchpads/LaunchpadBotStrategy';
 import { HistoryEntry } from '../../launchpads/types';
-import { BotManagerConfig, ExitMonitoringReason, SellReason, SwapSubCategory, TransactionType } from '../../types';
+import {
+    BotManagerConfig,
+    ExitMonitoringReason,
+    SellReason,
+    SwapSubCategory,
+    TransactionType,
+    botManagerConfigSchema,
+} from '../../types';
 
 export type SolanaValue = {
     inLamports: number;
@@ -128,10 +137,12 @@ export type PumpfunBotConfig = {
     strategyFactory: () => LaunchpadBotStrategy;
 };
 
-export type PumpfunBotFileConfig = {
-    runConfig: Omit<BotManagerConfig, 'reportSchema'>;
-    strategy: StrategyFileConfig;
-};
+export const pumpfunBotFileConfigSchema = z.object({
+    runConfig: botManagerConfigSchema.omit({
+        reportSchema: true,
+    }),
+    strategy: strategyFileConfigSchema,
+});
 
 export type BacktestExitResponse = {
     exitCode: ExitMonitoringReason;
@@ -152,39 +163,36 @@ export type BacktestTradeResponse = {
 
 export type BacktestResponse = BacktestExitResponse | BacktestTradeResponse;
 
-/**
- * Configuration options for running a backtest simulation for a particular strategy.
- */
-export type BacktestStrategyRunConfig = {
+export const backtestStrategyRunConfigSchema = z.object({
     /**
      * The initial balance for the backtest, denominated in lamports (1 SOL = 1,000,000,000 lamports).
      */
-    initialBalanceLamports: number;
+    initialBalanceLamports: z.number().positive(),
 
     /**
      * The amount of SOL to allocate for each buy transaction during the simulation.
      */
-    buyAmountSol: number;
+    buyAmountSol: z.number().positive(),
 
     /**
      * Configuration settings related to Jito.
      */
-    jitoConfig: JitoConfig;
+    jitoConfig: jitoConfigSchema,
 
     /**
      * The trading strategy to be used in the backtest.
      */
-    strategy: LaunchpadBotStrategy;
+    strategy: z.instanceof(LaunchpadBotStrategy),
 
     /**
      * Configuration for introducing random variations during simulation to better mimic real-world market conditions.
      */
-    randomization: {
+    randomization: z.object({
         /**
          * If `true`, introduces random variations in buy and sell priority fees,
          * within the provided priority fee intervals.
          */
-        priorityFees: boolean;
+        priorityFees: z.boolean(),
 
         /**
          * Controls how slippage values are selected during the simulation:
@@ -192,38 +200,49 @@ export type BacktestStrategyRunConfig = {
          * - `'randomized'`: Randomize slippage within the provided buy and sell slippage intervals.
          * - `'closestEntry'`: Use the closest available price value from the historical dataset or predefined entries after simulating buy or execution times.
          */
-        slippages: 'off' | 'randomized' | 'closestEntry';
+        slippages: z.enum(['off', 'randomized', 'closestEntry']),
 
         /**
          * If `true`, introduces random variations in buy and sell execution times
          * to simulate real-world delays.
          */
-        execution: boolean;
-    };
+        execution: z.boolean(),
+    }),
 
     /**
      * If `true`, the simulation will exit after completing a single buy-sell trade cycle.
      */
-    onlyOneFullTrade: boolean;
+    onlyOneFullTrade: z.boolean(),
 
     /**
      * If `true`, the simulation will automatically sell all remaining open positions
      * at the final timestamp of the historical data. This ensures that all trades
      * are closed by the end of the backtest.
      */
-    sellUnclosedPositionsAtEnd: boolean;
-};
+    sellUnclosedPositionsAtEnd: z.boolean(),
+});
+/**
+ * Configuration options for running a backtest simulation for a particular strategy.
+ */
+export type BacktestStrategyRunConfig = z.infer<typeof backtestStrategyRunConfigSchema>;
 
-export type BacktestRunConfig = Omit<BacktestStrategyRunConfig, 'strategy'> & {
-    data: {
-        path: string;
-        filesCount: number;
-        /**
-         * If one of the provided includes matches, the file is included
-         */
-        includeIfPathContains?: string[];
-    };
-};
+export const backtestRunConfigSchema = backtestStrategyRunConfigSchema
+    .omit({
+        strategy: true,
+    })
+    .merge(
+        z.object({
+            data: z.object({
+                path: z.string(),
+                filesCount: z.number().positive(),
+                /**
+                 * If one of the provided includes matches, the file is included
+                 */
+                includeIfPathContains: z.array(z.string()).optional(),
+            }),
+        }),
+    );
+export type BacktestRunConfig = z.infer<typeof backtestRunConfigSchema>;
 
 export type StrategyMintBacktestResult = {
     mintFileStorageType: FileStorageType;

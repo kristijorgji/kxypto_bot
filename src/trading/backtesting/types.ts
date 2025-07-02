@@ -1,22 +1,27 @@
-import { Backtest } from '@src/db/types';
-import { LoggerType, StrategyFileConfig } from '@src/trading/config/types';
+import { z } from 'zod';
 
-import { BacktestRunConfig } from '../bots/blockchains/solana/types';
+import { Backtest } from '@src/db/types';
+import { loggerTypeSchema, strategyFileConfigSchema } from '@src/trading/config/types';
+
+import { BacktestRunConfig, backtestRunConfigSchema } from '../bots/blockchains/solana/types';
 import LaunchpadBotStrategy from '../strategies/launchpads/LaunchpadBotStrategy';
 
-type BacktestStrategiesFileConfig = StrategyFileConfig[];
-
-export type BacktestFileConfig = (
-    | {
-          backtestId: string;
-      }
-    | {
-          runConfig: BacktestRunConfig;
-      }
-) & {
-    strategyLogger?: LoggerType;
-    strategies: BacktestStrategiesFileConfig;
-};
+export const backtestFileConfigSchema = z
+    .object({
+        strategyLogger: loggerTypeSchema.optional(),
+        strategies: z.array(strategyFileConfigSchema),
+    })
+    .and(
+        z.union([
+            z.object({
+                backtestId: z.string(),
+            }),
+            z.object({
+                runConfig: backtestRunConfigSchema,
+            }),
+        ]),
+    );
+export type BacktestFileConfig = z.infer<typeof backtestFileConfigSchema>;
 
 export type BacktestConfig = (
     | {

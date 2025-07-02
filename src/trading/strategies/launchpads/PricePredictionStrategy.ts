@@ -2,19 +2,20 @@ import axios, { AxiosResponse } from 'axios';
 import axiosRateLimit, { RateLimitedAxiosInstance } from 'axios-rate-limit';
 import Redis from 'ioredis';
 import { Logger } from 'winston';
+import { z } from 'zod';
 
 import { deepClone } from '@src/utils/data/data';
 
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
 import { ShouldBuyResponse, ShouldExitMonitoringResponse } from '../../bots/types';
 import {
-    IntervalConfig,
     PredictionRequest,
     PredictionSource,
     PredictionStrategyShouldBuyResponseReason,
-    StrategyConfig,
-    StrategyPredictionConfig,
-    StrategySellConfig,
+    marketContextIntervalConfigSchema,
+    strategyConfigSchema,
+    strategyPredictionConfigSchema,
+    strategySellConfigSchema,
 } from '../types';
 import { shouldExitLaunchpadToken } from './common';
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
@@ -23,15 +24,18 @@ import { validatePredictionConfig } from './validators';
 import { variantFromBuyContext, variantFromPredictionConfig, variantFromSellConfig } from './variant-builder';
 import { HistoryRef } from '../../bots/blockchains/solana/types';
 
-export type PricePredictionStrategyConfig = StrategyConfig<{
-    prediction: StrategyPredictionConfig;
-    buy: {
-        minPredictedPriceIncreasePercentage: number;
-        minConsecutivePredictionConfirmations?: number;
-        context?: Partial<Record<keyof MarketContext, IntervalConfig>>;
-    };
-    sell: StrategySellConfig;
-}>;
+export const pricePredictionStrategyConfigSchema = strategyConfigSchema.merge(
+    z.object({
+        prediction: strategyPredictionConfigSchema,
+        buy: z.object({
+            minPredictedPriceIncreasePercentage: z.number().positive(),
+            minConsecutivePredictionConfirmations: z.number().positive().optional(),
+            context: marketContextIntervalConfigSchema.optional(),
+        }),
+        sell: strategySellConfigSchema,
+    }),
+);
+export type PricePredictionStrategyConfig = z.infer<typeof pricePredictionStrategyConfigSchema>;
 
 type PredictPricesResponse = {
     predicted_prices: number[];

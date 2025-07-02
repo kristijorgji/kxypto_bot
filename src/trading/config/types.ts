@@ -1,23 +1,34 @@
-import { BuyPredictionStrategyConfig } from '@src/trading/strategies/launchpads/BuyPredictionStrategy';
-import { PricePredictionStrategyConfig } from '@src/trading/strategies/launchpads/PricePredictionStrategy';
-import { RiseStrategyConfig } from '@src/trading/strategies/launchpads/RiseStrategy';
-import { PredictionSource } from '@src/trading/strategies/types';
+import { z } from 'zod';
 
-export type LoggerType = 'silent' | 'normal';
+import { buyPredictionStrategyConfigSchema } from '@src/trading/strategies/launchpads/BuyPredictionStrategy';
+import { pricePredictionStrategyConfigSchema } from '@src/trading/strategies/launchpads/PricePredictionStrategy';
+import { riseStrategyConfigSchema } from '@src/trading/strategies/launchpads/RiseStrategy';
+import { predictionSourceSchema } from '@src/trading/strategies/types';
 
-export type StrategyFileConfig = { type: string; logger?: LoggerType } & (
-    | {
-          type: 'RiseStrategy';
-          config: Partial<RiseStrategyConfig>;
-      }
-    | {
-          type: 'BuyPredictionStrategy';
-          source: PredictionSource;
-          config: Partial<BuyPredictionStrategyConfig>;
-      }
-    | {
-          type: 'PricePredictionStrategy';
-          source: PredictionSource;
-          config: Partial<PricePredictionStrategyConfig>;
-      }
+export const loggerTypeSchema = z.enum(['silent', 'normal']);
+
+const riseStrategySchema = z.object({
+    type: z.literal('RiseStrategy'),
+    config: riseStrategyConfigSchema.partial(),
+});
+
+const buyPredictionStrategySchema = z.object({
+    type: z.literal('BuyPredictionStrategy'),
+    source: predictionSourceSchema,
+    config: buyPredictionStrategyConfigSchema.partial(),
+});
+
+const pricePredictionStrategySchema = z.object({
+    type: z.literal('PricePredictionStrategy'),
+    source: predictionSourceSchema,
+    config: pricePredictionStrategyConfigSchema.partial(),
+});
+
+const baseStrategySchema = z.object({
+    logger: loggerTypeSchema.optional(),
+});
+
+export const strategyFileConfigSchema = baseStrategySchema.and(
+    z.union([riseStrategySchema, buyPredictionStrategySchema, pricePredictionStrategySchema]),
 );
+export type StrategyFileConfig = z.infer<typeof strategyFileConfigSchema>;

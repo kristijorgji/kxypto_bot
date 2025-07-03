@@ -11,9 +11,11 @@ organizeStatsProgram
     )
     .version('0.0.0')
     .requiredOption('--path <string>', 'Path to the folder containing the JSON result files.')
+    .option('--dry-run', 'Perform a dry run without making any changes')
     .action(async args => {
         await organizePumpfunFiles({
             path: args.path,
+            dryRun: args.dryRun,
         });
     });
 

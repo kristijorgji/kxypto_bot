@@ -61,6 +61,7 @@ async function migrateFilesToNewSchema() {
         logger.info('Will re-organize the folders now');
         await organizePumpfunFiles({
             path: formPumpfunBacktestStatsDir(),
+            dryRun: false,
         });
     }
 }

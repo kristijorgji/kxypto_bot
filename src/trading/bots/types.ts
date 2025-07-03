@@ -30,6 +30,15 @@ const botConfigSchema = z.object({
     maxWaitMonitorAfterResultMs: z.number().positive(),
 
     /**
+     * Optional timeout in milliseconds to automatically sell a token if it hasn't been sold
+     * by other means (e.g., hitting limit orders). When this timeout is reached, the bot
+     * triggers a forced sell to avoid holding the token indefinitely.
+     *
+     * If not set, no automatic forced sell by timeout will occur.
+     */
+    autoSellTimeoutMs: z.number().positive().optional(),
+
+    /**
      * The amount of SOL to use for buying tokens.
      * - If set to `null`, the bot will dynamically determine the optimal value based on market conditions.
      * - If set to a number, it specifies a fixed buy-in amount in SOL.
@@ -95,7 +104,8 @@ export type SellReason =
     | 'TRAILING_TAKE_PROFIT'
     | 'AT_HARDCODED_PROFIT'
     | 'NO_LONGER_MEETS_ENTRY_RULES'
-    | 'BEFORE_EXIT_MONITORING';
+    | 'BEFORE_EXIT_MONITORING'
+    | 'AUTO_SELL_TIMEOUT';
 
 export type DoSellResponse = {
     reason: SellReason;

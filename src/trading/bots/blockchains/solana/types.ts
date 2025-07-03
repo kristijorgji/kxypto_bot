@@ -143,6 +143,7 @@ export const pumpfunBotFileConfigSchema = z.object({
     }),
     strategy: strategyFileConfigSchema,
 });
+export type PumpfunBotFileConfig = z.infer<typeof pumpfunBotFileConfigSchema>;
 
 export type BacktestExitResponse = {
     exitCode: ExitMonitoringReason;

@@ -1,4 +1,5 @@
-import { SellReason } from '../../trading/bots/types';
+import { SellReason } from '@src/trading/bots/types';
+
 import { db } from '../knex';
 import { Tables } from '../tables';
 import { InsertPosition, Position } from '../types';

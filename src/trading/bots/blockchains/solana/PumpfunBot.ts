@@ -324,6 +324,19 @@ export default class PumpfunBot {
                     sell = {
                         reason: shouldSellRes.reason,
                     };
+                } else if (this.config.autoSellTimeoutMs) {
+                    const elapsedSinceBuyMs = Date.now() - strategy.buyPosition.transaction.timestamp;
+
+                    if (elapsedSinceBuyMs >= this.config.autoSellTimeoutMs) {
+                        logger.info(
+                            'Auto-sell triggered because elapsed time (%sms) exceeded timeout (%sms)',
+                            elapsedSinceBuyMs,
+                            this.config.autoSellTimeoutMs,
+                        );
+                        sell = {
+                            reason: 'AUTO_SELL_TIMEOUT',
+                        };
+                    }
                 }
             }
 

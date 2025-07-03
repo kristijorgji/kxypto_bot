@@ -33,6 +33,7 @@ export async function up(knex: Knex): Promise<void> {
                 'TRAILING_TAKE_PROFIT',
                 'AT_HARDCODED_PROFIT',
                 'NO_LONGER_MEETS_ENTRY_RULES',
+                'AUTO_SELL_TIMEOUT',
             ])
             .nullable()
             .index();

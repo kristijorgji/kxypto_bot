@@ -277,7 +277,6 @@ describe(PumpfunBot.name, () => {
                 jitoEnabled: true,
             },
         });
-        expect(insertPosition).toHaveBeenCalledTimes(1);
         const expectedInsertPosition: InsertPosition = {
             mode: 'simulation',
             trade_id: 'solana-MMC-test-1616175607000',
@@ -338,6 +337,87 @@ describe(PumpfunBot.name, () => {
         expect(botEventBus.tradeExecuted as jest.Mock).toHaveBeenCalledTimes(2);
         expect(botEventBus.botTradeResponse as jest.Mock).toHaveBeenCalledTimes(1);
         expect(botEventBus.botTradeResponse as jest.Mock).toHaveBeenCalledWith(expectedBotTradeResponse);
+
+        expect(logs).toEqual(expected.logs);
+    });
+
+    it('should sell when autoSellTimeout passes position is still held', async () => {
+        pumpfunBot = new PumpfunBot({
+            logger: logger,
+            pumpfun: pumpfun,
+            solanaAdapter: solanaAdapter,
+            marketContextProvider: marketContextProvider,
+            wallet: wallet,
+            config: {
+                ...botConfig,
+                autoSellTimeoutMs: 50e3,
+                maxWaitMonitorAfterResultMs: 0,
+            },
+            botEventBus,
+        });
+
+        const mockReturnedMarketContexts: MarketContext[] = [
+            formMarketContext({
+                // it will buy here
+                price: 3.1e-8,
+            }),
+            // it will sell at index 20 once the timeout passes
+            ...Array(20)
+                .fill(0)
+                .map((_, i) =>
+                    formMarketContext({
+                        price: (3.1 + i / 100) * 1e-8,
+                    }),
+                ),
+        ];
+        mockReturnedMarketContexts.forEach(mr => (marketContextProvider.get as jest.Mock).mockResolvedValueOnce(mr));
+
+        (pumpfun.buy as jest.Mock).mockResolvedValue(calculatePumpfunBuyResponse(dummyPumpfunBuyResponse, 3.1e-8));
+        (insertPosition as jest.Mock).mockResolvedValue(undefined);
+
+        (pumpfun.sell as jest.Mock).mockResolvedValue(dummyPumpfunSellResponse);
+        (closePosition as jest.Mock).mockResolvedValue(undefined);
+
+        const expected = readLocalFixture<FullTestExpectation>('pumpfun-bot/sell-with-auto-timeout');
+
+        const actual = await pumpfunBot.run(
+            'a',
+            initialCoinData,
+            new StupidSniperStrategy(logger, {
+                sell: {
+                    takeProfitPercentage: 1e9,
+                },
+            }),
+        );
+
+        expect((actual as BotTradeResponse).transactions.length).toEqual(2);
+        expect((actual as BotTradeResponse).transactions[1].metadata).toEqual(
+            expect.objectContaining({
+                historyRef: expect.objectContaining({
+                    index: 20,
+                }),
+                reason: 'AUTO_SELL_TIMEOUT',
+            }),
+        );
+        expect((actual as BotTradeResponse).transactions[1].metadata!.reason).toEqual('AUTO_SELL_TIMEOUT');
+
+        expect(marketContextProvider.get as jest.Mock).toHaveBeenCalledTimes(21);
+
+        expect(pumpfun.buy).toHaveBeenCalledTimes(1);
+        expect(insertPosition).toHaveBeenCalledTimes(1);
+
+        expect(pumpfun.sell).toHaveBeenCalledTimes(1);
+        expect(closePosition).toHaveBeenCalledTimes(1);
+        expect(closePosition).toHaveBeenCalledWith('solana-MMC-test-1616175607000', {
+            saleTxSignature: '4qADGbGKY7C26ZEb7CKMEbkCvSbo3Ybf9R6Lqqx1HyBYjyt5AK8WEQmy76EcAM9NDBKur8Vqk3ZH5XES28U1DxBB',
+            closeReason: 'AUTO_SELL_TIMEOUT',
+            exitPrice: 6.381240103570997e-8,
+            realizedProfit: 1.07999,
+            exitAmount: 10499526567337,
+        });
+
+        expect(botEventBus.tradeExecuted as jest.Mock).toHaveBeenCalledTimes(2);
+        expect(botEventBus.botTradeResponse as jest.Mock).toHaveBeenCalledTimes(1);
 
         expect(logs).toEqual(expected.logs);
     });

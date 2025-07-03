@@ -20,10 +20,10 @@ export default {
     ],
     coverageThreshold: {
         global: {
-            statements: 50,
-            branches: 50,
-            functions: 40,
-            lines: 50,
+            statements: 55,
+            branches: 55,
+            functions: 45,
+            lines: 55,
         },
     },
     moduleNameMapper: {

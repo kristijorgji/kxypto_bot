@@ -1,0 +1,820 @@
+{
+  "logs": [
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.1e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175603000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "We set buy=true because the conditions are met"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "We will start the buy buyInProgress=true"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.1e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175605000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Bought successfully 10499526567337 amountRaw for 0.4 sol. buyRes={\n  signature: '3iDf5i1MpqRMPfvvQCyy2U1DZVngaMGRRcNCpbZT1R5DEnjTBQtb6n1qhttf1fECMLbUqG7s3K8AYRA2ghhzM7Nx',\n  boughtAmountRaw: 10499526567337,\n  pumpTokenOut: 10499526567337,\n  pumpMaxSolCost: 0.55,\n  txDetails: {\n    grossTransferredLamports: 325485323.587447,\n    netTransferredLamports: 414995000,\n    baseFeeLamports: 5000,\n    priorityFeeLamports: 5000000,\n    totalFeeLamports: 5005000\n  }\n}"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.11e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175609000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 0.3225806451612949%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff -0.08845972375581926"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.12e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175612000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 0.6451612903225898%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff -0.08740977109908557"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.13e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175615000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 0.9677419354838732%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff -0.08635981844235188"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.14e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175618000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 1.2903225806451681%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff -0.08530986578561818"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.15e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175621000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 1.6129032258064402%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff -0.08425991312888449"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.1600000000000005e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175624000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 1.935483870967758%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff -0.08320996047215075"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.17e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175627000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 2.2580645161290303%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff -0.08216000781541712"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.18e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175630000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 2.580645161290325%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff -0.08111005515868336"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.19e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175633000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 2.9032258064516197%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff -0.08006010250194967"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.2e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175636000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 3.225806451612903%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff -0.07901014984521598"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.21e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175639000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 3.5483870967741984%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff -0.07796019718848222"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.2200000000000004e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175642000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 3.870967741935493%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff -0.07691024453174854"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.23e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175645000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 4.193548387096765%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff -0.0758602918750149"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.2400000000000006e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175648000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 4.516129032258083%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff -0.07481033921828109"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.25e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175651000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 4.838709677419355%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff -0.07376038656154746"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.26e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175654000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 5.16129032258065%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff -0.07271043390481377"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.27e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175657000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Price change since purchase 5.483870967741945%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Estimated sol diff -0.07166048124808007"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Auto-sell triggered because elapsed time (52000ms) exceeded timeout (50000ms)"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "We will start the sell sellInProgress=true"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "price=3.28e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175660000"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "debug",
+      "message": "Current vs initial market cap % difference: 0%"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "We sold successfully 10499526567337 amountRaw with reason AUTO_SELL_TIMEOUT and received net 0.664995 sol. sellRes={\n  signature: '4qADGbGKY7C26ZEb7CKMEbkCvSbo3Ybf9R6Lqqx1HyBYjyt5AK8WEQmy76EcAM9NDBKur8Vqk3ZH5XES28U1DxBB',\n  soldRawAmount: 10499526567337,\n  minLamportsOutput: 710000000,\n  txDetails: {\n    grossTransferredLamports: 670000000,\n    netTransferredLamports: 664995000,\n    baseFeeLamports: 5000,\n    priorityFeeLamports: 5000000,\n    totalFeeLamports: 5005000\n  }\n}"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "We have the result already and are going to monitor 0 seconds more"
+    },
+    {
+      "contextMap": {
+        "listenerId": "a",
+        "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
+      },
+      "level": "info",
+      "message": "Finished handling token - will return the result of type BotTradeResponse, netPnl=1.07999 SOL"
+    }
+  ]
+}

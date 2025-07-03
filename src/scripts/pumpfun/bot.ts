@@ -70,6 +70,7 @@ const defaultConfig: BotManagerConfig = {
     buyMonitorWaitPeriodMs: 2500,
     sellMonitorWaitPeriodMs: 250,
     maxWaitMonitorAfterResultMs: 30 * 1e3,
+    autoSellTimeoutMs: 120 * 1e3,
     buyInSol: 0.4,
     maxFullTrades: null,
     stopAtMinWalletBalanceLamports: null,

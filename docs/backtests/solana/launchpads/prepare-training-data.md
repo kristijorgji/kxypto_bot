@@ -27,22 +27,26 @@ find $path -type f | awk -F. '/\./ {ext[$NF]++} END {for (e in ext) print e, ext
 
 To prepare your training data, run the `prepare-training-data.sh` script.
 
-This powerful script automates several crucial steps:
+This comprehensive script automates several essential steps:
 
-* **Organizes** your raw JSON result files.
-* **Identifies and moves** any invalid data files to a designated separate directory.
-* **Merges** the newly processed and validated data into your existing training data collection, located in the
-  specified destination directory. This ensures your dataset is always up-to-date and complete.
-* **Creates a ZIP archive** of the *merged* training data, providing a convenient snapshot of your current dataset.
-* By default, the script **deletes the original source folder** (`--path`). If you need to retain the original data for
-  inspection or other uses, simply add the `--keep-source` flag when running the script.
+- **Organizes** your raw JSON result files for consistency and easy processing.
+- **Identifies and moves** any invalid data files to a specified separate directory for further inspection or cleanup.
+- **Splits and merges** the validated data into two distinct sets — **training** and **backtest** — based on the
+  provided training percentage. This ensures your dataset is properly partitioned for model development and evaluation.
+- **Creates a ZIP archive** of the **merged training data only**, providing a convenient snapshot of the current
+  training dataset for sharing or backup.
+- By default, the script **deletes the original source folder** to free up space and avoid confusion. If you want to
+  keep the original data intact for review or other purposes, use the `--keep-source` flag when running the script.
 
 **Usage Example:**
 
 ```shell
 ./scripts/solana/launchpads/prepare-training-data.sh \
-  --path=data/pumpfun-stats/tmp \
-  --invalidFilesPath=data/invalid-pumpfun-stats \
-  --dest=data/training_data/solana/pumpfun \
-  --keep-source # (Optional) Add this flag to keep the original source folder
+  --source-dir=data/pumpfun-stats/tmp \
+  --invalid-files-dir=data/invalid-pumpfun-stats \
+  --training-dir=data/training_data/solana/pumpfun \
+  --backtest-dir=data/pumpfun-stats/backtest \
+  --training-percentage=50 \
+  --keep-source \ # (Optional) Prevent deletion of the original source folder
+  --dry-run # (Optional) Run the script in simulation mode without making any changes
 ```

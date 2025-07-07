@@ -1,10 +1,11 @@
 import { Connection, ParsedTransactionWithMeta, PublicKey } from '@solana/web3.js';
 
-import { measureExecutionTime } from '../../../apm/apm';
-import { RetryConfig } from '../../../core/types';
-import { sleep } from '../../../utils/functions';
+import { measureExecutionTime } from '@src/apm/apm';
+import { RetryConfig } from '@src/core/types';
+import { sleep } from '@src/utils/functions';
+
 import { BASE_FEE_LAMPORTS } from '../constants/core';
-import { SolTransactionDetails, SolanaTransactionErrorType } from '../types';
+import { SolFullTransactionDetails, SolTransactionDetails } from '../types';
 
 /**
  * Fetches the lamports transferred (net & gross) and transaction fees from a Solana transaction.
@@ -15,7 +16,7 @@ const _getSolTransactionDetails = async (
     transactionSignature: string,
     recipientAddress: string,
     { maxRetries, sleepMs }: RetryConfig,
-): Promise<SolTransactionDetails> => {
+): Promise<SolFullTransactionDetails> => {
     let transaction: ParsedTransactionWithMeta | null;
     let retries = 0;
 
@@ -37,29 +38,30 @@ const _getSolTransactionDetails = async (
         throw new Error('Transaction not found!');
     }
 
-    let error: unknown;
-    let errorType: SolanaTransactionErrorType | undefined;
-    if (transaction.meta?.err) {
-        error = transaction.meta?.err;
+    return {
+        ...parseSolTransactionDetails(transaction, recipientAddress),
+        fullTransaction: transaction,
+    };
+};
 
-        for (const log of transaction.meta.logMessages ?? []) {
-            if (log.includes('Transfer: insufficient lamports')) {
-                errorType = 'insufficient_lamports';
-            } else if (
-                log.includes('Error Message: slippage: Too much SOL required to buy the given amount of tokens..')
-            ) {
-                errorType = 'pumpfun_slippage_more_sol_required';
-            }
+export const getSolTransactionDetails = (
+    connection: Connection,
+    transactionSignature: string,
+    recipientAddress: string,
+    retryConfig: RetryConfig,
+) =>
+    measureExecutionTime(
+        () => _getSolTransactionDetails(connection, transactionSignature, recipientAddress, retryConfig),
+        'getSolTransactionDetails',
+        {
+            storeImmediately: true,
+        },
+    );
 
-            if (errorType) {
-                break;
-            }
-        }
-        if (!errorType) {
-            errorType = 'unknown';
-        }
-    }
-
+export function parseSolTransactionDetails(
+    transaction: ParsedTransactionWithMeta,
+    recipientAddress: string,
+): SolTransactionDetails {
     const recipientPublicKey = new PublicKey(recipientAddress);
     let netReceivedLamports = 0;
 
@@ -92,26 +94,9 @@ const _getSolTransactionDetails = async (
         totalFeeLamports,
     };
 
-    if (errorType) {
-        r.error = {
-            type: errorType,
-            object: error,
-        };
+    if (transaction.meta?.err) {
+        r.error = transaction.meta?.err;
     }
 
     return r;
-};
-
-export const getSolTransactionDetails = (
-    connection: Connection,
-    transactionSignature: string,
-    recipientAddress: string,
-    retryConfig: RetryConfig,
-) =>
-    measureExecutionTime(
-        () => _getSolTransactionDetails(connection, transactionSignature, recipientAddress, retryConfig),
-        'getSolTransactionDetails',
-        {
-            storeImmediately: true,
-        },
-    );
+}

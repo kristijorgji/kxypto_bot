@@ -14,6 +14,7 @@ export type HistoryEntry = {
     topTenHoldingPercentage: number;
     devHoldingPercentageCirculating: number;
     topTenHoldingPercentageCirculating: number;
+    topHolderCirculatingPercentage: number | null;
     /**
      * Optional field used only for troubleshooting and debugging
      * It is not needed elsewhere in backtests or other places
@@ -43,6 +44,7 @@ export const marketContextSchema = z.object({
     topTenHoldingPercentage: z.number().gte(0),
     devHoldingPercentageCirculating: z.number().gte(0),
     topTenHoldingPercentageCirculating: z.number().gte(0),
+    topHolderCirculatingPercentage: z.number().gte(0).nullable(),
 });
 export type MarketContext = z.infer<typeof marketContextSchema>;
 
@@ -55,6 +57,7 @@ export const marketContextKeys = [
     'topTenHoldingPercentage',
     'devHoldingPercentageCirculating',
     'topTenHoldingPercentageCirculating',
+    'topHolderCirculatingPercentage',
 ] as const;
 
 export type MarketContextKey = (typeof marketContextKeys)[number];

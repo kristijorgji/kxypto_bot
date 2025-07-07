@@ -2,14 +2,11 @@ import { Logger } from 'winston';
 
 import { measureExecutionTime } from '@src/apm/apm';
 import { SolanaTokenMints } from '@src/blockchains/solana/constants/SolanaTokenMints';
-import {
-    calculateBuyPriceInLamports,
-    calculatePumpTokenLamportsValue,
-} from '@src/blockchains/solana/dex/pumpfun/pump-base';
-import { PumpfunInitialCoinData } from '@src/blockchains/solana/dex/pumpfun/types';
+import { calculatePumpTokenLamportsValue } from '@src/blockchains/solana/dex/pumpfun/pump-base';
+import { PumpfunInitialCoinData, SolPumpfunTransactionDetails } from '@src/blockchains/solana/dex/pumpfun/types';
 import { sellPumpfunTokensWithRetries } from '@src/blockchains/solana/dex/pumpfun/utils';
 import { JitoConfig, TIP_LAMPORTS } from '@src/blockchains/solana/Jito';
-import { SolTransactionDetails, TransactionMode } from '@src/blockchains/solana/types';
+import { TransactionMode } from '@src/blockchains/solana/types';
 import { lamportsToSol, solToLamports } from '@src/blockchains/utils/amount';
 import { closePosition, insertPosition } from '@src/db/repositories/positions';
 import { InsertPosition } from '@src/db/types';
@@ -174,6 +171,7 @@ export default class PumpfunBot {
                 topTenHoldingPercentage,
                 devHoldingPercentageCirculating,
                 topTenHoldingPercentageCirculating,
+                topHolderCirculatingPercentage,
             } = marketContext;
 
             const lastHistoryEntry: HistoryEntry = {
@@ -186,6 +184,7 @@ export default class PumpfunBot {
                 topTenHoldingPercentage: topTenHoldingPercentage,
                 devHoldingPercentageCirculating: devHoldingPercentageCirculating,
                 topTenHoldingPercentageCirculating: topTenHoldingPercentageCirculating,
+                topHolderCirculatingPercentage: topHolderCirculatingPercentage,
             };
             history.push(lastHistoryEntry);
             historyIndex++;
@@ -244,12 +243,13 @@ export default class PumpfunBot {
                 history[history.length - 1].timestamp,
             );
             logger.debug(
-                'total holders=%d, top ten holding %s%%, dev holding %s%%, top ten circulating %s%%, dev holding circulating %s%%',
+                'total holders=%d, top ten holding %s%%, dev holding %s%%, top ten circulating %s%%, dev holding circulating %s%%, top holder circulating %s%%',
                 holdersCount,
                 topTenHoldingPercentage,
                 devHoldingPercentage,
                 topTenHoldingPercentageCirculating,
                 devHoldingPercentageCirculating,
+                topHolderCirculatingPercentage,
             );
             logger.debug('Current vs initial market cap % difference: %s%%', mcDiffFromInitialPercentage);
 
@@ -366,7 +366,7 @@ export default class PumpfunBot {
                             transactionMode: this.config.simulate
                                 ? TransactionMode.Simulation
                                 : TransactionMode.Execution,
-                            payerPrivateKey: this.wallet.privateKey,
+                            wallet: this.wallet.toObject(),
                             tokenMint: tokenMint,
                             tokenBondingCurve: tokenInfo.bondingCurve,
                             tokenAssociatedBondingCurve: tokenInfo.associatedBondingCurve,
@@ -379,17 +379,6 @@ export default class PumpfunBot {
                     { storeImmediately: true, provider: jitoConfig.jitoEnabled ? 'jito' : undefined },
                 )
                     .then(buyRes => {
-                        if (buyRes.txDetails.error) {
-                            throw buyRes.txDetails;
-                        }
-
-                        const actualBuyPriceSol = lamportsToSol(
-                            calculateBuyPriceInLamports({
-                                amountRaw: buyRes.boughtAmountRaw,
-                                grossTransferredLamports: buyRes.txDetails.grossTransferredLamports,
-                            }),
-                        );
-
                         const buyPosition: TradeTransaction<PumpfunBuyPositionMetadata> = {
                             timestamp: Date.now(),
                             transactionType: 'buy',
@@ -402,8 +391,8 @@ export default class PumpfunBot {
                             grossTransferredLamports: buyRes.txDetails.grossTransferredLamports,
                             netTransferredLamports: buyRes.txDetails.netTransferredLamports,
                             price: {
-                                inSol: actualBuyPriceSol,
-                                inLamports: solToLamports(actualBuyPriceSol),
+                                inSol: buyRes.actualBuyPriceSol,
+                                inLamports: solToLamports(buyRes.actualBuyPriceSol),
                             },
                             marketCap: dataAtBuyTime.marketContext.marketCap,
                             metadata: {
@@ -412,13 +401,14 @@ export default class PumpfunBot {
                                 pumpInSol: buyInSol,
                                 pumpMaxSolCost: buyRes.pumpMaxSolCost,
                                 pumpTokenOut: buyRes.pumpTokenOut,
-                                pumpBuyPriceInSol: actualBuyPriceSol,
+                                pumpBuyPriceInSol: buyRes.actualBuyPriceSol,
+                                pumpMeta: buyRes.metadata,
                             },
                         };
 
                         this.botEventBus.tradeExecuted(buyPosition);
 
-                        const limits = strategy.afterBuy(actualBuyPriceSol, {
+                        const limits = strategy.afterBuy(buyRes.actualBuyPriceSol, {
                             marketContext: dataAtBuyTime.marketContext,
                             transaction: buyPosition,
                         });
@@ -475,7 +465,7 @@ export default class PumpfunBot {
 
                         fatalError = new Error(ErrorMessage.unknownBuyError);
 
-                        if ((e as SolTransactionDetails).error?.type === 'pumpfun_slippage_more_sol_required') {
+                        if ((e as SolPumpfunTransactionDetails).error?.type === 'pumpfun_slippage_more_sol_required') {
                             fatalError = new Error(ErrorMessage.buySlippageMoreSolRequired);
                             const currentBalanceSol = lamportsToSol(await this.wallet.getBalanceLamports());
                             const buyInWithoutSlippage = buyInSol * (1 - strategy.config.buySlippageDecimal);
@@ -491,7 +481,7 @@ export default class PumpfunBot {
                             }
                         }
 
-                        if ((e as SolTransactionDetails).error?.type === 'insufficient_lamports') {
+                        if ((e as SolPumpfunTransactionDetails).error?.type === 'insufficient_lamports') {
                             fatalError = new Error(ErrorMessage.insufficientFundsToBuy);
                         }
 
@@ -532,7 +522,7 @@ export default class PumpfunBot {
                             transactionMode: this.config.simulate
                                 ? TransactionMode.Simulation
                                 : TransactionMode.Execution,
-                            payerPrivateKey: this.wallet.privateKey,
+                            wallet: this.wallet.toObject(),
                             tokenMint: tokenMint,
                             tokenBondingCurve: tokenInfo.bondingCurve,
                             tokenAssociatedBondingCurve: tokenInfo.associatedBondingCurve,
@@ -545,23 +535,12 @@ export default class PumpfunBot {
                     { storeImmediately: true, provider: jitoConfig.jitoEnabled ? 'jito' : undefined },
                 )
                     .then(sellRes => {
-                        if (sellRes.txDetails.error) {
-                            throw sellRes.txDetails;
-                        }
-
                         logger.info(
                             'We sold successfully %s amountRaw with reason %s and received net %s sol. sellRes=%o',
                             sellRes.soldRawAmount,
                             dataAtSellTime.sellReason,
                             lamportsToSol(sellRes.txDetails.netTransferredLamports),
                             sellRes,
-                        );
-
-                        const actualSellPriceSol = lamportsToSol(
-                            calculateBuyPriceInLamports({
-                                amountRaw: sellRes.soldRawAmount,
-                                grossTransferredLamports: sellRes.txDetails.grossTransferredLamports,
-                            }),
                         );
 
                         const sellPosition: TradeTransaction<PumpfunSellPositionMetadata> = {
@@ -576,8 +555,8 @@ export default class PumpfunBot {
                             grossTransferredLamports: sellRes.txDetails.grossTransferredLamports,
                             netTransferredLamports: sellRes.txDetails.netTransferredLamports,
                             price: {
-                                inSol: actualSellPriceSol,
-                                inLamports: solToLamports(actualSellPriceSol),
+                                inSol: sellRes.actualSellPriceSol,
+                                inLamports: solToLamports(sellRes.actualSellPriceSol),
                             },
                             marketCap: dataAtSellTime.marketCapInSol,
                             metadata: {
@@ -588,7 +567,8 @@ export default class PumpfunBot {
                                 historyEntry: lastHistoryEntry,
                                 reason: dataAtSellTime.sellReason,
                                 pumpMinLamportsOutput: sellRes.minLamportsOutput,
-                                sellPriceInSol: actualSellPriceSol,
+                                sellPriceInSol: sellRes.actualSellPriceSol,
+                                pumpMeta: sellRes.metadata,
                             },
                         };
                         this.botEventBus.tradeExecuted(sellPosition);
@@ -630,8 +610,8 @@ export default class PumpfunBot {
                             action: 'sellError',
                         };
 
-                        if ((e as SolTransactionDetails).error?.object) {
-                            const errorObj = (e as SolTransactionDetails).error?.object as {
+                        if ((e as SolPumpfunTransactionDetails).error?.object) {
+                            const errorObj = (e as SolPumpfunTransactionDetails).error?.object as {
                                 InstructionError?: (number | string)[];
                             };
                             if (errorObj.InstructionError) {

@@ -1,6 +1,6 @@
 import { Connection } from '@solana/web3.js';
 
-import { SolTransactionDetails } from '../../../../../src/blockchains/solana/types';
+import { SolFullTransactionDetails } from '../../../../../src/blockchains/solana/types';
 import { getSolTransactionDetails } from '../../../../../src/blockchains/solana/utils/transactions';
 import { fixtureToParsedTransactionWithMeta } from '../../../../__utils/blockchains/solana';
 
@@ -25,9 +25,10 @@ describe(getSolTransactionDetails.name, () => {
     });
 
     it('should handle pumpfun buy transaction', async () => {
-        (connection.getParsedTransaction as jest.Mock).mockResolvedValueOnce(
-            fixtureToParsedTransactionWithMeta('blockchains/solana/get-parsed-transaction-pump-jito-buy-response'),
+        const fullTx = fixtureToParsedTransactionWithMeta(
+            'blockchains/solana/get-parsed-transaction-pump-jito-buy-response',
         );
+        (connection.getParsedTransaction as jest.Mock).mockResolvedValueOnce(fullTx);
 
         expect(
             await getSolTransactionDetails(
@@ -45,13 +46,15 @@ describe(getSolTransactionDetails.name, () => {
             baseFeeLamports: 5000,
             priorityFeeLamports: 7000000,
             totalFeeLamports: 7005000,
-        });
+            fullTransaction: fullTx,
+        } satisfies SolFullTransactionDetails);
     });
 
     it('should handle pumpfun sell transaction', async () => {
-        (connection.getParsedTransaction as jest.Mock).mockResolvedValueOnce(
-            fixtureToParsedTransactionWithMeta('blockchains/solana/get-parsed-transaction-pump-jito-sell-response'),
+        const fullTx = fixtureToParsedTransactionWithMeta(
+            'blockchains/solana/get-parsed-transaction-pump-jito-sell-response',
         );
+        (connection.getParsedTransaction as jest.Mock).mockResolvedValueOnce(fullTx);
 
         expect(
             await getSolTransactionDetails(
@@ -69,119 +72,7 @@ describe(getSolTransactionDetails.name, () => {
             baseFeeLamports: 5000,
             priorityFeeLamports: 7000000,
             totalFeeLamports: 7005000,
-        });
-    });
-
-    it('should handle pumpfun insufficient funds error', async () => {
-        (connection.getParsedTransaction as jest.Mock).mockResolvedValueOnce(
-            fixtureToParsedTransactionWithMeta(
-                'blockchains/solana/get-parsed-transaction-pump-jito-insufficient-lamports-response',
-            ),
-        );
-
-        expect(
-            await getSolTransactionDetails(
-                connection,
-                '2e7ynRmqgYk2p9YHGX9K9DiqY7by4Gs9yAEhN8r3yBvccyMsoE2KdC1rpwSJXdz2Dt3acudVSrKFTAGeQ6fD1zWy',
-                'CPp14jCnVJMt5nPA3A37S58gjxQEnc8Bn5U1J72LiWD1',
-                {
-                    sleepMs: 10,
-                    maxRetries: 5,
-                },
-            ),
-        ).toEqual({
-            grossTransferredLamports: 0,
-            netTransferredLamports: -7005000,
-            baseFeeLamports: 5000,
-            priorityFeeLamports: 7000000,
-            totalFeeLamports: 7005000,
-            error: {
-                type: 'insufficient_lamports',
-                object: {
-                    InstructionError: [
-                        4,
-                        {
-                            Custom: 1,
-                        },
-                    ],
-                },
-            },
-        });
-    });
-
-    it('should handle pumpfun slippage more sol required error', async () => {
-        (connection.getParsedTransaction as jest.Mock).mockResolvedValueOnce(
-            fixtureToParsedTransactionWithMeta(
-                'blockchains/solana/get-parsed-transaction-pump-slippage-insufficient-sol-response',
-            ),
-        );
-
-        expect(
-            await getSolTransactionDetails(
-                connection,
-                '2e7ynRmqgYk2p9YHGX9K9DiqY7by4Gs9yAEhN8r3yBvccyMsoE2KdC1rpwSJXdz2Dt3acudVSrKFTAGeQ6fD1zWy',
-                'CPp14jCnVJMt5nPA3A37S58gjxQEnc8Bn5U1J72LiWD1',
-                {
-                    sleepMs: 10,
-                    maxRetries: 5,
-                },
-            ),
-        ).toEqual({
-            grossTransferredLamports: 0,
-            netTransferredLamports: -7005000,
-            baseFeeLamports: 5000,
-            priorityFeeLamports: 7000000,
-            totalFeeLamports: 7005000,
-            error: {
-                type: 'pumpfun_slippage_more_sol_required',
-                object: {
-                    InstructionError: [
-                        4,
-                        {
-                            Custom: 6002,
-                        },
-                    ],
-                },
-            },
-        });
-    });
-
-    /**
-     * This error happens very rarely when we try to sell almost immediately after buying and the sell function
-     * doesn't fetch the existing associated token account and tries to create it again
-     * A retry will solve the issue
-     */
-    it('should handle pumpfun sell error due to trying to create associated token account again', async () => {
-        (connection.getParsedTransaction as jest.Mock).mockResolvedValueOnce(
-            fixtureToParsedTransactionWithMeta(
-                'blockchains/solana/get-parsed-transaction-provider-owner-not-allowed-response',
-            ),
-        );
-
-        expect(
-            await getSolTransactionDetails(
-                connection,
-                '2e7ynRmqgYk2p9YHGX9K9DiqY7by4Gs9yAEhN8r3yBvccyMsoE2KdC1rpwSJXdz2Dt3acudVSrKFTAGeQ6fD1zWy',
-                'CPp14jCnVJMt5nPA3A37S58gjxQEnc8Bn5U1J72LiWD1',
-                {
-                    sleepMs: 10,
-                    maxRetries: 5,
-                },
-            ),
-        ).toEqual(TxWithIllegalOwnerError);
+            fullTransaction: fullTx,
+        } satisfies SolFullTransactionDetails);
     });
 });
-
-export const TxWithIllegalOwnerError: SolTransactionDetails = {
-    grossTransferredLamports: 0,
-    netTransferredLamports: -7005000,
-    baseFeeLamports: 5000,
-    priorityFeeLamports: 7000000,
-    totalFeeLamports: 7005000,
-    error: {
-        type: 'unknown',
-        object: {
-            InstructionError: [3, 'IllegalOwner'],
-        },
-    },
-};

@@ -14,5 +14,6 @@ export function NewMarketContextFactory(copy?: Partial<MarketContext>): MarketCo
             copy?.devHoldingPercentageCirculating ?? faker.number.int({ min: 0, max: 100 }),
         topTenHoldingPercentageCirculating:
             copy?.topTenHoldingPercentageCirculating ?? faker.number.int({ min: 0, max: 100 }),
+        topHolderCirculatingPercentage: copy?.topHolderCirculatingPercentage ?? faker.number.int({ min: 0, max: 100 }),
     };
 }

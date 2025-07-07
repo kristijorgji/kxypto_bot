@@ -84,6 +84,7 @@ it('should mark files containing nulls as invalid', async () => {
                     }),
                     devHoldingPercentageCirculating: null,
                     topTenHoldingPercentageCirculating: null,
+                    topHolderCirculatingPercentage: null,
                 },
                 ...Array(5)
                     .fill(0)
@@ -95,6 +96,7 @@ it('should mark files containing nulls as invalid', async () => {
                     }),
                     devHoldingPercentageCirculating: null,
                     topTenHoldingPercentageCirculating: null,
+                    topHolderCirculatingPercentage: null,
                 },
                 // should detect this null after upToIndex
                 {
@@ -103,6 +105,7 @@ it('should mark files containing nulls as invalid', async () => {
                     }),
                     devHoldingPercentageCirculating: null,
                     topTenHoldingPercentageCirculating: null,
+                    topHolderCirculatingPercentage: null,
                 },
             ],
         },

@@ -1,24 +1,27 @@
 import { LogEntry, createLogger, format } from 'winston';
 
+import { FirstArg } from '@src/utils/types';
+
 import { measureExecutionTime } from '../../../../../../src/apm/apm';
 import { BASE_FEE_LAMPORTS } from '../../../../../../src/blockchains/solana/constants/core';
 import { SolanaWalletProviders } from '../../../../../../src/blockchains/solana/constants/walletProviders';
 import { PUMPFUN_TOKEN_DECIMALS } from '../../../../../../src/blockchains/solana/dex/pumpfun/constants';
 import { pumpCoinDataToInitialCoinData } from '../../../../../../src/blockchains/solana/dex/pumpfun/mappers/mappers';
+import { calculatePriceInLamports } from '../../../../../../src/blockchains/solana/dex/pumpfun/pump-base';
 import Pumpfun from '../../../../../../src/blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunMarketContextProvider from '../../../../../../src/blockchains/solana/dex/pumpfun/PumpfunMarketContextProvider';
 import {
     PumpFunCoinData,
     PumpfunBuyResponse,
     PumpfunSellResponse,
+    SolPumpfunTransactionDetails,
 } from '../../../../../../src/blockchains/solana/dex/pumpfun/types';
 import { sellPumpfunTokensWithRetries } from '../../../../../../src/blockchains/solana/dex/pumpfun/utils';
 import SolanaAdapter from '../../../../../../src/blockchains/solana/SolanaAdapter';
-import { SolTransactionDetails } from '../../../../../../src/blockchains/solana/types';
 import { solanaConnection } from '../../../../../../src/blockchains/solana/utils/connection';
 import { simulateSolTransactionDetails } from '../../../../../../src/blockchains/solana/utils/simulations';
 import Wallet from '../../../../../../src/blockchains/solana/Wallet';
-import { solToLamports } from '../../../../../../src/blockchains/utils/amount';
+import { lamportsToSol, solToLamports } from '../../../../../../src/blockchains/utils/amount';
 import { closePosition, insertPosition } from '../../../../../../src/db/repositories/positions';
 import { Blockchain, InsertPosition } from '../../../../../../src/db/types';
 import ArrayTransport from '../../../../../../src/logger/transports/ArrayTransport';
@@ -38,7 +41,8 @@ import { generateTradeId } from '../../../../../../src/trading/utils/generateTra
 import { formMarketContext } from '../../../../../__utils/blockchains/solana';
 import { readFixture, readLocalFixture } from '../../../../../__utils/data';
 import { FullTestExpectation, FullTestMultiCaseExpectation, MultiCaseFixture } from '../../../../../__utils/types';
-import { TxWithIllegalOwnerError } from '../../../../blockchains/solana/utils/transactions.test';
+import { dummyPumpfunPositionMetadata } from '../../../../../data/vars/blockchains/solana/pumpfun';
+import { TxWithIllegalOwnerError } from '../../../../blockchains/solana/dex/pumpfun/pump-base.test';
 
 jest.mock('../../../../../../src/apm/apm');
 
@@ -150,20 +154,43 @@ describe(PumpfunBot.name, () => {
 
     const initialCoinData = pumpCoinDataToInitialCoinData(readFixture<PumpFunCoinData>('dex/pumpfun/get-coin-data'));
 
-    const dummyPumpfunBuyResponse: PumpfunBuyResponse = {
-        signature: '3iDf5i1MpqRMPfvvQCyy2U1DZVngaMGRRcNCpbZT1R5DEnjTBQtb6n1qhttf1fECMLbUqG7s3K8AYRA2ghhzM7Nx',
-        boughtAmountRaw: 10499526567337,
-        pumpTokenOut: 10499526567337,
-        pumpMaxSolCost: 0.55,
-        txDetails: simulateSolTransactionDetails(solToLamports(0.42), solToLamports(0.005)),
-    };
+    const dummyPositionMetadata = dummyPumpfunPositionMetadata(initialCoinData.creator, initialCoinData.bondingCurve);
+    const dummyPumpfunBuyResponse: PumpfunBuyResponse = (() => {
+        const amountRaw = 10499526567337;
+        const txDetails = simulateSolTransactionDetails(solToLamports(0.42), solToLamports(0.005));
+        return {
+            signature: '3iDf5i1MpqRMPfvvQCyy2U1DZVngaMGRRcNCpbZT1R5DEnjTBQtb6n1qhttf1fECMLbUqG7s3K8AYRA2ghhzM7Nx',
+            boughtAmountRaw: amountRaw,
+            pumpTokenOut: amountRaw,
+            pumpMaxSolCost: 0.55,
+            actualBuyPriceSol: lamportsToSol(
+                calculatePriceInLamports({
+                    amountRaw: 1,
+                    lamports: txDetails.grossTransferredLamports,
+                }),
+            ),
+            txDetails: txDetails,
+            metadata: dummyPositionMetadata,
+        } satisfies PumpfunBuyResponse;
+    })();
 
-    const dummyPumpfunSellResponse: PumpfunSellResponse = {
-        signature: '4qADGbGKY7C26ZEb7CKMEbkCvSbo3Ybf9R6Lqqx1HyBYjyt5AK8WEQmy76EcAM9NDBKur8Vqk3ZH5XES28U1DxBB',
-        soldRawAmount: 10499526567337,
-        minLamportsOutput: solToLamports(0.71),
-        txDetails: simulateSolTransactionDetails(solToLamports(0.67), solToLamports(0.005)),
-    };
+    const dummyPumpfunSellResponse: PumpfunSellResponse = (() => {
+        const amountRaw = 10499526567337;
+        const txDetails = simulateSolTransactionDetails(solToLamports(0.67), solToLamports(0.005));
+        return {
+            signature: '4qADGbGKY7C26ZEb7CKMEbkCvSbo3Ybf9R6Lqqx1HyBYjyt5AK8WEQmy76EcAM9NDBKur8Vqk3ZH5XES28U1DxBB',
+            soldRawAmount: amountRaw,
+            minLamportsOutput: solToLamports(0.71),
+            actualSellPriceSol: lamportsToSol(
+                calculatePriceInLamports({
+                    amountRaw: amountRaw,
+                    lamports: txDetails.grossTransferredLamports,
+                }),
+            ),
+            txDetails: txDetails,
+            metadata: dummyPositionMetadata,
+        } satisfies PumpfunSellResponse;
+    })();
 
     /**
      * should buy and sell using strategy defined priority fees and slippages for buy and sell
@@ -230,10 +257,12 @@ describe(PumpfunBot.name, () => {
             boughtAmountRaw: expectedBuyTradeTransaction.amountRaw,
             pumpTokenOut: expectedBuyTradeTransaction.metadata!.pumpTokenOut,
             pumpMaxSolCost: expectedBuyTradeTransaction.metadata!.pumpMaxSolCost,
+            actualBuyPriceSol: expectedBuyTradeTransaction.metadata!.pumpBuyPriceInSol,
             txDetails: simulateSolTransactionDetails(
                 expectedBuyTradeTransaction.grossTransferredLamports,
                 solToLamports(strategy.config.buyPriorityFeeInSol!),
             ),
+            metadata: dummyPositionMetadata,
         };
         (pumpfun.buy as jest.Mock).mockResolvedValue(mockReturnedPumpfunBuyResponse);
         (insertPosition as jest.Mock).mockResolvedValue(undefined);
@@ -242,10 +271,12 @@ describe(PumpfunBot.name, () => {
             signature: expectedSellTradeTransaction.transactionHash,
             soldRawAmount: expectedSellTradeTransaction.amountRaw,
             minLamportsOutput: expectedSellTradeTransaction.metadata!.pumpMinLamportsOutput,
+            actualSellPriceSol: expectedSellTradeTransaction.metadata!.sellPriceInSol,
             txDetails: simulateSolTransactionDetails(
                 expectedSellTradeTransaction.grossTransferredLamports,
                 strategy.config.sellPriorityFeeInSol!,
             ),
+            metadata: dummyPositionMetadata,
         };
         (pumpfun.sell as jest.Mock).mockResolvedValue(mockReturnedPumpfunSellResponse);
         (closePosition as jest.Mock).mockResolvedValue(undefined);
@@ -266,17 +297,17 @@ describe(PumpfunBot.name, () => {
         expect(pumpfun.buy).toHaveBeenCalledTimes(1);
         expect(pumpfun.buy).toHaveBeenCalledWith({
             transactionMode: 0,
-            payerPrivateKey: wallet.privateKey,
+            wallet: wallet.toObject(),
             tokenMint: initialCoinData.mint,
             tokenBondingCurve: initialCoinData.bondingCurve,
             tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
-            solIn: botConfig.buyInSol,
+            solIn: botConfig.buyInSol!,
             priorityFeeInSol: 0.005,
             slippageDecimal: 0.1,
             jitoConfig: {
                 jitoEnabled: true,
             },
-        });
+        } satisfies FirstArg<typeof pumpfun.buy>);
         const expectedInsertPosition: InsertPosition = {
             mode: 'simulation',
             trade_id: 'solana-MMC-test-1616175607000',
@@ -312,7 +343,7 @@ describe(PumpfunBot.name, () => {
         expect(pumpfun.sell).toHaveBeenCalledTimes(1);
         expect(pumpfun.sell).toHaveBeenCalledWith({
             transactionMode: 0,
-            payerPrivateKey: wallet.privateKey,
+            wallet: wallet.toObject(),
             tokenMint: initialCoinData.mint,
             tokenBondingCurve: initialCoinData.bondingCurve,
             tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
@@ -322,7 +353,7 @@ describe(PumpfunBot.name, () => {
             jitoConfig: {
                 jitoEnabled: true,
             },
-        });
+        } satisfies FirstArg<typeof pumpfun.sell>);
 
         expect(botEventBus.tradeExecuted as jest.Mock).toHaveBeenCalledWith(expectedSellTradeTransaction);
         expect(closePosition).toHaveBeenCalledTimes(1);
@@ -450,7 +481,7 @@ describe(PumpfunBot.name, () => {
     });
 
     function mockStrategyShouldExitMarketContexts(): void {
-        const firstMarketContext = {
+        const firstMarketContext: MarketContext = {
             // it will buy here
             price: 4.1e-7,
             marketCap: 60,
@@ -460,6 +491,7 @@ describe(PumpfunBot.name, () => {
             topTenHoldingPercentage: 10,
             devHoldingPercentageCirculating: 20,
             topTenHoldingPercentageCirculating: 70,
+            topHolderCirculatingPercentage: 12,
         };
         const mockReturnedMarketContexts: MarketContext[] = [
             firstMarketContext,
@@ -638,16 +670,14 @@ describe(PumpfunBot.name, () => {
             },
         });
 
-        (pumpfun.buy as jest.Mock).mockResolvedValue({
-            ...dummyPumpfunBuyResponse,
-            txDetails: {
-                ...dummyPumpfunBuyResponse.txDetails,
-                error: {
-                    type: 'no_idea',
-                    object: {},
-                },
+        (pumpfun.buy as jest.Mock).mockRejectedValue({
+            ...dummyPumpfunBuyResponse.txDetails,
+            error: {
+                // @ts-ignore
+                type: 'no_idea',
+                object: {},
             },
-        } as unknown as PumpfunBuyResponse);
+        } satisfies SolPumpfunTransactionDetails);
         (sellPumpfunTokensWithRetries as jest.Mock).mockResolvedValue(undefined);
 
         await expect(pumpfunBot.run('a', initialCoinData, strategy)).rejects.toEqual(new Error('unknown_buying_error'));
@@ -680,7 +710,7 @@ describe(PumpfunBot.name, () => {
             },
         });
 
-        const error: SolTransactionDetails = {
+        const error: SolPumpfunTransactionDetails = {
             grossTransferredLamports: 1,
             netTransferredLamports: 1,
             baseFeeLamports: BASE_FEE_LAMPORTS,
@@ -745,18 +775,15 @@ describe(PumpfunBot.name, () => {
         [
             'recreating_existing_associated_token_account',
             mockMarketContextThatBuysSellFailsResellOnNext,
-            {
-                ...dummyPumpfunSellResponse,
-                txDetails: TxWithIllegalOwnerError,
-            } satisfies PumpfunSellResponse,
+            TxWithIllegalOwnerError.parsedTx,
             {
                 path: 'pumpfun-bot/sell-error-that-is-ignored-and-continues-on-next-tick',
                 case: 'recreatingExistingAssociatedTokenAccountError',
             },
         ],
-    ] satisfies [string, MarketContext[], Error | PumpfunSellResponse, MultiCaseFixture][])(
+    ] satisfies [string, MarketContext[], Error | SolPumpfunTransactionDetails, MultiCaseFixture][])(
         'should handle sell error of type %s properly, log error and try to sell on next try if conditions still meet',
-        async (_, mockReturnedMarketContexts, pumpfunSellResponseOrError, localFixtureInfo) => {
+        async (_, mockReturnedMarketContexts, sellError, localFixtureInfo) => {
             mockReturnedMarketContexts.forEach(mr =>
                 (marketContextProvider.get as jest.Mock).mockResolvedValueOnce(mr),
             );
@@ -776,15 +803,9 @@ describe(PumpfunBot.name, () => {
                 calculatePumpfunBuyResponse(dummyPumpfunBuyResponse, mockReturnedMarketContexts[0].price),
             );
             (insertPosition as jest.Mock).mockResolvedValue(undefined);
-            if (pumpfunSellResponseOrError instanceof Error) {
-                (pumpfun.sell as jest.Mock)
-                    .mockRejectedValueOnce(new Error('sell_error'))
-                    .mockResolvedValueOnce(dummyPumpfunSellResponse);
-            } else {
-                (pumpfun.sell as jest.Mock)
-                    .mockResolvedValueOnce(pumpfunSellResponseOrError)
-                    .mockResolvedValueOnce(dummyPumpfunSellResponse);
-            }
+            (pumpfun.sell as jest.Mock)
+                .mockRejectedValueOnce(sellError)
+                .mockResolvedValueOnce(dummyPumpfunSellResponse);
 
             (closePosition as jest.Mock).mockResolvedValue(undefined);
 
@@ -844,6 +865,7 @@ function calculateGrossTransferredLamports(amountRaw: number, desiredPriceInSol:
 function calculatePumpfunBuyResponse(r: PumpfunBuyResponse, desiredPriceInSol: number): PumpfunBuyResponse {
     return {
         ...r,
+        actualBuyPriceSol: desiredPriceInSol,
         txDetails: {
             ...r.txDetails,
             grossTransferredLamports: calculateGrossTransferredLamports(r.boughtAmountRaw, desiredPriceInSol),

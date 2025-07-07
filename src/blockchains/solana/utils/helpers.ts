@@ -22,7 +22,7 @@ import { JitoEndpoint, TIP_LAMPORTS, jitoClient } from '../Jito';
 export const DEFAULT_COMMITMENT: Commitment = 'finalized';
 export const DEFAULT_FINALITY: Finality = 'finalized';
 
-export async function getKeyPairFromPrivateKey(key: string) {
+export function getKeyPairFromPrivateKey(key: string): Keypair {
     return Keypair.fromSecretKey(new Uint8Array(bs58.decode(key)));
 }
 

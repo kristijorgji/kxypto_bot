@@ -55,7 +55,7 @@ const EnvConfigSchema = z.object({
 type EnvConfig = z.infer<typeof EnvConfigSchema>;
 
 const ReportSchema: Schema = {
-    version: 1.4,
+    version: 1.41,
 };
 
 const rpcProvider: HandlePumpTokenBaseReport['rpcProvider'] = {
@@ -146,9 +146,10 @@ export async function start(
     {
         const _strategy = strategyFactory();
         logger.info(
-            '🚀 Bot started with config=%o\nenvConfig=%o\nstrategy %s with variant config %s, config:%o',
+            '🚀 Bot started with config=%o\nenvConfig=%o\nprovider=%o\nstrategy %s with variant config %s, config:%o',
             config,
             envConfig,
+            rpcProvider,
             _strategy.identifier,
             _strategy.configVariant,
             _strategy.config,

@@ -1,7 +1,32 @@
 import { faker } from '@faker-js/faker';
 
-import { NewPumpFunTokenData, PumpFunCoinData } from '../../blockchains/solana/dex/pumpfun/types';
-import { trimEllip } from '../../utils/text';
+import { PUMPFUN_TOKEN_SUPPLY } from '@src/blockchains/solana/dex/pumpfun/constants';
+import { BondingCurveState } from '@src/blockchains/solana/dex/pumpfun/pump-base';
+import { NewPumpFunTokenData, PumpFunCoinData } from '@src/blockchains/solana/dex/pumpfun/types';
+import { trimEllip } from '@src/utils/text';
+
+export const NewBondingCurveStateFactory = (copy?: Partial<BondingCurveState>): BondingCurveState => {
+    const virtualTokenReserves =
+        PUMPFUN_TOKEN_SUPPLY -
+        faker.number.int({
+            max: PUMPFUN_TOKEN_SUPPLY - 1e3,
+        });
+
+    return {
+        dev:
+            copy?.dev ??
+            faker.string.alpha({
+                length: 44,
+            }),
+        bondingCurve: 'BGrF4MKYiy5WnodhReU1ThqxkpFJfvqSGfVAkgFcTqaq',
+        virtualSolReserves: copy?.virtualSolReserves ?? faker.number.int(),
+        virtualTokenReserves: copy?.virtualTokenReserves ?? virtualTokenReserves,
+        realTokenReserves: copy?.realTokenReserves ?? faker.number.int(),
+        realSolReserves: copy?.realSolReserves ?? faker.number.int(),
+        tokenTotalSupply: PUMPFUN_TOKEN_SUPPLY,
+        complete: copy?.complete ?? faker.datatype.boolean(),
+    };
+};
 
 export const NewPumpFunTokenDataFactory = (copy?: Partial<NewPumpFunTokenData>): NewPumpFunTokenData => {
     const p = faker.animal.petName();

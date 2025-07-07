@@ -1,6 +1,7 @@
 import { MarketContext } from '../../../../../src/trading/bots/launchpads/types';
 import { checkInterval, shouldBuyStateless } from '../../../../../src/trading/strategies/launchpads/common';
 import { IntervalConfig, LaunchpadStrategyBuyConfig } from '../../../../../src/trading/strategies/types';
+import { formMarketContext } from '../../../../__utils/blockchains/solana';
 
 describe(shouldBuyStateless.name, () => {
     test('should return true when all values are within range', () => {
@@ -17,6 +18,9 @@ describe(shouldBuyStateless.name, () => {
             bondingCurveProgress: { min: 10, max: 90 },
             devHoldingPercentage: { min: 2, max: 10 },
             topTenHoldingPercentage: { min: 5, max: 50 },
+            devHoldingPercentageCirculating: { min: 5, max: 20 },
+            topTenHoldingPercentageCirculating: { min: 5, max: 70 },
+            topHolderCirculatingPercentage: { min: 10, max: 12 },
         };
 
         const marketContext: MarketContext = {
@@ -28,6 +32,7 @@ describe(shouldBuyStateless.name, () => {
             topTenHoldingPercentage: 20,
             devHoldingPercentageCirculating: 20,
             topTenHoldingPercentageCirculating: 70,
+            topHolderCirculatingPercentage: 12,
         };
 
         expect(shouldBuyStateless(buyConfig, marketContext)).toBe(true);
@@ -38,18 +43,14 @@ describe(shouldBuyStateless.name, () => {
             holdersCount: { min: 100, max: 500 },
         };
 
-        const marketContext: MarketContext = {
-            price: 100,
-            marketCap: 100,
-            holdersCount: 50, // Below min
-            bondingCurveProgress: 50,
-            devHoldingPercentage: 5,
-            topTenHoldingPercentage: 20,
-            devHoldingPercentageCirculating: 20,
-            topTenHoldingPercentageCirculating: 70,
-        };
-
-        expect(shouldBuyStateless(buyConfig, marketContext)).toBe(false);
+        expect(
+            shouldBuyStateless(
+                buyConfig,
+                formMarketContext({
+                    holdersCount: 50, // Below min
+                }),
+            ),
+        ).toBe(false);
     });
 
     test('should return false when bondingCurveProgress is above the max range', () => {
@@ -57,18 +58,14 @@ describe(shouldBuyStateless.name, () => {
             bondingCurveProgress: { min: 10, max: 90 },
         };
 
-        const marketContext: MarketContext = {
-            price: 100,
-            marketCap: 100,
-            holdersCount: 300,
-            bondingCurveProgress: 95, // Above max
-            devHoldingPercentage: 5,
-            topTenHoldingPercentage: 20,
-            devHoldingPercentageCirculating: 20,
-            topTenHoldingPercentageCirculating: 70,
-        };
-
-        expect(shouldBuyStateless(buyConfig, marketContext)).toBe(false);
+        expect(
+            shouldBuyStateless(
+                buyConfig,
+                formMarketContext({
+                    bondingCurveProgress: 95, // Above max
+                }),
+            ),
+        ).toBe(false);
     });
 
     test('should return false when devHoldingPercentage is below min', () => {
@@ -76,35 +73,20 @@ describe(shouldBuyStateless.name, () => {
             devHoldingPercentage: { min: 5, max: 15 },
         };
 
-        const marketContext: MarketContext = {
-            price: 100,
-            marketCap: 100,
-            holdersCount: 300,
-            bondingCurveProgress: 50,
-            devHoldingPercentage: 3, // Below min
-            topTenHoldingPercentage: 20,
-            devHoldingPercentageCirculating: 20,
-            topTenHoldingPercentageCirculating: 70,
-        };
-
-        expect(shouldBuyStateless(buyConfig, marketContext)).toBe(false);
+        expect(
+            shouldBuyStateless(
+                buyConfig,
+                formMarketContext({
+                    devHoldingPercentage: 3, // Below min
+                }),
+            ),
+        ).toBe(false);
     });
 
     test('should return true if config is empty (no constraints)', () => {
         const buyConfig: LaunchpadStrategyBuyConfig = {}; // No constraints
 
-        const marketContext: MarketContext = {
-            price: 100,
-            marketCap: 100,
-            holdersCount: 300,
-            bondingCurveProgress: 50,
-            devHoldingPercentage: 3,
-            topTenHoldingPercentage: 20,
-            devHoldingPercentageCirculating: 20,
-            topTenHoldingPercentageCirculating: 70,
-        };
-
-        expect(shouldBuyStateless(buyConfig, marketContext)).toBe(true);
+        expect(shouldBuyStateless(buyConfig, formMarketContext({}))).toBe(true);
     });
 
     test('should return false if any value is out of range', () => {
@@ -115,18 +97,14 @@ describe(shouldBuyStateless.name, () => {
             topTenHoldingPercentage: { min: 5, max: 50 },
         };
 
-        const marketContext: MarketContext = {
-            price: 100,
-            marketCap: 100,
-            holdersCount: 600, // Exceeds max
-            bondingCurveProgress: 50,
-            devHoldingPercentage: 5,
-            topTenHoldingPercentage: 20,
-            devHoldingPercentageCirculating: 20,
-            topTenHoldingPercentageCirculating: 70,
-        };
-
-        expect(shouldBuyStateless(buyConfig, marketContext)).toBe(false);
+        expect(
+            shouldBuyStateless(
+                buyConfig,
+                formMarketContext({
+                    holdersCount: 600, // Exceeds max
+                }),
+            ),
+        ).toBe(false);
     });
 });
 
@@ -183,5 +161,17 @@ describe(checkInterval.name, () => {
     test('should return true when config is empty (no constraints)', () => {
         const config: IntervalConfig = {};
         expect(checkInterval(config, 100)).toBe(true); // No min or max, should always return true
+    });
+
+    test('should return true when the value is null and config is empty or undefined (no constraints)', () => {
+        expect(checkInterval({}, null)).toBe(true);
+        expect(checkInterval(undefined, null)).toBe(true);
+    });
+
+    test('should return false when the value is null and we have constrains', () => {
+        const config: IntervalConfig = {
+            min: 1,
+        };
+        expect(checkInterval(config, null)).toBe(false);
     });
 });

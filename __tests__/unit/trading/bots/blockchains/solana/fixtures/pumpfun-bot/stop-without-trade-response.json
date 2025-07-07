@@ -11,7 +11,8 @@
       "price": 3.42e-8,
       "timestamp": 1616175603000,
       "topTenHoldingPercentage": 10,
-      "topTenHoldingPercentageCirculating": 70
+      "topTenHoldingPercentageCirculating": 70,
+      "topHolderCirculatingPercentage": 12
     }
   ]
 }

@@ -1,5 +1,6 @@
-import { randomDecimal } from '../../../utils/data/data';
-import { LatencyMetrics } from '../../../utils/simulations';
+import { randomDecimal } from '@src/utils/data/data';
+import { LatencyMetrics } from '@src/utils/simulations';
+
 import { solToLamports } from '../../utils/amount';
 import { BASE_FEE_LAMPORTS } from '../constants/core';
 import { JitoConfig, TIP_LAMPORTS } from '../Jito';
@@ -29,7 +30,7 @@ export function simulateSolanaFeesInLamports(): TransactionFee {
 export function simulateSolTransactionDetails(
     lamportsValue: number,
     priorityFeeLamports?: number,
-): SolTransactionDetails {
+): Omit<SolTransactionDetails, 'error'> {
     const simPriorityFee: TransactionFee = priorityFeeLamports
         ? {
               priorityFeeLamports: priorityFeeLamports,

@@ -84,6 +84,7 @@ export type PredictionRequest = {
         topTenHoldingPercentage: number;
         devHoldingPercentageCirculating: number;
         topTenHoldingPercentageCirculating: number;
+        topHolderCirculatingPercentage: number | null;
     }[];
 };
 

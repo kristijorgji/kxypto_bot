@@ -32,7 +32,8 @@
           "price": 2.77,
           "timestamp": 7,
           "topTenHoldingPercentage": 35,
-          "topTenHoldingPercentageCirculating": 70
+          "topTenHoldingPercentageCirculating": 70,
+          "topHolderCirculatingPercentage": 12
         },
         "pumpBuyPriceInSol": 3.1854999999999998,
         "pumpInSol": 0.45999999999999996,
@@ -83,7 +84,8 @@
           "price": 7,
           "timestamp": 8,
           "topTenHoldingPercentage": 35,
-          "topTenHoldingPercentageCirculating": 70
+          "topTenHoldingPercentageCirculating": 70,
+          "topHolderCirculatingPercentage": 12
         },
         "pumpMinLamportsOutput": 144404.3321299639,
         "reason": "TAKE_PROFIT",
@@ -130,7 +132,8 @@
           "price": 0.1,
           "timestamp": 9,
           "topTenHoldingPercentage": 35,
-          "topTenHoldingPercentageCirculating": 70
+          "topTenHoldingPercentageCirculating": 70,
+          "topHolderCirculatingPercentage": 12
         },
         "pumpBuyPriceInSol": 0.11499999999999999,
         "pumpInSol": 0.45999999999999996,

@@ -84,7 +84,7 @@ export async function sellPumpfunTokens({
             () =>
                 pumpfun.sell({
                     transactionMode: TransactionMode.Execution,
-                    payerPrivateKey: wallet.privateKey,
+                    wallet: wallet.toObject(),
                     tokenMint: token.mint,
                     tokenBondingCurve: bondingCurve.toBase58(),
                     tokenAssociatedBondingCurve: associatedBondingCurve.toBase58(),

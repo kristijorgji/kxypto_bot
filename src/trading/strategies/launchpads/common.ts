@@ -12,11 +12,15 @@ export function shouldBuyStateless(buyConfig: LaunchpadStrategyBuyConfig, market
     return true;
 }
 
-export function checkInterval(config: IntervalConfig | undefined, value: number): boolean {
+export function checkInterval(config: IntervalConfig | undefined, value: number | null): boolean {
     let valid = true;
 
     if (!config) {
         return true;
+    }
+
+    if (value === null) {
+        return !config || Object.keys(config).length === 0;
     }
 
     if (config.min) {

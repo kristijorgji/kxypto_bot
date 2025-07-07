@@ -61,7 +61,8 @@
                   "devHoldingPercentage": 10,
                   "topTenHoldingPercentage": 35,
                   "devHoldingPercentageCirculating": 20,
-                  "topTenHoldingPercentageCirculating": 70
+                  "topTenHoldingPercentageCirculating": 70,
+                  "topHolderCirculatingPercentage": 12
                 },
                 "pumpInSol": 0.625,
                 "pumpMaxSolCost": 0.625,
@@ -112,7 +113,8 @@
                   "devHoldingPercentage": 10,
                   "topTenHoldingPercentage": 35,
                   "devHoldingPercentageCirculating": 20,
-                  "topTenHoldingPercentageCirculating": 70
+                  "topTenHoldingPercentageCirculating": 70,
+                  "topHolderCirculatingPercentage": 12
                 },
                 "reason": "STOP_LOSS",
                 "pumpMinLamportsOutput": 50000,

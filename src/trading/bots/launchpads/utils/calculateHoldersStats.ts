@@ -1,4 +1,4 @@
-import { TokenHolder } from '../../../../blockchains/solana/types';
+import { TokenHolder } from '@src/blockchains/solana/types';
 
 export default function calculateHoldersStats({
     tokenHolders,
@@ -17,6 +17,7 @@ export default function calculateHoldersStats({
     circulatingSupply: number;
     devHoldingPercentageCirculating: number;
     topTenHoldingPercentageCirculating: number;
+    topHolderCirculatingPercentage: number | null;
 } {
     tokenHolders.sort((a, b) => b.balance - a.balance);
     let devHolding = 0;
@@ -25,6 +26,7 @@ export default function calculateHoldersStats({
     let topTenHolding = 0;
     let topTenHoldingIndex = 0;
     let circulatingSupply = 0;
+    let topHolderHolding: number | null = null;
 
     for (let i = 0; i < tokenHolders.length; i++) {
         const tokenHolder = tokenHolders[i];
@@ -32,6 +34,10 @@ export default function calculateHoldersStats({
         if (tokenHolder.ownerAddress === bondingCurve) {
             // ignore the liquidity pool
             continue;
+        }
+
+        if (topHolderHolding === null) {
+            topHolderHolding = tokenHolder.balance;
         }
 
         circulatingSupply += tokenHolder.balance;
@@ -52,5 +58,6 @@ export default function calculateHoldersStats({
         circulatingSupply: circulatingSupply,
         devHoldingPercentageCirculating: (devHolding / circulatingSupply) * 100,
         topTenHoldingPercentageCirculating: (topTenHolding / circulatingSupply) * 100,
+        topHolderCirculatingPercentage: topHolderHolding === null ? null : (topHolderHolding / circulatingSupply) * 100,
     };
 }

@@ -3,7 +3,6 @@ import { createLogger } from 'winston';
 import { calculatePumpTokenLamportsValue } from '@src/blockchains/solana/dex/pumpfun/pump-base';
 import * as pumpSimulation from '@src/blockchains/solana/dex/pumpfun/pump-simulation';
 
-import { PumpfunInitialCoinData } from '../../../../../../src/blockchains/solana/dex/pumpfun/types';
 import { TIP_LAMPORTS } from '../../../../../../src/blockchains/solana/Jito';
 import { solToLamports } from '../../../../../../src/blockchains/utils/amount';
 import PumpfunBacktester, {
@@ -18,6 +17,7 @@ import { HistoryEntry } from '../../../../../../src/trading/bots/launchpads/type
 import RiseStrategy, { RiseStrategyConfig } from '../../../../../../src/trading/strategies/launchpads/RiseStrategy';
 import { formHistoryEntry } from '../../../../../__utils/blockchains/solana';
 import { readFixture, readLocalFixture } from '../../../../../__utils/data';
+import { dummyPumpfunTokenInfo } from '../../../../../data/vars/blockchains/solana/pumpfun';
 
 const originalDateNow = Date.now;
 
@@ -69,20 +69,7 @@ describe(PumpfunBacktester.name, () => {
         sellUnclosedPositionsAtEnd: false,
     };
 
-    const tokenInfo: PumpfunInitialCoinData = {
-        mint: '5xNMMoEQcQiJQURE6DEwvHVt1jJsMTLrFmBHZoqpump',
-        creator: '5toWw4R3RPV8KuA4VF4R153yJbwqrvqtU2cNzesiHjKW',
-        createdTimestamp: 1740056496720,
-        bondingCurve: 'BGrF4MKYiy5WnodhReU1ThqxkpFJfvqSGfVAkgFcTqaq',
-        associatedBondingCurve: '5XMryrPBvant2bZ4zweqFfiEggu4PBhbWZi7St8cRfNo',
-        name: 'Oracle Framework',
-        symbol: 'ORACLE',
-        description: 'oracle framework is the easiest way to bring your agent to life. ',
-        image: 'https://ipfs.io/ipfs/Qme4SLfMZbbwr1bvoLy5WCGwJGE68GBMBqKJw2ng4nMswB',
-        twitter: 'https://x.com/oracleframework',
-        telegram: 'https://t.me/oracleframeworkmeme',
-        website: 'http://oracleframework.ai',
-    };
+    const tokenInfo = dummyPumpfunTokenInfo;
 
     beforeEach(() => {
         backtester = new PumpfunBacktester(silentLogger);
@@ -289,6 +276,7 @@ describe(PumpfunBacktester.name, () => {
                     timestamp: 8,
                     topTenHoldingPercentage: 35,
                     topTenHoldingPercentageCirculating: 70,
+                    topHolderCirculatingPercentage: 12,
                 },
                 pumpMinLamportsOutput: 144404.3321299639,
                 reason: 'BEFORE_EXIT_MONITORING',

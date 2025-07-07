@@ -67,6 +67,7 @@ export default class PumpfunMarketContextProvider {
             topTenHoldingPercentage: holderStats.topTenHoldingPercentage,
             devHoldingPercentageCirculating: holderStats.devHoldingPercentageCirculating,
             topTenHoldingPercentageCirculating: holderStats.topTenHoldingPercentageCirculating,
+            topHolderCirculatingPercentage: holderStats.topHolderCirculatingPercentage,
         };
     }
 }

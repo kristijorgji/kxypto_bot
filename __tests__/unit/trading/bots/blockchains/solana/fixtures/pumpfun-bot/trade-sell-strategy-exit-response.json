@@ -27,21 +27,37 @@
           "price": 4.1e-7,
           "timestamp": 1616175603000,
           "topTenHoldingPercentage": 10,
-          "topTenHoldingPercentageCirculating": 70
+          "topTenHoldingPercentageCirculating": 70,
+          "topHolderCirculatingPercentage": 12
         },
         "historyRef": {
           "index": 1,
           "timestamp": 1616175603000
         },
-        "pumpBuyPriceInSol": 4.0999999999999994e-7,
+        "pumpBuyPriceInSol": 4.1e-7,
         "pumpInSol": 0.4,
         "pumpMaxSolCost": 0.55,
-        "pumpTokenOut": 10499526567337
+        "pumpTokenOut": 10499526567337,
+        "pumpMeta": {
+          "price": {
+            "calculationMode": "simulation"
+          },
+          "startActionBondingCurveState": {
+            "bondingCurve": "HkpnGZCoVwWfTV8wM7od7tH3HHesT8te9Mu4XFyqtooB",
+            "complete": false,
+            "dev": "6FjRL4iqjc7tpMr7rsNz3mz4nPSXBhGQtFRa5fJLapzZ",
+            "realSolReserves": 753797654,
+            "realTokenReserves": 766800000000000,
+            "tokenTotalSupply": 1000000000000000,
+            "virtualSolReserves": 58569661730,
+            "virtualTokenReserves": 1043137958064512
+          }
+        }
       },
       "netTransferredLamports": 414995000,
       "price": {
-        "inLamports": 409.99999999999994,
-        "inSol": 4.0999999999999994e-7
+        "inLamports": 410,
+        "inSol": 4.1e-7
       },
       "sold": {
         "address": "So11111111111111111111111111111111111111112",
@@ -78,7 +94,8 @@
           "price": 3.14e-8,
           "timestamp": 1616175609000,
           "topTenHoldingPercentage": 10,
-          "topTenHoldingPercentageCirculating": 70
+          "topTenHoldingPercentageCirculating": 70,
+          "topHolderCirculatingPercentage": 12
         },
         "historyRef": {
           "index": 4,
@@ -86,7 +103,22 @@
         },
         "pumpMinLamportsOutput": 710000000,
         "reason": "DUMPED",
-        "sellPriceInSol": 6.381240103570997e-8
+        "sellPriceInSol": 6.381240103570997e-8,
+        "pumpMeta": {
+          "price": {
+            "calculationMode": "simulation"
+          },
+          "startActionBondingCurveState": {
+            "bondingCurve": "HkpnGZCoVwWfTV8wM7od7tH3HHesT8te9Mu4XFyqtooB",
+            "complete": false,
+            "dev": "6FjRL4iqjc7tpMr7rsNz3mz4nPSXBhGQtFRa5fJLapzZ",
+            "realSolReserves": 753797654,
+            "realTokenReserves": 766800000000000,
+            "tokenTotalSupply": 1000000000000000,
+            "virtualSolReserves": 58569661730,
+            "virtualTokenReserves": 1043137958064512
+          }
+        }
       },
       "netTransferredLamports": 664995000,
       "price": {
@@ -119,7 +151,8 @@
       "price": 4.1e-7,
       "timestamp": 1616175603000,
       "topTenHoldingPercentage": 10,
-      "topTenHoldingPercentageCirculating": 70
+      "topTenHoldingPercentageCirculating": 70,
+      "topHolderCirculatingPercentage": 12
     },
     {
       "_metadata": {
@@ -133,7 +166,8 @@
       "price": 4.2e-7,
       "timestamp": 1616175605000,
       "topTenHoldingPercentage": 10,
-      "topTenHoldingPercentageCirculating": 70
+      "topTenHoldingPercentageCirculating": 70,
+      "topHolderCirculatingPercentage": 12
     },
     {
       "_metadata": {
@@ -147,7 +181,8 @@
       "price": 3.14e-8,
       "timestamp": 1616175609000,
       "topTenHoldingPercentage": 10,
-      "topTenHoldingPercentageCirculating": 70
+      "topTenHoldingPercentageCirculating": 70,
+      "topHolderCirculatingPercentage": 12
     },
     {
       "_metadata": {
@@ -161,7 +196,8 @@
       "price": 3.141e-8,
       "timestamp": 1616175611000,
       "topTenHoldingPercentage": 10,
-      "topTenHoldingPercentageCirculating": 70
+      "topTenHoldingPercentageCirculating": 70,
+      "topHolderCirculatingPercentage": 12
     },
     {
       "bondingCurveProgress": 50,
@@ -172,7 +208,8 @@
       "price": 3.142e-8,
       "timestamp": 1616175614000,
       "topTenHoldingPercentage": 10,
-      "topTenHoldingPercentageCirculating": 70
+      "topTenHoldingPercentageCirculating": 70,
+      "topHolderCirculatingPercentage": 12
     },
     {
       "bondingCurveProgress": 50,
@@ -183,7 +220,8 @@
       "price": 3.143e-8,
       "timestamp": 1616175616000,
       "topTenHoldingPercentage": 10,
-      "topTenHoldingPercentageCirculating": 70
+      "topTenHoldingPercentageCirculating": 70,
+      "topHolderCirculatingPercentage": 12
     },
     {
       "bondingCurveProgress": 50,
@@ -194,7 +232,8 @@
       "price": 3.144e-8,
       "timestamp": 1616175618000,
       "topTenHoldingPercentage": 10,
-      "topTenHoldingPercentageCirculating": 70
+      "topTenHoldingPercentageCirculating": 70,
+      "topHolderCirculatingPercentage": 12
     }
   ]
 }

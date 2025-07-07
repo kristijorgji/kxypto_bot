@@ -22,3 +22,7 @@ export function simulatePumpSellLatencyMs(
 
     return varyLatency ? computeSimulatedLatencyNs(latencies) / 1e6 : latencies.avgTimeNs / 1e6;
 }
+
+export function simulatePumpAccountCreationFeeLamports(): number {
+    return 4045000;
+}

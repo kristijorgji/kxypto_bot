@@ -43,6 +43,7 @@ describe(calculateHoldersStats.name, () => {
             circulatingSupply: 18265772478805,
             devHoldingPercentageCirculating: 1.9574725601443153,
             topTenHoldingPercentageCirculating: 100,
-        });
+            topHolderCirculatingPercentage: 78.27281146882193,
+        } satisfies ReturnType<typeof calculateHoldersStats>);
     });
 });

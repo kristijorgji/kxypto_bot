@@ -14,7 +14,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -54,7 +54,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -70,7 +70,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "info",
-      "message": "Bought successfully 10499526567337 amountRaw for 0.4 sol. buyRes={\n  signature: '3iDf5i1MpqRMPfvvQCyy2U1DZVngaMGRRcNCpbZT1R5DEnjTBQtb6n1qhttf1fECMLbUqG7s3K8AYRA2ghhzM7Nx',\n  boughtAmountRaw: 10499526567337,\n  pumpTokenOut: 10499526567337,\n  pumpMaxSolCost: 0.55,\n  txDetails: {\n    grossTransferredLamports: 325485323.587447,\n    netTransferredLamports: 414995000,\n    baseFeeLamports: 5000,\n    priorityFeeLamports: 5000000,\n    totalFeeLamports: 5005000\n  }\n}"
+      "message": "Bought successfully 10499526567337 amountRaw for 0.4 sol. buyRes={\n  signature: '3iDf5i1MpqRMPfvvQCyy2U1DZVngaMGRRcNCpbZT1R5DEnjTBQtb6n1qhttf1fECMLbUqG7s3K8AYRA2ghhzM7Nx',\n  boughtAmountRaw: 10499526567337,\n  pumpTokenOut: 10499526567337,\n  pumpMaxSolCost: 0.55,\n  actualBuyPriceSol: 3.1e-8,\n  txDetails: {\n    grossTransferredLamports: 325485323.587447,\n    netTransferredLamports: 414995000,\n    baseFeeLamports: 5000,\n    priorityFeeLamports: 5000000,\n    totalFeeLamports: 5005000\n  },\n  metadata: {\n    startActionBondingCurveState: {\n      dev: '6FjRL4iqjc7tpMr7rsNz3mz4nPSXBhGQtFRa5fJLapzZ',\n      bondingCurve: 'HkpnGZCoVwWfTV8wM7od7tH3HHesT8te9Mu4XFyqtooB',\n      virtualSolReserves: 58569661730,\n      virtualTokenReserves: 1043137958064512,\n      realTokenReserves: 766800000000000,\n      realSolReserves: 753797654,\n      tokenTotalSupply: 1000000000000000,\n      complete: false\n    },\n    price: { calculationMode: 'simulation' }\n  }\n}"
     },
     {
       "contextMap": {
@@ -86,7 +86,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -126,7 +126,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -166,7 +166,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -206,7 +206,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -246,7 +246,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -286,7 +286,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -326,7 +326,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -366,7 +366,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -406,7 +406,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -446,7 +446,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -486,7 +486,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -526,7 +526,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -566,7 +566,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -606,7 +606,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -646,7 +646,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -686,7 +686,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -726,7 +726,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -782,7 +782,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%"
+      "message": "total holders=70, top ten holding 10%, dev holding 5%, top ten circulating 70%, dev holding circulating 20%, top holder circulating 12%"
     },
     {
       "contextMap": {
@@ -798,7 +798,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "info",
-      "message": "We sold successfully 10499526567337 amountRaw with reason AUTO_SELL_TIMEOUT and received net 0.664995 sol. sellRes={\n  signature: '4qADGbGKY7C26ZEb7CKMEbkCvSbo3Ybf9R6Lqqx1HyBYjyt5AK8WEQmy76EcAM9NDBKur8Vqk3ZH5XES28U1DxBB',\n  soldRawAmount: 10499526567337,\n  minLamportsOutput: 710000000,\n  txDetails: {\n    grossTransferredLamports: 670000000,\n    netTransferredLamports: 664995000,\n    baseFeeLamports: 5000,\n    priorityFeeLamports: 5000000,\n    totalFeeLamports: 5005000\n  }\n}"
+      "message": "We sold successfully 10499526567337 amountRaw with reason AUTO_SELL_TIMEOUT and received net 0.664995 sol. sellRes={\n  signature: '4qADGbGKY7C26ZEb7CKMEbkCvSbo3Ybf9R6Lqqx1HyBYjyt5AK8WEQmy76EcAM9NDBKur8Vqk3ZH5XES28U1DxBB',\n  soldRawAmount: 10499526567337,\n  minLamportsOutput: 710000000,\n  actualSellPriceSol: 6.381240103570997e-8,\n  txDetails: {\n    grossTransferredLamports: 670000000,\n    netTransferredLamports: 664995000,\n    baseFeeLamports: 5000,\n    priorityFeeLamports: 5000000,\n    totalFeeLamports: 5005000\n  },\n  metadata: {\n    startActionBondingCurveState: {\n      dev: '6FjRL4iqjc7tpMr7rsNz3mz4nPSXBhGQtFRa5fJLapzZ',\n      bondingCurve: 'HkpnGZCoVwWfTV8wM7od7tH3HHesT8te9Mu4XFyqtooB',\n      virtualSolReserves: 58569661730,\n      virtualTokenReserves: 1043137958064512,\n      realTokenReserves: 766800000000000,\n      realSolReserves: 753797654,\n      tokenTotalSupply: 1000000000000000,\n      complete: false\n    },\n    price: { calculationMode: 'simulation' }\n  }\n}"
     },
     {
       "contextMap": {

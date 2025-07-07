@@ -11,7 +11,8 @@
       "price": 3.42e-8,
       "timestamp": 1616175603000,
       "topTenHoldingPercentage": 10,
-      "topTenHoldingPercentageCirculating": 70
+      "topTenHoldingPercentageCirculating": 70,
+      "topHolderCirculatingPercentage": 12
     },
     {
       "bondingCurveProgress": 50,
@@ -22,7 +23,8 @@
       "price": 3.4299999999999996e-8,
       "timestamp": 1616175605000,
       "topTenHoldingPercentage": 10,
-      "topTenHoldingPercentageCirculating": 70
+      "topTenHoldingPercentageCirculating": 70,
+      "topHolderCirculatingPercentage": 12
     },
     {
       "bondingCurveProgress": 50,
@@ -33,7 +35,8 @@
       "price": 3.44e-8,
       "timestamp": 1616175607000,
       "topTenHoldingPercentage": 10,
-      "topTenHoldingPercentageCirculating": 70
+      "topTenHoldingPercentageCirculating": 70,
+      "topHolderCirculatingPercentage": 12
     },
     {
       "bondingCurveProgress": 50,
@@ -44,7 +47,8 @@
       "price": 3.45e-8,
       "timestamp": 1616175609000,
       "topTenHoldingPercentage": 10,
-      "topTenHoldingPercentageCirculating": 70
+      "topTenHoldingPercentageCirculating": 70,
+      "topHolderCirculatingPercentage": 12
     },
     {
       "bondingCurveProgress": 50,
@@ -55,7 +59,8 @@
       "price": 3.46e-8,
       "timestamp": 1616175611000,
       "topTenHoldingPercentage": 10,
-      "topTenHoldingPercentageCirculating": 70
+      "topTenHoldingPercentageCirculating": 70,
+      "topHolderCirculatingPercentage": 12
     },
     {
       "_metadata": {
@@ -69,7 +74,8 @@
       "price": 3.47e-8,
       "timestamp": 1616175613000,
       "topTenHoldingPercentage": 10,
-      "topTenHoldingPercentageCirculating": 70
+      "topTenHoldingPercentageCirculating": 70,
+      "topHolderCirculatingPercentage": 12
     },
     {
       "bondingCurveProgress": 50,
@@ -80,7 +86,8 @@
       "price": 3.48e-8,
       "timestamp": 1616175615000,
       "topTenHoldingPercentage": 10,
-      "topTenHoldingPercentageCirculating": 70
+      "topTenHoldingPercentageCirculating": 70,
+      "topHolderCirculatingPercentage": 12
     },
     {
       "bondingCurveProgress": 50,
@@ -91,7 +98,8 @@
       "price": 3.49e-8,
       "timestamp": 1616175617000,
       "topTenHoldingPercentage": 10,
-      "topTenHoldingPercentageCirculating": 70
+      "topTenHoldingPercentageCirculating": 70,
+      "topHolderCirculatingPercentage": 12
     },
     {
       "bondingCurveProgress": 50,
@@ -102,7 +110,8 @@
       "price": 3.5e-8,
       "timestamp": 1616175619000,
       "topTenHoldingPercentage": 10,
-      "topTenHoldingPercentageCirculating": 70
+      "topTenHoldingPercentageCirculating": 70,
+      "topHolderCirculatingPercentage": 12
     }
   ]
 }

@@ -1,5 +1,7 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 
+import { WalletInfo } from '@src/blockchains/solana/types';
+
 import { SolanaWalletProviders } from './constants/walletProviders';
 import solanaMnemonicToKeypair from './utils/solanaMnemonicToKeypair';
 
@@ -54,5 +56,12 @@ export default class Wallet {
         this._balanceLamports += amountLamports;
 
         return this._balanceLamports;
+    }
+
+    toObject(): WalletInfo {
+        return {
+            address: this.address,
+            privateKey: this.privateKey,
+        };
     }
 }

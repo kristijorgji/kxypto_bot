@@ -9,13 +9,18 @@ import bs58 from 'bs58';
 import WebSocket, { MessageEvent } from 'ws';
 
 import {
+    calculatePriceInLamports,
     calculatePumpTokenLamportsValue,
     computeBondingCurveMetrics,
+    extractBuyResultsFromTx,
+    extractPossibleErrorFromTx,
+    extractSellResultsFromTx,
     getAssociatedBondingCurveAddress,
     getCreatorVaultAddress,
     getTokenBondingCurveState,
 } from '@src/blockchains/solana/dex/pumpfun/pump-base';
 import {
+    simulatePumpAccountCreationFeeLamports,
     simulatePumpBuyLatencyMs,
     simulatePumpSellLatencyMs,
 } from '@src/blockchains/solana/dex/pumpfun/pump-simulation';
@@ -45,10 +50,10 @@ import {
     PumpfunSellResponse,
     PumpfunTokenBcStats,
 } from './types';
-import { solToLamports } from '../../../utils/amount';
+import { lamportsToSol, solToLamports } from '../../../utils/amount';
 import { JitoConfig } from '../../Jito';
 import { getMetadataPDA } from '../../SolanaAdapter';
-import { TransactionMode, WssMessage } from '../../types';
+import { TransactionMode, WalletInfo, WssMessage } from '../../types';
 import { DEFAULT_COMMITMENT, DEFAULT_FINALITY, getKeyPairFromPrivateKey, sendTx } from '../../utils/helpers';
 import {
     simulatePriceWithHigherSlippage,
@@ -60,7 +65,7 @@ import { getSolTransactionDetails } from '../../utils/transactions';
 
 type SwapBaseParams = {
     transactionMode: TransactionMode;
-    payerPrivateKey: string;
+    wallet: WalletInfo;
     tokenMint: string;
     tokenBondingCurve: string;
     tokenAssociatedBondingCurve: string;
@@ -81,7 +86,7 @@ export default class Pumpfun implements PumpfunListener {
     private static readonly defaultPriorityInSol = 0;
     private static readonly defaultSlippageDecimal = 0.25;
 
-    private readonly connection: Connection;
+    readonly connection: Connection;
 
     private listeningToNewTokens = false;
     private ws: WebSocket | undefined;
@@ -200,8 +205,11 @@ export default class Pumpfun implements PumpfunListener {
             creator: bcState.dev,
             // TODO find a way to fetch createdTimestamp via Pumpfun.getInitialCoinBaseData
             createdTimestamp: Date.now(),
-            bondingCurve: bcState.bondingCurve.toBase58(),
-            associatedBondingCurve: getAssociatedBondingCurveAddress(bcState.bondingCurve, mintKey).toBase58(),
+            bondingCurve: bcState.bondingCurve,
+            associatedBondingCurve: getAssociatedBondingCurveAddress(
+                new PublicKey(bcState.bondingCurve),
+                mintKey,
+            ).toBase58(),
             name: ipfsMetadata.name,
             symbol: ipfsMetadata.symbol,
             description: ipfsMetadata.description,
@@ -223,12 +231,10 @@ export default class Pumpfun implements PumpfunListener {
         const bcs = await getTokenBondingCurveState(this.connection, {
             bondingCurve: new PublicKey(p.tokenBondingCurve),
         });
-        const { payer, txBuilder, keys } = await this.buildTxCommon(p, 'buy', bcs.dev);
+        const { payer, txBuilder, keys, willCreateTokenAccount } = await this.buildTxCommon(p, 'buy', bcs.dev);
 
         const solInLamports = solToLamports(p.solIn);
-        const tokenOut = Math.floor(
-            (solInLamports * bcs.virtualTokenReserves.toNumber()) / bcs.virtualSolReserves.toNumber(),
-        );
+        const tokenOut = Math.floor((solInLamports * bcs.virtualTokenReserves) / bcs.virtualSolReserves);
         const solInWithSlippage = p.solIn * (1 + slippageDecimal);
         const maxSolCost = Math.floor(solToLamports(solInWithSlippage));
         const data: Buffer = Buffer.concat([PUMP_BUY_BUFFER, bufferFromUInt64(tokenOut), bufferFromUInt64(maxSolCost)]);
@@ -264,17 +270,51 @@ export default class Pumpfun implements PumpfunListener {
 
             logger.info(`Buy transaction confirmed: https://solscan.io/tx/${signature}`);
 
+            const fullTxDetails = await getSolTransactionDetails(
+                this.connection,
+                signature!,
+                payer.publicKey.toBase58(),
+                Pumpfun.getTxDetailsRetryConfig,
+            );
+            const txDetails = extractPossibleErrorFromTx(fullTxDetails);
+            if (txDetails.error) {
+                throw txDetails;
+            }
+
+            const tradeResultFromTx = extractBuyResultsFromTx(
+                fullTxDetails.fullTransaction,
+                p.wallet.address,
+                p.tokenMint,
+                p.tokenBondingCurve,
+            );
+            if (tradeResultFromTx.amountRaw !== tokenOut) {
+                throw new Error(
+                    `${tradeResultFromTx.amountRaw}(actualDetails.amountRaw) is different than ${tokenOut}(tokenOut)`,
+                );
+            }
+
+            const actualBuyPriceInSol = lamportsToSol(tradeResultFromTx.priceLamports);
+
             return {
                 signature: signature!,
                 boughtAmountRaw: tokenOut,
                 pumpTokenOut: tokenOut,
                 pumpMaxSolCost: maxSolCost,
-                txDetails: await getSolTransactionDetails(
-                    this.connection,
-                    signature!,
-                    payer.publicKey.toBase58(),
-                    Pumpfun.getTxDetailsRetryConfig,
-                ),
+                actualBuyPriceSol: actualBuyPriceInSol,
+                txDetails: txDetails,
+                metadata: {
+                    startActionBondingCurveState: bcs,
+                    price: {
+                        calculationMode: 'bondingCurveTransferred',
+                        fromBondingCurveTransferredInSol: actualBuyPriceInSol,
+                        fromTxGrossTransferredInSol: lamportsToSol(
+                            calculatePriceInLamports({
+                                amountRaw: tokenOut,
+                                lamports: txDetails.grossTransferredLamports,
+                            }),
+                        ),
+                    },
+                },
             };
         } else {
             // running the simulation incur fees so skipping for now
@@ -291,18 +331,29 @@ export default class Pumpfun implements PumpfunListener {
                 ),
             );
 
+            const simActualBuyPriceLamports = Math.min(
+                simulatePriceWithHigherSlippage(solInLamports, slippageDecimal),
+                solToLamports(maxSolCost),
+            );
+
             return {
                 signature: _generateFakeSimulationTransactionHash(),
                 boughtAmountRaw: tokenOut,
                 pumpTokenOut: tokenOut,
                 pumpMaxSolCost: maxSolCost,
+                actualBuyPriceSol: lamportsToSol(simActualBuyPriceLamports),
                 txDetails: simulateSolTransactionDetails(
-                    -Math.min(
-                        simulatePriceWithHigherSlippage(solInLamports, slippageDecimal),
-                        solToLamports(maxSolCost),
-                    ) - getJitoTipLamports(p.jitoConfig),
+                    -simActualBuyPriceLamports -
+                        getJitoTipLamports(p.jitoConfig) -
+                        (willCreateTokenAccount ? simulatePumpAccountCreationFeeLamports() : 0),
                     solToLamports(priorityFeeInSol),
                 ),
+                metadata: {
+                    startActionBondingCurveState: bcs,
+                    price: {
+                        calculationMode: 'simulation',
+                    },
+                },
             };
         }
     }
@@ -322,8 +373,7 @@ export default class Pumpfun implements PumpfunListener {
         const { payer, txBuilder, keys } = await this.buildTxCommon(p, 'sell', bcs.dev);
 
         const minLamportsOutput = Math.floor(
-            (p.tokenBalance! * (1 - slippageDecimal) * bcs.virtualSolReserves.toNumber()) /
-                bcs.virtualTokenReserves.toNumber(),
+            (p.tokenBalance! * (1 - slippageDecimal) * bcs.virtualSolReserves) / bcs.virtualTokenReserves,
         );
         const data = Buffer.concat([
             PUMP_SELL_BUFFER,
@@ -362,16 +412,50 @@ export default class Pumpfun implements PumpfunListener {
 
             logger.info(`Sell transaction confirmed: https://solscan.io/tx/${signature}`);
 
+            const fullTxDetails = await getSolTransactionDetails(
+                this.connection,
+                signature!,
+                payer.publicKey.toBase58(),
+                Pumpfun.getTxDetailsRetryConfig,
+            );
+            const txDetails = extractPossibleErrorFromTx(fullTxDetails);
+            if (txDetails.error) {
+                throw txDetails;
+            }
+
+            const tradeResultFromTx = extractSellResultsFromTx(
+                fullTxDetails.fullTransaction,
+                p.wallet.address,
+                p.tokenMint,
+                p.tokenBondingCurve,
+            );
+            if (tradeResultFromTx.amountRaw !== p.tokenBalance) {
+                throw new Error(
+                    `${tradeResultFromTx.amountRaw}(actualDetails.amountRaw) is different than ${p.tokenBalance}(tokenOut)`,
+                );
+            }
+
+            const actualSellPriceInSol = lamportsToSol(tradeResultFromTx.priceLamports);
+
             return {
                 signature: signature!,
                 soldRawAmount: p.tokenBalance,
                 minLamportsOutput: minLamportsOutput,
-                txDetails: await getSolTransactionDetails(
-                    this.connection,
-                    signature!,
-                    payer.publicKey.toBase58(),
-                    Pumpfun.getTxDetailsRetryConfig,
-                ),
+                actualSellPriceSol: actualSellPriceInSol,
+                txDetails: txDetails,
+                metadata: {
+                    startActionBondingCurveState: bcs,
+                    price: {
+                        calculationMode: 'bondingCurveTransferred',
+                        fromBondingCurveTransferredInSol: actualSellPriceInSol,
+                        fromTxGrossTransferredInSol: lamportsToSol(
+                            calculatePriceInLamports({
+                                amountRaw: p.tokenBalance,
+                                lamports: txDetails.grossTransferredLamports,
+                            }),
+                        ),
+                    },
+                },
             };
         } else {
             // running the simulation incur fees so skipping for now
@@ -388,20 +472,29 @@ export default class Pumpfun implements PumpfunListener {
                 ),
             );
 
+            const simActualSellPriceLamports = Math.max(
+                minLamportsOutput,
+                simulatePriceWithLowerSlippage(
+                    calculatePumpTokenLamportsValue(p.tokenBalance, priceInSol),
+                    slippageDecimal,
+                ),
+            );
+
             return {
                 signature: _generateFakeSimulationTransactionHash(),
                 soldRawAmount: p.tokenBalance,
                 minLamportsOutput: minLamportsOutput,
+                actualSellPriceSol: lamportsToSol(simActualSellPriceLamports),
                 txDetails: simulateSolTransactionDetails(
-                    Math.max(
-                        minLamportsOutput,
-                        simulatePriceWithLowerSlippage(
-                            calculatePumpTokenLamportsValue(p.tokenBalance, priceInSol),
-                            slippageDecimal,
-                        ),
-                    ) - getJitoTipLamports(p.jitoConfig),
+                    simActualSellPriceLamports - getJitoTipLamports(p.jitoConfig),
                     solToLamports(priorityFeeInSol),
                 ),
+                metadata: {
+                    startActionBondingCurveState: bcs,
+                    price: {
+                        calculationMode: 'simulation',
+                    },
+                },
             };
         }
     }
@@ -465,8 +558,8 @@ export default class Pumpfun implements PumpfunListener {
             marketCapInSol: bcMetrics.marketCapInSol,
             priceInSol: bcMetrics.priceInSol,
             bondingCurveProgress: bcMetrics.bondingCurveProgress,
-            virtualSolReserves: bcState.virtualSolReserves.toNumber(),
-            virtualTokenReserves: bcState.virtualTokenReserves.toNumber(),
+            virtualSolReserves: bcState.virtualSolReserves,
+            virtualTokenReserves: bcState.virtualTokenReserves,
         };
     }
 
@@ -503,8 +596,10 @@ export default class Pumpfun implements PumpfunListener {
         payer: Keypair;
         txBuilder: Transaction;
         keys: Array<AccountMeta>;
+        willCreateTokenAccount: boolean;
     }> {
-        const payer = await getKeyPairFromPrivateKey(p.payerPrivateKey);
+        let willCreateTokenAccount = false;
+        const payer = getKeyPairFromPrivateKey(p.wallet.privateKey);
         const mintKey = new PublicKey(p.tokenMint);
         const txBuilder = new Transaction();
 
@@ -517,6 +612,7 @@ export default class Pumpfun implements PumpfunListener {
                 createAssociatedTokenAccountInstruction(payer.publicKey, tokenAccountAddress, payer.publicKey, mintKey),
             );
             tokenAccount = tokenAccountAddress;
+            willCreateTokenAccount = true;
         } else {
             tokenAccount = tokenAccountAddress;
         }
@@ -548,6 +644,7 @@ export default class Pumpfun implements PumpfunListener {
                 { pubkey: PUMP_FUN_ACCOUNT, isSigner: false, isWritable: false },
                 { pubkey: PUMP_FUN_PROGRAM, isSigner: false, isWritable: false },
             ],
+            willCreateTokenAccount: willCreateTokenAccount,
         };
     }
 }

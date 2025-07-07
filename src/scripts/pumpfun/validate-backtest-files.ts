@@ -71,6 +71,9 @@ async function start(args: { path: string; includeIfPathContains: string; extrac
                     topTenHoldingPercentageCirculating: {
                         upToIndex: 12,
                     },
+                    topHolderCirculatingPercentage: {
+                        upToIndex: 12,
+                    },
                 },
             },
             noHistory: true,

@@ -30,6 +30,7 @@ describe(RiseStrategy.name, () => {
         topTenHoldingPercentage: 20,
         devHoldingPercentageCirculating: 20,
         topTenHoldingPercentageCirculating: 70,
+        topHolderCirculatingPercentage: 12,
     };
 
     const buyTradeTransaction: TradeTransaction = {
@@ -76,6 +77,7 @@ describe(RiseStrategy.name, () => {
                             topTenHoldingPercentage: 35,
                             devHoldingPercentageCirculating: 20,
                             topTenHoldingPercentageCirculating: 70,
+                            topHolderCirculatingPercentage: 12,
                         },
                     ],
                     {
@@ -150,6 +152,7 @@ describe(RiseStrategy.name, () => {
                         topTenHoldingPercentage: 20,
                         devHoldingPercentageCirculating: 20,
                         topTenHoldingPercentageCirculating: 70,
+                        topHolderCirculatingPercentage: 12,
                     },
                     [
                         formHistoryEntry({

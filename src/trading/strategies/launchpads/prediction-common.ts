@@ -56,6 +56,7 @@ export async function shouldBuyCommon(
                     topTenHoldingPercentage: e.topTenHoldingPercentage,
                     devHoldingPercentageCirculating: e.devHoldingPercentageCirculating,
                     topTenHoldingPercentageCirculating: e.topTenHoldingPercentageCirculating,
+                    topHolderCirculatingPercentage: e.topHolderCirculatingPercentage,
                 }) satisfies PredictionRequest['features'][number],
         ),
     };

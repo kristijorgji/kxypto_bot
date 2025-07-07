@@ -1,6 +1,6 @@
-import { VersionedTransactionResponse } from '@solana/web3.js';
+import { ParsedTransactionWithMeta, VersionedTransactionResponse } from '@solana/web3.js';
 
-import { LatencyMetrics } from '../../utils/simulations';
+import { LatencyMetrics } from '@src/utils/simulations';
 
 export type WalletInfo = { privateKey: string; address: string };
 
@@ -124,20 +124,17 @@ export type WssMessage = {
     };
 };
 
-export type PumpfunTransactionErrorType = 'pumpfun_slippage_more_sol_required';
-export type SolanaTransactionErrorType = PumpfunTransactionErrorType | 'insufficient_lamports' | 'unknown';
-
-export type SolTransactionDetails = {
+export type SolFullTransactionDetails = {
     grossTransferredLamports: number; // Amount before fees
     netTransferredLamports: number; // Amount after fees
     baseFeeLamports: number;
     priorityFeeLamports: number;
     totalFeeLamports: number;
-    error?: {
-        type: SolanaTransactionErrorType;
-        object: unknown;
-    };
+    error?: unknown;
+    fullTransaction: ParsedTransactionWithMeta;
 };
+
+export type SolTransactionDetails = Omit<SolFullTransactionDetails, 'fullTransaction'>;
 
 export type ExecutionLatencyData = {
     rpc: {

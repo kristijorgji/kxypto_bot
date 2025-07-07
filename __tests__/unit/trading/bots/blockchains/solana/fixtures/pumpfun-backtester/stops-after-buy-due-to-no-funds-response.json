@@ -23,7 +23,8 @@
           "price": 2.77,
           "timestamp": 7,
           "topTenHoldingPercentage": 35,
-          "topTenHoldingPercentageCirculating": 70
+          "topTenHoldingPercentageCirculating": 70,
+          "topHolderCirculatingPercentage": 12
         },
         "historyRef": {
           "index": 0,
@@ -71,7 +72,8 @@
           "price": 0.2,
           "timestamp": 8,
           "topTenHoldingPercentage": 35,
-          "topTenHoldingPercentageCirculating": 70
+          "topTenHoldingPercentageCirculating": 70,
+          "topHolderCirculatingPercentage": 12
         },
         "historyRef": {
           "index": 1,

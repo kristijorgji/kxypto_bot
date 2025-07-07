@@ -1,4 +1,6 @@
-import { SolTransactionDetails } from '../../types';
+import { PumpfunPositionMeta } from '@src/trading/bots/blockchains/solana/types';
+
+import { SolFullTransactionDetails } from '../../types';
 
 export type NewPumpFunTokenData = {
     name: string;
@@ -66,19 +68,32 @@ export type PumpFunCoinData = {
     usd_market_cap: number;
 };
 
+export type PumpfunTransactionErrorType = 'pumpfun_slippage_more_sol_required' | 'insufficient_lamports' | 'unknown';
+
+export type SolPumpfunTransactionDetails = Omit<SolFullTransactionDetails, 'fullTransaction' | 'error'> & {
+    error?: {
+        type: PumpfunTransactionErrorType;
+        object: unknown;
+    };
+};
+
 export type PumpfunBuyResponse = {
     signature: string;
     boughtAmountRaw: number;
     pumpTokenOut: number;
     pumpMaxSolCost: number;
-    txDetails: SolTransactionDetails;
+    actualBuyPriceSol: number;
+    txDetails: SolPumpfunTransactionDetails;
+    metadata: PumpfunPositionMeta;
 };
 
 export type PumpfunSellResponse = {
     signature: string;
     soldRawAmount: number;
     minLamportsOutput: number;
-    txDetails: SolTransactionDetails;
+    actualSellPriceSol: number;
+    txDetails: SolPumpfunTransactionDetails;
+    metadata: PumpfunPositionMeta;
 };
 
 export interface PumpfunListener {

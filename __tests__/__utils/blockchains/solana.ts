@@ -4,8 +4,10 @@ import { HistoryEntry, MarketContext } from '../../../src/trading/bots/launchpad
 import { readFixture } from '../data';
 
 export function fixtureToParsedTransactionWithMeta(fixturePath: string): ParsedTransactionWithMeta {
-    const r = readFixture<ParsedTransactionWithMeta>(fixturePath);
+    return objToParsedTransactionWithMeta(readFixture<ParsedTransactionWithMeta>(fixturePath));
+}
 
+export function objToParsedTransactionWithMeta(r: ParsedTransactionWithMeta): ParsedTransactionWithMeta {
     for (const ac of r.transaction.message.accountKeys) {
         ac.pubkey = new PublicKey(ac.pubkey);
     }
@@ -25,6 +27,8 @@ export function formMarketContext(data: Partial<MarketContext>, copy?: MarketCon
             data.devHoldingPercentageCirculating ?? copy?.devHoldingPercentageCirculating ?? 20,
         topTenHoldingPercentageCirculating:
             data.topTenHoldingPercentageCirculating ?? copy?.topTenHoldingPercentageCirculating ?? 70,
+        topHolderCirculatingPercentage:
+            data.topHolderCirculatingPercentage ?? copy?.topHolderCirculatingPercentage ?? 12,
     };
 }
 
@@ -42,5 +46,7 @@ export function formHistoryEntry(data?: Partial<HistoryEntry>, copy?: HistoryEnt
             data?.devHoldingPercentageCirculating ?? copy?.devHoldingPercentageCirculating ?? 20,
         topTenHoldingPercentageCirculating:
             data?.topTenHoldingPercentageCirculating ?? copy?.topTenHoldingPercentageCirculating ?? 70,
+        topHolderCirculatingPercentage:
+            data?.topHolderCirculatingPercentage ?? copy?.topHolderCirculatingPercentage ?? 12,
     };
 }

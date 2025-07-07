@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { BondingCurveState } from '@src/blockchains/solana/dex/pumpfun/pump-base';
 import { jitoConfigSchema } from '@src/blockchains/solana/Jito';
 import { FileStorageType } from '@src/core/types';
 import { strategyFileConfigSchema } from '@src/trading/config/types';
@@ -20,17 +21,35 @@ export type SolanaValue = {
     inSol: number;
 };
 
+export type PumpfunPositionMeta =
+    | {
+          startActionBondingCurveState: BondingCurveState;
+          price: {
+              calculationMode: 'txGrossTransferred' | 'bondingCurveTransferred';
+              fromTxGrossTransferredInSol: number;
+              fromBondingCurveTransferredInSol: number;
+          };
+      }
+    | {
+          startActionBondingCurveState: BondingCurveState;
+          price: {
+              calculationMode: 'simulation';
+          };
+      };
+
 export type PumpfunBuyPositionMetadata = {
     pumpInSol: number;
     pumpTokenOut: number;
     pumpMaxSolCost: number;
     pumpBuyPriceInSol: number;
+    pumpMeta?: PumpfunPositionMeta;
 };
 
 export type PumpfunSellPositionMetadata = {
     pumpMinLamportsOutput: number;
     reason: SellReason;
     sellPriceInSol: number;
+    pumpMeta?: PumpfunPositionMeta;
 };
 
 export type HistoryRef = {

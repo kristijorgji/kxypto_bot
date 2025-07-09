@@ -11,7 +11,7 @@
     "test": "jest --coverage",
     "start": "ts-node -r dotenv/config src/index.ts",
     "dev:cli": "ts-node src/console/cli.ts",
-    "server:start": "ts-node -r dotenv/config src/http-api/server.ts",
+    "server:start": "ts-node -r tsconfig-paths/register -r dotenv/config src/http-api/server.ts",
     "server:dev": "nodemon --config nodemon.server.json",
     "compile": "tsc",
     "lint": "eslint --cache '{src,__tests__}/**/*.ts'",

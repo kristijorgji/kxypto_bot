@@ -1,6 +1,8 @@
 import {
+    addSecondsToDate,
     dateToMySQLTimestamp,
     formatDateIso8601WithOffset,
+    formatDateToMySQLTimestamp,
     formatElapsedTime,
     getDateSecondsAgo,
     getSecondsDifference,
@@ -177,5 +179,80 @@ describe('formatElapsedTime', () => {
     it('formats decimal seconds with hours and minutes', () => {
         expect(formatElapsedTime(3661.789)).toBe('1h 1m 1.79s');
         expect(formatElapsedTime(5025.321)).toBe('1h 23m 45.32s');
+    });
+});
+
+describe('formatDateToMySQLTimestamp', () => {
+    it('formats a UTC date correctly when isUtc is true', () => {
+        const date = new Date(Date.UTC(2025, 0, 2, 4, 5, 6)); // Jan 2, 2025 04:05:06 UTC
+        const result = formatDateToMySQLTimestamp(date, true);
+        expect(result).toBe('2025-01-02 04:05:06');
+    });
+
+    it('formats a local date correctly when isUtc is false', () => {
+        // Date: Jan 2, 2025 04:05:06 local time
+        const date = new Date(2025, 0, 2, 4, 5, 6);
+        const result = formatDateToMySQLTimestamp(date, false);
+
+        // Expected depends on your local timezone,
+        // but here we assume your local timezone is UTC+0 for example.
+        // If your timezone is different, replace this with the correct expected string.
+        // Example for UTC+0:
+        expect(result).toBe('2025-01-02 04:05:06');
+    });
+
+    it('pads all date parts correctly with leading zeros (UTC)', () => {
+        const date = new Date(Date.UTC(2025, 0, 1, 1, 2, 3)); // 2025-01-01 01:02:03 UTC
+        const result = formatDateToMySQLTimestamp(date, true);
+        expect(result).toBe('2025-01-01 01:02:03');
+    });
+
+    it('pads all date parts correctly with leading zeros (local)', () => {
+        const date = new Date(2025, 0, 1, 1, 2, 3); // local time
+        const result = formatDateToMySQLTimestamp(date, false);
+
+        // Adjust this expected string based on your local timezone.
+        // If your local timezone is UTC+0:
+        expect(result).toBe('2025-01-01 01:02:03');
+    });
+
+    it('returns different strings for UTC and local time for the same Date object', () => {
+        const now = new Date();
+
+        if (now.getTimezoneOffset() === 0) {
+            // In UTC timezone, UTC and local are same, so skip
+            return;
+        }
+
+        const utc = formatDateToMySQLTimestamp(now, true);
+        const local = formatDateToMySQLTimestamp(now, false);
+
+        expect(utc).not.toBe(local);
+    });
+});
+
+describe('addSecondsToDate', () => {
+    it('adds seconds correctly to a given date', () => {
+        const baseDate = new Date('2025-01-01T00:00:00Z');
+        const result = addSecondsToDate(baseDate, 60);
+        expect(result.toISOString()).toBe('2025-01-01T00:01:00.000Z');
+    });
+
+    it('handles zero seconds', () => {
+        const baseDate = new Date('2025-01-01T12:00:00Z');
+        const result = addSecondsToDate(baseDate, 0);
+        expect(result.toISOString()).toBe(baseDate.toISOString());
+    });
+
+    it('handles negative seconds', () => {
+        const baseDate = new Date('2025-01-01T00:00:30Z');
+        const result = addSecondsToDate(baseDate, -30);
+        expect(result.toISOString()).toBe('2025-01-01T00:00:00.000Z');
+    });
+
+    it('does not mutate the original date', () => {
+        const baseDate = new Date('2025-01-01T00:00:00Z');
+        addSecondsToDate(baseDate, 120);
+        expect(baseDate.toISOString()).toBe('2025-01-01T00:00:00.000Z');
     });
 });

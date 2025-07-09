@@ -15,8 +15,8 @@ import { solanaConnection } from '@src/blockchains/solana/utils/connection';
 import { lamportsToSol } from '@src/blockchains/utils/amount';
 import { redis } from '@src/cache/cache';
 import { db } from '@src/db/knex';
+import { insertLaunchpadTokenResult } from '@src/db/repositories/launchpad_tokens';
 import { pumpfunRepository } from '@src/db/repositories/PumpfunRepository';
-import { insertLaunchpadTokenResult } from '@src/db/repositories/tokenAnalytics';
 import { logger } from '@src/logger';
 import { parsePumpfunBotFileConfig } from '@src/trading/bots/blockchains/solana/pumpfun-bot-config-parser';
 import {

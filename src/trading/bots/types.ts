@@ -119,7 +119,8 @@ export type ShouldBuyResponse<R = string, D = Record<string, unknown>> = {
 
 export type ShouldSellResponse = false | DoSellResponse;
 
-export type ExitMonitoringReason = 'NO_PUMP' | 'DUMPED' | 'STOPPED' | 'BAD_CREATOR';
+export const exitMonitoringReasonEnum = z.enum(['NO_PUMP', 'DUMPED', 'STOPPED', 'BAD_CREATOR']);
+export type ExitMonitoringReason = z.infer<typeof exitMonitoringReasonEnum>;
 
 export type ShouldExitMonitoringResponse =
     | false
@@ -128,3 +129,6 @@ export type ShouldExitMonitoringResponse =
           message: string;
           shouldSell: ShouldSellResponse;
       };
+
+export const modeEnum = z.enum(['real', 'simulation']);
+export type Mode = z.infer<typeof modeEnum>;

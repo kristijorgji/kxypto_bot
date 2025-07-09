@@ -210,6 +210,8 @@ echo "--- Step 4: Packaging MERGED data into a ZIP archive ---"
 zip_name="training-$(date +"%d_%B_%Y_%H_%M").zip"
 ABSOLUTE_ZIP_PATH="$(pwd)/${zip_name}"
 
+sleepSeconds=10
+echo "Sleeping $sleepSeconds seconds to wait for the file system to actualize"
 echo "Zipping the merged data from '$FULL_BACKTEST_DIR_ARG' into '${ABSOLUTE_ZIP_PATH}'..."
 
 # Change to the target directory ($FULL_BACKTEST_DIR_ARG) for zipping its *contents*

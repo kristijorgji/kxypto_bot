@@ -24,9 +24,7 @@ const appVersion = 'v100';
 let nowTimestamp = Date.now();
 let bTestUserId: string;
 
-beforeEach(async () => {
-    await db(Tables.Sessions).delete();
-    await db(Tables.Users).delete();
+beforeAll(async () => {
     await db(Tables.Users).insert([
         {
             id: uuidv4(),
@@ -41,6 +39,10 @@ beforeEach(async () => {
             password: await hashPassword(bTestUser.password),
         },
     ]);
+});
+
+beforeEach(async () => {
+    await db(Tables.Sessions).delete();
     bTestUserId = (await db(Tables.Users).select('id').where('email', 'b@example.com').first()).id;
     nowTimestamp = Date.now();
 });

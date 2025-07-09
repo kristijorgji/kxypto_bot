@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import loginHandler from './handlers/auth/loginHandler';
 import logoutHandler from './handlers/auth/logoutHandler';
 import renewAccessTokenHandler from './handlers/auth/renewAccessTokenHandler';
+import getLaunchpadTokenResultsHandler from './handlers/launchpad/getLaunchpadTokenResultsHandler';
 import meHandler from './handlers/users/meHandler';
 import verifyJwtTokenMiddleware from './middlewares/verifyJwtTokenMiddleware';
 
@@ -43,6 +44,8 @@ export default function configureExpressApp(requestHandlers: RequestHandler[] = 
     app.post('/logout', logoutHandler);
 
     app.get('/user', verifyJwtTokenMiddleware, meHandler);
+
+    app.get('/launchpad-token-results', verifyJwtTokenMiddleware, getLaunchpadTokenResultsHandler);
 
     return app;
 }

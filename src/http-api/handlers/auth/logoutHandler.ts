@@ -1,9 +1,10 @@
 import { Response as ExpressResponse, Request } from 'express';
 import jwt from 'jsonwebtoken';
 
-import { db } from '../../../db/knex';
-import { Tables } from '../../../db/tables';
-import { RefreshTokenPayload, TokenType } from '../../../services/auth';
+import { db } from '@src/db/knex';
+import { Tables } from '@src/db/tables';
+import { RefreshTokenPayload, TokenType } from '@src/services/auth';
+
 import { extractBearerToken } from '../../utils/req_utils';
 import { errorResponse } from '../../utils/res_utils';
 

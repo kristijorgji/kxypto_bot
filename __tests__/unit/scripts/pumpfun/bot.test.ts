@@ -14,8 +14,8 @@ import mockPumpfunQueuedListener from '../../../../src/blockchains/solana/mockPu
 import { solanaConnection } from '../../../../src/blockchains/solana/utils/connection';
 import { solToLamports } from '../../../../src/blockchains/utils/amount';
 import { db } from '../../../../src/db/knex';
+import { insertLaunchpadTokenResult } from '../../../../src/db/repositories/launchpad_tokens';
 import { pumpfunRepository } from '../../../../src/db/repositories/PumpfunRepository';
-import { insertLaunchpadTokenResult } from '../../../../src/db/repositories/tokenAnalytics';
 import ArrayTransport from '../../../../src/logger/transports/ArrayTransport';
 import { start } from '../../../../src/scripts/pumpfun/bot';
 import { NewPumpFunCoinDataFactory, NewPumpFunTokenDataFactory } from '../../../../src/testdata/factories/pumpfun';
@@ -84,8 +84,8 @@ jest.mock('../../../../src/trading/bots/blockchains/solana/isTokenCreatorSafe', 
     default: jest.fn(),
 }));
 
-jest.mock('../../../../src/db/repositories/tokenAnalytics', () => ({
-    ...jest.requireActual('../../../../src/db/repositories/tokenAnalytics'),
+jest.mock('../../../../src/db/repositories/launchpad_tokens', () => ({
+    ...jest.requireActual('../../../../src/db/repositories/launchpad_tokens'),
     insertLaunchpadTokenResult: jest.fn(),
 }));
 

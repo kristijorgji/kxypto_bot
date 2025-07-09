@@ -1,8 +1,9 @@
 import { Response as ExpressResponse, Request } from 'express';
 
-import { db } from '../../../db/knex';
-import { Tables } from '../../../db/tables';
-import { User } from '../../../db/types';
+import { db } from '@src/db/knex';
+import { Tables } from '@src/db/tables';
+import { User } from '@src/db/types';
+
 import { ExtendedRequest } from '../../types';
 
 export default async (req: Request, res: ExpressResponse) => {

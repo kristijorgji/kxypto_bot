@@ -1,10 +1,11 @@
 import { Response as ExpressResponse, Request } from 'express';
 
-import { db } from '../../../db/knex';
-import { Tables } from '../../../db/tables';
-import { User } from '../../../db/types';
-import { generateAccessToken, generateRefreshToken, verifyPassword } from '../../../services/auth';
-import { formatDateIso8601WithOffset } from '../../../utils/time';
+import { db } from '@src/db/knex';
+import { Tables } from '@src/db/tables';
+import { User } from '@src/db/types';
+import { generateAccessToken, generateRefreshToken, verifyPassword } from '@src/services/auth';
+import { formatDateIso8601WithOffset } from '@src/utils/time';
+
 import { getClientVersion, getPlatform } from '../../utils/req_utils';
 
 type RequestBody = {

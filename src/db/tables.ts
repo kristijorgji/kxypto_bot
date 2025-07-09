@@ -9,4 +9,4 @@ export const Tables = {
     Positions: 'positions',
     LaunchpadTokenResults: 'launchpad_token_results',
     LaunchpadTokenReports: 'launchpad_token_reports',
-};
+} as const;

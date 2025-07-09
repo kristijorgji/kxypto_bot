@@ -1,11 +1,12 @@
 import { Response as ExpressResponse, Request } from 'express';
 import jwt from 'jsonwebtoken';
 
-import { db } from '../../../db/knex';
-import { Tables } from '../../../db/tables';
-import { Session } from '../../../db/types';
-import { RefreshTokenPayload, generateAccessToken } from '../../../services/auth';
-import { formatDateIso8601WithOffset } from '../../../utils/time';
+import { db } from '@src/db/knex';
+import { Tables } from '@src/db/tables';
+import { Session } from '@src/db/types';
+import { RefreshTokenPayload, generateAccessToken } from '@src/services/auth';
+import { formatDateIso8601WithOffset } from '@src/utils/time';
+
 import { errorResponse } from '../../utils/res_utils';
 
 type RequestBody = {

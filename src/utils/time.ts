@@ -67,3 +67,28 @@ export function formatElapsedTime(seconds: number): string {
 
     return parts.join(' ');
 }
+
+/**
+ * Formats a JavaScript Date object into a MySQL-compatible timestamp string.
+ * Output format: 'YYYY-MM-DD HH:mm:ss'
+ */
+export function formatDateToMySQLTimestamp(date: Date, useUTC: boolean): string {
+    const pad = (n: number) => (n < 10 ? '0' + n : n);
+
+    const year = useUTC ? date.getUTCFullYear() : date.getFullYear();
+    const month = pad(useUTC ? date.getUTCMonth() + 1 : date.getMonth() + 1);
+    const day = pad(useUTC ? date.getUTCDate() : date.getDate());
+
+    const hours = pad(useUTC ? date.getUTCHours() : date.getHours());
+    const minutes = pad(useUTC ? date.getUTCMinutes() : date.getMinutes());
+    const seconds = pad(useUTC ? date.getUTCSeconds() : date.getSeconds());
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+export function addSecondsToDate(date: Date, seconds: number): Date {
+    const newDate = new Date(date);
+    newDate.setTime(date.getTime() + seconds * 1000);
+
+    return newDate;
+}

@@ -134,11 +134,14 @@ export type LaunchpadTokenResult = {
     net_pnl: number | null;
     exit_code: ExitMonitoringReason | null;
     exit_reason: string | null;
+    created_at: Date;
+    updated_at: Date;
 };
 
 export type LaunchpadTokenReport = {
     id: number;
     launchpad_token_result_id: number;
+    schema_version: number;
     report: Record<string, unknown>;
     created_at: Date;
     updated_at: Date;

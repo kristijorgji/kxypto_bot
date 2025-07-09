@@ -153,6 +153,69 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "token-results",
+			"item": [
+				{
+					"name": "get launchpad token results",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{kxypto_api_base_path}}/launchpad-token-results?limit=100",
+							"host": [
+								"{{kxypto_api_base_path}}"
+							],
+							"path": [
+								"launchpad-token-results"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "100"
+								},
+								{
+									"key": "cursor",
+									"value": "eyJsYXN0UHJldmlvdXNJZCI6IjMwNzEyIiwibGFzdERhdGUiOiIyMDI1LTA3LTA5IDE1OjI1OjUwIn0",
+									"disabled": true
+								},
+								{
+									"key": "mode",
+									"value": "real",
+									"disabled": true
+								},
+								{
+									"key": "minSchemaVersion",
+									"value": "1.4",
+									"disabled": true
+								},
+								{
+									"key": "tradesOnly",
+									"value": "true",
+									"disabled": true
+								},
+								{
+									"key": "exitCodes",
+									"value": "DUMPED",
+									"disabled": true
+								},
+								{
+									"key": "excludeExitCodes",
+									"value": "BAD_CREATOR",
+									"disabled": true
+								},
+								{
+									"key": "includeTrades",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"auth": {

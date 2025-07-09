@@ -42,7 +42,7 @@ async function setupIntegrationTests(): Promise<void> {
         await bootstrapKnex.destroy();
 
         await db.migrate.latest();
-        // await db.seed.run();
+        await db.seed.run();
     } catch (e) {
         console.error(e);
         throw e;

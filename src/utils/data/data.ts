@@ -21,6 +21,16 @@ export function deepClone<T>(input: T): T {
     return JSON.parse(JSON.stringify(input)) as T;
 }
 
+export function pickRandomItem<T>(array: T[]): T {
+    if (array.length === 0) {
+        throw new Error('Cannot pick a random item from an empty array.');
+    }
+
+    const randomIndex = Math.floor(Math.random() * array.length);
+
+    return array[randomIndex];
+}
+
 export function shuffle<T>(array: T[], seed?: string): T[] {
     const rng = seed ? seedrandom(seed) : Math.random;
 

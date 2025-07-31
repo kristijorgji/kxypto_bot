@@ -19,7 +19,7 @@ import {
 } from '../types';
 import { shouldExitLaunchpadToken } from './common';
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
-import { shouldBuyCommon } from './prediction-common';
+import { formBaseCacheKey, shouldBuyCommon } from './prediction-common';
 import { validatePredictionConfig } from './validators';
 import { variantFromBuyContext, variantFromPredictionConfig, variantFromSellConfig } from './variant-builder';
 import { HistoryRef } from '../../bots/blockchains/solana/types';
@@ -114,7 +114,7 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
             { maxRequests: 16000, perMilliseconds: 1000 },
         );
 
-        this.cacheBaseKey = this.formBaseCacheKey();
+        this.cacheBaseKey = formBaseCacheKey('price', this.config.prediction, this.source);
     }
 
     shouldExit(
@@ -236,13 +236,5 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
         r += `)_sell(${variantFromSellConfig(config.sell)})`;
 
         return r;
-    }
-
-    private formBaseCacheKey(): string {
-        const pc =
-            this.config.prediction.skipAllSameFeatures !== undefined
-                ? `skf:${this.config.prediction.skipAllSameFeatures}`
-                : '';
-        return `pp.${this.source.model}${pc.length === 0 ? '' : `_${pc}`}`;
     }
 }

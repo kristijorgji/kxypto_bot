@@ -55,7 +55,7 @@ const EnvConfigSchema = z.object({
 type EnvConfig = z.infer<typeof EnvConfigSchema>;
 
 const ReportSchema: Schema = {
-    version: 1.41,
+    version: 1.42,
 };
 
 const rpcProvider: HandlePumpTokenBaseReport['rpcProvider'] = {

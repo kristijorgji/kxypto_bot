@@ -101,6 +101,7 @@ export type SellReason =
     | 'TRAILING_STOP_LOSS'
     | 'STOP_LOSS'
     | 'TAKE_PROFIT'
+    | 'CONSECUTIVE_SELL_PREDICTION_CONFIRMATIONS'
     | 'TRAILING_TAKE_PROFIT'
     | 'AT_HARDCODED_PROFIT'
     | 'NO_LONGER_MEETS_ENTRY_RULES'
@@ -117,7 +118,17 @@ export type ShouldBuyResponse<R = string, D = Record<string, unknown>> = {
     data?: D;
 };
 
-export type ShouldSellResponse = false | DoSellResponse;
+export type ShouldSellResponse<FR = string, D = Record<string, unknown>> =
+    | {
+          sell: true;
+          reason: SellReason;
+          data?: D;
+      }
+    | {
+          sell: false;
+          reason: FR;
+          data?: D;
+      };
 
 export const exitMonitoringReasonEnum = z.enum(['NO_PUMP', 'DUMPED', 'STOPPED', 'BAD_CREATOR']);
 export type ExitMonitoringReason = z.infer<typeof exitMonitoringReasonEnum>;
@@ -127,7 +138,7 @@ export type ShouldExitMonitoringResponse =
     | {
           exitCode: ExitMonitoringReason;
           message: string;
-          shouldSell: ShouldSellResponse;
+          shouldSell: false | DoSellResponse;
       };
 
 export const modeEnum = z.enum(['real', 'simulation']);

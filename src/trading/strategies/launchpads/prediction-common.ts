@@ -1,42 +1,40 @@
+import { AxiosInstance, AxiosResponse, HttpStatusCode } from 'axios';
+import Redis from 'ioredis';
 import { Logger } from 'winston';
 
+import {
+    BuyPredictionResponse,
+    BuyPredictionStrategyShouldBuyResponseReason,
+} from '@src/trading/strategies/launchpads/BuyPredictionStrategy';
+import {
+    BuySellPredictionStrategyConfig,
+    BuySellPredictionStrategyShouldSellResponseReason,
+    SellPredictionResponse,
+} from '@src/trading/strategies/launchpads/BuySellPredictionStrategy';
 import { deepEqual } from '@src/utils/data/equals';
 
 import { shouldBuyStateless } from './common';
 import { HistoryRef } from '../../bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
-import { ShouldBuyResponse } from '../../bots/types';
-import { IntervalConfig, PredictionRequest, StrategyPredictionConfig } from '../types';
+import { ShouldBuyResponse, ShouldSellResponse } from '../../bots/types';
+import { IntervalConfig, PredictionRequest, PredictionSource, StrategyPredictionConfig } from '../types';
 
-export async function shouldBuyCommon(
+const CacheDefaultTtlSeconds = 3600 * 24 * 7;
+
+type FormPredictionRequestFailReason = 'noVariationInFeatures';
+
+function formPredictionRequest(
     logger: Logger,
-    mint: string,
-    _historyRef: HistoryRef,
-    context: MarketContext,
-    history: HistoryEntry[],
     config: {
         prediction: StrategyPredictionConfig;
-        buy: {
-            context?: Partial<Record<keyof MarketContext, IntervalConfig>>;
-        };
     },
-): Promise<
-    ShouldBuyResponse<'requiredFeaturesLength' | 'shouldBuyStateless' | 'noVariationInFeatures'> | PredictionRequest
-> {
-    if (history.length < config.prediction.requiredFeaturesLength) {
-        return {
-            buy: false,
-            reason: 'requiredFeaturesLength',
-        };
-    }
-
-    if (config.buy.context && !shouldBuyStateless(config.buy.context, context)) {
-        return {
-            buy: false,
-            reason: 'shouldBuyStateless',
-        };
-    }
-
+    mint: string,
+    history: HistoryEntry[],
+):
+    | PredictionRequest
+    | {
+          reason: FormPredictionRequestFailReason;
+      } {
     const featuresCountToSend = config.prediction.upToFeaturesLength
         ? Math.min(history.length, config.prediction.upToFeaturesLength)
         : config.prediction.requiredFeaturesLength;
@@ -76,11 +74,349 @@ export async function shouldBuyCommon(
         if (areSame) {
             logger.debug('There is no variation in the %d features, returning false', requestBody.features.length);
             return {
-                buy: false,
                 reason: 'noVariationInFeatures',
             };
         }
     }
 
     return requestBody;
+}
+
+interface PredictStrategyDependencies {
+    logger: Logger;
+    client: AxiosInstance;
+    cache: Redis;
+}
+
+export type ShouldBuyParams = {
+    deps: PredictStrategyDependencies;
+    source: PredictionSource;
+    config: {
+        prediction: StrategyPredictionConfig;
+        buy: {
+            minPredictedConfidence: number;
+            minConsecutivePredictionConfirmations?: number;
+            context?: Partial<Record<keyof MarketContext, IntervalConfig>>;
+        };
+    };
+    cacheBaseKey: string;
+    cacheDefaultTtlSeconds?: number;
+    consecutivePredictionConfirmations: number;
+    setConsecutivePredictionConfirmations: (value: number) => number;
+};
+
+export async function shouldBuyCommon(
+    logger: Logger,
+    mint: string,
+    _historyRef: HistoryRef,
+    context: MarketContext,
+    history: HistoryEntry[],
+    config: {
+        prediction: StrategyPredictionConfig;
+        buy: {
+            context?: Partial<Record<keyof MarketContext, IntervalConfig>>;
+        };
+    },
+): Promise<
+    ShouldBuyResponse<'requiredFeaturesLength' | 'shouldBuyStateless' | 'noVariationInFeatures'> | PredictionRequest
+> {
+    if (history.length < config.prediction.requiredFeaturesLength) {
+        return {
+            buy: false,
+            reason: 'requiredFeaturesLength',
+        };
+    }
+
+    if (config.buy.context && !shouldBuyStateless(config.buy.context, context)) {
+        return {
+            buy: false,
+            reason: 'shouldBuyStateless',
+        };
+    }
+
+    const res = formPredictionRequest(logger, config, mint, history);
+    if ((res as unknown as { reason: FormPredictionRequestFailReason }).reason) {
+        return {
+            buy: false,
+            reason: (res as unknown as { reason: FormPredictionRequestFailReason }).reason,
+        };
+    }
+
+    return res as unknown as PredictionRequest;
+}
+
+type ShouldBuyWithBuyPredictionResponse = ShouldBuyResponse<
+    BuyPredictionStrategyShouldBuyResponseReason,
+    | {
+          response: {
+              status: HttpStatusCode;
+              body: unknown;
+          };
+      }
+    | {
+          predictedBuyConfidence: number;
+          consecutivePredictionConfirmations?: number;
+      }
+>;
+
+export async function shouldBuyWithBuyPrediction(
+    {
+        deps,
+        source,
+        config,
+        cacheBaseKey,
+        cacheDefaultTtlSeconds,
+        consecutivePredictionConfirmations,
+        setConsecutivePredictionConfirmations,
+    }: ShouldBuyParams,
+    mint: string,
+    historyRef: HistoryRef,
+    context: MarketContext,
+    history: HistoryEntry[],
+): Promise<ShouldBuyWithBuyPredictionResponse> {
+    const { logger, client, cache } = deps;
+
+    const r = await shouldBuyCommon(logger, mint, historyRef, context, history, config);
+    if ((r as ShouldBuyResponse)?.reason) {
+        return r as ShouldBuyWithBuyPredictionResponse;
+    }
+    const predictionRequest = r as PredictionRequest;
+
+    let predictionResponse: AxiosResponse | undefined;
+    let prediction: BuyPredictionResponse | undefined;
+
+    let cacheKey: string | undefined;
+    let cached;
+    if (config.prediction.cache?.enabled) {
+        cacheKey = `${cacheBaseKey}_${mint}_${historyRef.index}:${predictionRequest.features.length}`;
+        cached = await cache.get(cacheKey);
+    }
+
+    if (cached) {
+        prediction = JSON.parse(cached);
+    } else {
+        predictionResponse = await client.post<BuyPredictionResponse>(source.endpoint, predictionRequest);
+        if (predictionResponse.status === 200) {
+            if (predictionResponse.data.confidence === undefined) {
+                throw new Error(
+                    `The response is missing the required field confidence. ${JSON.stringify(predictionResponse.data)}`,
+                );
+            } else if (predictionResponse.data.confidence < 0 || predictionResponse.data.confidence > 1) {
+                throw new Error(
+                    `Expected confidence to be in the interval [0, 1], but got ${predictionResponse.data.confidence}`,
+                );
+            } else {
+                prediction = predictionResponse.data as BuyPredictionResponse;
+                if (config.prediction.cache?.enabled) {
+                    cache.set(
+                        cacheKey!,
+                        JSON.stringify(prediction),
+                        'EX',
+                        config.prediction.cache.ttlSeconds ?? cacheDefaultTtlSeconds ?? CacheDefaultTtlSeconds,
+                    );
+                }
+            }
+        } else {
+            logger.error('Error getting buy prediction for mint %s, returning false', mint);
+            logger.error(predictionResponse);
+        }
+    }
+
+    if (!prediction) {
+        return {
+            buy: false,
+            reason: 'prediction_error',
+            data: {
+                response: {
+                    status: predictionResponse!.status,
+                    body: predictionResponse!.data,
+                },
+            },
+        };
+    }
+
+    const responseData = {
+        predictedBuyConfidence: prediction.confidence,
+    };
+
+    if (prediction.confidence >= config.buy.minPredictedConfidence) {
+        consecutivePredictionConfirmations = setConsecutivePredictionConfirmations(
+            consecutivePredictionConfirmations + 1,
+        );
+
+        return {
+            buy: consecutivePredictionConfirmations >= (config?.buy.minConsecutivePredictionConfirmations ?? 1),
+            reason: 'consecutivePredictionConfirmations',
+            data: {
+                ...responseData,
+                consecutivePredictionConfirmations: consecutivePredictionConfirmations,
+            },
+        };
+    } else {
+        setConsecutivePredictionConfirmations(0);
+
+        return {
+            buy: false,
+            reason: 'minPredictedBuyConfidence',
+            data: responseData,
+        };
+    }
+}
+
+export type ShouldSellParams = {
+    deps: PredictStrategyDependencies;
+    source: PredictionSource;
+    config: {
+        prediction: StrategyPredictionConfig;
+        sell: BuySellPredictionStrategyConfig['sell'];
+    };
+    cacheBaseKey: string;
+    cacheDefaultTtlSeconds?: number;
+    consecutivePredictionConfirmations: number;
+    setConsecutivePredictionConfirmations: (value: number) => number;
+};
+
+export async function shouldSellPredicted(
+    {
+        deps,
+        source,
+        config,
+        cacheBaseKey,
+        cacheDefaultTtlSeconds,
+        consecutivePredictionConfirmations,
+        setConsecutivePredictionConfirmations,
+    }: ShouldSellParams,
+    mint: string,
+    historyRef: HistoryRef,
+    _context: MarketContext,
+    history: HistoryEntry[],
+): Promise<
+    ShouldSellResponse<
+        BuySellPredictionStrategyShouldSellResponseReason,
+        | {
+              response: {
+                  status: HttpStatusCode;
+                  body: unknown;
+              };
+          }
+        | {
+              predictedSellConfidence: number;
+              consecutivePredictionConfirmations?: number;
+          }
+    >
+> {
+    const { logger, client, cache } = deps;
+
+    if (history.length < config.prediction.requiredFeaturesLength) {
+        return {
+            sell: false,
+            reason: 'requiredFeaturesLength',
+        };
+    }
+
+    const res = formPredictionRequest(logger, config, mint, history);
+    if ((res as unknown as { reason: FormPredictionRequestFailReason }).reason) {
+        return {
+            sell: false,
+            reason: (res as unknown as { reason: FormPredictionRequestFailReason }).reason,
+        };
+    }
+    const predictionRequest = res as PredictionRequest;
+
+    let predictionResponse: AxiosResponse | undefined;
+    let prediction: SellPredictionResponse | undefined;
+
+    let cacheKey: string | undefined;
+    let cached;
+    if (config.prediction.cache?.enabled) {
+        cacheKey = `${cacheBaseKey}_${mint}_${historyRef.index}:${predictionRequest.features.length}`;
+        cached = await cache.get(cacheKey);
+    }
+
+    if (cached) {
+        prediction = JSON.parse(cached);
+    } else {
+        predictionResponse = await client.post<SellPredictionResponse>(source.endpoint, predictionRequest);
+        if (predictionResponse.status === 200) {
+            if (predictionResponse.data.confidence === undefined) {
+                throw new Error(
+                    `The response is missing the required field confidence. ${JSON.stringify(predictionResponse.data)}`,
+                );
+            } else if (predictionResponse.data.confidence < 0 || predictionResponse.data.confidence > 1) {
+                throw new Error(
+                    `Expected confidence to be in the interval [0, 1], but got ${predictionResponse.data.confidence}`,
+                );
+            } else {
+                prediction = predictionResponse.data as SellPredictionResponse;
+                if (config.prediction.cache?.enabled) {
+                    cache.set(
+                        cacheKey!,
+                        JSON.stringify(prediction),
+                        'EX',
+                        config.prediction.cache.ttlSeconds ?? cacheDefaultTtlSeconds ?? CacheDefaultTtlSeconds,
+                    );
+                }
+            }
+        } else {
+            logger.error('Error getting sell prediction for mint %s, returning false', mint);
+            logger.error(predictionResponse);
+        }
+    }
+
+    if (!prediction) {
+        return {
+            sell: false,
+            reason: 'prediction_error',
+            data: {
+                response: {
+                    status: predictionResponse!.status,
+                    body: predictionResponse!.data,
+                },
+            },
+        };
+    }
+
+    const responseData = {
+        predictedSellConfidence: prediction.confidence,
+    };
+
+    if (prediction.confidence >= config.sell.minPredictedConfidence) {
+        consecutivePredictionConfirmations = setConsecutivePredictionConfirmations(
+            consecutivePredictionConfirmations + 1,
+        );
+
+        return {
+            sell: consecutivePredictionConfirmations >= (config?.sell.minConsecutivePredictionConfirmations ?? 1),
+            reason: 'CONSECUTIVE_SELL_PREDICTION_CONFIRMATIONS',
+            data: {
+                ...responseData,
+                consecutivePredictionConfirmations: consecutivePredictionConfirmations,
+            },
+        };
+    } else {
+        setConsecutivePredictionConfirmations(0);
+
+        return {
+            sell: false,
+            reason: 'minPredictedSellConfidence',
+            data: responseData,
+        };
+    }
+}
+
+type PredictionType = 'price' | 'buy' | 'sell';
+
+const predictionTypeAbbreviation: Record<PredictionType, string> = {
+    price: 'p',
+    buy: 'b',
+    sell: 's',
+};
+
+export function formBaseCacheKey(
+    predictionType: 'price' | 'buy' | 'sell',
+    prediction: StrategyPredictionConfig,
+    source: PredictionSource,
+): string {
+    const pc = prediction.skipAllSameFeatures !== undefined ? `skf:${prediction.skipAllSameFeatures}` : '';
+    return `${predictionTypeAbbreviation[predictionType]}p.${source.model}${pc.length === 0 ? '' : `_${pc}`}`;
 }

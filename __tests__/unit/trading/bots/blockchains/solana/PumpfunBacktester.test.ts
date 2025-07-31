@@ -281,6 +281,9 @@ describe(PumpfunBacktester.name, () => {
                 pumpMinLamportsOutput: 144404.3321299639,
                 reason: 'BEFORE_EXIT_MONITORING',
                 sellPriceInSol: 2.085,
+                sellRes: {
+                    reason: 'BEFORE_EXIT_MONITORING',
+                },
             });
         });
     });

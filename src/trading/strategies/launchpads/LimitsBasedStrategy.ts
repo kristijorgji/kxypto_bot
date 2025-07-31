@@ -3,7 +3,7 @@ import { Logger } from 'winston';
 import LaunchpadBotStrategy from './LaunchpadBotStrategy';
 import { HistoryRef } from '../../bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
-import { ShouldSellResponse } from '../../bots/types';
+import { DoSellResponse, ShouldSellResponse } from '../../bots/types';
 import StopLossPercentage from '../../orders/StopLossPercentage';
 import TakeProfitPercentage from '../../orders/TakeProfitPercentage';
 import TrailingStopLoss from '../../orders/TrailingStopLoss';
@@ -76,7 +76,7 @@ export abstract class LimitsBasedStrategy extends LaunchpadBotStrategy {
         { price }: MarketContext,
         _history: HistoryEntry[],
     ): Promise<ShouldSellResponse> {
-        let sell: ShouldSellResponse = false;
+        let sell: DoSellResponse | false = false;
 
         if (this.takeProfitPercentage && this.takeProfitPercentage.updatePrice(price)) {
             sell = {
@@ -110,7 +110,17 @@ export abstract class LimitsBasedStrategy extends LaunchpadBotStrategy {
             );
         }
 
-        return sell;
+        if (sell !== false) {
+            return {
+                sell: true,
+                reason: sell.reason,
+            };
+        }
+
+        return {
+            sell: false,
+            reason: 'no_limit_matches',
+        };
     }
 
     afterSell(): void {

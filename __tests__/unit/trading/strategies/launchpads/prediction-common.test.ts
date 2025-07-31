@@ -3,8 +3,8 @@ import { LogEntry, createLogger, format } from 'winston';
 import ArrayTransport from '../../../../../src/logger/transports/ArrayTransport';
 import { HistoryRef } from '../../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry } from '../../../../../src/trading/bots/launchpads/types';
-import { shouldBuyCommon } from '../../../../../src/trading/strategies/launchpads/prediction-common';
-import { StrategyPredictionConfig } from '../../../../../src/trading/strategies/types';
+import { formBaseCacheKey, shouldBuyCommon } from '../../../../../src/trading/strategies/launchpads/prediction-common';
+import { PredictionSource, StrategyPredictionConfig } from '../../../../../src/trading/strategies/types';
 import { readFixture, readLocalFixture } from '../../../../__utils/data';
 
 describe(shouldBuyCommon.name, () => {
@@ -127,5 +127,65 @@ describe(shouldBuyCommon.name, () => {
                 }),
             ).toEqual(readLocalFixture('common-prediction/should-buy-common-prediction-request-3'));
         });
+    });
+});
+
+describe('formBaseCacheKey', () => {
+    const commonSource: PredictionSource = {
+        endpoint: 'http://localhost:8080',
+        model: 'transformers_v1',
+    };
+
+    it('should generate a correct cache key for "buy" type without skipAllSameFeatures', () => {
+        expect(formBaseCacheKey('buy', {} as StrategyPredictionConfig, commonSource)).toBe('bp.transformers_v1');
+    });
+
+    it('should generate a correct cache key for "sell" type without skipAllSameFeatures', () => {
+        expect(formBaseCacheKey('sell', {} as StrategyPredictionConfig, commonSource)).toBe('sp.transformers_v1');
+    });
+
+    it('should generate a correct cache key for "price" type without skipAllSameFeatures', () => {
+        expect(formBaseCacheKey('price', {} as StrategyPredictionConfig, commonSource)).toBe('pp.transformers_v1');
+    });
+
+    it('should include "skf:true" when skipAllSameFeatures is true', () => {
+        expect(formBaseCacheKey('buy', { skipAllSameFeatures: true } as StrategyPredictionConfig, commonSource)).toBe(
+            'bp.transformers_v1_skf:true',
+        );
+    });
+
+    it('should include "skf:false" when skipAllSameFeatures is false', () => {
+        expect(formBaseCacheKey('buy', { skipAllSameFeatures: false } as StrategyPredictionConfig, commonSource)).toBe(
+            'bp.transformers_v1_skf:false',
+        );
+    });
+
+    it('should use the correct model name from source', () => {
+        const customSource: PredictionSource = { ...commonSource, model: 'catboost_v2' };
+        expect(formBaseCacheKey('buy', {} as StrategyPredictionConfig, customSource)).toBe('bp.catboost_v2');
+    });
+
+    it('should use the correct model name and include skf when both are present', () => {
+        const customSource: PredictionSource = { model: 'neural_net_prod' } as PredictionSource;
+        expect(formBaseCacheKey('sell', { skipAllSameFeatures: true } as StrategyPredictionConfig, customSource)).toBe(
+            'sp.neural_net_prod_skf:true',
+        );
+    });
+
+    it('should not add underscore if pc is empty (skipAllSameFeatures undefined)', () => {
+        expect(formBaseCacheKey('price', {} as StrategyPredictionConfig, commonSource)).toBe('pp.transformers_v1');
+    });
+
+    it('should not add underscore if pc is empty (skipAllSameFeatures is null)', () => {
+        expect(
+            formBaseCacheKey(
+                'buy',
+                {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    skipAllSameFeatures: null as any,
+                } as StrategyPredictionConfig,
+                commonSource,
+            ),
+        ).toBe('bp.transformers_v1_skf:null');
     });
 });

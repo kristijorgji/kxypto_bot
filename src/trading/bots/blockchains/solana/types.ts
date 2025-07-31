@@ -43,6 +43,10 @@ export type PumpfunBuyPositionMetadata = {
     pumpMaxSolCost: number;
     pumpBuyPriceInSol: number;
     pumpMeta?: PumpfunPositionMeta;
+    buyRes: {
+        reason: string;
+        data?: Record<string, unknown>;
+    };
 };
 
 export type PumpfunSellPositionMetadata = {
@@ -50,6 +54,10 @@ export type PumpfunSellPositionMetadata = {
     reason: SellReason;
     sellPriceInSol: number;
     pumpMeta?: PumpfunPositionMeta;
+    sellRes: {
+        reason: string;
+        data?: Record<string, unknown>;
+    };
 };
 
 export type HistoryRef = {

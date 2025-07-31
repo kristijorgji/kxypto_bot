@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { buyPredictionStrategyConfigSchema } from '@src/trading/strategies/launchpads/BuyPredictionStrategy';
+import { buySellPredictionStrategyConfigSchema } from '@src/trading/strategies/launchpads/BuySellPredictionStrategy';
 import { pricePredictionStrategyConfigSchema } from '@src/trading/strategies/launchpads/PricePredictionStrategy';
 import { riseStrategyConfigSchema } from '@src/trading/strategies/launchpads/RiseStrategy';
 import { predictionSourceSchema } from '@src/trading/strategies/types';
@@ -18,6 +19,13 @@ const buyPredictionStrategySchema = z.object({
     config: buyPredictionStrategyConfigSchema.partial(),
 });
 
+const buySellPredictionStrategySchema = z.object({
+    type: z.literal('BuySellPredictionStrategy'),
+    buySource: predictionSourceSchema,
+    sellSource: predictionSourceSchema,
+    config: buySellPredictionStrategyConfigSchema.partial(),
+});
+
 const pricePredictionStrategySchema = z.object({
     type: z.literal('PricePredictionStrategy'),
     source: predictionSourceSchema,
@@ -29,6 +37,11 @@ const baseStrategySchema = z.object({
 });
 
 export const strategyFileConfigSchema = baseStrategySchema.and(
-    z.union([riseStrategySchema, buyPredictionStrategySchema, pricePredictionStrategySchema]),
+    z.union([
+        riseStrategySchema,
+        buyPredictionStrategySchema,
+        buySellPredictionStrategySchema,
+        pricePredictionStrategySchema,
+    ]),
 );
 export type StrategyFileConfig = z.infer<typeof strategyFileConfigSchema>;

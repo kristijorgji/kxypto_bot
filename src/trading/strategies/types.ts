@@ -95,6 +95,13 @@ export type PredictionStrategyShouldBuyResponseReason =
     | 'consecutivePredictionConfirmations'
     | 'prediction_error';
 
+export type PredictionStrategyShouldSellResponseReason =
+    | 'requiredFeaturesLength'
+    | 'noVariationInFeatures'
+    | 'prediction_error'
+    | 'minPredictedSellConfidence'
+    | 'no_limit_matches';
+
 export const marketContextIntervalConfigSchema = z.object(
     Object.fromEntries(marketContextKeys.map(key => [key, intervalConfigSchema.optional()])) as Record<
         MarketContextKey,

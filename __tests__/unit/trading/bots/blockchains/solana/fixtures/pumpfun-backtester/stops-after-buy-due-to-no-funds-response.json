@@ -81,7 +81,10 @@
         },
         "pumpMinLamportsOutput": 144404.3321299639,
         "reason": "TRAILING_STOP_LOSS",
-        "sellPriceInSol": 0.15000000000000002
+        "sellPriceInSol": 0.15000000000000002,
+        "sellRes": {
+          "reason": "TRAILING_STOP_LOSS"
+        }
       },
       "netTransferredLamports": 16505649.819494583,
       "price": {

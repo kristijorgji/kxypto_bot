@@ -89,7 +89,10 @@
         },
         "pumpMinLamportsOutput": 144404.3321299639,
         "reason": "TAKE_PROFIT",
-        "sellPriceInSol": 5.25
+        "sellPriceInSol": 5.25,
+        "sellRes": {
+          "reason": "TAKE_PROFIT"
+        }
       },
       "netTransferredLamports": 752867743.6823105,
       "price": {

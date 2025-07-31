@@ -30,7 +30,7 @@ import Wallet from '../../../../blockchains/solana/Wallet';
 import LaunchpadBotStrategy from '../../../strategies/launchpads/LaunchpadBotStrategy';
 import { generateTradeId } from '../../../utils/generateTradeId';
 import { HistoryEntry } from '../../launchpads/types';
-import { BotConfig, SellReason } from '../../types';
+import { BotConfig, SellReason, ShouldBuyResponse, ShouldSellResponse } from '../../types';
 
 export const ErrorMessage = {
     unknownBuyError: 'unknown_buying_error',
@@ -116,14 +116,10 @@ export default class PumpfunBot {
         let intervalsMonitoredAfterResult = 0;
         let initialMarketCap = -1;
 
-        let buy = false;
+        let shouldBuyRes: ShouldBuyResponse | undefined;
         let buyInProgress = false;
         let position: InsertPosition | undefined;
-        let sell:
-            | {
-                  reason: SellReason;
-              }
-            | undefined;
+        let shouldSellRes: ShouldSellResponse | undefined;
         let sellInProgress = false;
         let historyIndex: number = 0;
         const history: HistoryEntry[] = [];
@@ -263,13 +259,11 @@ export default class PumpfunBot {
             // TODO calculate dynamically based on the situation if it is not provided
             const buyInSol = this.config.buyInSol ?? 0.4;
 
-            if (
-                !actionInProgress &&
-                !strategy.buyPosition &&
-                (await strategy.shouldBuy(tokenMint, historyRef, marketContext, history)).buy
-            ) {
-                logger.info('We set buy=true because the conditions are met');
-                buy = true;
+            if (!actionInProgress && !strategy.buyPosition) {
+                shouldBuyRes = await strategy.shouldBuy(tokenMint, historyRef, marketContext, history);
+                if (shouldBuyRes.buy) {
+                    logger.info('shouldBuyRes.buy=true because the strategy conditions are met');
+                }
             }
 
             if (!actionInProgress) {
@@ -280,7 +274,8 @@ export default class PumpfunBot {
                 if (shouldExitRes) {
                     logger.info('strategy requires exit, res=%o', shouldExitRes);
                     if (shouldExitRes.shouldSell) {
-                        sell = {
+                        shouldSellRes = {
+                            sell: true,
                             reason: shouldExitRes.shouldSell.reason,
                         };
                     } else {
@@ -319,11 +314,9 @@ export default class PumpfunBot {
                 logger.info('Price change since purchase %s%%', priceDiffPercentageSincePurchase);
                 logger.info('Estimated sol diff %s', diffInSol);
 
-                const shouldSellRes = await strategy.shouldSell(tokenMint, historyRef, marketContext, history);
-                if (shouldSellRes !== false) {
-                    sell = {
-                        reason: shouldSellRes.reason,
-                    };
+                const strategyShouldSellRes = await strategy.shouldSell(tokenMint, historyRef, marketContext, history);
+                if (strategyShouldSellRes.sell) {
+                    shouldSellRes = strategyShouldSellRes;
                 } else if (this.config.autoSellTimeoutMs) {
                     const elapsedSinceBuyMs = Date.now() - strategy.buyPosition.transaction.timestamp;
 
@@ -333,14 +326,15 @@ export default class PumpfunBot {
                             elapsedSinceBuyMs,
                             this.config.autoSellTimeoutMs,
                         );
-                        sell = {
+                        shouldSellRes = {
+                            sell: true,
                             reason: 'AUTO_SELL_TIMEOUT',
                         };
                     }
                 }
             }
 
-            if (!actionInProgress && !strategy.buyPosition && buy) {
+            if (!actionInProgress && !strategy.buyPosition && shouldBuyRes?.buy) {
                 logger.info('We will start the buy buyInProgress=true');
                 buyInProgress = true;
                 const lastHistoryIndex = history.length - 1;
@@ -356,6 +350,7 @@ export default class PumpfunBot {
                     },
                     historyEntry: lastHistoryEntry,
                     marketContext: marketContext,
+                    shouldBuyRes: shouldBuyRes,
                 };
 
                 const buyPriorityFeeInSol =
@@ -403,6 +398,12 @@ export default class PumpfunBot {
                                 pumpTokenOut: buyRes.pumpTokenOut,
                                 pumpBuyPriceInSol: buyRes.actualBuyPriceSol,
                                 pumpMeta: buyRes.metadata,
+                                buyRes: {
+                                    reason: dataAtBuyTime.shouldBuyRes.reason,
+                                    ...(dataAtBuyTime.shouldBuyRes.data
+                                        ? { data: dataAtBuyTime.shouldBuyRes.data }
+                                        : {}),
+                                },
                             },
                         };
 
@@ -453,7 +454,7 @@ export default class PumpfunBot {
                             ...(history[lastHistoryIndex]._metadata ?? {}),
                             action: 'buyCompleted',
                         };
-                        buy = false;
+                        shouldBuyRes = undefined;
                         buyInProgress = false;
                     })
                     .catch(async e => {
@@ -494,14 +495,14 @@ export default class PumpfunBot {
                         }
 
                         if (fatalError) {
-                            buy = false;
+                            shouldBuyRes = undefined;
                             buyInProgress = false;
                             return;
                         }
                     });
             }
 
-            if (!actionInProgress && sell && strategy.buyPosition) {
+            if (!actionInProgress && shouldSellRes?.sell && strategy.buyPosition) {
                 logger.info('We will start the sell sellInProgress=true');
                 sellInProgress = true;
                 history[history.length - 1]._metadata = {
@@ -510,9 +511,10 @@ export default class PumpfunBot {
 
                 const dataAtSellTime = {
                     buyPosition: strategy.buyPosition,
-                    sellReason: sell.reason,
+                    sellReason: shouldSellRes.reason as SellReason,
                     priceInSol: priceInSol,
                     marketCapInSol: marketCapInSol,
+                    shouldSellRes: shouldSellRes,
                 };
                 const sellPriorityFeeInSol =
                     strategy.config.sellPriorityFeeInSol ?? strategy.config.priorityFeeInSol ?? DefaultPriorityFeeSol;
@@ -569,6 +571,12 @@ export default class PumpfunBot {
                                 pumpMinLamportsOutput: sellRes.minLamportsOutput,
                                 sellPriceInSol: sellRes.actualSellPriceSol,
                                 pumpMeta: sellRes.metadata,
+                                sellRes: {
+                                    reason: dataAtSellTime.shouldSellRes.reason,
+                                    ...(dataAtSellTime.shouldSellRes.data
+                                        ? { data: dataAtSellTime.shouldSellRes.data }
+                                        : {}),
+                                },
                             },
                         };
                         this.botEventBus.tradeExecuted(sellPosition);
@@ -627,7 +635,7 @@ export default class PumpfunBot {
                         }
                     })
                     .finally(() => {
-                        sell = undefined;
+                        shouldSellRes = undefined;
                         sellInProgress = false;
                     });
             }

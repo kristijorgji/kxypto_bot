@@ -578,6 +578,9 @@ describe(PumpfunBot.name, () => {
         t.transactions[1].metadata = {
             ...t.transactions[1].metadata!,
             reason: 'TRAILING_STOP_LOSS',
+            sellRes: {
+                reason: 'TRAILING_STOP_LOSS',
+            },
         };
         expect(actual).toEqual(t);
     });

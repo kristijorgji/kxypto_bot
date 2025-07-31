@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 import axiosRateLimit, { RateLimitedAxiosInstance } from 'axios-rate-limit';
 import Redis from 'ioredis';
 import { Logger } from 'winston';
@@ -9,7 +9,6 @@ import { deepClone } from '@src/utils/data/data';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
 import { ShouldBuyResponse, ShouldExitMonitoringResponse } from '../../bots/types';
 import {
-    PredictionRequest,
     PredictionSource,
     PredictionStrategyShouldBuyResponseReason,
     marketContextIntervalConfigSchema,
@@ -19,7 +18,7 @@ import {
 } from '../types';
 import { shouldExitLaunchpadToken } from './common';
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
-import { shouldBuyCommon } from './prediction-common';
+import { ShouldBuyParams, formBaseCacheKey, shouldBuyWithBuyPrediction } from './prediction-common';
 import { validatePredictionConfig } from './validators';
 import { variantFromBuyContext, variantFromPredictionConfig, variantFromSellConfig } from './variant-builder';
 import { HistoryRef } from '../../bots/blockchains/solana/types';
@@ -37,7 +36,7 @@ export const buyPredictionStrategyConfigSchema = strategyConfigSchema.merge(
 );
 export type BuyPredictionStrategyConfig = z.infer<typeof buyPredictionStrategyConfigSchema>;
 
-type BuyPredictionResponse = {
+export type BuyPredictionResponse = {
     /**
      * Confidence score of the buy prediction, ranging from 0 (no confidence)
      * to 1 (full confidence). Represents the model's certainty that the asset
@@ -91,6 +90,8 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
 
     private consecutivePredictionConfirmations: number = 0;
 
+    private readonly shouldBuyCommonParams: ShouldBuyParams;
+
     constructor(
         readonly logger: Logger,
         private readonly cache: Redis,
@@ -98,6 +99,7 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
         config?: Partial<BuyPredictionStrategyConfig>,
     ) {
         super(logger);
+        const that = this;
         if (config) {
             this.config = {
                 ...this.config,
@@ -117,7 +119,30 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
             { maxRequests: 16000, perMilliseconds: 1000 },
         );
 
-        this.cacheBaseKey = this.formBaseCacheKey();
+        this.cacheBaseKey = formBaseCacheKey('buy', this.config.prediction, this.source);
+
+        this.shouldBuyCommonParams = {
+            deps: {
+                logger: this.logger,
+                client: this.client,
+                cache: this.cache,
+            },
+            source: this.source,
+            config: {
+                prediction: this.config.prediction,
+                buy: this.config.buy,
+            },
+
+            cacheBaseKey: this.cacheBaseKey,
+            cacheDefaultTtlSeconds: CacheDefaultTtlSeconds,
+            get consecutivePredictionConfirmations() {
+                return that.consecutivePredictionConfirmations;
+            },
+            setConsecutivePredictionConfirmations: (value: number): number => {
+                that.consecutivePredictionConfirmations = value;
+                return this.consecutivePredictionConfirmations;
+            },
+        };
     }
 
     shouldExit(
@@ -136,88 +161,7 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
         context: MarketContext,
         history: HistoryEntry[],
     ): Promise<ShouldBuyResponse<BuyPredictionStrategyShouldBuyResponseReason>> {
-        const r = await shouldBuyCommon(this.logger, mint, historyRef, context, history, this.config);
-        if ((r as ShouldBuyResponse)?.reason) {
-            return r as ShouldBuyResponse<BuyPredictionStrategyShouldBuyResponseReason>;
-        }
-        const predictionRequest = r as PredictionRequest;
-
-        let predictionResponse: AxiosResponse | undefined;
-        let prediction: BuyPredictionResponse | undefined;
-
-        let cacheKey: string | undefined;
-        let cached;
-        if (this.config.prediction.cache?.enabled) {
-            cacheKey = `${this.cacheBaseKey}_${mint}_${historyRef.index}:${predictionRequest.features.length}`;
-            cached = await this.cache.get(cacheKey);
-        }
-
-        if (cached) {
-            prediction = JSON.parse(cached);
-        } else {
-            predictionResponse = await this.client.post<BuyPredictionResponse>(this.source.endpoint, predictionRequest);
-            if (predictionResponse.status === 200) {
-                if (predictionResponse.data.confidence === undefined) {
-                    throw new Error(
-                        `The response is missing the required field confidence. ${JSON.stringify(predictionResponse.data)}`,
-                    );
-                } else if (predictionResponse.data.confidence < 0 || predictionResponse.data.confidence > 1) {
-                    throw new Error(
-                        `Expected confidence to be in the interval [0, 1], but got ${predictionResponse.data.confidence}`,
-                    );
-                } else {
-                    prediction = predictionResponse.data as BuyPredictionResponse;
-                    if (this.config.prediction.cache?.enabled) {
-                        this.cache.set(
-                            cacheKey!,
-                            JSON.stringify(prediction),
-                            'EX',
-                            this.config.prediction.cache.ttlSeconds ?? CacheDefaultTtlSeconds,
-                        );
-                    }
-                }
-            } else {
-                this.logger.error('Error getting buy prediction for mint %s, returning false', mint);
-                this.logger.error(predictionResponse);
-            }
-        }
-
-        if (!prediction) {
-            return {
-                buy: false,
-                reason: 'prediction_error',
-                data: {
-                    response: {
-                        status: predictionResponse!.status,
-                        body: predictionResponse!.data,
-                    },
-                },
-            };
-        }
-
-        const responseData = {
-            predictedBuyConfidence: prediction.confidence,
-        };
-
-        if (prediction.confidence >= this.config.buy.minPredictedConfidence) {
-            this.consecutivePredictionConfirmations++;
-
-            return {
-                buy:
-                    this.consecutivePredictionConfirmations >=
-                    (this.config.buy?.minConsecutivePredictionConfirmations ?? 1),
-                reason: 'consecutivePredictionConfirmations',
-                data: responseData,
-            };
-        } else {
-            this.consecutivePredictionConfirmations = 0;
-
-            return {
-                buy: false,
-                reason: 'minPredictedBuyConfidence',
-                data: responseData,
-            };
-        }
+        return await shouldBuyWithBuyPrediction(this.shouldBuyCommonParams, mint, historyRef, context, history);
     }
 
     resetState() {
@@ -242,13 +186,5 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
         r += `)_sell(${variantFromSellConfig(config.sell)})`;
 
         return r;
-    }
-
-    private formBaseCacheKey(): string {
-        const pc =
-            this.config.prediction.skipAllSameFeatures !== undefined
-                ? `skf:${this.config.prediction.skipAllSameFeatures}`
-                : '';
-        return `bp.${this.source.model}${pc.length === 0 ? '' : `_${pc}`}`;
     }
 }

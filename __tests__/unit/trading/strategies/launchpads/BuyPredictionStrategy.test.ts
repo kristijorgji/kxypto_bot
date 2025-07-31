@@ -1,9 +1,8 @@
-import { AxiosResponse } from 'axios';
 import redisMock from 'ioredis-mock';
-import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { LogEntry, createLogger, format } from 'winston';
 
+import { defineShouldBuyWithPredictionTests } from './shouldBuyTestCases';
 import ArrayTransport from '../../../../../src/logger/transports/ArrayTransport';
 import { HistoryRef } from '../../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry } from '../../../../../src/trading/bots/launchpads/types';
@@ -11,8 +10,7 @@ import BuyPredictionStrategy, {
     BuyPredictionStrategyConfig,
 } from '../../../../../src/trading/strategies/launchpads/BuyPredictionStrategy';
 import { PredictionSource, StrategyPredictionConfig } from '../../../../../src/trading/strategies/types';
-import { deepEqual } from '../../../../../src/utils/data/equals';
-import { readFixture, readLocalFixture } from '../../../../__utils/data';
+import { readFixture } from '../../../../__utils/data';
 
 const mockServer = setupServer();
 
@@ -45,9 +43,6 @@ describe('BuyPredictionStrategy', () => {
     const history: HistoryEntry[] = readFixture<{ history: HistoryEntry[] }>(
         'backtest/pumpfun/B6eQdRcdYhuFxXKx75jumoMGkZCE4LCeobSDgZNzpump',
     ).history;
-    const dummyApiSuccessResponse = {
-        confidence: 0.51,
-    };
 
     beforeAll(() => {
         mockServer.listen();
@@ -80,270 +75,36 @@ describe('BuyPredictionStrategy', () => {
         });
     });
 
-    describe('shouldBuy', () => {
-        const mswPredictAboveThresholdBuyHandler = http.post(
-            process.env.BUY_PREDICTION_ENDPOINT as string,
-            async ({ request }) => {
-                const body = await request.json();
-                if (!deepEqual(body, readLocalFixture('prediction-strategy-http-request-1'))) {
-                    return HttpResponse.json({}, { status: 400 });
-                }
-
-                return HttpResponse.json(dummyApiSuccessResponse, { status: 200 });
-            },
-        );
-
-        it('should buy when predicted confidence exceeds threshold for required consecutive confirmations and not use cache', async () => {
-            mockServer.use(mswPredictAboveThresholdBuyHandler);
-            expect(await strategy.shouldBuy(mint, historyRef, history[4], history)).toEqual({
-                buy: true,
-                reason: 'consecutivePredictionConfirmations',
-                data: {
-                    predictedBuyConfidence: 0.51,
-                },
-            });
-            expect(
-                Object.fromEntries(
-                    await Promise.all(
-                        (await redisMockInstance.keys('*')).map(async k => [k, await redisMockInstance.get(k)]),
-                    ),
-                ),
-            ).toEqual({});
-        });
-
-        it('should not buy when predicted confidence increases with the expected threshold but consecutivePredictionConfirmations is less than required consecutive confirmations', async () => {
-            strategy = new BuyPredictionStrategy(logger, redisMockInstance, sourceConfig, {
+    defineShouldBuyWithPredictionTests({
+        mockServer: mockServer,
+        redisMockInstance: redisMockInstance,
+        predictionEndpoint: sourceConfig.endpoint,
+        getLogs: () => logs,
+        getStrategy: () => strategy,
+        formStrategy: ({ buy, prediction }) => {
+            let newConfig: Partial<BuyPredictionStrategyConfig> = {
                 ...config,
-                buy: { ...config.buy, minConsecutivePredictionConfirmations: 3 },
-            });
+            };
 
-            const indexesWithLowConfidence = [2];
-            let callCount = 0;
-            mockServer.use(
-                http.post(process.env.BUY_PREDICTION_ENDPOINT as string, async ({ request }) => {
-                    const body = await request.json();
-                    if (!deepEqual(body, readLocalFixture('prediction-strategy-http-request-1'))) {
-                        return HttpResponse.json({}, { status: 400 });
-                    }
-
-                    return HttpResponse.json(
-                        {
-                            // return confidence less than expected increase only for the specified indexes to test the consecutive check
-                            confidence: indexesWithLowConfidence.includes(callCount++) ? 0.49 : 0.53,
-                        },
-                        { status: 200 },
-                    );
-                }),
-            );
-
-            for (let i = 0; i < 6; i++) {
-                expect(
-                    await strategy.shouldBuy(
-                        mint,
-                        {
-                            ...historyRef,
-                            index: i,
-                        },
-                        history[4],
-                        history,
-                    ),
-                ).toEqual({
-                    buy: i === 5,
-                    reason: indexesWithLowConfidence.includes(i)
-                        ? 'minPredictedBuyConfidence'
-                        : 'consecutivePredictionConfirmations',
-                    data: {
-                        predictedBuyConfidence: indexesWithLowConfidence.includes(i) ? 0.49 : 0.53,
-                    },
-                });
+            if (buy) {
+                newConfig.buy = {
+                    ...newConfig.buy,
+                    ...buy,
+                } as BuyPredictionStrategyConfig['buy'];
             }
-        });
 
-        it('should not buy when the predicted confidence is within the expected threshold and context limits do not match', async () => {
-            mockServer.use(mswPredictAboveThresholdBuyHandler);
-            strategy = new BuyPredictionStrategy(logger, redisMockInstance, sourceConfig, {
-                prediction: {
-                    ...config.prediction,
-                    requiredFeaturesLength: 10,
-                },
-                buy: {
-                    minPredictedConfidence: 0.5,
-                    context: {
-                        holdersCount: {
-                            min: 17,
-                        },
-                    },
-                },
-            });
+            if (prediction) {
+                newConfig.prediction = {
+                    ...newConfig.prediction,
+                    ...prediction,
+                } as BuyPredictionStrategyConfig['prediction'];
+            }
 
-            expect(await strategy.shouldBuy(mint, historyRef, history[4], history)).toEqual({
-                buy: false,
-                reason: 'shouldBuyStateless',
-            });
-        });
-
-        it('should not buy when the predicted confidence is below the defined threshold', async () => {
-            mockServer.use(
-                http.post(process.env.BUY_PREDICTION_ENDPOINT as string, async ({ request }) => {
-                    const body = await request.json();
-                    if (!deepEqual(body, readLocalFixture('prediction-strategy-http-request-1'))) {
-                        return HttpResponse.json({}, { status: 400 });
-                    }
-
-                    return HttpResponse.json(
-                        {
-                            confidence: 0.49,
-                        },
-                        { status: 200 },
-                    );
-                }),
-            );
-
-            expect(await strategy.shouldBuy(mint, historyRef, history[4], history)).toEqual({
-                buy: false,
-                reason: 'minPredictedBuyConfidence',
-                data: {
-                    predictedBuyConfidence: 0.49,
-                },
-            });
-        });
-
-        it('should log error and return false when it fails to get the predicted confidence', async () => {
-            mockServer.use(
-                http.post(process.env.BUY_PREDICTION_ENDPOINT as string, async () => {
-                    return HttpResponse.json(
-                        {
-                            error: 'for fun',
-                        },
-                        { status: 400 },
-                    );
-                }),
-            );
-
-            expect(await strategy.shouldBuy(mint, historyRef, history[4], history)).toEqual({
-                buy: false,
-                reason: 'prediction_error',
-                data: { response: { status: 400, body: { error: 'for fun' } } },
-            });
-            expect(logs.length).toEqual(2);
-            expect(logs[0]).toEqual({
-                level: 'error',
-                message:
-                    'Error getting buy prediction for mint 2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx, returning false',
-            });
-            expect(logs[1].level).toEqual('error');
-            expect((logs[1].message as unknown as AxiosResponse).data).toEqual({
-                error: 'for fun',
-            });
-        });
-
-        it('should use the cache correctly', async () => {
-            strategy = new BuyPredictionStrategy(logger, redisMockInstance, sourceConfig, {
-                ...config,
-                prediction: {
-                    ...config.prediction,
-                    cache: {
-                        enabled: true,
-                    },
-                },
-                buy: {
-                    ...config.buy,
-                    minPredictedConfidence: 0.7,
-                },
-            });
-
-            let callCount = 0;
-            mockServer.use(
-                http.post(process.env.BUY_PREDICTION_ENDPOINT as string, async () => {
-                    if (callCount++ === 0) {
-                        return HttpResponse.json(
-                            {
-                                confidence: 0.2,
-                            },
-                            { status: 200 },
-                        );
-                    } else {
-                        return HttpResponse.json({ error: 'a second call was not expected' }, { status: 400 });
-                    }
-                }),
-            );
-
-            expect(await strategy.shouldBuy(mint, historyRef, history[4], history)).toEqual({
-                buy: false,
-                reason: 'minPredictedBuyConfidence',
-                data: {
-                    predictedBuyConfidence: 0.2,
-                },
-            });
-            expect(callCount).toBe(1);
-            expect(
-                Object.fromEntries(
-                    await Promise.all(
-                        (await redisMockInstance.keys('*')).map(async k => [k, await redisMockInstance.get(k)]),
-                    ),
-                ),
-            ).toEqual({
-                'bp.test_rsi7_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10': '{"confidence":0.2}',
-            });
-
-            expect(await strategy.shouldBuy(mint, historyRef, history[4], history)).toEqual({
-                buy: false,
-                reason: 'minPredictedBuyConfidence',
-                data: {
-                    predictedBuyConfidence: 0.2,
-                },
-            });
-            expect(callCount).toBe(1);
-        });
-
-        it('should throw error if the confidence is missing from the response body', async () => {
-            mockServer.use(
-                http.post(process.env.BUY_PREDICTION_ENDPOINT as string, async () => {
-                    return HttpResponse.json(
-                        {
-                            lol: true,
-                        },
-                        { status: 200 },
-                    );
-                }),
-            );
-
-            await expect(strategy.shouldBuy(mint, historyRef, history[4], history)).rejects.toThrow(
-                new Error('The response is missing the required field confidence. {"lol":true}'),
-            );
-        });
-
-        it('should throw error if the returned confidence is outside the interval [0, 1]', async () => {
-            mockServer.use(
-                http.post(process.env.BUY_PREDICTION_ENDPOINT as string, async () => {
-                    return HttpResponse.json(
-                        {
-                            confidence: -0.1,
-                        },
-                        { status: 200 },
-                    );
-                }),
-            );
-
-            await expect(strategy.shouldBuy(mint, historyRef, history[4], history)).rejects.toThrow(
-                new Error('Expected confidence to be in the interval [0, 1], but got -0.1'),
-            );
-
-            mockServer.use(
-                http.post(process.env.BUY_PREDICTION_ENDPOINT as string, async () => {
-                    return HttpResponse.json(
-                        {
-                            confidence: 1.0001,
-                        },
-                        { status: 200 },
-                    );
-                }),
-            );
-
-            await expect(strategy.shouldBuy(mint, historyRef, history[4], history)).rejects.toThrow(
-                new Error('Expected confidence to be in the interval [0, 1], but got 1.0001'),
-            );
-        });
+            strategy = new BuyPredictionStrategy(logger, redisMockInstance, sourceConfig, newConfig);
+        },
+        mint: mint,
+        historyRef: historyRef,
+        history: history,
     });
 
     describe('formVariant', () => {
@@ -421,40 +182,19 @@ describe('BuyPredictionStrategy', () => {
             },
         };
 
-        function getKeyFromConfig(customConfig: Partial<BuyPredictionStrategyConfig> = {}, ignoreValidation = false) {
+        function getKeyFromConfig(customConfig: Partial<BuyPredictionStrategyConfig> = {}) {
             let strategy: BuyPredictionStrategy;
-            if (ignoreValidation) {
-                strategy = new BuyPredictionStrategy(logger, redisMockInstance, sourceConfig, defaultConfig);
-                // @ts-ignore create the strategy with the default config to pass validations, then assing ours
-                strategy.config.prediction = customConfig.prediction;
-            } else {
-                strategy = new BuyPredictionStrategy(logger, redisMockInstance, sourceConfig, {
-                    ...defaultConfig,
-                    ...customConfig,
-                });
-            }
+            strategy = new BuyPredictionStrategy(logger, redisMockInstance, sourceConfig, {
+                ...defaultConfig,
+                ...customConfig,
+            });
 
-            return (strategy as unknown as { formBaseCacheKey: () => string }).formBaseCacheKey();
+            return (strategy as unknown as { cacheBaseKey: string }).cacheBaseKey;
         }
 
         it('should generate full cache key with all values', () => {
             const key = getKeyFromConfig();
             expect(key).toBe('bp.m1_skf:false');
-        });
-
-        it('should exclude undefined values from the cache key', () => {
-            const key = getKeyFromConfig(
-                {
-                    variant: undefined,
-                    prediction: {
-                        ...defaultConfig.prediction,
-                        // @ts-ignore
-                        skipAllSameFeatures: undefined,
-                    },
-                },
-                true,
-            );
-            expect(key).toBe('bp.m1');
         });
 
         it('should handle boolean true correctly', () => {
@@ -471,23 +211,6 @@ describe('BuyPredictionStrategy', () => {
             });
             expect(key).toContain('_skf:false');
             expect(key).toBe('bp.m1_skf:false');
-        });
-
-        it('should return only model prefix if everything else is undefined', () => {
-            const key = getKeyFromConfig(
-                {
-                    variant: undefined,
-                    prediction: {
-                        // @ts-ignore
-                        skipAllSameFeatures: undefined,
-                        // @ts-ignore
-                        requiredFeaturesLength: undefined,
-                        upToFeaturesLength: undefined,
-                    },
-                },
-                true,
-            );
-            expect(key).toBe('bp.m1');
         });
     });
 });

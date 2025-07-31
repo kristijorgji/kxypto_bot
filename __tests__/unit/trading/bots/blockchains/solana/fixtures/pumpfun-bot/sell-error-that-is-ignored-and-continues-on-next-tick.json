@@ -54,6 +54,9 @@
                 "virtualSolReserves": 58569661730,
                 "virtualTokenReserves": 1043137958064512
               }
+            },
+            "buyRes": {
+              "reason": "shouldBuyStateless"
             }
           },
           "netTransferredLamports": 414995000,
@@ -120,6 +123,9 @@
                 "virtualSolReserves": 58569661730,
                 "virtualTokenReserves": 1043137958064512
               }
+            },
+            "sellRes": {
+              "reason": "TAKE_PROFIT"
             }
           },
           "netTransferredLamports": 664995000,
@@ -326,7 +332,7 @@
           "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
         },
         "level": "info",
-        "message": "We set buy=true because the conditions are met"
+        "message": "shouldBuyRes.buy=true because the strategy conditions are met"
       },
       {
         "contextMap": {
@@ -690,7 +696,7 @@
           "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
         },
         "level": "info",
-        "message": "We set buy=true because the conditions are met"
+        "message": "shouldBuyRes.buy=true because the strategy conditions are met"
       },
       {
         "contextMap": {

@@ -519,39 +519,18 @@ describe('PricePredictionStrategy', () => {
             },
         };
 
-        function getKeyFromConfig(customConfig: Partial<PricePredictionStrategyConfig> = {}, ignoreValidation = false) {
-            if (ignoreValidation) {
-                strategy = new PricePredictionStrategy(logger, redisMockInstance, sourceConfig, defaultConfig);
-                // @ts-ignore create the strategy with the default config to pass validations, then assing ours
-                strategy.config.prediction = customConfig.prediction;
-            } else {
-                strategy = new PricePredictionStrategy(logger, redisMockInstance, sourceConfig, {
-                    ...defaultConfig,
-                    ...customConfig,
-                });
-            }
+        function getKeyFromConfig(customConfig: Partial<PricePredictionStrategyConfig> = {}) {
+            strategy = new PricePredictionStrategy(logger, redisMockInstance, sourceConfig, {
+                ...defaultConfig,
+                ...customConfig,
+            });
 
-            return (strategy as unknown as { formBaseCacheKey: () => string }).formBaseCacheKey();
+            return (strategy as unknown as { cacheBaseKey: string }).cacheBaseKey;
         }
 
         it('should generate full cache key with all values', () => {
             const key = getKeyFromConfig();
             expect(key).toBe('pp.m1_skf:false');
-        });
-
-        it('should exclude undefined values from the cache key', () => {
-            const key = getKeyFromConfig(
-                {
-                    variant: undefined,
-                    prediction: {
-                        ...defaultConfig.prediction,
-                        // @ts-ignore
-                        skipAllSameFeatures: undefined,
-                    },
-                },
-                true,
-            );
-            expect(key).toBe('pp.m1');
         });
 
         it('should handle boolean true correctly', () => {
@@ -568,23 +547,6 @@ describe('PricePredictionStrategy', () => {
             });
             expect(key).toContain('_skf:false');
             expect(key).toBe('pp.m1_skf:false');
-        });
-
-        it('should return only model prefix if everything else is undefined', () => {
-            const key = getKeyFromConfig(
-                {
-                    variant: undefined,
-                    prediction: {
-                        // @ts-ignore
-                        skipAllSameFeatures: undefined,
-                        // @ts-ignore
-                        requiredFeaturesLength: undefined,
-                        upToFeaturesLength: undefined,
-                    },
-                },
-                true,
-            );
-            expect(key).toBe('pp.m1');
         });
     });
 });

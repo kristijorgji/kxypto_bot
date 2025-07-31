@@ -3,6 +3,7 @@ import { createLogger } from 'winston';
 import { formSolBoughtOrSold } from '../../../../../src/trading/bots/blockchains/solana/PumpfunBot';
 import { HistoryRef, TradeTransaction } from '../../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '../../../../../src/trading/bots/launchpads/types';
+import { ShouldSellResponse } from '../../../../../src/trading/bots/types';
 import RiseStrategy, { RiseStrategyConfig } from '../../../../../src/trading/strategies/launchpads/RiseStrategy';
 import { LaunchpadBuyPosition } from '../../../../../src/trading/strategies/types';
 import { formHistoryEntry } from '../../../../__utils/blockchains/solana';
@@ -205,8 +206,9 @@ describe(RiseStrategy.name, () => {
                     history,
                 ),
             ).toEqual({
+                sell: true,
                 reason: 'STOP_LOSS',
-            });
+            } satisfies ShouldSellResponse);
         });
 
         it('should sell when trailing stop loss is triggered', async () => {
@@ -228,7 +230,10 @@ describe(RiseStrategy.name, () => {
                     },
                     history,
                 ),
-            ).toEqual(false);
+            ).toEqual({
+                sell: false,
+                reason: 'meets_entry_rules',
+            } satisfies ShouldSellResponse);
             expect(
                 await strategy.shouldSell(
                     mint,
@@ -240,8 +245,9 @@ describe(RiseStrategy.name, () => {
                     history,
                 ),
             ).toEqual({
+                sell: true,
                 reason: 'TRAILING_STOP_LOSS',
-            });
+            } satisfies ShouldSellResponse);
         });
 
         it('should sell when take profit is triggered', async () => {
@@ -265,8 +271,9 @@ describe(RiseStrategy.name, () => {
                     history,
                 ),
             ).toEqual({
+                sell: true,
                 reason: 'TAKE_PROFIT',
-            });
+            } satisfies ShouldSellResponse);
         });
 
         it('should sell when trailing take profit is triggered', async () => {
@@ -291,7 +298,10 @@ describe(RiseStrategy.name, () => {
                     },
                     history,
                 ),
-            ).toEqual(false);
+            ).toEqual({
+                sell: false,
+                reason: 'meets_entry_rules',
+            } satisfies ShouldSellResponse);
             expect(
                 await strategy.shouldSell(
                     mint,
@@ -302,7 +312,10 @@ describe(RiseStrategy.name, () => {
                     },
                     history,
                 ),
-            ).toEqual(false);
+            ).toEqual({
+                sell: false,
+                reason: 'meets_entry_rules',
+            } satisfies ShouldSellResponse);
             expect(
                 await strategy.shouldSell(
                     mint,
@@ -314,8 +327,9 @@ describe(RiseStrategy.name, () => {
                     history,
                 ),
             ).toEqual({
+                sell: true,
                 reason: 'TRAILING_TAKE_PROFIT',
-            });
+            } satisfies ShouldSellResponse);
         });
 
         it('should sell when dev and top 10 insiders increase position after we bought', async () => {
@@ -350,11 +364,12 @@ describe(RiseStrategy.name, () => {
             let firstSellIndex = -1;
             for (let i = buyEntryIndex; i < history.length; i++) {
                 const shouldSellRes = await strategy.shouldSell(mint, historyRef, history[i], history);
-                if (shouldSellRes) {
+                if (shouldSellRes.sell) {
                     firstSellIndex = i;
                     expect(shouldSellRes).toEqual({
+                        sell: true,
                         reason: 'NO_LONGER_MEETS_ENTRY_RULES',
-                    });
+                    } satisfies ShouldSellResponse);
                     break;
                 }
             }

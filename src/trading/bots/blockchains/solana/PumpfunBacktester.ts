@@ -25,7 +25,7 @@ import {
     TradeTransaction,
 } from './types';
 import { HistoryEntry } from '../../launchpads/types';
-import { SellReason, ShouldBuyResponse } from '../../types';
+import { SellReason, ShouldBuyResponse, ShouldSellResponse } from '../../types';
 
 const BacktestWallet = '_backtest_';
 
@@ -56,11 +56,7 @@ export default class PumpfunBacktester {
         let maxDrawdownPercentage = 0; // Tracks max drawdown from peak
         const buyAmountLamports = solToLamports(buyAmountSol);
 
-        let sell:
-            | {
-                  reason: SellReason;
-              }
-            | undefined;
+        let shouldSellRes: ShouldSellResponse | undefined;
 
         for (let i = 0; i < history.length; i++) {
             const marketContext = history[i];
@@ -150,14 +146,7 @@ export default class PumpfunBacktester {
                 holdingsRaw += calculateRawTokenHoldings(buyAmountSol, price);
                 balanceLamports += txDetails.netTransferredLamports;
 
-                const buyPosition: TradeTransaction<
-                    PumpfunBuyPositionMetadata & {
-                        buyRes: {
-                            reason: string;
-                            data?: Record<string, unknown>;
-                        };
-                    }
-                > = {
+                const buyPosition: TradeTransaction<PumpfunBuyPositionMetadata> = {
                     timestamp: Date.now(),
                     transactionType: 'buy',
                     subCategory: tradeHistory.find(e => e.transactionType === 'buy') ? 'accumulation' : 'newPosition',
@@ -208,7 +197,8 @@ export default class PumpfunBacktester {
                 });
                 if (shouldExitRes) {
                     if (shouldExitRes.shouldSell) {
-                        sell = {
+                        shouldSellRes = {
+                            sell: true,
                             reason: shouldExitRes.shouldSell.reason,
                         };
                     } else {
@@ -221,7 +211,7 @@ export default class PumpfunBacktester {
             }
 
             if (strategy.buyPosition) {
-                const shouldSellRes = await strategy.shouldSell(
+                const strategyShouldSellRes = await strategy.shouldSell(
                     tokenInfo.mint,
                     {
                         timestamp: marketContext.timestamp,
@@ -230,18 +220,20 @@ export default class PumpfunBacktester {
                     marketContext,
                     historySoFar,
                 );
-                if (shouldSellRes !== false) {
-                    sell = {
-                        reason: shouldSellRes.reason,
+                if (strategyShouldSellRes.sell) {
+                    shouldSellRes = {
+                        sell: true,
+                        reason: strategyShouldSellRes.reason,
                     };
                 } else if (sellUnclosedPositionsAtEnd && i === history.length - 1) {
-                    sell = {
+                    shouldSellRes = {
+                        sell: true,
                         reason: 'BEFORE_EXIT_MONITORING',
                     };
                 }
             }
 
-            if (sell && strategy.buyPosition && holdingsRaw > 0) {
+            if (shouldSellRes?.sell && strategy.buyPosition && holdingsRaw > 0) {
                 const sellPriorityFeeInSol =
                     strategy.config.sellPriorityFeeInSol ??
                     strategy.config.priorityFeeInSol ??
@@ -322,16 +314,20 @@ export default class PumpfunBacktester {
                             index: i,
                         },
                         historyEntry: marketContext,
-                        reason: sell.reason,
+                        reason: shouldSellRes.reason as SellReason,
                         pumpMinLamportsOutput: holdingsRaw,
                         sellPriceInSol: sellPrice,
+                        sellRes: {
+                            reason: shouldSellRes.reason,
+                            ...(shouldSellRes.data ? { data: shouldSellRes.data } : {}),
+                        },
                     },
                 } satisfies TradeTransaction<PumpfunSellPositionMetadata>);
 
                 balanceLamports += txDetails.netTransferredLamports;
                 holdingsRaw = 0;
 
-                sell = undefined;
+                shouldSellRes = undefined;
                 strategy.afterSell();
                 if (onlyOneFullTrade) {
                     break;

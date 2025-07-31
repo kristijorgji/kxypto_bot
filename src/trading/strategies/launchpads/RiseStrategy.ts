@@ -100,18 +100,22 @@ export default class RiseStrategy extends LimitsBasedStrategy {
         historyRef: HistoryRef,
         marketContext: MarketContext,
         history: HistoryEntry[],
-    ): Promise<ShouldSellResponse> {
+    ): Promise<ShouldSellResponse<'meets_entry_rules' | 'no_limit_matches'>> {
         const shouldSellRes = await super.shouldSell(mint, historyRef, marketContext, history);
-        if (shouldSellRes) {
+        if (shouldSellRes.sell) {
             return shouldSellRes;
         }
 
         const shouldSell = !shouldBuyStateless(this.config.buy, marketContext);
         if (!shouldSell) {
-            return false;
+            return {
+                sell: false,
+                reason: 'meets_entry_rules',
+            };
         }
 
         return {
+            sell: true,
             reason: 'NO_LONGER_MEETS_ENTRY_RULES',
         };
     }

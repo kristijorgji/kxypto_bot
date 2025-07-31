@@ -118,7 +118,10 @@
                 },
                 "reason": "TAKE_PROFIT",
                 "pumpMinLamportsOutput": 500000,
-                "sellPriceInSol": 1.5
+                "sellPriceInSol": 1.5,
+                "sellRes": {
+                  "reason": "TAKE_PROFIT"
+                }
               }
             }
           ],

@@ -30,6 +30,7 @@ export async function up(knex: Knex): Promise<void> {
                 'TRAILING_STOP_LOSS',
                 'STOP_LOSS',
                 'TAKE_PROFIT',
+                'CONSECUTIVE_SELL_PREDICTION_CONFIRMATIONS',
                 'TRAILING_TAKE_PROFIT',
                 'AT_HARDCODED_PROFIT',
                 'NO_LONGER_MEETS_ENTRY_RULES',

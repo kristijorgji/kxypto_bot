@@ -118,7 +118,10 @@
                 },
                 "reason": "STOP_LOSS",
                 "pumpMinLamportsOutput": 50000,
-                "sellPriceInSol": 5.475
+                "sellPriceInSol": 5.475,
+                "sellRes": {
+                  "reason": "STOP_LOSS"
+                }
               }
             }
           ],
@@ -234,7 +237,10 @@
                 },
                 "reason": "STOP_LOSS",
                 "pumpMinLamportsOutput": 62500,
-                "sellPriceInSol": 0.07500000000000001
+                "sellPriceInSol": 0.07500000000000001,
+                "sellRes": {
+                  "reason": "STOP_LOSS"
+                }
               }
             }
           ],

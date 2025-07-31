@@ -30,7 +30,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "info",
-      "message": "We set buy=true because the conditions are met"
+      "message": "shouldBuyRes.buy=true because the strategy conditions are met"
     },
     {
       "contextMap": {

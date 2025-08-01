@@ -1,0 +1,74 @@
+{
+  "processed": 4,
+  "validFilesCount": 1,
+  "invalidFiles": {
+    "data/a.json": {
+      "context": {
+        "price": {
+          "null": {
+            "1": {
+              "startTimestamp": 2,
+              "count": 2
+            },
+            "4": {
+              "startTimestamp": 5,
+              "count": 1
+            }
+          }
+        },
+        "holdersCount": {
+          "null": {
+            "3": {
+              "startTimestamp": 4,
+              "count": 1
+            }
+          }
+        },
+        "topTenHoldingPercentage": {
+          "null": {
+            "5": {
+              "startTimestamp": 6,
+              "count": 1
+            }
+          }
+        },
+        "devHoldingPercentageCirculating": {
+          "null": {
+            "13": {
+              "startTimestamp": 14,
+              "count": 1
+            }
+          }
+        },
+        "topTenHoldingPercentageCirculating": {
+          "null": {
+            "13": {
+              "startTimestamp": 14,
+              "count": 1
+            }
+          }
+        },
+        "topHolderCirculatingPercentage": {
+          "null": {
+            "13": {
+              "startTimestamp": 14,
+              "count": 1
+            }
+          }
+        }
+      }
+    },
+    "data/no-history.json": {
+      "withoutHistory": true
+    },
+    "data/bla.txt": {
+      "nonJson": true
+    }
+  },
+  "invalidFilesCount": 3,
+  "invalidReasonCounts": {
+    "nonJson": 1,
+    "context": 1,
+    "withoutHistory": 1
+  }
+}

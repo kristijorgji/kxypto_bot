@@ -1,13 +1,65 @@
 import fs from 'fs';
 
 import { Command } from 'commander';
+import { z } from 'zod';
 
 import { logger } from '@src/logger';
 import { NewMarketContextFactory } from '@src/testdata/factories/launchpad';
 import { getBacktestFiles } from '@src/trading/backtesting/utils';
 import { HandlePumpTokenBotReport, HandlePumpTokenReport } from '@src/trading/bots/blockchains/solana/types';
-import { MarketContext } from '@src/trading/bots/launchpads/types';
+import { MarketContext, marketContextKeys } from '@src/trading/bots/launchpads/types';
 import { moveFile } from '@src/utils/files';
+
+const configSchema = z.object({
+    dataSource: z.object({
+        path: z.string(),
+        includeIfPathContains: z.array(z.string()).optional(),
+    }),
+    rules: z.object({
+        notJson: z.boolean(),
+        nulls: z.object({
+            enabled: z.boolean(),
+            exclude: z
+                .record(
+                    z.enum(marketContextKeys),
+                    z.object({
+                        upToIndex: z.number().optional(),
+                    }),
+                )
+                .optional(),
+        }),
+        noHistory: z.boolean(),
+    }),
+    extractTo: z.string().optional(),
+    reportPath: z.string().optional(),
+});
+
+export type ValidateBacktestFilesConfig = z.infer<typeof configSchema>;
+
+type Interval = {
+    startTimestamp: number;
+    count: number;
+};
+
+type IntervalsMap = Record<number, Interval>;
+
+type InvalidFiles = Record<
+    string,
+    {
+        nonJson?: boolean;
+        withoutHistory?: boolean;
+        context?: Partial<
+            Record<
+                keyof MarketContext,
+                {
+                    null: IntervalsMap;
+                }
+            >
+        >;
+    }
+>;
+
+type InvalidReasonCounts = Record<'context' | 'nonJson' | 'withoutHistory', number>;
 
 export const validateBacktestFilesProgram = new Command();
 validateBacktestFilesProgram
@@ -16,16 +68,13 @@ validateBacktestFilesProgram
         'Validates files in the specified directory by checking for null values in the marketContext and other anomalies.',
     )
     .version('0.0.0')
-    .requiredOption('--path <string>', 'Path to the folder containing the JSON result files to be validated.')
-    .option(
-        '--includeIfPathContains <string>',
-        'Comma-separated list of keywords. Only files whose paths include at least one of these values will be processed.',
-    )
+    .requiredOption('--config <string>', 'path to a config file used')
+    .option('--path <string>', 'Path to the folder containing the JSON result files to be validated.')
     .option('--extractTo <string>', 'Destination folder to move invalid files')
     .action(async args => {
-        await start({
+        await runWithArgs({
+            config: args.config,
             path: args.path,
-            includeIfPathContains: args.includeIfPathContains,
             extractTo: args.extractTo,
         });
     });
@@ -34,52 +83,36 @@ if (require.main === module) {
     validateBacktestFilesProgram.parse(process.argv);
 }
 
-type Config = {
-    dataSource: {
-        path: string;
-        includeIfPathContains: string[] | undefined;
-    };
-    rules: {
-        notJson: boolean;
-        nulls: {
-            enabled: boolean;
-            exclude: Partial<Record<keyof MarketContext, { upToIndex?: number }>>;
-        };
-        noHistory: boolean;
-    };
-    extractTo: string | undefined;
-};
+function runWithArgs(args: { config: string; path?: string; extractTo?: string }) {
+    logger.debug('Running with args %o', args);
+
+    const asJson = JSON.parse(fs.readFileSync(args.config).toString());
+    const config = configSchema.parse(asJson);
+    if (args.path) {
+        config.dataSource.path = args.path;
+    }
+    if (args.extractTo !== undefined) {
+        if (args.extractTo === '') {
+            config.extractTo = undefined;
+        } else {
+            config.extractTo = args.extractTo;
+        }
+    }
+
+    return validateBacktestFiles(config);
+}
 
 /**
- * It will check all the backtest files under default dir `./data/pumpfun-stats`
+ * It will check all the backtest files under the provided path
  * and provide a summary of how many are valid, how many invalid (e.g., have price = null)
  */
-async function start(args: { path: string; includeIfPathContains: string; extractTo?: string }) {
-    const config: Config = {
-        dataSource: {
-            path: args.path,
-            includeIfPathContains: args.includeIfPathContains ? args.includeIfPathContains.split(',') : undefined,
-        },
-        rules: {
-            notJson: true,
-            nulls: {
-                enabled: true,
-                exclude: {
-                    devHoldingPercentageCirculating: {
-                        upToIndex: 12,
-                    },
-                    topTenHoldingPercentageCirculating: {
-                        upToIndex: 12,
-                    },
-                    topHolderCirculatingPercentage: {
-                        upToIndex: 12,
-                    },
-                },
-            },
-            noHistory: true,
-        },
-        extractTo: args.extractTo,
-    };
+export async function validateBacktestFiles(config: ValidateBacktestFilesConfig): Promise<{
+    processed: number;
+    validFilesCount: number;
+    invalidFiles: InvalidFiles;
+    invalidFilesCount: number;
+    invalidReasonCounts: InvalidReasonCounts;
+}> {
     const files = getBacktestFiles(config.dataSource, null);
     const marketContextKeys = Object.keys(NewMarketContextFactory()) as (keyof MarketContext)[];
 
@@ -91,42 +124,24 @@ async function start(args: { path: string; includeIfPathContains: string; extrac
     }
 
     let processed = 0;
-    let validFiles = 0;
+    let validFilesCount = 0;
 
-    let lastNullIntervals: Partial<
-        Record<
-            keyof MarketContext,
-            {
-                startRef: {
-                    timestamp: number;
-                    index: number;
-                };
-                count: number;
-            } | null
-        >
-    > = {};
-    type Interval = {
-        startTimestamp: number;
-        count: number;
-    };
-    type IntervalsMap = Record<number, Interval>;
-    const invalidFiles: Record<
-        string,
-        {
-            nonJson?: boolean;
-            withoutHistory?: boolean;
-            context?: Partial<
-                Record<
-                    keyof MarketContext,
-                    {
-                        null: IntervalsMap;
-                    }
-                >
-            >;
-        }
-    > = {};
+    const invalidFiles: InvalidFiles = {};
 
     for (const file of files) {
+        let lastNullIntervals: Partial<
+            Record<
+                keyof MarketContext,
+                {
+                    startRef: {
+                        timestamp: number;
+                        index: number;
+                    };
+                    count: number;
+                } | null
+            >
+        > = {};
+
         if (config.rules.notJson && !file.name.includes('.json')) {
             processed++;
             if (config.extractTo) {
@@ -158,7 +173,7 @@ async function start(args: { path: string; includeIfPathContains: string; extrac
             const historyEntry = pc.history[i];
 
             for (const mKey of marketContextKeys) {
-                const excludeRule = config.rules.nulls.exclude[mKey];
+                const excludeRule = config.rules.nulls.exclude ? config.rules.nulls.exclude[mKey] : undefined;
                 if (excludeRule && (excludeRule?.upToIndex === undefined || excludeRule.upToIndex >= i)) {
                     continue;
                 }
@@ -205,7 +220,7 @@ async function start(args: { path: string; includeIfPathContains: string; extrac
             }
         }
         if (!invalidFiles[file.fullPath]) {
-            validFiles++;
+            validFilesCount++;
         } else if (config.extractTo) {
             await moveFile(file.fullPath, `${config.extractTo}/nulls/${file.name}`);
         }
@@ -213,7 +228,7 @@ async function start(args: { path: string; includeIfPathContains: string; extrac
         processed++;
     }
 
-    const invalidReasonCounts: Record<'context' | 'nonJson' | 'withoutHistory', number> = {
+    const invalidReasonCounts: InvalidReasonCounts = {
         nonJson: 0,
         context: 0,
         withoutHistory: 0,
@@ -233,8 +248,23 @@ async function start(args: { path: string; includeIfPathContains: string; extrac
     }
 
     logger.info('%d files were processed', processed);
-    logger.info('%d files were found to be valid', validFiles);
+    logger.info('%d files were found to be valid', validFilesCount);
     logger.info('%d files were found to be invalid', invalidFilesCount);
     logger.info('Invalid files invalidReasonCounts by reason: %o', invalidReasonCounts);
     logger.info('Invalid files: %o', invalidFiles);
+
+    const result = {
+        processed: processed,
+        validFilesCount: validFilesCount,
+        invalidFiles: invalidFiles,
+        invalidFilesCount: invalidFilesCount,
+        invalidReasonCounts: invalidReasonCounts,
+    };
+
+    if (config.reportPath) {
+        logger.info('Writing results at %s', config.reportPath);
+        fs.writeFileSync(config.reportPath, JSON.stringify(result, null, 2));
+    }
+
+    return result;
 }

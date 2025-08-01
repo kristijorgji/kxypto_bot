@@ -1,0 +1,19 @@
+{
+  "dataSource": {
+    "path": "data/pumpfun-stats/tmp"
+  },
+  "rules": {
+    "notJson": true,
+    "nulls": {
+      "enabled": true,
+      "exclude": {
+        "devHoldingPercentageCirculating": {},
+        "topTenHoldingPercentageCirculating": {},
+        "topHolderCirculatingPercentage": {}
+      }
+    },
+    "noHistory": true
+  },
+  "extractTo": "data/invalid-pumpfun-stats",
+  "reportPath": "data/validate-backtest-files-report.json"
+}

@@ -170,11 +170,14 @@ echo "--- Step 2: Validating backtest files and extracting invalid ones ---"
 
   args=(
     src/scripts/pumpfun/validate-backtest-files.ts
+    --config="src/scripts/pumpfun/config/validate-backtest-files.defaults.json"
     --path="$SOURCE_DIR_ARG"
   )
 
   if [ "$DRY_RUN" = false ]; then
     args+=(--extractTo="$INVALID_FILES_DIR_ARG")
+  else
+    args+=(--extractTo="")
   fi
 
   yarn run:script "${args[@]}" || { echo "❌ Error: 'validate-backtest-files.ts' script failed."; exit 1; }

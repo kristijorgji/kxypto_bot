@@ -88,6 +88,32 @@ export type PredictionRequest = {
     }[];
 };
 
+type ConfidencePredictionBaseResponse = {
+    /**
+     * Confidence score of the buy prediction, ranging from 0 (no confidence)
+     * to 1 (full confidence). Represents the model's certainty that the asset
+     * is a good buy/sell.
+     */
+    confidence: number;
+};
+
+type ConfidencePredictionSingleModelResponse = ConfidencePredictionBaseResponse & {
+    status: 'single_model_success';
+};
+
+export type ConfidencePredictionEnsembleResponse = ConfidencePredictionBaseResponse & {
+    confidence: number;
+    status: 'ensemble_success';
+    individual_results: {
+        mode: string;
+        prediction: number;
+    }[];
+};
+
+export type ConfidencePredictionResponse =
+    | ConfidencePredictionSingleModelResponse
+    | ConfidencePredictionEnsembleResponse;
+
 export type PredictionStrategyShouldBuyResponseReason =
     | 'requiredFeaturesLength'
     | 'shouldBuyStateless'

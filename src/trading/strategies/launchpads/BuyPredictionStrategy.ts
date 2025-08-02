@@ -36,15 +36,6 @@ export const buyPredictionStrategyConfigSchema = strategyConfigSchema.merge(
 );
 export type BuyPredictionStrategyConfig = z.infer<typeof buyPredictionStrategyConfigSchema>;
 
-export type BuyPredictionResponse = {
-    /**
-     * Confidence score of the buy prediction, ranging from 0 (no confidence)
-     * to 1 (full confidence). Represents the model's certainty that the asset
-     * is a good buy.
-     */
-    confidence: number;
-};
-
 export type BuyPredictionStrategyShouldBuyResponseReason =
     | PredictionStrategyShouldBuyResponseReason
     | 'minPredictedBuyConfidence';

@@ -51,15 +51,6 @@ export const buySellPredictionStrategyConfigSchema = strategyConfigSchema.merge(
 );
 export type BuySellPredictionStrategyConfig = z.infer<typeof buySellPredictionStrategyConfigSchema>;
 
-export type SellPredictionResponse = {
-    /**
-     * Confidence score of the buy prediction, ranging from 0 (no confidence)
-     * to 1 (full confidence). Represents the model's certainty that the asset
-     * is a good sell.
-     */
-    confidence: number;
-};
-
 export type BuySellPredictionStrategyShouldSellResponseReason = PredictionStrategyShouldSellResponseReason | SellReason;
 
 const CacheDefaultTtlSeconds = 3600 * 24 * 7;

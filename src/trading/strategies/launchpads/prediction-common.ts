@@ -2,14 +2,10 @@ import { AxiosInstance, AxiosResponse, HttpStatusCode } from 'axios';
 import Redis from 'ioredis';
 import { Logger } from 'winston';
 
-import {
-    BuyPredictionResponse,
-    BuyPredictionStrategyShouldBuyResponseReason,
-} from '@src/trading/strategies/launchpads/BuyPredictionStrategy';
+import { BuyPredictionStrategyShouldBuyResponseReason } from '@src/trading/strategies/launchpads/BuyPredictionStrategy';
 import {
     BuySellPredictionStrategyConfig,
     BuySellPredictionStrategyShouldSellResponseReason,
-    SellPredictionResponse,
 } from '@src/trading/strategies/launchpads/BuySellPredictionStrategy';
 import { deepEqual } from '@src/utils/data/equals';
 
@@ -17,7 +13,14 @@ import { shouldBuyStateless } from './common';
 import { HistoryRef } from '../../bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
 import { ShouldBuyResponse, ShouldSellResponse } from '../../bots/types';
-import { IntervalConfig, PredictionRequest, PredictionSource, StrategyPredictionConfig } from '../types';
+import {
+    ConfidencePredictionEnsembleResponse,
+    ConfidencePredictionResponse,
+    IntervalConfig,
+    PredictionRequest,
+    PredictionSource,
+    StrategyPredictionConfig,
+} from '../types';
 
 const CacheDefaultTtlSeconds = 3600 * 24 * 7;
 
@@ -88,6 +91,13 @@ interface PredictStrategyDependencies {
     cache: Redis;
 }
 
+type PredictionErrorData = {
+    response: {
+        status: HttpStatusCode;
+        body: unknown;
+    };
+};
+
 export type ShouldBuyParams = {
     deps: PredictStrategyDependencies;
     source: PredictionSource;
@@ -145,18 +155,15 @@ export async function shouldBuyCommon(
     return res as unknown as PredictionRequest;
 }
 
+type BuyResponseSuccessData = {
+    predictedBuyConfidence: number;
+    consecutivePredictionConfirmations?: number;
+    individualResults?: ConfidencePredictionEnsembleResponse['individual_results'];
+};
+
 type ShouldBuyWithBuyPredictionResponse = ShouldBuyResponse<
     BuyPredictionStrategyShouldBuyResponseReason,
-    | {
-          response: {
-              status: HttpStatusCode;
-              body: unknown;
-          };
-      }
-    | {
-          predictedBuyConfidence: number;
-          consecutivePredictionConfirmations?: number;
-      }
+    PredictionErrorData | BuyResponseSuccessData
 >;
 
 export async function shouldBuyWithBuyPrediction(
@@ -183,7 +190,7 @@ export async function shouldBuyWithBuyPrediction(
     const predictionRequest = r as PredictionRequest;
 
     let predictionResponse: AxiosResponse | undefined;
-    let prediction: BuyPredictionResponse | undefined;
+    let prediction: ConfidencePredictionResponse | undefined;
 
     let cacheKey: string | undefined;
     let cached;
@@ -195,7 +202,7 @@ export async function shouldBuyWithBuyPrediction(
     if (cached) {
         prediction = JSON.parse(cached);
     } else {
-        predictionResponse = await client.post<BuyPredictionResponse>(source.endpoint, predictionRequest);
+        predictionResponse = await client.post<ConfidencePredictionResponse>(source.endpoint, predictionRequest);
         if (predictionResponse.status === 200) {
             if (predictionResponse.data.confidence === undefined) {
                 throw new Error(
@@ -206,7 +213,7 @@ export async function shouldBuyWithBuyPrediction(
                     `Expected confidence to be in the interval [0, 1], but got ${predictionResponse.data.confidence}`,
                 );
             } else {
-                prediction = predictionResponse.data as BuyPredictionResponse;
+                prediction = predictionResponse.data as ConfidencePredictionResponse;
                 if (config.prediction.cache?.enabled) {
                     cache.set(
                         cacheKey!,
@@ -235,9 +242,12 @@ export async function shouldBuyWithBuyPrediction(
         };
     }
 
-    const responseData = {
+    const responseData: BuyResponseSuccessData = {
         predictedBuyConfidence: prediction.confidence,
     };
+    if ((prediction as ConfidencePredictionEnsembleResponse)?.status === 'ensemble_success') {
+        responseData.individualResults = (prediction as ConfidencePredictionEnsembleResponse).individual_results;
+    }
 
     if (prediction.confidence >= config.buy.minPredictedConfidence) {
         consecutivePredictionConfirmations = setConsecutivePredictionConfirmations(
@@ -276,6 +286,12 @@ export type ShouldSellParams = {
     setConsecutivePredictionConfirmations: (value: number) => number;
 };
 
+type SellResponseSuccessData = {
+    predictedSellConfidence: number;
+    consecutivePredictionConfirmations?: number;
+    individualResults?: ConfidencePredictionEnsembleResponse['individual_results'];
+};
+
 export async function shouldSellPredicted(
     {
         deps,
@@ -291,19 +307,7 @@ export async function shouldSellPredicted(
     _context: MarketContext,
     history: HistoryEntry[],
 ): Promise<
-    ShouldSellResponse<
-        BuySellPredictionStrategyShouldSellResponseReason,
-        | {
-              response: {
-                  status: HttpStatusCode;
-                  body: unknown;
-              };
-          }
-        | {
-              predictedSellConfidence: number;
-              consecutivePredictionConfirmations?: number;
-          }
-    >
+    ShouldSellResponse<BuySellPredictionStrategyShouldSellResponseReason, PredictionErrorData | SellResponseSuccessData>
 > {
     const { logger, client, cache } = deps;
 
@@ -324,7 +328,7 @@ export async function shouldSellPredicted(
     const predictionRequest = res as PredictionRequest;
 
     let predictionResponse: AxiosResponse | undefined;
-    let prediction: SellPredictionResponse | undefined;
+    let prediction: ConfidencePredictionResponse | undefined;
 
     let cacheKey: string | undefined;
     let cached;
@@ -336,7 +340,7 @@ export async function shouldSellPredicted(
     if (cached) {
         prediction = JSON.parse(cached);
     } else {
-        predictionResponse = await client.post<SellPredictionResponse>(source.endpoint, predictionRequest);
+        predictionResponse = await client.post<ConfidencePredictionResponse>(source.endpoint, predictionRequest);
         if (predictionResponse.status === 200) {
             if (predictionResponse.data.confidence === undefined) {
                 throw new Error(
@@ -347,7 +351,7 @@ export async function shouldSellPredicted(
                     `Expected confidence to be in the interval [0, 1], but got ${predictionResponse.data.confidence}`,
                 );
             } else {
-                prediction = predictionResponse.data as SellPredictionResponse;
+                prediction = predictionResponse.data as ConfidencePredictionResponse;
                 if (config.prediction.cache?.enabled) {
                     cache.set(
                         cacheKey!,

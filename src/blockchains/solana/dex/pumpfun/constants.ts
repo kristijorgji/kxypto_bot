@@ -13,6 +13,8 @@ export const PUMP_FUN_ACCOUNT = new PublicKey('Ce6TQqeHC9p8KetsN6JsjHK7UTZk7nasj
 export const PUMP_GLOBAL_CONFIG = new PublicKey('ADyA8hdefvWN2dbGGWFotbzWxrAvLW83WG6QCVXvJKqw');
 export const PUMP_PROTOCOL_FEE_RECIPIENT = new PublicKey('FWsW1xNtWscwNmKv6wVsU1iTzRN6wmmk3MjxRP5tT7hz');
 export const PUMP_PROTOCOL_FEE_RECIPIENT_TOKEN_ACCOUNT = new PublicKey('7xQYoUjUJF1Kg6WVczoTAkaNhn5syQYcbvjmFrhjWpx');
+export const PUMP_GLOBAL_VOLUME_ACCUMULATOR = new PublicKey('Hq2wp8uJ9jCPsYgNHex8RtqdvMPfVGoYwjvF1ATiwn2Y');
+export const PUMP_USER_VOLUME_ACCUMULATOR = new PublicKey('C7HoHWDfv8rXq4nRkqbuqduW8LFqndcLw6Wigoq3shAj');
 export const PUMP_BUY_BUFFER = Buffer.from([0x66, 0x06, 0x3d, 0x12, 0x01, 0xda, 0xeb, 0xea]);
 export const PUMP_SELL_BUFFER = Buffer.from([0x33, 0xe6, 0x85, 0xa4, 0x01, 0x7f, 0x83, 0xad]);
 

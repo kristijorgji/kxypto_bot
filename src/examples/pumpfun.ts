@@ -79,14 +79,14 @@ async function start() {
 
         try {
             const beforeBuyMsSleep = 5e3;
-            const inSol = 0.001;
+            const inSol = 0.0001;
             logger.info(`Will buy ${inSol} sol after ${beforeBuyMsSleep / 1000}s`);
             await sleep(beforeBuyMsSleep);
             const buyRes = (await measureExecutionTime(
                 () =>
                     pumpfun.buy({
                         transactionMode: TransactionMode.Execution,
-                        payerPrivateKey: wallet.privateKey,
+                        wallet: wallet,
                         tokenMint: tokenMint,
                         tokenBondingCurve: initialCoinData.bondingCurve,
                         tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
@@ -115,7 +115,7 @@ async function start() {
                 () =>
                     pumpfun.sell({
                         transactionMode: TransactionMode.Execution,
-                        payerPrivateKey: wallet.privateKey,
+                        wallet: wallet,
                         tokenMint: tokenMint,
                         tokenBondingCurve: initialCoinData.bondingCurve,
                         tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,

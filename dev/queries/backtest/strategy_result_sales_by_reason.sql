@@ -1,4 +1,4 @@
-set @strategyResultId = 26;
+set @strategyResultId = 196;
 
 SELECT jt.reason,
        COUNT(*) AS count

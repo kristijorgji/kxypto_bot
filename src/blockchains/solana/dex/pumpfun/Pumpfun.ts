@@ -37,7 +37,9 @@ import {
     PUMP_FUN_ACCOUNT,
     PUMP_FUN_PROGRAM,
     PUMP_GLOBAL,
+    PUMP_GLOBAL_VOLUME_ACCUMULATOR,
     PUMP_SELL_BUFFER,
+    PUMP_USER_VOLUME_ACCUMULATOR,
     SYSTEM_PROGRAM_ID,
     TOKEN_PROGRAM_ID,
 } from './constants';
@@ -643,6 +645,8 @@ export default class Pumpfun implements PumpfunListener {
                 },
                 { pubkey: PUMP_FUN_ACCOUNT, isSigner: false, isWritable: false },
                 { pubkey: PUMP_FUN_PROGRAM, isSigner: false, isWritable: false },
+                { pubkey: PUMP_GLOBAL_VOLUME_ACCUMULATOR, isSigner: false, isWritable: true },
+                { pubkey: PUMP_USER_VOLUME_ACCUMULATOR, isSigner: false, isWritable: true },
             ],
             willCreateTokenAccount: willCreateTokenAccount,
         };

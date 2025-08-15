@@ -102,6 +102,7 @@ function getStrategies(): LaunchpadBotStrategy[] {
 
     const source: PredictionSource = {
         endpoint: process.env.BUY_PREDICTION_ENDPOINT as string,
+        algorithm: 'transformers',
         model: 'b.v1',
     };
 

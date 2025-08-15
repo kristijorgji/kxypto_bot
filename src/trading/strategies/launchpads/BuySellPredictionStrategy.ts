@@ -245,7 +245,7 @@ export default class BuySellPredictionStrategy extends LimitsBasedStrategy {
         sellSource: PredictionSource,
         config: BuySellPredictionStrategyConfig,
     ): string {
-        let r = `${buySource.model}_bp(${variantFromPredictionConfig(config.prediction.buy)})_${sellSource.model}_sp(${variantFromPredictionConfig(config.prediction.sell)})`;
+        let r = `${buySource.algorithm[0]}_${buySource.model}_bp(${variantFromPredictionConfig(config.prediction.buy)})_${sellSource.algorithm[0]}_${sellSource.model}_sp(${variantFromPredictionConfig(config.prediction.sell)})`;
 
         r += `_buy(mpc:${config.buy.minPredictedConfidence}`;
         if (

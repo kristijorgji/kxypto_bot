@@ -28,11 +28,13 @@ describe('BuySellPredictionStrategy', () => {
     const redisMockInstance = new redisMock();
 
     const buySourceConfig: PredictionSource = {
+        algorithm: 'transformers',
         model: 'test_rsi7',
         endpoint: 'http://localhost/predict/buy',
     };
     const sellSourceConfig: PredictionSource = {
-        model: 's.catboost_v2_30p',
+        algorithm: 'catboost',
+        model: 'v2_30p',
         endpoint: 'http://localhost/predict/sell',
     };
     const config: Partial<BuySellPredictionStrategyConfig> = {
@@ -387,8 +389,7 @@ describe('BuySellPredictionStrategy', () => {
                     ),
                 ),
             ).toEqual({
-                'sp.s.catboost_v2_30p_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10':
-                    '{"confidence":0.2}',
+                'sp.c_v2_30p_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10': '{"confidence":0.2}',
             });
 
             expect(await strategy.shouldSell(mint, historyRef, history[4], history)).toEqual({
@@ -501,7 +502,7 @@ describe('BuySellPredictionStrategy', () => {
                 },
             });
             expect(key).toBe(
-                'test_rsi7_bp(skf:false_rql:3_upfl:5)_s.catboost_v2_30p_sp(skf:false_rql:10_upfl:7)_buy(mpc:10_mcpc:3_c(hc:l1-h2_mc:l2-h77))_sell(mpc:0.5_mcpc:7_l(tslp:15_slp:33_tpp:10_ttp(pp:30:sp:5)))',
+                't_test_rsi7_bp(skf:false_rql:3_upfl:5)_c_v2_30p_sp(skf:false_rql:10_upfl:7)_buy(mpc:10_mcpc:3_c(hc:l1-h2_mc:l2-h77))_sell(mpc:0.5_mcpc:7_l(tslp:15_slp:33_tpp:10_ttp(pp:30:sp:5)))',
             );
         });
 
@@ -528,7 +529,7 @@ describe('BuySellPredictionStrategy', () => {
                 },
             });
             expect(key).toBe(
-                'test_rsi7_bp(skf:true_rql:10)_s.catboost_v2_30p_sp(skf:false_rql:2)_buy(mpc:0.5)_sell(mpc:0.25_l(tpp:17))',
+                't_test_rsi7_bp(skf:true_rql:10)_c_v2_30p_sp(skf:false_rql:2)_buy(mpc:0.5)_sell(mpc:0.25_l(tpp:17))',
             );
         });
     });

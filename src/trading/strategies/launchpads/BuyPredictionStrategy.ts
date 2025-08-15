@@ -161,7 +161,7 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
     }
 
     public static formVariant(source: PredictionSource, config: BuyPredictionStrategyConfig): string {
-        let r = `${source.model}_p(${variantFromPredictionConfig(config.prediction)})`;
+        let r = `${source.algorithm[0]}_${source.model}_p(${variantFromPredictionConfig(config.prediction)})`;
 
         r += `_buy(mpc:${config.buy.minPredictedConfidence}`;
         if (

@@ -21,6 +21,7 @@ describe('BuyPredictionStrategy', () => {
     });
     const redisMockInstance = new redisMock();
     const sourceConfig: PredictionSource = {
+        algorithm: 'transformers',
         model: 'test_rsi7',
         endpoint: process.env.BUY_PREDICTION_ENDPOINT as string,
     };
@@ -144,7 +145,7 @@ describe('BuyPredictionStrategy', () => {
                 },
             });
             expect(key).toBe(
-                'test_rsi7_p(skf:false_rql:3_upfl:5)_buy(mpc:10_mcpc:3_c(hc:l1-h2_mc:l2-h77))_sell(tpp:10_tslp:15_slp:33_ttp(pp:30:sp:5))',
+                't_test_rsi7_p(skf:false_rql:3_upfl:5)_buy(mpc:10_mcpc:3_c(hc:l1-h2_mc:l2-h77))_sell(tpp:10_tslp:15_slp:33_ttp(pp:30:sp:5))',
             );
         });
 
@@ -162,13 +163,14 @@ describe('BuyPredictionStrategy', () => {
                     takeProfitPercentage: 17,
                 },
             });
-            expect(key).toBe('test_rsi7_p(skf:true_rql:10)_buy(mpc:0.5)_sell(tpp:17)');
+            expect(key).toBe('t_test_rsi7_p(skf:true_rql:10)_buy(mpc:0.5)_sell(tpp:17)');
         });
     });
 
     describe('formBaseCacheKey', () => {
         const sourceConfig: PredictionSource = {
             endpoint: process.env.BUY_PREDICTION_ENDPOINT as string,
+            algorithm: 'transformers',
             model: 'm1',
         };
         const defaultConfig: Partial<BuyPredictionStrategyConfig> = {
@@ -194,7 +196,7 @@ describe('BuyPredictionStrategy', () => {
 
         it('should generate full cache key with all values', () => {
             const key = getKeyFromConfig();
-            expect(key).toBe('bp.m1_skf:false');
+            expect(key).toBe('bp.t_m1_skf:false');
         });
 
         it('should handle boolean true correctly', () => {
@@ -202,7 +204,7 @@ describe('BuyPredictionStrategy', () => {
                 prediction: { requiredFeaturesLength: 3, upToFeaturesLength: 5, skipAllSameFeatures: true },
             });
             expect(key).toContain('_skf:true');
-            expect(key).toBe('bp.m1_skf:true');
+            expect(key).toBe('bp.t_m1_skf:true');
         });
 
         it('should handle boolean false correctly', () => {
@@ -210,7 +212,7 @@ describe('BuyPredictionStrategy', () => {
                 prediction: { requiredFeaturesLength: 3, upToFeaturesLength: 5, skipAllSameFeatures: false },
             });
             expect(key).toContain('_skf:false');
-            expect(key).toBe('bp.m1_skf:false');
+            expect(key).toBe('bp.t_m1_skf:false');
         });
     });
 });

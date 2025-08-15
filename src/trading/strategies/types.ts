@@ -35,6 +35,12 @@ export type LaunchpadBuyPosition = {
 
 export const predictionSourceSchema = z.object({
     endpoint: z.string().url(),
+
+    /**
+     * The algorithm of the prediction
+     */
+    algorithm: z.enum(['catboost', 'transformers', 'ensemble', 'xgboost', 'original']),
+
     /**
      * The model of the prediction, example: 'v1_rsi7_macd5'
      */

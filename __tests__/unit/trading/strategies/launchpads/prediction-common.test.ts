@@ -133,47 +133,48 @@ describe(shouldBuyCommon.name, () => {
 describe('formBaseCacheKey', () => {
     const commonSource: PredictionSource = {
         endpoint: 'http://localhost:8080',
+        algorithm: 'transformers',
         model: 'transformers_v1',
     };
 
     it('should generate a correct cache key for "buy" type without skipAllSameFeatures', () => {
-        expect(formBaseCacheKey('buy', {} as StrategyPredictionConfig, commonSource)).toBe('bp.transformers_v1');
+        expect(formBaseCacheKey('buy', {} as StrategyPredictionConfig, commonSource)).toBe('bp.t_transformers_v1');
     });
 
     it('should generate a correct cache key for "sell" type without skipAllSameFeatures', () => {
-        expect(formBaseCacheKey('sell', {} as StrategyPredictionConfig, commonSource)).toBe('sp.transformers_v1');
+        expect(formBaseCacheKey('sell', {} as StrategyPredictionConfig, commonSource)).toBe('sp.t_transformers_v1');
     });
 
     it('should generate a correct cache key for "price" type without skipAllSameFeatures', () => {
-        expect(formBaseCacheKey('price', {} as StrategyPredictionConfig, commonSource)).toBe('pp.transformers_v1');
+        expect(formBaseCacheKey('price', {} as StrategyPredictionConfig, commonSource)).toBe('pp.t_transformers_v1');
     });
 
     it('should include "skf:true" when skipAllSameFeatures is true', () => {
         expect(formBaseCacheKey('buy', { skipAllSameFeatures: true } as StrategyPredictionConfig, commonSource)).toBe(
-            'bp.transformers_v1_skf:true',
+            'bp.t_transformers_v1_skf:true',
         );
     });
 
     it('should include "skf:false" when skipAllSameFeatures is false', () => {
         expect(formBaseCacheKey('buy', { skipAllSameFeatures: false } as StrategyPredictionConfig, commonSource)).toBe(
-            'bp.transformers_v1_skf:false',
+            'bp.t_transformers_v1_skf:false',
         );
     });
 
     it('should use the correct model name from source', () => {
         const customSource: PredictionSource = { ...commonSource, model: 'catboost_v2' };
-        expect(formBaseCacheKey('buy', {} as StrategyPredictionConfig, customSource)).toBe('bp.catboost_v2');
+        expect(formBaseCacheKey('buy', {} as StrategyPredictionConfig, customSource)).toBe('bp.t_catboost_v2');
     });
 
-    it('should use the correct model name and include skf when both are present', () => {
-        const customSource: PredictionSource = { model: 'neural_net_prod' } as PredictionSource;
+    it('should use the correct model name and algorithm and include skf when both are present', () => {
+        const customSource: PredictionSource = { ...commonSource, algorithm: 'original', model: 'neural_net_prod' };
         expect(formBaseCacheKey('sell', { skipAllSameFeatures: true } as StrategyPredictionConfig, customSource)).toBe(
-            'sp.neural_net_prod_skf:true',
+            'sp.o_neural_net_prod_skf:true',
         );
     });
 
     it('should not add underscore if pc is empty (skipAllSameFeatures undefined)', () => {
-        expect(formBaseCacheKey('price', {} as StrategyPredictionConfig, commonSource)).toBe('pp.transformers_v1');
+        expect(formBaseCacheKey('price', {} as StrategyPredictionConfig, commonSource)).toBe('pp.t_transformers_v1');
     });
 
     it('should not add underscore if pc is empty (skipAllSameFeatures is null)', () => {
@@ -186,6 +187,6 @@ describe('formBaseCacheKey', () => {
                 } as StrategyPredictionConfig,
                 commonSource,
             ),
-        ).toBe('bp.transformers_v1_skf:null');
+        ).toBe('bp.t_transformers_v1_skf:null');
     });
 });

@@ -27,6 +27,7 @@ describe('PricePredictionStrategy', () => {
     });
     const redisMockInstance = new redisMock();
     const sourceConfig: PredictionSource = {
+        algorithm: 'transformers',
         model: 'test_rsi7',
         endpoint: process.env.PRICE_PREDICTION_ENDPOINT as string,
     };
@@ -428,7 +429,7 @@ describe('PricePredictionStrategy', () => {
                     ),
                 ),
             ).toEqual({
-                'pp.test_rsi7_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10':
+                'pp.t_test_rsi7_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10':
                     '{"predicted_prices":[1.890614874462375e-7]}',
             });
 
@@ -506,6 +507,7 @@ describe('PricePredictionStrategy', () => {
     describe('formBaseCacheKey', () => {
         const sourceConfig: PredictionSource = {
             endpoint: process.env.PRICE_PREDICTION_ENDPOINT as string,
+            algorithm: 'transformers',
             model: 'm1',
         };
         const defaultConfig: Partial<PricePredictionStrategyConfig> = {
@@ -530,7 +532,7 @@ describe('PricePredictionStrategy', () => {
 
         it('should generate full cache key with all values', () => {
             const key = getKeyFromConfig();
-            expect(key).toBe('pp.m1_skf:false');
+            expect(key).toBe('pp.t_m1_skf:false');
         });
 
         it('should handle boolean true correctly', () => {
@@ -538,7 +540,7 @@ describe('PricePredictionStrategy', () => {
                 prediction: { requiredFeaturesLength: 3, upToFeaturesLength: 5, skipAllSameFeatures: true },
             });
             expect(key).toContain('_skf:true');
-            expect(key).toBe('pp.m1_skf:true');
+            expect(key).toBe('pp.t_m1_skf:true');
         });
 
         it('should handle boolean false correctly', () => {
@@ -546,7 +548,7 @@ describe('PricePredictionStrategy', () => {
                 prediction: { requiredFeaturesLength: 3, upToFeaturesLength: 5, skipAllSameFeatures: false },
             });
             expect(key).toContain('_skf:false');
-            expect(key).toBe('pp.m1_skf:false');
+            expect(key).toBe('pp.t_m1_skf:false');
         });
     });
 });

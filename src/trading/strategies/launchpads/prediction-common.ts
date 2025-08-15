@@ -422,5 +422,5 @@ export function formBaseCacheKey(
     source: PredictionSource,
 ): string {
     const pc = prediction.skipAllSameFeatures !== undefined ? `skf:${prediction.skipAllSameFeatures}` : '';
-    return `${predictionTypeAbbreviation[predictionType]}p.${source.model}${pc.length === 0 ? '' : `_${pc}`}`;
+    return `${predictionTypeAbbreviation[predictionType]}p.${source.algorithm[0]}_${source.model}${pc.length === 0 ? '' : `_${pc}`}`;
 }

@@ -256,7 +256,7 @@ export function defineShouldBuyWithPredictionTests({
                     ),
                 ),
             ).toEqual({
-                'bp.test_rsi7_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10': '{"confidence":0.2}',
+                'bp.t_test_rsi7_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10': '{"confidence":0.2}',
             });
 
             expect(await getStrategy().shouldBuy(mint, historyRef, history[4], history)).toEqual({

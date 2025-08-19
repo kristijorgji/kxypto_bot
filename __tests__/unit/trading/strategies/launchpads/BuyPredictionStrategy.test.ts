@@ -133,6 +133,19 @@ describe('BuyPredictionStrategy', () => {
                             max: 77,
                         },
                     },
+                    downsideProtection: {
+                        source: {
+                            algorithm: 'catboost',
+                            model: 'v2_50_drop',
+                            endpoint: 'http://localhost:8545/downside/predict',
+                        },
+                        prediction: {
+                            skipAllSameFeatures: true,
+                            requiredFeaturesLength: 10,
+                            upToFeaturesLength: 700,
+                        },
+                        minPredictedConfidence: 0.5,
+                    },
                 },
                 sell: {
                     takeProfitPercentage: 10,
@@ -145,7 +158,7 @@ describe('BuyPredictionStrategy', () => {
                 },
             });
             expect(key).toBe(
-                't_test_rsi7_p(skf:false_rql:3_upfl:5)_buy(mpc:10_mcpc:3_c(hc:l1-h2_mc:l2-h77))_sell(tpp:10_tslp:15_slp:33_ttp(pp:30:sp:5))',
+                't_test_rsi7_p(skf:false_rql:3_upfl:5)_buy(mpc:10_mcpc:3_c(hc:l1-h2_mc:l2-h77)_downsideProtection(c_v2_50_drop_p(skf:true_rql:10_upfl:700)_mpc:0.5))_sell(tpp:10_tslp:15_slp:33_ttp(pp:30:sp:5))',
             );
         });
 

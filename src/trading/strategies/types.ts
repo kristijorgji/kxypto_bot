@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { TradeTransaction } from '../bots/blockchains/solana/types';
-import { MarketContext, MarketContextKey, marketContextKeys } from '../bots/launchpads/types';
+import { HistoryRef, TradeTransaction } from '../bots/blockchains/solana/types';
+import { HistoryEntry, MarketContext, MarketContextKey, marketContextKeys } from '../bots/launchpads/types';
 
 export const strategyConfigSchema = z.object({
     variant: z.string().optional(),
@@ -125,7 +125,9 @@ export type PredictionStrategyShouldBuyResponseReason =
     | 'shouldBuyStateless'
     | 'noVariationInFeatures'
     | 'consecutivePredictionConfirmations'
-    | 'prediction_error';
+    | 'prediction_error'
+    | 'downside_prediction'
+    | 'downside_prediction_error';
 
 export type PredictionStrategyShouldSellResponseReason =
     | 'requiredFeaturesLength'
@@ -164,3 +166,7 @@ export type AfterBuyResponse = {
         trailingStopPercentage: number;
     };
 };
+
+export interface Predictor<T = number> {
+    predict(mint: string, historyRef: HistoryRef, context: MarketContext, history: HistoryEntry[]): Promise<T>;
+}

@@ -1,5 +1,10 @@
+import {
+    BuyPredictionStrategyConfig,
+    DownsideProtectionConfig,
+} from '@src/trading/strategies/launchpads/BuyPredictionStrategy';
+
 import { MarketContext } from '../../bots/launchpads/types';
-import { IntervalConfig, StrategyPredictionConfig, StrategySellConfig } from '../types';
+import { IntervalConfig, PredictionSource, StrategyPredictionConfig, StrategySellConfig } from '../types';
 
 export function variantFromBuyContext(context: Partial<Record<keyof MarketContext, IntervalConfig>>): string {
     const abbreviations: Record<keyof MarketContext, string> = {
@@ -39,7 +44,33 @@ export function variantFromBuyContext(context: Partial<Record<keyof MarketContex
     return variantConfig;
 }
 
-export function variantFromSellConfig(c: StrategySellConfig): string {
+export function variantFromBuyDownside(c: DownsideProtectionConfig): string {
+    return `downsideProtection(${variantFromPredictionSource(c.source)}_p(${variantFromPredictionConfig(
+        c.prediction,
+    )})_mpc:${c.minPredictedConfidence})`;
+}
+
+export function variantFromBuyConfig(c: BuyPredictionStrategyConfig['buy']): string {
+    let r = `buy(mpc:${c.minPredictedConfidence}`;
+
+    if (c.minConsecutivePredictionConfirmations && c.minConsecutivePredictionConfirmations !== 1) {
+        r += `_mcpc:${c.minConsecutivePredictionConfirmations}`;
+    }
+
+    if (c.context) {
+        r += `_c(${variantFromBuyContext(c.context)})`;
+    }
+
+    if (c.downsideProtection) {
+        r += `_${variantFromBuyDownside(c.downsideProtection)}`;
+    }
+
+    r += ')';
+
+    return r;
+}
+
+export function variantFromSellContext(c: StrategySellConfig): string {
     const abbreviations: Record<keyof StrategySellConfig, string> = {
         trailingStopLossPercentage: 'tslp',
         stopLossPercentage: 'slp',
@@ -73,6 +104,10 @@ export function variantFromSellConfig(c: StrategySellConfig): string {
     }
 
     return r;
+}
+
+export function variantFromPredictionSource(s: PredictionSource): string {
+    return `${s.algorithm[0]}_${s.model}`;
 }
 
 export function variantFromPredictionConfig(c: StrategyPredictionConfig): string {

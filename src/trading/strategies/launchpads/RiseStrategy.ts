@@ -8,7 +8,7 @@ import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
 import { ShouldBuyResponse, ShouldExitMonitoringResponse, ShouldSellResponse } from '../../bots/types';
 import { marketContextIntervalConfigSchema, strategyConfigSchema, strategySellConfigSchema } from '../types';
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
-import { variantFromBuyContext, variantFromSellConfig } from './variant-builder';
+import { variantFromBuyContext, variantFromSellContext } from './variant-builder';
 import { HistoryRef } from '../../bots/blockchains/solana/types';
 
 export const riseStrategyConfigSchema = strategyConfigSchema.merge(
@@ -121,6 +121,6 @@ export default class RiseStrategy extends LimitsBasedStrategy {
     }
 
     static formVariant(config: RiseStrategyConfig): string {
-        return `buy(${variantFromBuyContext(config.buy)})_sell(${variantFromSellConfig(config.sell)})`;
+        return `buy(${variantFromBuyContext(config.buy)})_sell(${variantFromSellContext(config.sell)})`;
     }
 }

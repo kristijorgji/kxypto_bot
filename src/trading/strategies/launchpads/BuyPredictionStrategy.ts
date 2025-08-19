@@ -4,6 +4,7 @@ import Redis from 'ioredis';
 import { Logger } from 'winston';
 import { z } from 'zod';
 
+import DownsidePredictor from '@src/trading/strategies/predictors/DownsidePredictor';
 import { deepClone } from '@src/utils/data/data';
 
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
@@ -12,6 +13,7 @@ import {
     PredictionSource,
     PredictionStrategyShouldBuyResponseReason,
     marketContextIntervalConfigSchema,
+    predictionSourceSchema,
     strategyConfigSchema,
     strategyPredictionConfigSchema,
     strategySellConfigSchema,
@@ -20,17 +22,33 @@ import { shouldExitLaunchpadToken } from './common';
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
 import { ShouldBuyParams, formBaseCacheKey, shouldBuyWithBuyPrediction } from './prediction-common';
 import { validatePredictionConfig } from './validators';
-import { variantFromBuyContext, variantFromPredictionConfig, variantFromSellConfig } from './variant-builder';
+import {
+    variantFromBuyConfig,
+    variantFromPredictionConfig,
+    variantFromPredictionSource,
+    variantFromSellContext,
+} from './variant-builder';
 import { HistoryRef } from '../../bots/blockchains/solana/types';
+
+export const downsideProtectionSchema = z.object({
+    source: predictionSourceSchema,
+    prediction: strategyPredictionConfigSchema,
+    minPredictedConfidence: z.number().positive(),
+});
+
+export type DownsideProtectionConfig = z.infer<typeof downsideProtectionSchema>;
+
+export const buyConfigSchema = z.object({
+    minPredictedConfidence: z.number().positive(),
+    minConsecutivePredictionConfirmations: z.number().positive().optional(),
+    context: marketContextIntervalConfigSchema.optional(),
+    downsideProtection: downsideProtectionSchema.optional(),
+});
 
 export const buyPredictionStrategyConfigSchema = strategyConfigSchema.merge(
     z.object({
         prediction: strategyPredictionConfigSchema,
-        buy: z.object({
-            minPredictedConfidence: z.number().positive(),
-            minConsecutivePredictionConfirmations: z.number().positive().optional(),
-            context: marketContextIntervalConfigSchema.optional(),
-        }),
+        buy: buyConfigSchema,
         sell: strategySellConfigSchema,
     }),
 );
@@ -117,13 +135,20 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
                 logger: this.logger,
                 client: this.client,
                 cache: this.cache,
+                downsidePredictor: this.config.buy.downsideProtection
+                    ? new DownsidePredictor(
+                          this.logger,
+                          this.cache,
+                          this.config.buy.downsideProtection.source,
+                          this.config.buy.downsideProtection,
+                      )
+                    : undefined,
             },
             source: this.source,
             config: {
                 prediction: this.config.prediction,
                 buy: this.config.buy,
             },
-
             cacheBaseKey: this.cacheBaseKey,
             cacheDefaultTtlSeconds: CacheDefaultTtlSeconds,
             get consecutivePredictionConfirmations() {
@@ -161,20 +186,8 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
     }
 
     public static formVariant(source: PredictionSource, config: BuyPredictionStrategyConfig): string {
-        let r = `${source.algorithm[0]}_${source.model}_p(${variantFromPredictionConfig(config.prediction)})`;
-
-        r += `_buy(mpc:${config.buy.minPredictedConfidence}`;
-        if (
-            config.buy.minConsecutivePredictionConfirmations &&
-            config.buy.minConsecutivePredictionConfirmations !== 1
-        ) {
-            r += `_mcpc:${config.buy.minConsecutivePredictionConfirmations}`;
-        }
-
-        if (config.buy.context) {
-            r += `_c(${variantFromBuyContext(config.buy.context)})`;
-        }
-        r += `)_sell(${variantFromSellConfig(config.sell)})`;
+        let r = `${variantFromPredictionSource(source)}_p(${variantFromPredictionConfig(config.prediction)})`;
+        r += `_${variantFromBuyConfig(config.buy)}_sell(${variantFromSellContext(config.sell)})`;
 
         return r;
     }

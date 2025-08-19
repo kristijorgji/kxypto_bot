@@ -482,7 +482,7 @@ describe('PricePredictionStrategy', () => {
                 },
             });
             expect(key).toBe(
-                'test_rsi7_p(skf:false_rql:3_upfl:5)_buy(mppip:10_mcpc:3_c(hc:l1-h2_mc:l2-h77))_sell(tpp:10_tslp:15_slp:33_ttp(pp:30:sp:5))',
+                't_test_rsi7_p(skf:false_rql:3_upfl:5)_buy(mppip:10_mcpc:3_c(hc:l1-h2_mc:l2-h77))_sell(tpp:10_tslp:15_slp:33_ttp(pp:30:sp:5))',
             );
         });
 
@@ -500,7 +500,7 @@ describe('PricePredictionStrategy', () => {
                     takeProfitPercentage: 17,
                 },
             });
-            expect(key).toBe('test_rsi7_p(skf:true_rql:10)_buy(mppip:15)_sell(tpp:17)');
+            expect(key).toBe('t_test_rsi7_p(skf:true_rql:10)_buy(mppip:15)_sell(tpp:17)');
         });
     });
 

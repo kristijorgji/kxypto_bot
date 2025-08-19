@@ -8,7 +8,7 @@ export async function up(knex: Knex): Promise<void> {
         table.uuid('backtest_id');
         table.string('strategy').notNullable();
         table.string('strategy_id').notNullable();
-        table.string('config_variant');
+        table.string('config_variant', 300);
         table.json('config').notNullable();
         table.double('pnl_sol').notNullable().index();
         table.double('holdings_value_sol').notNullable();

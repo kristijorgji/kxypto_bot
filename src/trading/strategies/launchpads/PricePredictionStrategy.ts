@@ -21,7 +21,12 @@ import { shouldExitLaunchpadToken } from './common';
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
 import { formBaseCacheKey, shouldBuyCommon } from './prediction-common';
 import { validatePredictionConfig } from './validators';
-import { variantFromBuyContext, variantFromPredictionConfig, variantFromSellConfig } from './variant-builder';
+import {
+    variantFromBuyContext,
+    variantFromPredictionConfig,
+    variantFromPredictionSource,
+    variantFromSellContext,
+} from './variant-builder';
 import { HistoryRef } from '../../bots/blockchains/solana/types';
 
 export const pricePredictionStrategyConfigSchema = strategyConfigSchema.merge(
@@ -220,7 +225,7 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
     }
 
     public static formVariant(source: PredictionSource, config: PricePredictionStrategyConfig): string {
-        let r = `${source.model}_p(${variantFromPredictionConfig(config.prediction)})`;
+        let r = `${variantFromPredictionSource(source)}_p(${variantFromPredictionConfig(config.prediction)})`;
 
         r += `_buy(mppip:${config.buy.minPredictedPriceIncreasePercentage}`;
         if (
@@ -233,7 +238,7 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
         if (config.buy.context) {
             r += `_c(${variantFromBuyContext(config.buy.context)})`;
         }
-        r += `)_sell(${variantFromSellConfig(config.sell)})`;
+        r += `)_sell(${variantFromSellContext(config.sell)})`;
 
         return r;
     }

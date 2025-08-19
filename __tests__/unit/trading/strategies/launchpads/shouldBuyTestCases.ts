@@ -8,6 +8,7 @@ import { HistoryRef } from '../../../../../src/trading/bots/blockchains/solana/t
 import { HistoryEntry } from '../../../../../src/trading/bots/launchpads/types';
 import { ShouldBuyResponse } from '../../../../../src/trading/bots/types';
 import { BuyPredictionStrategyConfig } from '../../../../../src/trading/strategies/launchpads/BuyPredictionStrategy';
+import BuySellPredictionStrategy from '../../../../../src/trading/strategies/launchpads/BuySellPredictionStrategy';
 import LaunchpadBotStrategy from '../../../../../src/trading/strategies/launchpads/LaunchpadBotStrategy';
 import { StrategyPredictionConfig } from '../../../../../src/trading/strategies/types';
 import { deepEqual } from '../../../../../src/utils/data/equals';
@@ -49,6 +50,29 @@ export function defineShouldBuyWithPredictionTests({
                     confidence: 0.51,
                 },
                 { status: 200 },
+            );
+        });
+
+        const mswPredictBelowThresholdBuyHandler = http.post(predictionEndpoint, async ({ request }) => {
+            const body = await request.json();
+            if (!deepEqual(body, readLocalFixture('prediction-strategy-http-request-1'))) {
+                return HttpResponse.json({}, { status: 400 });
+            }
+
+            return HttpResponse.json(
+                {
+                    confidence: 0.49,
+                },
+                { status: 200 },
+            );
+        });
+
+        const mswPredictThrowErrorBuyHandler = http.post(predictionEndpoint, async () => {
+            return HttpResponse.json(
+                {
+                    error: 'for fun',
+                },
+                { status: 400 },
             );
         });
 
@@ -159,21 +183,7 @@ export function defineShouldBuyWithPredictionTests({
         });
 
         it('should not buy when the predicted confidence is below the defined threshold', async () => {
-            mockServer.use(
-                http.post(predictionEndpoint, async ({ request }) => {
-                    const body = await request.json();
-                    if (!deepEqual(body, readLocalFixture('prediction-strategy-http-request-1'))) {
-                        return HttpResponse.json({}, { status: 400 });
-                    }
-
-                    return HttpResponse.json(
-                        {
-                            confidence: 0.49,
-                        },
-                        { status: 200 },
-                    );
-                }),
-            );
+            mockServer.use(mswPredictBelowThresholdBuyHandler);
 
             expect(await getStrategy().shouldBuy(mint, historyRef, history[4], history)).toEqual({
                 buy: false,
@@ -185,16 +195,7 @@ export function defineShouldBuyWithPredictionTests({
         });
 
         it('should log error and return false when it fails to get the predicted confidence', async () => {
-            mockServer.use(
-                http.post(predictionEndpoint, async () => {
-                    return HttpResponse.json(
-                        {
-                            error: 'for fun',
-                        },
-                        { status: 400 },
-                    );
-                }),
-            );
+            mockServer.use(mswPredictThrowErrorBuyHandler);
 
             expect(await getStrategy().shouldBuy(mint, historyRef, history[4], history)).toEqual({
                 buy: false,
@@ -314,6 +315,188 @@ export function defineShouldBuyWithPredictionTests({
             await expect(getStrategy().shouldBuy(mint, historyRef, history[4], history)).rejects.toThrow(
                 new Error('Expected confidence to be in the interval [0, 1], but got 1.0001'),
             );
+        });
+
+        describe('with downsideProtection', () => {
+            const downsideProtectionConfig: BuyPredictionStrategyConfig['buy']['downsideProtection'] = {
+                source: {
+                    algorithm: 'transformers',
+                    model: 'drop_30',
+                    endpoint: 'http://localhost:8080/d/drop-30',
+                },
+                minPredictedConfidence: 0.17,
+                prediction: {
+                    skipAllSameFeatures: true,
+                    requiredFeaturesLength: 10,
+                    cache: {
+                        enabled: true,
+                    },
+                },
+            };
+
+            const mswDownsidePredictBelowThresholdHandler = http.post(
+                downsideProtectionConfig.source.endpoint,
+                async ({ request }) => {
+                    const body = await request.json();
+                    if (!deepEqual(body, readLocalFixture('prediction-strategy-http-request-1'))) {
+                        return HttpResponse.json({}, { status: 400 });
+                    }
+
+                    return HttpResponse.json(
+                        {
+                            confidence: downsideProtectionConfig.minPredictedConfidence - 0.1,
+                        },
+                        { status: 200 },
+                    );
+                },
+            );
+
+            const mswDownsidePredictAboveThresholdHandler = http.post(
+                downsideProtectionConfig.source.endpoint,
+                async ({ request }) => {
+                    const body = await request.json();
+                    if (!deepEqual(body, readLocalFixture('prediction-strategy-http-request-1'))) {
+                        return HttpResponse.json({}, { status: 400 });
+                    }
+
+                    return HttpResponse.json(
+                        {
+                            confidence: downsideProtectionConfig.minPredictedConfidence + 0.2,
+                        },
+                        { status: 200 },
+                    );
+                },
+            );
+
+            beforeEach(() => {
+                formStrategy({
+                    buy: {
+                        downsideProtection: downsideProtectionConfig,
+                    },
+                });
+            });
+
+            it('should not buy when buyPred meets but a downsideProtection is predicted', async () => {
+                mockServer.use(mswPredictAboveThresholdBuyHandler);
+                mockServer.use(mswDownsidePredictAboveThresholdHandler);
+
+                expect(await getStrategy().shouldBuy(mint, historyRef, history[4], history)).toEqual({
+                    buy: false,
+                    reason: 'downside_prediction',
+                    data: {
+                        predictedBuyConfidence: 0.51,
+                        consecutivePredictionConfirmations: 1,
+                        predictedDownsideConfidence: 0.37,
+                    },
+                } satisfies ShouldBuyResponse);
+
+                const expectedCache: Record<string, string> = {
+                    'sp.t_drop_30_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10': '{"confidence":0.37}',
+                };
+                if (getStrategy() instanceof BuySellPredictionStrategy) {
+                    expectedCache['bp.t_test_rsi7_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10'] =
+                        '{"confidence":0.51}';
+                }
+                expect(
+                    Object.fromEntries(
+                        await Promise.all(
+                            (await redisMockInstance.keys('*')).map(async k => [k, await redisMockInstance.get(k)]),
+                        ),
+                    ),
+                ).toEqual(expectedCache);
+            });
+
+            it('should not buy when buyPred does not meet and a downside is not predicted', async () => {
+                mockServer.use(mswPredictBelowThresholdBuyHandler);
+                mockServer.use(mswDownsidePredictBelowThresholdHandler);
+
+                expect(await getStrategy().shouldBuy(mint, historyRef, history[4], history)).toEqual({
+                    buy: false,
+                    reason: 'minPredictedBuyConfidence',
+                    data: {
+                        predictedBuyConfidence: 0.49,
+                        predictedDownsideConfidence: 0.07,
+                    },
+                } satisfies ShouldBuyResponse);
+            });
+
+            it('should not buy when buyPred call fails and a downside is not predicted', async () => {
+                mockServer.use(mswPredictThrowErrorBuyHandler);
+                mockServer.use(mswDownsidePredictBelowThresholdHandler);
+
+                expect(await getStrategy().shouldBuy(mint, historyRef, history[4], history)).toEqual({
+                    buy: false,
+                    reason: 'prediction_error',
+                    data: {
+                        predictedDownsideConfidence: 0.07,
+                        response: {
+                            body: {
+                                error: 'for fun',
+                            },
+                            status: 400,
+                        },
+                    },
+                } satisfies ShouldBuyResponse);
+            });
+
+            it('should buy when buyPred meets and no downsideProtection is predicted', async () => {
+                mockServer.use(mswPredictAboveThresholdBuyHandler);
+                mockServer.use(mswDownsidePredictBelowThresholdHandler);
+
+                expect(await getStrategy().shouldBuy(mint, historyRef, history[4], history)).toEqual({
+                    buy: true,
+                    reason: 'consecutivePredictionConfirmations',
+                    data: {
+                        predictedBuyConfidence: 0.51,
+                        consecutivePredictionConfirmations: 1,
+                        predictedDownsideConfidence: 0.07,
+                    },
+                } satisfies ShouldBuyResponse);
+
+                const expectedCache: Record<string, string> = {
+                    'sp.t_drop_30_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10': '{"confidence":0.07}',
+                };
+                if (getStrategy() instanceof BuySellPredictionStrategy) {
+                    expectedCache['bp.t_test_rsi7_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10'] =
+                        '{"confidence":0.51}';
+                }
+                expect(
+                    Object.fromEntries(
+                        await Promise.all(
+                            (await redisMockInstance.keys('*')).map(async k => [k, await redisMockInstance.get(k)]),
+                        ),
+                    ),
+                ).toEqual(expectedCache);
+            });
+
+            it('should not buy when buyPred meets and downsidePrediction call fails', async () => {
+                mockServer.use(mswPredictAboveThresholdBuyHandler);
+                mockServer.use(
+                    http.post(downsideProtectionConfig.source.endpoint, async () => {
+                        return HttpResponse.json(
+                            {
+                                error: 'for fun',
+                            },
+                            { status: 400 },
+                        );
+                    }),
+                );
+
+                expect(await getStrategy().shouldBuy(mint, historyRef, history[4], history)).toEqual({
+                    buy: false,
+                    reason: 'downside_prediction_error',
+                    data: {
+                        predictedBuyConfidence: 0.51,
+                        consecutivePredictionConfirmations: 1,
+                        downsideResponse: {
+                            body: {
+                                error: 'for fun',
+                            },
+                            status: 400,
+                        },
+                    },
+                } satisfies ShouldBuyResponse);
+            });
         });
     });
 }

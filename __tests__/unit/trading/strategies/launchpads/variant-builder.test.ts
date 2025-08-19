@@ -1,6 +1,6 @@
 import {
     variantFromBuyContext,
-    variantFromSellConfig,
+    variantFromSellContext,
 } from '../../../../../src/trading/strategies/launchpads/variant-builder';
 
 describe('variantConfigFromContext', () => {
@@ -98,7 +98,7 @@ describe('variantConfigFromContext', () => {
 
 describe('variantFromSellContext', () => {
     it('returns empty string when all values are undefined', () => {
-        const result = variantFromSellConfig({
+        const result = variantFromSellContext({
             trailingStopLossPercentage: undefined,
             stopLossPercentage: undefined,
             takeProfitPercentage: undefined,
@@ -109,19 +109,19 @@ describe('variantFromSellContext', () => {
 
     it('formats single numeric fields correctly', () => {
         expect(
-            variantFromSellConfig({
+            variantFromSellContext({
                 trailingStopLossPercentage: 5,
             }),
         ).toBe('tslp:5');
 
         expect(
-            variantFromSellConfig({
+            variantFromSellContext({
                 stopLossPercentage: 10,
             }),
         ).toBe('slp:10');
 
         expect(
-            variantFromSellConfig({
+            variantFromSellContext({
                 takeProfitPercentage: 15,
             }),
         ).toBe('tpp:15');
@@ -129,7 +129,7 @@ describe('variantFromSellContext', () => {
 
     it('formats trailingTakeProfit correctly', () => {
         expect(
-            variantFromSellConfig({
+            variantFromSellContext({
                 trailingTakeProfit: {
                     profitPercentage: 20,
                     stopPercentage: 5,
@@ -139,7 +139,7 @@ describe('variantFromSellContext', () => {
     });
 
     it('formats a combination of values correctly', () => {
-        const result = variantFromSellConfig({
+        const result = variantFromSellContext({
             trailingStopLossPercentage: 1,
             takeProfitPercentage: 2,
             trailingTakeProfit: {
@@ -160,7 +160,7 @@ describe('variantFromSellContext', () => {
                 stopPercentage: 5,
             },
         };
-        const result = variantFromSellConfig(input);
+        const result = variantFromSellContext(input);
         expect(result).toBe('slp:9_tslp:8_tpp:7_ttp(pp:6:sp:5)');
     });
 });

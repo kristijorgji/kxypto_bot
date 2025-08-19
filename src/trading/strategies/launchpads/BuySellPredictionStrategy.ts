@@ -4,7 +4,11 @@ import Redis from 'ioredis';
 import { Logger } from 'winston';
 import { z } from 'zod';
 
-import { BuyPredictionStrategyShouldBuyResponseReason } from '@src/trading/strategies/launchpads/BuyPredictionStrategy';
+import {
+    BuyPredictionStrategyShouldBuyResponseReason,
+    buyConfigSchema,
+} from '@src/trading/strategies/launchpads/BuyPredictionStrategy';
+import DownsidePredictor from '@src/trading/strategies/predictors/DownsidePredictor';
 import { deepClone } from '@src/utils/data/data';
 
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
@@ -12,7 +16,6 @@ import { SellReason, ShouldBuyResponse, ShouldExitMonitoringResponse, ShouldSell
 import {
     PredictionSource,
     PredictionStrategyShouldSellResponseReason,
-    marketContextIntervalConfigSchema,
     strategyConfigSchema,
     strategyPredictionConfigSchema,
     strategySellConfigSchema,
@@ -27,7 +30,12 @@ import {
     shouldSellPredicted,
 } from './prediction-common';
 import { validatePredictionConfig } from './validators';
-import { variantFromBuyContext, variantFromPredictionConfig, variantFromSellConfig } from './variant-builder';
+import {
+    variantFromBuyConfig,
+    variantFromPredictionConfig,
+    variantFromPredictionSource,
+    variantFromSellContext,
+} from './variant-builder';
 import { HistoryRef } from '../../bots/blockchains/solana/types';
 
 export const buySellPredictionStrategyConfigSchema = strategyConfigSchema.merge(
@@ -36,11 +44,7 @@ export const buySellPredictionStrategyConfigSchema = strategyConfigSchema.merge(
             buy: strategyPredictionConfigSchema,
             sell: strategyPredictionConfigSchema,
         }),
-        buy: z.object({
-            minPredictedConfidence: z.number().positive(),
-            minConsecutivePredictionConfirmations: z.number().positive().optional(),
-            context: marketContextIntervalConfigSchema.optional(),
-        }),
+        buy: buyConfigSchema,
         sell: strategySellConfigSchema.merge(
             z.object({
                 minPredictedConfidence: z.number().positive(),
@@ -161,6 +165,14 @@ export default class BuySellPredictionStrategy extends LimitsBasedStrategy {
                 logger: this.logger,
                 client: this.buyClient,
                 cache: this.cache,
+                downsidePredictor: this.config.buy.downsideProtection
+                    ? new DownsidePredictor(
+                          this.logger,
+                          this.cache,
+                          this.config.buy.downsideProtection.source,
+                          this.config.buy.downsideProtection,
+                      )
+                    : undefined,
             },
             source: this.buySource,
             config: {
@@ -245,27 +257,17 @@ export default class BuySellPredictionStrategy extends LimitsBasedStrategy {
         sellSource: PredictionSource,
         config: BuySellPredictionStrategyConfig,
     ): string {
-        let r = `${buySource.algorithm[0]}_${buySource.model}_bp(${variantFromPredictionConfig(config.prediction.buy)})_${sellSource.algorithm[0]}_${sellSource.model}_sp(${variantFromPredictionConfig(config.prediction.sell)})`;
-
-        r += `_buy(mpc:${config.buy.minPredictedConfidence}`;
-        if (
-            config.buy.minConsecutivePredictionConfirmations &&
-            config.buy.minConsecutivePredictionConfirmations !== 1
-        ) {
-            r += `_mcpc:${config.buy.minConsecutivePredictionConfirmations}`;
-        }
-        if (config.buy.context) {
-            r += `_c(${variantFromBuyContext(config.buy.context)})`;
-        }
-
-        r += `)_sell(mpc:${config.sell.minPredictedConfidence}`;
+        let r = `${variantFromPredictionSource(buySource)}_bp(${variantFromPredictionConfig(config.prediction.buy)})`;
+        r += `_${variantFromPredictionSource(sellSource)}_sp(${variantFromPredictionConfig(config.prediction.sell)})`;
+        r += `_${variantFromBuyConfig(config.buy)}`;
+        r += `_sell(mpc:${config.sell.minPredictedConfidence}`;
         if (
             config.sell.minConsecutivePredictionConfirmations &&
             config.sell.minConsecutivePredictionConfirmations !== 1
         ) {
             r += `_mcpc:${config.sell.minConsecutivePredictionConfirmations}`;
         }
-        r += `_l(${variantFromSellConfig({
+        r += `_l(${variantFromSellContext({
             trailingStopLossPercentage: config.sell.trailingStopLossPercentage,
             stopLossPercentage: config.sell.stopLossPercentage,
             takeProfitPercentage: config.sell.takeProfitPercentage,

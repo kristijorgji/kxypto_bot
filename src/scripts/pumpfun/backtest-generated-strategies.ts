@@ -3,11 +3,12 @@ import { createLogger } from 'winston';
 
 import { solToLamports } from '@src/blockchains/utils/amount';
 import { redis } from '@src/cache/cache';
+import { getFiles } from '@src/data/getFiles';
 import { db } from '@src/db/knex';
 import { storeBacktest, storeBacktestStrategyResult } from '@src/db/repositories/backtests';
 import { logger } from '@src/logger';
 import { formPumpfunBacktestStatsDir } from '@src/trading/backtesting/data/pumpfun/utils';
-import { getBacktestFiles, logStrategyResult, runStrategy } from '@src/trading/backtesting/utils';
+import { logStrategyResult, runStrategy } from '@src/trading/backtesting/utils';
 import {
     BacktestRunConfig,
     BacktestStrategyRunConfig,
@@ -77,7 +78,7 @@ async function findBestStrategy() {
         path: formPumpfunBacktestStatsDir(),
         includeIfPathContains: ['no_trade/no_pump', '/trade/'],
     };
-    const files = getBacktestFiles(dataConfig);
+    const files = getFiles(dataConfig);
     const runConfig: BacktestRunConfig = {
         initialBalanceLamports: solToLamports(1),
         buyAmountSol: 0.4,

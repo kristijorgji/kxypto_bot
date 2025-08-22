@@ -1,12 +1,13 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from 'winston';
 
+import { getFiles } from '@src/data/getFiles';
 import { getBacktestStrategyResults, storeBacktest, storeBacktestStrategyResult } from '@src/db/repositories/backtests';
 import { Backtest } from '@src/db/types';
 import { formatElapsedTime } from '@src/utils/time';
 
 import { BacktestConfig } from './types';
-import { getBacktestFiles, logStrategyResult, runStrategy } from './utils';
+import { logStrategyResult, runStrategy } from './utils';
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
 import { BacktestRunConfig, BacktestStrategyRunConfig } from '../bots/blockchains/solana/types';
@@ -36,7 +37,7 @@ export default async function runAndSelectBestStrategy(logger: Logger, config: B
         await storeBacktest(backtest);
     }
 
-    const files = getBacktestFiles(runConfig.data);
+    const files = getFiles(runConfig.data);
     const totalFiles = files.length;
     if (runConfig && runConfig.data.filesCount !== totalFiles) {
         throw new Error(

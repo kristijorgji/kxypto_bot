@@ -17,7 +17,7 @@ WITH RankedBacktests AS (SELECT backtest_id,
                                 ROW_NUMBER() OVER (PARTITION BY backtest_id ORDER BY roi DESC) AS rn
                          FROM backtest_strategy_results
                                   INNER JOIN backtests ON backtest_strategy_results.backtest_id = backtests.id
-                         where backtests.name like '%_7770f'
+                         where backtests.name like '%_13620f'
                            and total_trades_count >= 12)
 SELECT backtest,
        strategy,

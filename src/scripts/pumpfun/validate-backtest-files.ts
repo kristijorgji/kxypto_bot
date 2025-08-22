@@ -3,18 +3,16 @@ import fs from 'fs';
 import { Command } from 'commander';
 import { z } from 'zod';
 
+import { dataSourceSchema } from '@src/core/types';
+import { getFiles } from '@src/data/getFiles';
 import { logger } from '@src/logger';
 import { NewMarketContextFactory } from '@src/testdata/factories/launchpad';
-import { getBacktestFiles } from '@src/trading/backtesting/utils';
 import { HandlePumpTokenBotReport, HandlePumpTokenReport } from '@src/trading/bots/blockchains/solana/types';
 import { MarketContext, marketContextKeys } from '@src/trading/bots/launchpads/types';
 import { moveFile } from '@src/utils/files';
 
 const configSchema = z.object({
-    dataSource: z.object({
-        path: z.string(),
-        includeIfPathContains: z.array(z.string()).optional(),
-    }),
+    dataSource: dataSourceSchema,
     rules: z.object({
         notJson: z.boolean(),
         nulls: z.object({
@@ -38,7 +36,7 @@ export type ValidateBacktestFilesConfig = z.infer<typeof configSchema>;
 
 type Interval = {
     startTimestamp: number;
-    count: number;
+    length: number;
 };
 
 type IntervalsMap = Record<number, Interval>;
@@ -113,7 +111,7 @@ export async function validateBacktestFiles(config: ValidateBacktestFilesConfig)
     invalidFilesCount: number;
     invalidReasonCounts: InvalidReasonCounts;
 }> {
-    const files = getBacktestFiles(config.dataSource, null);
+    const files = getFiles(config.dataSource, null);
     const marketContextKeys = Object.keys(NewMarketContextFactory()) as (keyof MarketContext)[];
 
     logger.info('Started processing %d files with config=%o\n', files.length, config);
@@ -200,7 +198,7 @@ export async function validateBacktestFiles(config: ValidateBacktestFilesConfig)
                         };
                         invalidFiles[file.fullPath].context![mKey]!.null[lastNullIntervals[mKey].startRef.index] = {
                             startTimestamp: lastNullIntervals[mKey].startRef.timestamp,
-                            count: 1,
+                            length: 1,
                         };
                     }
 
@@ -212,7 +210,7 @@ export async function validateBacktestFiles(config: ValidateBacktestFilesConfig)
                         lastNullIntervals![mKey]!.count++;
                         invalidFiles[file.fullPath].context![mKey]!.null[
                             lastNullIntervals![mKey]!.startRef.index
-                        ].count = lastNullIntervals![mKey]!.count;
+                        ].length = lastNullIntervals![mKey]!.count;
                     }
                 } else {
                     lastNullIntervals[mKey] = null;
@@ -253,7 +251,7 @@ export async function validateBacktestFiles(config: ValidateBacktestFilesConfig)
     logger.info('Invalid files invalidReasonCounts by reason: %o', invalidReasonCounts);
     logger.info('Invalid files: %o', invalidFiles);
 
-    const result = {
+    const result: Awaited<ReturnType<typeof validateBacktestFiles>> = {
         processed: processed,
         validFilesCount: validFilesCount,
         invalidFiles: invalidFiles,

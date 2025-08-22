@@ -33,7 +33,6 @@
     "pumpfun-migrate-stats-to-db": "yarn run:script src/scripts/pumpfun/migrate-stats-to-db.ts",
     "pumpfun-backtest": "yarn run:script src/scripts/pumpfun/backtest-strategy.ts",
     "pumpfun-backtest-generated-strategies": "yarn run:script src/scripts/pumpfun/backtest-generated-strategies.ts",
-    "pumpfun-mark-backtest-files": "yarn run:script src/scripts/pumpfun/mark-backtest-files.ts",
     "pumpfun-validate-backtest-files": "yarn run:script src/scripts/pumpfun/validate-backtest-files.ts",
     "example:pumpfun": "yarn run:script src/examples/pumpfun.ts",
     "example:raydium": "yarn run:script src/examples/raydium.ts",

@@ -125,7 +125,7 @@ variables are loaded:
 - **Alternative (Runtime Require):**  
   When running the script via `ts-node`, preload `dotenv/config`:
   ```bash
-  ts-node -r dotenv/config src/examples/myScript.ts
+  ts-node -r tsconfig-paths/register -r dotenv/config src/examples/myScript.ts
   ```
   This method works for quick tests but doesn't support custom `.env` resolution logic (e.g., `.root` marker).
 
@@ -154,7 +154,7 @@ variables are loaded:
 - **Alternative (Runtime Require):**  
   When running the script via `ts-node`, preload `dotenv/config`:
   ```bash
-  ts-node -r dotenv/config src/scripts/backtest-strategy.ts
+  ts-node -r tsconfig-paths/register -r dotenv/config src/scripts/backtest-strategy.ts
   ```
   This method works for quick tests but doesn't support custom `.env` resolution logic (e.g., `.root` marker).
 
@@ -167,19 +167,19 @@ Run this script to test your defined strategy(ies) against the backtest history 
 With existing backtest:
 
 ```shell
-ts-node -r dotenv/config src/scripts/pumpfun/backtest-strategy.ts --backtestId=existingBacktestId
+ts-node -r tsconfig-paths/register -r dotenv/config src/scripts/pumpfun/backtest-strategy.ts --backtestId=existingBacktestId
 ```
 
 Without existing backtest, it will create one automatically with the specified config:
 
 ```shell
-ts-node -r dotenv/config src/scripts/pumpfun/backtest-strategy.ts
+ts-node -r tsconfig-paths/register -r dotenv/config src/scripts/pumpfun/backtest-strategy.ts
 ```
 
 **Run the pumpfun bot**
 
 ```shell
-ts-node src/scripts/pumpfun/bot.ts
+ts-node -r tsconfig-paths/register -r dotenv/config src/scripts/pumpfun/bot.ts
 ```
 
 ---

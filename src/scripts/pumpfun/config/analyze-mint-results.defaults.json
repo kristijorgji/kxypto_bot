@@ -1,0 +1,12 @@
+{
+  "dataSource": {
+    "path": "data/pumpfun-stats/backtest"
+  },
+  "checkPriceAfterMs": 5e3,
+  "allowedPriceDropInBetweenPercentage": 10,
+  "requiredPriceChangeDiffPercentage": 25,
+  "requiredMaintainIncreaseMs":  5e3,
+  "startFromIndex": 10,
+  "logOnlyProfitable":  true,
+  "reportPath": "data/analyze-mint-results.json"
+}

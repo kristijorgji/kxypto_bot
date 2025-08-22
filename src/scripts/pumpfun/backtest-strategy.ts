@@ -1,6 +1,8 @@
 import { program } from 'commander';
 import { createLogger } from 'winston';
 
+import { getFiles } from '@src/data/getFiles';
+
 import { solToLamports } from '../../blockchains/utils/amount';
 import { redis } from '../../cache/cache';
 import { db } from '../../db/knex';
@@ -9,7 +11,6 @@ import { logger } from '../../logger';
 import { parseBacktestFileConfig } from '../../trading/backtesting/config-parser';
 import { formPumpfunBacktestStatsDir } from '../../trading/backtesting/data/pumpfun/utils';
 import runAndSelectBestStrategy from '../../trading/backtesting/runAndSelectBestStrategy';
-import { getBacktestFiles } from '../../trading/backtesting/utils';
 import { BacktestRunConfig } from '../../trading/bots/blockchains/solana/types';
 import BuyPredictionStrategy, {
     BuyPredictionStrategyConfig,
@@ -71,7 +72,7 @@ function getBacktestRunConfig(): BacktestRunConfig {
         path: formPumpfunBacktestStatsDir(),
         includeIfPathContains: ['no_trade'],
     };
-    const files = getBacktestFiles(dataConfig);
+    const files = getFiles(dataConfig);
 
     return {
         initialBalanceLamports: solToLamports(3),

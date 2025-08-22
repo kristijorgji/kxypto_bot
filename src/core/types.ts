@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export const FileStorage = {
     Local: 'local',
     S3: 's3',
@@ -12,3 +14,10 @@ export type RetryConfig = {
     maxRetries: number;
     sleepMs: number | ((retryCount: number) => number);
 };
+
+export const dataSourceSchema = z.object({
+    path: z.string(),
+    includeIfPathContains: z.array(z.string()).optional(),
+});
+
+export type DataSource = z.infer<typeof dataSourceSchema>;

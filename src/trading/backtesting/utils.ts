@@ -5,7 +5,7 @@ import { Logger } from 'winston';
 import { forceGetPumpCoinInitialData } from '@src/blockchains/solana/dex/pumpfun/utils';
 import { lamportsToSol, solToLamports } from '@src/blockchains/utils/amount';
 import { pumpfunRepository } from '@src/db/repositories/PumpfunRepository';
-import { FileInfo, walkDirFilesSyncRecursive } from '@src/utils/files';
+import { FileInfo } from '@src/utils/files';
 import { formatElapsedTime } from '@src/utils/time';
 
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
@@ -13,7 +13,6 @@ import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
 import {
     BacktestExitResponse,
     BacktestResponse,
-    BacktestRunConfig,
     BacktestStrategyRunConfig,
     BacktestTradeResponse,
     HandlePumpTokenBotReport,
@@ -332,18 +331,4 @@ export function logStrategyResult(
         ((info.tested + 1) / info.total) * 100,
         `${info.tested + 1} / ${info.total}`,
     );
-}
-
-export function getBacktestFiles(
-    dataConfig: Omit<BacktestRunConfig['data'], 'filesCount'>,
-    extension: string | null = 'json',
-): FileInfo[] {
-    let files = walkDirFilesSyncRecursive(dataConfig.path, [], extension);
-    if (dataConfig.includeIfPathContains) {
-        files = files.filter(el =>
-            dataConfig.includeIfPathContains!.some(substring => el.fullPath.includes(substring)),
-        );
-    }
-
-    return files;
 }

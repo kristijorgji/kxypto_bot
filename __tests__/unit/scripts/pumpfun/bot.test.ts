@@ -17,6 +17,7 @@ import { db } from '../../../../src/db/knex';
 import { insertLaunchpadTokenResult } from '../../../../src/db/repositories/launchpad_tokens';
 import { pumpfunRepository } from '../../../../src/db/repositories/PumpfunRepository';
 import ArrayTransport from '../../../../src/logger/transports/ArrayTransport';
+import { getScriptEnvConfig } from '../../../../src/scripts/_utils';
 import { start } from '../../../../src/scripts/pumpfun/bot';
 import { NewPumpFunCoinDataFactory, NewPumpFunTokenDataFactory } from '../../../../src/testdata/factories/pumpfun';
 import isTokenCreatorSafe from '../../../../src/trading/bots/blockchains/solana/isTokenCreatorSafe';
@@ -55,6 +56,8 @@ const mockedFs = fs as jest.Mocked<typeof fs>;
 /**
  * Our mocks
  */
+
+jest.mock('../../../../src/scripts/_utils');
 
 jest.mock('../../../../src/utils/functions', () => ({
     ...jest.requireActual('../../../../src/utils/functions'),
@@ -137,6 +140,12 @@ describe('bot', () => {
     beforeEach(() => {
         logs = [];
         logger.clear().add(new ArrayTransport({ array: logs, json: true, format: format.splat() }));
+
+        (getScriptEnvConfig as jest.Mock).mockReturnValue({
+            marketContextProvider: {
+                measureExecutionTime: true,
+            },
+        });
 
         botEventBus = new PumpfunBotEventBus();
         startDeps = {

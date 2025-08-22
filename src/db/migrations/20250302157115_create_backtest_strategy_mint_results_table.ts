@@ -8,7 +8,7 @@ export async function up(knex: Knex): Promise<void> {
         table.bigint('strategy_result_id').unsigned();
         table.string('mint').notNullable();
         table.enum('mint_file_storage_type', ['local', 's3']).notNullable();
-        table.string('mint_file_path').notNullable();
+        table.string('mint_file_path', 500).notNullable();
         table.decimal('net_pnl_sol', 38, 18).nullable();
         table.decimal('holdings_value_sol', 38, 18).nullable();
         table.float('roi').nullable();

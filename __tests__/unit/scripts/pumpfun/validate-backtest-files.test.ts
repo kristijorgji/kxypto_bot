@@ -1,7 +1,8 @@
 import fs from 'fs';
-import { basename } from 'path';
 
 import { LogEntry, format } from 'winston';
+
+import { getFiles } from '@src/data/getFiles';
 
 import { logger } from '../../../../src/logger';
 import ArrayTransport from '../../../../src/logger/transports/ArrayTransport';
@@ -10,11 +11,11 @@ import {
     validateBacktestFiles,
     validateBacktestFilesProgram,
 } from '../../../../src/scripts/pumpfun/validate-backtest-files';
-import { getBacktestFiles } from '../../../../src/trading/backtesting/utils';
-import { FileInfo, moveFile } from '../../../../src/utils/files';
+import { moveFile } from '../../../../src/utils/files';
 import { formHistoryEntry } from '../../../__utils/blockchains/solana';
 import { runCommandAsync } from '../../../__utils/commander';
 import { readLocalFixture } from '../../../__utils/data';
+import { mockFsReadFileSync, mockGetFiles } from '../../../__utils/data-mocks';
 
 const realFs = jest.requireActual('fs');
 jest.mock('fs', () => {
@@ -26,7 +27,7 @@ jest.mock('fs', () => {
 });
 const mockedFs = fs as jest.Mocked<typeof fs>;
 
-jest.mock('../../../../src/trading/backtesting/utils');
+jest.mock('@src/data/getFiles');
 
 jest.mock('@src/utils/files');
 
@@ -153,8 +154,8 @@ const fileToContent: Record<string, object | string> = {
 
 describe('validateBacktestFilesProgram', () => {
     it('should mark files containing nulls as invalid using file config', async () => {
-        mockFsReadFileSync(fileToContent);
-        mockGetBacktestFiles(fileToContent);
+        mockFsReadFileSync(mockedFs, realFs, fileToContent);
+        mockGetFiles(getFiles as jest.Mock, fileToContent);
 
         await runCommandAsync(validateBacktestFilesProgram, ['--config', 'config.json']);
 
@@ -169,36 +170,10 @@ describe('validateBacktestFilesProgram', () => {
 
 describe('validateBacktestFiles', () => {
     it('should return all information in an object once done', async () => {
-        mockFsReadFileSync(fileToContent);
-        mockGetBacktestFiles(fileToContent);
+        mockFsReadFileSync(mockedFs, realFs, fileToContent);
+        mockGetFiles(getFiles as jest.Mock, fileToContent);
 
         const r = await validateBacktestFiles(config);
         expect(r).toEqual(readLocalFixture('validate-backtest-files/exp-result-1'));
     });
 });
-
-function mockGetBacktestFiles(fileToContent: Record<string, object | string>) {
-    (getBacktestFiles as jest.Mock).mockReturnValue(
-        Object.keys(fileToContent)
-            .filter(fullPath => fullPath.includes('data/'))
-            .map(fullPath => ({
-                name: basename(fullPath),
-                fullPath: fullPath,
-                creationTime: new Date(),
-            })) satisfies FileInfo[],
-    );
-}
-
-function mockFsReadFileSync(map: Record<string, object | string>) {
-    (mockedFs.readFileSync as jest.Mock).mockImplementation((...args) => {
-        const [path] = args;
-        const value = map[path];
-
-        if (value) {
-            return typeof value === 'object' ? JSON.stringify(value) : value;
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return realFs.readFileSync(...(args as [any, any]));
-    });
-}

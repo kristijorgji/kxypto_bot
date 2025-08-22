@@ -8,11 +8,11 @@
           "null": {
             "1": {
               "startTimestamp": 2,
-              "count": 2
+              "length": 2
             },
             "4": {
               "startTimestamp": 5,
-              "count": 1
+              "length": 1
             }
           }
         },
@@ -20,7 +20,7 @@
           "null": {
             "3": {
               "startTimestamp": 4,
-              "count": 1
+              "length": 1
             }
           }
         },
@@ -28,7 +28,7 @@
           "null": {
             "5": {
               "startTimestamp": 6,
-              "count": 1
+              "length": 1
             }
           }
         },
@@ -36,7 +36,7 @@
           "null": {
             "13": {
               "startTimestamp": 14,
-              "count": 1
+              "length": 1
             }
           }
         },
@@ -44,7 +44,7 @@
           "null": {
             "13": {
               "startTimestamp": 14,
-              "count": 1
+              "length": 1
             }
           }
         },
@@ -52,7 +52,7 @@
           "null": {
             "13": {
               "startTimestamp": 14,
-              "count": 1
+              "length": 1
             }
           }
         }

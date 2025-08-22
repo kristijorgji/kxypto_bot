@@ -45,6 +45,7 @@ export type Backtest = {
     id: string;
     name?: string | null;
     config: BacktestRunConfig;
+    created_at?: Date;
 };
 
 export type BacktestStrategyResult = {

@@ -1,4 +1,4 @@
-set @backtest_name = '3_sol_0.3_buy_randomized_7770f';
+set @backtest_name = '3_sol_0.3_buy_randomized_13620f';
 
 select
     backtest_strategy_results.id,

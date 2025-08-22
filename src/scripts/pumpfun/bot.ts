@@ -1,5 +1,4 @@
 import fs from 'fs';
-import path from 'path';
 
 import '@src/core/loadEnv';
 import { Command } from 'commander';
@@ -18,6 +17,7 @@ import { db } from '@src/db/knex';
 import { insertLaunchpadTokenResult } from '@src/db/repositories/launchpad_tokens';
 import { pumpfunRepository } from '@src/db/repositories/PumpfunRepository';
 import { logger } from '@src/logger';
+import { getScriptEnvConfig } from '@src/scripts/_utils';
 import { parsePumpfunBotFileConfig } from '@src/trading/bots/blockchains/solana/pumpfun-bot-config-parser';
 import {
     BotExitResponse,
@@ -395,16 +395,5 @@ async function storeResult(report: HandlePumpTokenReport) {
 }
 
 function getBotEnvConfig(): EnvConfig {
-    const file = path.join(__dirname, 'config/bot.json');
-    const defaultsFile = path.join(__dirname, 'config/bot.defaults.json');
-
-    if (fs.existsSync(file)) {
-        return EnvConfigSchema.parse(JSON.parse(fs.readFileSync(file).toString()));
-    }
-
-    if (fs.existsSync(defaultsFile)) {
-        return EnvConfigSchema.parse(JSON.parse(fs.readFileSync(defaultsFile, 'utf-8')));
-    }
-
-    throw new Error('No config found: please create config/bot.json or config/bot.defaults.json');
+    return EnvConfigSchema.parse(getScriptEnvConfig(__filename));
 }

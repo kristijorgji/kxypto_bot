@@ -1,0 +1,9 @@
+[
+  "2021-03-19 10:00:00 [INFO]: Started processing 1 files with config={\n  dataSource: { path: './data' },\n  checkPriceAfterMs: 2000,\n  allowedPriceDropInBetweenPercentage: 25,\n  requiredPriceChangeDiffPercentage: 25,\n  requiredMaintainIncreaseMs: 2000,\n  startFromIndex: 2,\n  logOnlyProfitable: false\n}\n",
+  "2021-03-19 10:00:00 [INFO]: [0] Processing file data/a.json",
+  "2021-03-19 10:00:00 [INFO]: [0] We found potential winning trades within these buy-sell intervals={\n  '2': {\n    startTimestamp: 3,\n    endTimestamp: 6,\n    length: 2,\n    timeMs: 2000,\n    startingPriceDiffPercentage: 40,\n    endingPriceDiffPercentage: 100\n  },\n  '7': {\n    startTimestamp: 8,\n    endTimestamp: 11,\n    length: 2,\n    timeMs: 2000,\n    startingPriceDiffPercentage: 50,\n    endingPriceDiffPercentage: 100\n  },\n  '11': {\n    startTimestamp: 12,\n    endTimestamp: 15,\n    length: 2,\n    timeMs: 2000,\n    startingPriceDiffPercentage: 1000,\n    endingPriceDiffPercentage: 1099.9999999999998\n  },\n  '15': {\n    startTimestamp: 16,\n    endTimestamp: 21,\n    length: 4,\n    timeMs: 4000,\n    startingPriceDiffPercentage: 60,\n    endingPriceDiffPercentage: 2299.9999999999995\n  },\n  '16': {\n    startTimestamp: 17,\n    endTimestamp: 21,\n    length: 3,\n    timeMs: 3000,\n    startingPriceDiffPercentage: 138.7267904509284,\n    endingPriceDiffPercentage: 3083.0238726790453\n  },\n  '17': {\n    startTimestamp: 18,\n    endTimestamp: 21,\n    length: 2,\n    timeMs: 2000,\n    startingPriceDiffPercentage: 150,\n    endingPriceDiffPercentage: 1399.9999999999998\n  }\n}\n",
+  "2021-03-19 10:00:00 [INFO]: 1 files were processed",
+  "2021-03-19 10:00:00 [INFO]: 1 files were valid with history and enough length",
+  "2021-03-19 10:00:00 [INFO]: 1 files were found to be profitable",
+  "2021-03-19 10:00:00 [INFO]: 6 trade opportunities were found to be profitable"
+]

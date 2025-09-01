@@ -4,6 +4,11 @@ import { BotTradeResponse, TradeTransaction } from './types';
 
 export type StopBotReason = 'max_open_positions' | 'max_full_trades' | 'min_wallet_balance' | 'insufficient_funds';
 
+export type StopBotArgs = {
+    reason: StopBotReason;
+    excludeBotIds?: Set<string> | null;
+};
+
 export default class PumpfunBotEventBus {
     private readonly eventEmitter: EventEmitter = new EventEmitter();
 
@@ -11,29 +16,29 @@ export default class PumpfunBotEventBus {
         this.eventEmitter.setMaxListeners(0);
     }
 
-    tradeExecuted(transaction: TradeTransaction): void {
-        this.eventEmitter.emit('tradeExecuted', transaction);
+    tradeExecuted(botId: string, transaction: TradeTransaction): void {
+        this.eventEmitter.emit('tradeExecuted', botId, transaction);
     }
 
-    onTradeExecuted(listener: (transaction: TradeTransaction) => void) {
+    onTradeExecuted(listener: (botId: string, transaction: TradeTransaction) => void) {
         this.eventEmitter.on('tradeExecuted', listener);
     }
 
-    botTradeResponse(response: BotTradeResponse): void {
-        this.eventEmitter.emit('botResponse', response);
+    botTradeResponse(botId: string, response: BotTradeResponse): void {
+        this.eventEmitter.emit('botResponse', botId, response);
     }
 
-    onBotTradeResponse(listener: (response: BotTradeResponse) => void) {
+    onBotTradeResponse(listener: (botId: string, response: BotTradeResponse) => void) {
         this.eventEmitter.on('botResponse', listener);
     }
 
-    stopBot(reason: StopBotReason): void {
+    stopBot(_requestingBotId: string | null, reason: StopBotReason): void {
         this.eventEmitter.emit('stopBot', {
             reason: reason,
-        });
+        } satisfies StopBotArgs);
     }
 
-    onStopBot(listener: (args: { reason: StopBotReason }) => void): void {
+    onStopBot(listener: (args: StopBotArgs) => void): void {
         this.eventEmitter.on('stopBot', listener);
     }
 }

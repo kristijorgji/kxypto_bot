@@ -22,7 +22,7 @@ import { start } from '../../../../src/scripts/pumpfun/bot';
 import { NewPumpFunCoinDataFactory, NewPumpFunTokenDataFactory } from '../../../../src/testdata/factories/pumpfun';
 import isTokenCreatorSafe from '../../../../src/trading/bots/blockchains/solana/isTokenCreatorSafe';
 import PumpfunBot, { ErrorMessage } from '../../../../src/trading/bots/blockchains/solana/PumpfunBot';
-import PumpfunBotEventBus from '../../../../src/trading/bots/blockchains/solana/PumpfunBotEventBus';
+import PumpfunBotEventBus, { StopBotArgs } from '../../../../src/trading/bots/blockchains/solana/PumpfunBotEventBus';
 import {
     BotExitResponse,
     BotResponse,
@@ -261,7 +261,7 @@ describe('bot', () => {
 
     it('1 - should receive tokens, create bots for each of them and store the results', async () => {
         pumpfunBotMock.run.mockImplementation(
-            async (_: string, initialCoinData: PumpfunInitialCoinData): Promise<BotResponse> => {
+            async (identifier: string, initialCoinData: PumpfunInitialCoinData): Promise<BotResponse> => {
                 let netPnlInSol: number | undefined;
                 if (initialCoinData.mint === mockReturnsState.returnedCoinDataWithRetries[0].mint) {
                     netPnlInSol = 0.534;
@@ -274,13 +274,13 @@ describe('bot', () => {
                         transactionType: 'buy',
                         netTransferredLamports: -solToLamports(startConfig.buyInSol!),
                     } as TradeTransaction;
-                    botEventBus.tradeExecuted(buyTransaction);
+                    botEventBus.tradeExecuted(identifier, buyTransaction);
 
                     const sellTransaction = {
                         transactionType: 'sell',
                         netTransferredLamports: solToLamports(startConfig.buyInSol! + netPnlInSol),
                     } as TradeTransaction;
-                    botEventBus.tradeExecuted(sellTransaction);
+                    botEventBus.tradeExecuted(identifier, sellTransaction);
 
                     const botTradeResponse: BotTradeResponse = {
                         netPnl: {
@@ -290,7 +290,7 @@ describe('bot', () => {
                         transactions: [buyTransaction, sellTransaction],
                         history: [],
                     };
-                    botEventBus.botTradeResponse(botTradeResponse);
+                    botEventBus.botTradeResponse(identifier, botTradeResponse);
 
                     return botTradeResponse;
                 }
@@ -373,9 +373,9 @@ describe('bot', () => {
         botEventBus.onStopBot(onStopBotSpy);
 
         let pumpfunBotRunCallsCount = 0;
-        pumpfunBotMock.run.mockImplementation(async (): Promise<BotResponse> => {
+        pumpfunBotMock.run.mockImplementation(async (identifier: string): Promise<BotResponse> => {
             if (pumpfunBotRunCallsCount++ === 0) {
-                botEventBus.botTradeResponse({
+                botEventBus.botTradeResponse(identifier, {
                     netPnl: {
                         inSol: 0.1,
                         inLamports: solToLamports(0.1),
@@ -400,7 +400,9 @@ describe('bot', () => {
         expect(pumpfunBotMock.run).toHaveBeenCalledTimes(3);
 
         expect(onStopBotSpy).toHaveBeenCalledTimes(1);
-        expect(onStopBotSpy).toHaveBeenCalledWith({ reason: 'max_full_trades' });
+        expect(onStopBotSpy).toHaveBeenCalledWith({
+            reason: 'max_full_trades',
+        } satisfies StopBotArgs);
 
         expect(mockPumpfunQueuedListenerInstance.stopListening as jest.Mock).toHaveBeenCalledTimes(1);
         expect(mockPumpfunQueuedListenerInstance.stopListening as jest.Mock).toHaveBeenCalledWith(true);
@@ -417,9 +419,9 @@ describe('bot', () => {
         botEventBus.onStopBot(onStopBotSpy);
 
         let pumpfunBotRunCallsCount = 0;
-        pumpfunBotMock.run.mockImplementation(async (): Promise<BotResponse> => {
+        pumpfunBotMock.run.mockImplementation(async (identifier: string): Promise<BotResponse> => {
             if (pumpfunBotRunCallsCount++ === 0) {
-                botEventBus.tradeExecuted({
+                botEventBus.tradeExecuted(identifier, {
                     transactionType: 'buy',
                     netTransferredLamports: -solToLamports(0.59),
                 } as TradeTransaction);
@@ -440,7 +442,9 @@ describe('bot', () => {
         expect(pumpfunBotMock.run).toHaveBeenCalledTimes(3);
 
         expect(onStopBotSpy).toHaveBeenCalledTimes(1);
-        expect(onStopBotSpy).toHaveBeenCalledWith({ reason: 'min_wallet_balance' });
+        expect(onStopBotSpy).toHaveBeenCalledWith({
+            reason: 'min_wallet_balance',
+        } satisfies StopBotArgs);
 
         expect(mockPumpfunQueuedListenerInstance.stopListening as jest.Mock).toHaveBeenCalledTimes(1);
         expect(mockPumpfunQueuedListenerInstance.stopListening as jest.Mock).toHaveBeenCalledWith(true);
@@ -495,14 +499,14 @@ describe('bot', () => {
         botEventBus.onStopBot(onStopBotSpy);
 
         let pumpfunBotRunCallsCount = 0;
-        pumpfunBotMock.run.mockImplementation(async (): Promise<BotResponse> => {
+        pumpfunBotMock.run.mockImplementation(async (identifier: string): Promise<BotResponse> => {
             if (pumpfunBotRunCallsCount++ === 0) {
-                botEventBus.tradeExecuted({
+                botEventBus.tradeExecuted(identifier, {
                     transactionType: 'buy',
                     netTransferredLamports: -solToLamports(startConfig.buyInSol!),
                 } as TradeTransaction);
             } else {
-                botEventBus.tradeExecuted({
+                botEventBus.tradeExecuted(identifier, {
                     transactionType: 'sell',
                     netTransferredLamports: solToLamports(startConfig.buyInSol! + 0.234),
                 } as TradeTransaction);
@@ -523,7 +527,9 @@ describe('bot', () => {
         expect(pumpfunBotMock.run).toHaveBeenCalledTimes(3);
 
         expect(onStopBotSpy).toHaveBeenCalledTimes(1);
-        expect(onStopBotSpy).toHaveBeenCalledWith({ reason: 'max_open_positions' });
+        expect(onStopBotSpy).toHaveBeenCalledWith({
+            reason: 'max_open_positions',
+        } satisfies StopBotArgs);
 
         expect(mockPumpfunQueuedListenerInstance.stopListening as jest.Mock).toHaveBeenCalledTimes(1);
         expect(mockPumpfunQueuedListenerInstance.stopListening as jest.Mock).toHaveBeenCalledWith(true);

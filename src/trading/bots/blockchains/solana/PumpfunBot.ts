@@ -81,7 +81,13 @@ export default class PumpfunBot {
         this.config = config;
         this.botEventBus = botEventBus;
 
-        this.botEventBus.onStopBot(() => this.stopBot());
+        this.botEventBus.onStopBot(({ excludeBotIds }) => {
+            if (!excludeBotIds || !excludeBotIds.has(this.identifier)) {
+                this.stopBot();
+            } else {
+                this.logger.info('[%s] Bot is ignoring stop event as its id is excluded', this.identifier);
+            }
+        });
     }
 
     /**
@@ -145,7 +151,12 @@ export default class PumpfunBot {
             await fn();
         };
 
-        while (this.isRunning || strategy.buyPosition || sellInProgress || buyInProgress) {
+        /**
+         * Keep monitoring even when bot is stopped isRunning=false as long as
+         *  a buy or sell is still in progress
+         *  we have a result and are monitoring until maxWaitMonitorAfterResultMs is met
+         */
+        while (this.isRunning || strategy.buyPosition || sellInProgress || buyInProgress || result) {
             if (fatalError) {
                 throw fatalError;
             }
@@ -407,7 +418,7 @@ export default class PumpfunBot {
                             },
                         };
 
-                        this.botEventBus.tradeExecuted(buyPosition);
+                        this.botEventBus.tradeExecuted(this.identifier, buyPosition);
 
                         const limits = strategy.afterBuy(buyRes.actualBuyPriceSol, {
                             marketContext: dataAtBuyTime.marketContext,
@@ -579,7 +590,7 @@ export default class PumpfunBot {
                                 },
                             },
                         };
-                        this.botEventBus.tradeExecuted(sellPosition);
+                        this.botEventBus.tradeExecuted(this.identifier, sellPosition);
 
                         const pnlLamports =
                             dataAtSellTime.buyPosition.transaction.netTransferredLamports +
@@ -601,7 +612,7 @@ export default class PumpfunBot {
                             transactions: [dataAtSellTime.buyPosition.transaction, sellPosition],
                             history: history,
                         };
-                        this.botEventBus.botTradeResponse(result);
+                        this.botEventBus.botTradeResponse(this.identifier, result);
 
                         strategy.afterSell();
                         const lastHistoryIndex = history.length - 1;

@@ -281,7 +281,8 @@ describe(PumpfunBot.name, () => {
         (pumpfun.sell as jest.Mock).mockResolvedValue(mockReturnedPumpfunSellResponse);
         (closePosition as jest.Mock).mockResolvedValue(undefined);
 
-        const actual = await pumpfunBot.run('a', initialCoinData, strategy);
+        const botId = 'a';
+        const actual = await pumpfunBot.run(botId, initialCoinData, strategy);
         expect(actual).toEqual(expectedBotTradeResponse);
 
         expect(marketContextProvider.get as jest.Mock).toHaveBeenCalledTimes(9);
@@ -333,7 +334,7 @@ describe(PumpfunBot.name, () => {
             realized_profit: null,
             exit_amount: null,
         };
-        expect(botEventBus.tradeExecuted as jest.Mock).toHaveBeenCalledWith(expectedBuyTradeTransaction);
+        expect(botEventBus.tradeExecuted as jest.Mock).toHaveBeenCalledWith(botId, expectedBuyTradeTransaction);
         expect(insertPosition).toHaveBeenCalledTimes(1);
         expect(insertPosition).toHaveBeenCalledWith(expectedInsertPosition);
 
@@ -355,7 +356,7 @@ describe(PumpfunBot.name, () => {
             },
         } satisfies FirstArg<typeof pumpfun.sell>);
 
-        expect(botEventBus.tradeExecuted as jest.Mock).toHaveBeenCalledWith(expectedSellTradeTransaction);
+        expect(botEventBus.tradeExecuted as jest.Mock).toHaveBeenCalledWith(botId, expectedSellTradeTransaction);
         expect(closePosition).toHaveBeenCalledTimes(1);
         expect(closePosition).toHaveBeenCalledWith(expectedInsertPosition.trade_id, {
             saleTxSignature: mockReturnedPumpfunSellResponse.signature,
@@ -367,7 +368,7 @@ describe(PumpfunBot.name, () => {
 
         expect(botEventBus.tradeExecuted as jest.Mock).toHaveBeenCalledTimes(2);
         expect(botEventBus.botTradeResponse as jest.Mock).toHaveBeenCalledTimes(1);
-        expect(botEventBus.botTradeResponse as jest.Mock).toHaveBeenCalledWith(expectedBotTradeResponse);
+        expect(botEventBus.botTradeResponse as jest.Mock).toHaveBeenCalledWith(botId, expectedBotTradeResponse);
 
         expect(logs).toEqual(expected.logs);
     });

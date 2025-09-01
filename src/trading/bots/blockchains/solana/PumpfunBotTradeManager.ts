@@ -23,7 +23,7 @@ export default class PumpfunBotTradeManager {
             resumeListening: () => void;
         },
     ) {
-        this.botEventBus.onTradeExecuted(async transaction => {
+        this.botEventBus.onTradeExecuted(async (botId, transaction) => {
             this.wallet.modifyBalance(transaction.netTransferredLamports);
 
             if (transaction.transactionType === 'buy') {
@@ -39,7 +39,7 @@ export default class PumpfunBotTradeManager {
                     PumpfunBotTradeManager.name,
                     this.config.maxOpenPositions,
                 );
-                this.botEventBus.stopBot('max_open_positions');
+                this.botEventBus.stopBot(botId, 'max_open_positions');
             } else if (this.askedStopListening) {
                 this.askedStopListening = false;
                 this.listeners.resumeListening();
@@ -54,12 +54,12 @@ export default class PumpfunBotTradeManager {
                         lamportsToSol(balanceLamports),
                         lamportsToSol(this.config.minWalletBalanceLamports),
                     );
-                    this.botEventBus.stopBot('min_wallet_balance');
+                    this.botEventBus.stopBot(botId, 'min_wallet_balance');
                 }
             }
         });
 
-        this.botEventBus.onBotTradeResponse(() => {
+        this.botEventBus.onBotTradeResponse(botId => {
             this.fullTradesCount++;
             if (this.config.maxFullTrades && this.fullTradesCount >= this.config.maxFullTrades) {
                 this.logger.info(
@@ -67,12 +67,12 @@ export default class PumpfunBotTradeManager {
                     PumpfunBotTradeManager.name,
                     this.config.maxFullTrades,
                 );
-                this.botEventBus.stopBot('max_full_trades');
+                this.botEventBus.stopBot(botId, 'max_full_trades');
             }
         });
     }
 
     stopAllBots(reason: StopBotReason): void {
-        this.botEventBus.stopBot(reason);
+        this.botEventBus.stopBot(null, reason);
     }
 }

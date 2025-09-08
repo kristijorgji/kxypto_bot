@@ -3,11 +3,19 @@ import { createLogger } from 'winston';
 import { formSolBoughtOrSold } from '../../../../../src/trading/bots/blockchains/solana/PumpfunBot';
 import { HistoryRef, TradeTransaction } from '../../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '../../../../../src/trading/bots/launchpads/types';
-import { ShouldSellResponse } from '../../../../../src/trading/bots/types';
+import { ShouldExitMonitoringResponse, ShouldSellResponse } from '../../../../../src/trading/bots/types';
+import { shouldExitLaunchpadToken } from '../../../../../src/trading/strategies/launchpads/common';
 import RiseStrategy, { RiseStrategyConfig } from '../../../../../src/trading/strategies/launchpads/RiseStrategy';
 import { LaunchpadBuyPosition } from '../../../../../src/trading/strategies/types';
 import { formHistoryEntry } from '../../../../__utils/blockchains/solana';
 import { readFixture } from '../../../../__utils/data';
+
+jest.mock('../../../../../src/trading/strategies/launchpads/common', () => ({
+    ...jest.requireActual('../../../../../src/trading/strategies/launchpads/common'),
+    shouldExitLaunchpadToken: jest.fn(),
+}));
+
+const mockShouldExitLaunchpadToken = shouldExitLaunchpadToken as jest.Mock;
 
 describe(RiseStrategy.name, () => {
     let strategy: RiseStrategy;
@@ -63,122 +71,31 @@ describe(RiseStrategy.name, () => {
     };
 
     describe('shouldExit', () => {
-        it('should exit if time passed and no pump happened', () => {
-            expect(
-                strategy.shouldExit(
-                    marketContext,
-                    [
-                        {
-                            timestamp: 10,
-                            price: 87,
-                            marketCap: 100,
-                            bondingCurveProgress: 25,
-                            holdersCount: 15,
-                            devHoldingPercentage: 10,
-                            topTenHoldingPercentage: 35,
-                            devHoldingPercentageCirculating: 20,
-                            topTenHoldingPercentageCirculating: 70,
-                            topHolderCirculatingPercentage: 12,
-                        },
-                    ],
-                    {
-                        elapsedMonitoringMs: 5 * 60 * 1e3 + 1,
-                    },
-                ),
-            ).toEqual({
+        it('calls shouldExitLaunchpadToken with correct props', () => {
+            const shouldExitResponse: ShouldExitMonitoringResponse = {
                 exitCode: 'NO_PUMP',
                 message: 'Stopped monitoring token. We waited 300.001 seconds and did not pump',
                 shouldSell: false,
-            });
-        });
+            };
+            mockShouldExitLaunchpadToken.mockReturnValue(shouldExitResponse satisfies ShouldExitMonitoringResponse);
+            const history = [formHistoryEntry()];
 
-        const shouldExitItExitsArgs = [
-            {
-                price: 3.1355480118319034e-8,
-                marketCap: 30,
-                holdersCount: 3,
-                bondingCurveProgress: 50,
-                devHoldingPercentage: 5,
-                topTenHoldingPercentage: 20,
-            },
-            [
-                {
-                    timestamp: 10,
-                    // eslint-disable-next-line no-loss-of-precision
-                    price: 3.0355480118319034e-8,
-                    marketCap: 31.770000079,
-                    bondingCurveProgress: 25,
-                    holdersCount: 15,
-                    devHoldingPercentage: 10,
-                    topTenHoldingPercentage: 35,
-                },
-            ],
-            {
-                elapsedMonitoringMs: 120 * 1e3 + 1,
-            },
-        ];
-
-        it('should exit if token is dumped', () => {
-            // @ts-ignore
-            expect(strategy.shouldExit(...shouldExitItExitsArgs)).toEqual({
-                exitCode: 'DUMPED',
-                message:
-                    'Stopped monitoring token because it was probably dumped less_mc_and_few_holders and current market cap is less than the initial one',
-                shouldSell: false,
-            });
-        });
-
-        it('should exit if token is dumped and request sell when we have a position', () => {
-            strategy.afterBuy(100, launchpadBuyPosition);
-
-            // @ts-ignore
-            expect(strategy.shouldExit(...shouldExitItExitsArgs)).toEqual({
-                exitCode: 'DUMPED',
-                message: 'The token is probably dumped less_mc_and_few_holders and we will sell at loss, sell=true',
-                shouldSell: {
-                    reason: 'DUMPED',
-                },
-            });
-        });
-
-        it('should exit if token is dumped and holders now are less than before max', () => {
             expect(
-                strategy.shouldExit(
-                    {
-                        price: 3.1355480118319034e-8,
-                        marketCap: 30.9,
-                        holdersCount: 3,
-                        bondingCurveProgress: 50,
-                        devHoldingPercentage: 5,
-                        topTenHoldingPercentage: 20,
-                        devHoldingPercentageCirculating: 20,
-                        topTenHoldingPercentageCirculating: 70,
-                        topHolderCirculatingPercentage: 12,
-                    },
-                    [
-                        formHistoryEntry({
-                            marketCap: 31,
-                            holdersCount: 1,
-                        }),
-                        formHistoryEntry({
-                            marketCap: 32,
-                            holdersCount: 4,
-                        }),
-                        formHistoryEntry({
-                            marketCap: 30.9,
-                            holdersCount: 3,
-                        }),
-                    ],
-                    {
-                        elapsedMonitoringMs: 60 * 1e3,
-                    },
-                ),
-            ).toEqual({
-                exitCode: 'DUMPED',
-                message:
-                    'Stopped monitoring token because it was probably dumped less_holders_and_mc_than_initial and current market cap is less than the initial one',
-                shouldSell: false,
-            });
+                strategy.shouldExit(marketContext, history, {
+                    elapsedMonitoringMs: 5 * 60 * 1e3 + 1,
+                }),
+            ).toEqual(shouldExitResponse);
+
+            expect(mockShouldExitLaunchpadToken).toHaveBeenCalledTimes(1);
+            expect(mockShouldExitLaunchpadToken).toHaveBeenCalledWith(
+                marketContext,
+                history,
+                {
+                    elapsedMonitoringMs: 5 * 60 * 1e3 + 1,
+                },
+                undefined,
+                5 * 60 * 1e3,
+            );
         });
     });
 

@@ -35,7 +35,7 @@ export function checkInterval(config: IntervalConfig | undefined, value: number 
 }
 
 export function shouldExitLaunchpadToken(
-    { marketCap, holdersCount }: MarketContext,
+    { marketCap, holdersCount, bondingCurveProgress }: MarketContext,
     history: HistoryEntry[],
     {
         elapsedMonitoringMs,
@@ -62,7 +62,7 @@ export function shouldExitLaunchpadToken(
         | 'less_mc_and_few_holders'
         | undefined;
 
-    if (mcDiffFromInitialPercentage < -6) {
+    if (mcDiffFromInitialPercentage < -6 && holdersCount <= 30 && bondingCurveProgress <= 35) {
         dumpReason = 'lower_mc_than_initial';
     } else if (
         marketCap < history[0].marketCap &&

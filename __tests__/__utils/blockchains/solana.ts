@@ -48,5 +48,6 @@ export function formHistoryEntry(data?: Partial<HistoryEntry>, copy?: HistoryEnt
             data?.topTenHoldingPercentageCirculating ?? copy?.topTenHoldingPercentageCirculating ?? 70,
         topHolderCirculatingPercentage:
             data?.topHolderCirculatingPercentage ?? copy?.topHolderCirculatingPercentage ?? 12,
+        _metadata: data?._metadata ?? copy?._metadata ?? undefined,
     };
 }

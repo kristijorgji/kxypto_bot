@@ -92,6 +92,7 @@ export async function runStrategy(
                 },
                 initialCoinData,
                 content.history,
+                content.monitor,
             );
             runConfig.strategy.resetState();
             mintResults[content.mint] = {

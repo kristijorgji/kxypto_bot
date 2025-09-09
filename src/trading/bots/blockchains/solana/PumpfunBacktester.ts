@@ -20,6 +20,7 @@ import { formSolBoughtOrSold, formTokenBoughtOrSold } from './PumpfunBot';
 import {
     BacktestResponse,
     BacktestStrategyRunConfig,
+    HandlePumpTokenBotReport,
     PumpfunBuyPositionMetadata,
     PumpfunSellPositionMetadata,
     TradeTransaction,
@@ -48,6 +49,7 @@ export default class PumpfunBacktester {
         }: BacktestStrategyRunConfig,
         tokenInfo: PumpfunInitialCoinData,
         history: HistoryEntry[],
+        monitorConfig: HandlePumpTokenBotReport['monitor'],
     ): Promise<BacktestResponse> {
         const historySoFar: HistoryEntry[] = [];
         let balanceLamports = initialBalanceLamports;
@@ -59,7 +61,17 @@ export default class PumpfunBacktester {
 
         let shouldSellRes: ShouldSellResponse | undefined;
 
-        for (let i = 0; i < history.length; i++) {
+        /**
+         * Adjusts the loop's search increment based on buy events found in the recorded history.
+         * Initially, the step size is 1 to represent a constant monitoring interval.
+         * Once the backtest finds a buy event has occurred, the step size is adjusted to match the `sellMonitorMs`
+         * value, simulating the bot's transition to a new monitoring period.
+         * This ensures that backtests monitors with same ms interval if it hasn't bought yet so
+         * its behavior is comparable with the one of the recorded history from a real bot
+         */
+        let stepSize = 1;
+
+        for (let i = 0; i < history.length; i += stepSize) {
             const marketContext = history[i];
             if (marketContext.price === null) {
                 this.logger.warn(`Skipping entry: marketContext.price = null at index ${i}`);
@@ -68,6 +80,16 @@ export default class PumpfunBacktester {
 
             historySoFar.push(marketContext);
             const { price, marketCap } = marketContext;
+
+            if (marketContext._metadata?.action === 'buyCompleted') {
+                if (monitorConfig.buyTimeframeMs % monitorConfig.sellTimeframeMs !== 0) {
+                    throw new Error(
+                        'monitorConfig.buyTimeframeMs must be a multiple of monitorConfig.sellTimeframeMs.',
+                    );
+                }
+
+                stepSize = monitorConfig.buyTimeframeMs / monitorConfig.sellTimeframeMs;
+            }
 
             const buyPriorityFeeInSol =
                 strategy.config.buyPriorityFeeInSol ??
@@ -103,7 +125,12 @@ export default class PumpfunBacktester {
                      */
                     const buyPrice =
                         history[
-                            getClosestEntryIndex(history, i, marketContext.timestamp + 0.25 * simulatedBuyLatencyMs)
+                            getClosestEntryIndex(
+                                history,
+                                i,
+                                marketContext.timestamp + 0.25 * simulatedBuyLatencyMs,
+                                stepSize,
+                            )
                         ].price;
                     const buyPriceDiffPercentageDecimal = (buyPrice - price) / price;
                     return {
@@ -187,7 +214,7 @@ export default class PumpfunBacktester {
 
                 if (i < history.length - 1) {
                     // Simulate time passing by going to the next market context
-                    i = getNextEntryIndex(history, i, marketContext.timestamp + simulatedBuyLatencyMs) - 1;
+                    i = getNextEntryIndex(history, i, marketContext.timestamp + simulatedBuyLatencyMs, stepSize) - 1;
                     continue;
                 }
             }
@@ -288,6 +315,7 @@ export default class PumpfunBacktester {
                                     history,
                                     i,
                                     marketContext.timestamp + 0.25 * simulatedSellLatencyMs,
+                                    stepSize,
                                 )
                             ].price;
                         const sellPriceDiffPercentageDecimal = (sellPrice - price) / price;
@@ -350,7 +378,7 @@ export default class PumpfunBacktester {
 
                 if (i < history.length - 1) {
                     // Simulate time passing by going to the next market context
-                    i = getNextEntryIndex(history, i, marketContext.timestamp + simulatedSellLatencyMs) - 1;
+                    i = getNextEntryIndex(history, i, marketContext.timestamp + simulatedSellLatencyMs, stepSize) - 1;
                     continue;
                 }
             }
@@ -381,8 +409,13 @@ export default class PumpfunBacktester {
     }
 }
 
-export function getNextEntryIndex(history: HistoryEntry[], currentIndex: number, nextTimestampMs: number): number {
-    for (let j = currentIndex; j < history.length; j++) {
+export function getNextEntryIndex(
+    history: HistoryEntry[],
+    currentIndex: number,
+    nextTimestampMs: number,
+    stepSize: number,
+): number {
+    for (let j = currentIndex; j < history.length; j += stepSize) {
         if (history[j].timestamp >= nextTimestampMs) {
             return j;
         }
@@ -391,14 +424,19 @@ export function getNextEntryIndex(history: HistoryEntry[], currentIndex: number,
     return history.length - 1;
 }
 
-export function getClosestEntryIndex(history: HistoryEntry[], currentIndex: number, nextTimestampMs: number): number {
-    const nextIndex = currentIndex < history.length - 1 ? currentIndex + 1 : currentIndex;
+export function getClosestEntryIndex(
+    history: HistoryEntry[],
+    currentIndex: number,
+    nextTimestampMs: number,
+    stepSize: number,
+): number {
+    const nextIndex = currentIndex < history.length - stepSize ? currentIndex + stepSize : currentIndex;
 
     if (nextTimestampMs - history[currentIndex].timestamp < history[nextIndex].timestamp - nextTimestampMs) {
         return currentIndex;
     }
 
-    return getNextEntryIndex(history, currentIndex, nextTimestampMs);
+    return getNextEntryIndex(history, currentIndex, nextTimestampMs, stepSize);
 }
 
 function _generateFakeBacktestTransactionHash() {

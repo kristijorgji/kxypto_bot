@@ -12,6 +12,7 @@ import PumpfunBacktester, {
 import {
     BacktestStrategyRunConfig,
     BacktestTradeResponse,
+    HandlePumpTokenBotReport,
 } from '../../../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry } from '../../../../../../src/trading/bots/launchpads/types';
 import RiseStrategy, { RiseStrategyConfig } from '../../../../../../src/trading/strategies/launchpads/RiseStrategy';
@@ -69,6 +70,20 @@ describe(PumpfunBacktester.name, () => {
         sellUnclosedPositionsAtEnd: false,
     };
 
+    const runConfigWithoutRandomization: BacktestStrategyRunConfig = {
+        ...runConfig,
+        randomization: {
+            priorityFees: false,
+            slippages: 'off',
+            execution: false,
+        },
+    };
+
+    const monitorConfig: HandlePumpTokenBotReport['monitor'] = {
+        buyTimeframeMs: 1000,
+        sellTimeframeMs: 250,
+    };
+
     const tokenInfo = dummyPumpfunTokenInfo;
 
     beforeEach(() => {
@@ -100,6 +115,7 @@ describe(PumpfunBacktester.name, () => {
                 tokenInfo,
                 readFixture<{ history: HistoryEntry[] }>('backtest/pumpfun/5xNMMoEQcQiJQURE6DEwvHVt1jJsMTLrFmBHZoqpump')
                     .history,
+                monitorConfig,
             )) as BacktestTradeResponse;
 
             expect(r.tradeHistory.length).toEqual(2);
@@ -161,6 +177,7 @@ describe(PumpfunBacktester.name, () => {
                 tokenInfo,
                 readFixture<{ history: HistoryEntry[] }>('backtest/pumpfun/5xNMMoEQcQiJQURE6DEwvHVt1jJsMTLrFmBHZoqpump')
                     .history,
+                monitorConfig,
             )) as BacktestTradeResponse;
 
             expect(r.tradeHistory.length).toEqual(0);
@@ -179,29 +196,34 @@ describe(PumpfunBacktester.name, () => {
                 return 2;
             });
 
-            const r = (await backtester.run(runConfig, tokenInfo, [
-                formHistoryEntry(
-                    // it will buy here as we set all conditions to match the strategy buy config
-                    {
-                        timestamp: 7,
-                        price: 2.77,
-                    },
-                ),
-                formHistoryEntry(
-                    // a sell opportunity which will be missed due to simulating buy execution time
-                    {
-                        timestamp: 8,
-                        price: 100,
-                    },
-                ),
-                formHistoryEntry(
-                    // it will sell here
-                    {
-                        timestamp: 10,
-                        price: 87,
-                    },
-                ),
-            ])) as BacktestTradeResponse;
+            const r = (await backtester.run(
+                runConfig,
+                tokenInfo,
+                [
+                    formHistoryEntry(
+                        // it will buy here as we set all conditions to match the strategy buy config
+                        {
+                            timestamp: 7,
+                            price: 2.77,
+                        },
+                    ),
+                    formHistoryEntry(
+                        // a sell opportunity which will be missed due to simulating buy execution time
+                        {
+                            timestamp: 8,
+                            price: 100,
+                        },
+                    ),
+                    formHistoryEntry(
+                        // it will sell here
+                        {
+                            timestamp: 10,
+                            price: 87,
+                        },
+                    ),
+                ],
+                monitorConfig,
+            )) as BacktestTradeResponse;
 
             expect(r.tradeHistory.length).toEqual(2);
             expect(r.tradeHistory[0].transactionType).toEqual('buy');
@@ -228,6 +250,7 @@ describe(PumpfunBacktester.name, () => {
                 runConfig,
                 tokenInfo,
                 historyWhereShouldHaveHoldings,
+                monitorConfig,
             )) as BacktestTradeResponse;
 
             expect(r.tradeHistory.length).toEqual(1);
@@ -241,16 +264,12 @@ describe(PumpfunBacktester.name, () => {
         it('should sell all unclosed positions at the end when sellUnclosedPositionsAtEnd is true', async () => {
             const r = (await backtester.run(
                 {
-                    ...runConfig,
-                    randomization: {
-                        priorityFees: false,
-                        slippages: 'off',
-                        execution: false,
-                    },
+                    ...runConfigWithoutRandomization,
                     sellUnclosedPositionsAtEnd: true,
                 },
                 tokenInfo,
                 historyWhereShouldHaveHoldings,
+                monitorConfig,
             )) as BacktestTradeResponse;
 
             expect(r.tradeHistory.length).toEqual(2);
@@ -291,12 +310,7 @@ describe(PumpfunBacktester.name, () => {
 
             const r = (await backtester.run(
                 {
-                    ...runConfig,
-                    randomization: {
-                        priorityFees: false,
-                        slippages: 'off',
-                        execution: false,
-                    },
+                    ...runConfigWithoutRandomization,
                     sellUnclosedPositionsAtEnd: false,
                     autoSellTimeoutMs: autoSellTimeoutMs,
                 },
@@ -328,6 +342,7 @@ describe(PumpfunBacktester.name, () => {
                         price: 27,
                     }),
                 ],
+                monitorConfig,
             )) as BacktestTradeResponse;
 
             expect(r.tradeHistory.length).toEqual(2);
@@ -367,16 +382,11 @@ describe(PumpfunBacktester.name, () => {
     it('should stop after the first buy when it has no more balance and no buy position', async () => {
         const r = (await backtester.run(
             {
-                ...runConfig,
+                ...runConfigWithoutRandomization,
                 initialBalanceLamports: solToLamports(0.7),
                 jitoConfig: {
                     jitoEnabled: true,
                     tipLamports: TIP_LAMPORTS,
-                },
-                randomization: {
-                    priorityFees: false,
-                    slippages: 'off',
-                    execution: false,
                 },
                 onlyOneFullTrade: false,
             },
@@ -401,6 +411,7 @@ describe(PumpfunBacktester.name, () => {
                     marketCap: 145,
                 }),
             ],
+            monitorConfig,
         )) as BacktestTradeResponse;
 
         expect(r).toEqual(
@@ -420,12 +431,7 @@ describe(PumpfunBacktester.name, () => {
 
         const r = (await backtester.run(
             {
-                ...runConfig,
-                randomization: {
-                    priorityFees: false,
-                    slippages: 'off',
-                    execution: false,
-                },
+                ...runConfigWithoutRandomization,
                 jitoConfig: {
                     jitoEnabled: true,
                     tipLamports: jitoTipLamports,
@@ -463,6 +469,7 @@ describe(PumpfunBacktester.name, () => {
                     marketCap: 145,
                 }),
             ],
+            monitorConfig,
         )) as BacktestTradeResponse;
 
         expect(r).toEqual(
@@ -488,7 +495,7 @@ describe(PumpfunBacktester.name, () => {
             ];
 
             for (let i = 0; i < 100; i++) {
-                const r = (await backtester.run(runConfig, tokenInfo, history)) as BacktestTradeResponse;
+                const r = (await backtester.run(runConfig, tokenInfo, history, monitorConfig)) as BacktestTradeResponse;
 
                 expect(r.tradeHistory.length).toEqual(2);
 
@@ -587,6 +594,7 @@ describe(PumpfunBacktester.name, () => {
                     },
                     tokenInfo,
                     history,
+                    monitorConfig,
                 ),
             ).toEqual(
                 readLocalFixture<BacktestTradeResponse>(
@@ -624,7 +632,7 @@ describe(PumpfunBacktester.name, () => {
             let foundSecondSellPossibility = false;
 
             for (let i = 0; i < 100; i++) {
-                const r = (await backtester.run(runConfig, tokenInfo, history)) as BacktestTradeResponse;
+                const r = (await backtester.run(runConfig, tokenInfo, history, monitorConfig)) as BacktestTradeResponse;
 
                 expect(r.tradeHistory.length).toEqual(2);
 
@@ -694,15 +702,84 @@ describe(PumpfunBacktester.name, () => {
             }),
         ];
 
-        expect(await backtester.run(runConfig, tokenInfo, history)).toEqual({
+        expect(await backtester.run(runConfig, tokenInfo, history, monitorConfig)).toEqual({
             exitCode: 'DUMPED',
             exitReason:
                 'Stopped monitoring token because it was probably dumped lower_mc_than_initial and current market cap is less than the initial one',
         });
     });
+
+    describe('should change stepSize accordingly when it finds buy event in history', () => {
+        const history: HistoryEntry[] = [
+            formHistoryEntry({
+                timestamp: 1,
+                price: 2,
+            }),
+            formHistoryEntry({
+                timestamp: 2,
+                price: 2.1,
+                _metadata: {
+                    action: 'buyCompleted',
+                },
+            }),
+            // normally it should sell here but because of the buyCompleted event above this and t3 will be skipped
+            formHistoryEntry({
+                timestamp: 2.5,
+                price: 38,
+            }),
+            formHistoryEntry({
+                timestamp: 3,
+                price: 39,
+            }),
+            formHistoryEntry({
+                timestamp: 3.5,
+                price: 1.8,
+            }),
+            formHistoryEntry({
+                timestamp: 4,
+                price: 27,
+            }),
+            formHistoryEntry({
+                timestamp: 4.5,
+                price: 28,
+            }),
+        ];
+
+        it('and buyTimeFrame to sellTimeFrame ms ratio is a multiple', async () => {
+            const r = (await backtester.run(
+                runConfigWithoutRandomization,
+                tokenInfo,
+                history,
+                monitorConfig,
+            )) as BacktestTradeResponse;
+
+            expect(r.tradeHistory.length).toEqual(2);
+            expect(r.tradeHistory[0].transactionType).toEqual('buy');
+            expect(r.tradeHistory[0].price).toEqual({
+                inLamports: 2000000000,
+                inSol: 2,
+            });
+            expect(r.tradeHistory[1].transactionType).toEqual('sell');
+            expect(r.tradeHistory[1].price).toEqual({
+                inLamports: 27000000000,
+                inSol: 27,
+            });
+        });
+
+        it('should throw error if buyTimeFrameMs is not a multiple of sellTimeFrameMs', async () => {
+            await expect(
+                backtester.run(runConfigWithoutRandomization, tokenInfo, history, {
+                    buyTimeframeMs: 1000,
+                    sellTimeframeMs: 333,
+                }),
+            ).rejects.toThrow('monitorConfig.buyTimeframeMs must be a multiple of monitorConfig.sellTimeframeMs.');
+        });
+    });
 });
 
 describe(getNextEntryIndex.name, () => {
+    const stepSize = 1;
+
     it('should return the next index if it is past the next timestamp', () => {
         expect(
             getNextEntryIndex(
@@ -719,6 +796,7 @@ describe(getNextEntryIndex.name, () => {
                 ],
                 0,
                 11,
+                stepSize,
             ),
         ).toEqual(1);
     });
@@ -742,12 +820,15 @@ describe(getNextEntryIndex.name, () => {
                 ],
                 0,
                 20,
+                stepSize,
             ),
         ).toEqual(3);
     });
 });
 
 describe(getClosestEntryIndex.name, () => {
+    const stepSize = 1;
+
     it('should return the current index because it is closer to the nextTimestamp than the next one', () => {
         expect(
             getClosestEntryIndex(
@@ -764,6 +845,7 @@ describe(getClosestEntryIndex.name, () => {
                 ],
                 1,
                 13,
+                stepSize,
             ),
         ).toEqual(1);
     });
@@ -784,6 +866,7 @@ describe(getClosestEntryIndex.name, () => {
                 ],
                 1,
                 13,
+                stepSize,
             ),
         ).toEqual(2);
     });
@@ -804,6 +887,7 @@ describe(getClosestEntryIndex.name, () => {
                 ],
                 1,
                 10,
+                stepSize,
             ),
         ).toEqual(2);
     });

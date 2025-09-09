@@ -248,6 +248,15 @@ export const backtestStrategyRunConfigSchema = z.object({
      * are closed by the end of the backtest.
      */
     sellUnclosedPositionsAtEnd: z.boolean(),
+
+    /**
+     * Optional timeout in milliseconds to automatically sell a token if it hasn't been sold
+     * by other means (e.g., hitting limit orders). When this timeout is reached, the bot
+     * triggers a forced sell to avoid holding the token indefinitely.
+     *
+     * If not set, no automatic forced sell by timeout will occur.
+     */
+    autoSellTimeoutMs: z.number().positive().optional(),
 });
 /**
  * Configuration options for running a backtest simulation for a particular strategy.

@@ -44,6 +44,7 @@ export default class PumpfunBacktester {
             randomization,
             onlyOneFullTrade,
             sellUnclosedPositionsAtEnd,
+            autoSellTimeoutMs,
         }: BacktestStrategyRunConfig,
         tokenInfo: PumpfunInitialCoinData,
         history: HistoryEntry[],
@@ -225,6 +226,20 @@ export default class PumpfunBacktester {
                         sell: true,
                         reason: strategyShouldSellRes.reason,
                     };
+                } else if (autoSellTimeoutMs) {
+                    const elapsedSinceBuyMs =
+                        marketContext.timestamp - strategy.buyPosition.transaction.metadata!.historyRef.timestamp;
+                    if (elapsedSinceBuyMs >= autoSellTimeoutMs) {
+                        this.logger.info(
+                            'Auto-sell triggered because elapsed time (%sms) exceeded timeout (%sms)',
+                            elapsedSinceBuyMs,
+                            autoSellTimeoutMs,
+                        );
+                        shouldSellRes = {
+                            sell: true,
+                            reason: 'AUTO_SELL_TIMEOUT',
+                        };
+                    }
                 } else if (sellUnclosedPositionsAtEnd && i === history.length - 1) {
                     shouldSellRes = {
                         sell: true,

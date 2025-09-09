@@ -105,7 +105,6 @@ describe(PumpfunBot.name, () => {
         logger.clear().add(new ArrayTransport({ array: logs, json: true, format: format.splat() }));
 
         let startDateMs = 1616175600000;
-        // @ts-ignore
         jest.spyOn(Date, 'now').mockImplementation(() => (startDateMs += 1e3));
 
         pumpfunBot = new PumpfunBot({

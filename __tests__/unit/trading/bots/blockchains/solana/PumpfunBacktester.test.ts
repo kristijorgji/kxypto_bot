@@ -75,7 +75,6 @@ describe(PumpfunBacktester.name, () => {
         backtester = new PumpfunBacktester(silentLogger);
 
         let startDateMs = 1616175600000;
-        // @ts-ignore
         jest.spyOn(Date, 'now').mockImplementation(() => startDateMs++);
 
         simulatePumpBuyLatencyMsSpy = jest.spyOn(pumpSimulation, 'simulatePumpBuyLatencyMs').mockImplementation(() => {
@@ -283,6 +282,83 @@ describe(PumpfunBacktester.name, () => {
                 sellPriceInSol: 2.085,
                 sellRes: {
                     reason: 'BEFORE_EXIT_MONITORING',
+                },
+            });
+        });
+
+        it('should sell when autoSellTimeout passes and position is still held', async () => {
+            const autoSellTimeoutMs = 4;
+
+            const r = (await backtester.run(
+                {
+                    ...runConfig,
+                    randomization: {
+                        priorityFees: false,
+                        slippages: 'off',
+                        execution: false,
+                    },
+                    sellUnclosedPositionsAtEnd: false,
+                    autoSellTimeoutMs: autoSellTimeoutMs,
+                },
+                tokenInfo,
+                [
+                    formHistoryEntry({
+                        timestamp: 1,
+                        price: 2,
+                    }),
+                    formHistoryEntry({
+                        timestamp: 2,
+                        price: 2.1,
+                    }),
+                    formHistoryEntry({
+                        timestamp: 3,
+                        price: 2.11,
+                    }),
+                    formHistoryEntry({
+                        timestamp: 4,
+                        price: 2.07,
+                    }),
+                    // sells here at loss because auto sell timeout is reached
+                    formHistoryEntry({
+                        timestamp: 5,
+                        price: 1.8,
+                    }),
+                    formHistoryEntry({
+                        timestamp: 6,
+                        price: 27,
+                    }),
+                ],
+            )) as BacktestTradeResponse;
+
+            expect(r.tradeHistory.length).toEqual(2);
+            expect(r.tradeHistory[0].transactionType).toEqual('buy');
+            expect(r.tradeHistory[1].transactionType).toEqual('sell');
+            expect(r.tradeHistory[1].price).toEqual({
+                inLamports: 1800000000,
+                inSol: 1.8,
+            });
+            expect(r.tradeHistory[1].metadata).toEqual({
+                historyRef: {
+                    index: 4,
+                    timestamp: 5,
+                },
+                historyEntry: {
+                    bondingCurveProgress: 25,
+                    devHoldingPercentage: 10,
+                    devHoldingPercentageCirculating: 20,
+                    holdersCount: 15,
+                    marketCap: 31.770000079,
+                    price: 1.8,
+                    timestamp: 5,
+                    topTenHoldingPercentage: 35,
+                    topTenHoldingPercentageCirculating: 70,
+                    topHolderCirculatingPercentage: 12,
+                },
+                pumpMinLamportsOutput: 200000,
+                reason: 'AUTO_SELL_TIMEOUT',
+                sellPriceInSol: 1.35,
+                sellRes: {
+                    reason: 'AUTO_SELL_TIMEOUT',
                 },
             });
         });

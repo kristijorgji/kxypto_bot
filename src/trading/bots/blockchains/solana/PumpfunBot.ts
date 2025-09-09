@@ -201,10 +201,24 @@ export default class PumpfunBot {
             };
 
             if (lastHistoryEntry.price === null) {
-                this.logger.warn(`lastHistoryEntry.price = null at index ${historyIndex}`);
+                this.logger.warn(
+                    `lastHistoryEntry.price = null, bondingCurveProgress=${lastHistoryEntry.bondingCurveProgress} at index ${historyIndex}`,
+                );
+
                 if (!strategy.buyPosition && !buyInProgress) {
-                    this.logger.warn('Skipping this entry');
-                    continue;
+                    if (lastHistoryEntry.bondingCurveProgress === 100) {
+                        this.logger.warn('Token is migrated, bondingCurveProgress=100. Will stop monitoring further');
+                        return {
+                            exitCode: 'NO_PUMP',
+                            exitReason: 'Token is migrated',
+                            history: history,
+                        };
+                    } else {
+                        this.logger.warn('Skipping this entry');
+                        continue;
+                    }
+                } else {
+                    this.logger.warn('Doing nothing because either buy is in progress or we have a position');
                 }
             }
 

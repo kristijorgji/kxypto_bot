@@ -1,8 +1,13 @@
 import crypto from 'crypto';
 
-import { HistoryRef } from '../../bots/blockchains/solana/types';
+import {
+    HistoryRef,
+    ShouldBuyResponse,
+    ShouldExitMonitoringResponse,
+    ShouldSellResponse,
+} from '@src/trading/bots/types';
+
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
-import { ShouldBuyResponse, ShouldExitMonitoringResponse, ShouldSellResponse } from '../../bots/types';
 import { AfterBuyResponse, LaunchpadBuyPosition, StrategyConfig } from '../types';
 
 export default abstract class LaunchpadBotStrategy {

@@ -9,7 +9,11 @@ import LaunchpadBotStrategy from '../../../strategies/launchpads/LaunchpadBotStr
 import { HistoryEntry } from '../../launchpads/types';
 import {
     BotManagerConfig,
+    BotMonitorConfig,
+    BotStrategy,
+    BoughtSold,
     ExitMonitoringReason,
+    HistoryRef,
     SellReason,
     SwapSubCategory,
     TransactionType,
@@ -60,21 +64,9 @@ export type PumpfunSellPositionMetadata = {
     };
 };
 
-export type HistoryRef = {
-    timestamp: number;
-    index: number;
-};
-
 type TradeOrigin = {
     historyRef: HistoryRef;
     historyEntry: HistoryEntry;
-};
-
-export type BoughtSold = {
-    address: string;
-    name: string;
-    symbol: string;
-    amount: number;
 };
 
 export type TradeTransaction<T = Record<string, unknown>> = {
@@ -146,15 +138,8 @@ export type HandlePumpTokenExitReport = HandlePumpTokenBaseReport & {
 };
 
 export type HandlePumpTokenBotReport = HandlePumpTokenBaseReport & {
-    strategy: {
-        id: string;
-        name: string;
-        configVariant: string;
-    };
-    monitor: {
-        buyTimeframeMs: number;
-        sellTimeframeMs: number;
-    };
+    strategy: BotStrategy;
+    monitor: BotMonitorConfig;
 } & BotResponse;
 
 export type HandlePumpTokenReport = HandlePumpTokenExitReport | HandlePumpTokenBotReport;

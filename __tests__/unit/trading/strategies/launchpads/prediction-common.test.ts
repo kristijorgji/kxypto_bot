@@ -1,8 +1,8 @@
 import { LogEntry, createLogger, format } from 'winston';
 
 import ArrayTransport from '../../../../../src/logger/transports/ArrayTransport';
-import { HistoryRef } from '../../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry } from '../../../../../src/trading/bots/launchpads/types';
+import { HistoryRef } from '../../../../../src/trading/bots/types';
 import { formBaseCacheKey, shouldBuyCommon } from '../../../../../src/trading/strategies/launchpads/prediction-common';
 import { PredictionSource, StrategyPredictionConfig } from '../../../../../src/trading/strategies/types';
 import { readFixture, readLocalFixture } from '../../../../__utils/data';

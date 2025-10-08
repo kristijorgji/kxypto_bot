@@ -12,7 +12,13 @@ import DownsidePredictor from '@src/trading/strategies/predictors/DownsidePredic
 import { deepClone } from '@src/utils/data/data';
 
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
-import { SellReason, ShouldBuyResponse, ShouldExitMonitoringResponse, ShouldSellResponse } from '../../bots/types';
+import {
+    HistoryRef,
+    SellReason,
+    ShouldBuyResponse,
+    ShouldExitMonitoringResponse,
+    ShouldSellResponse,
+} from '../../bots/types';
 import {
     PredictionSource,
     PredictionStrategyShouldSellResponseReason,
@@ -36,7 +42,6 @@ import {
     variantFromPredictionSource,
     variantFromSellContext,
 } from './variant-builder';
-import { HistoryRef } from '../../bots/blockchains/solana/types';
 
 export const buySellPredictionStrategyConfigSchema = strategyConfigSchema.merge(
     z.object({

@@ -8,7 +8,7 @@ import DownsidePredictor from '@src/trading/strategies/predictors/DownsidePredic
 import { deepClone } from '@src/utils/data/data';
 
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
-import { ShouldBuyResponse, ShouldExitMonitoringResponse } from '../../bots/types';
+import { HistoryRef, ShouldBuyResponse, ShouldExitMonitoringResponse } from '../../bots/types';
 import {
     PredictionSource,
     PredictionStrategyShouldBuyResponseReason,
@@ -28,7 +28,6 @@ import {
     variantFromPredictionSource,
     variantFromSellContext,
 } from './variant-builder';
-import { HistoryRef } from '../../bots/blockchains/solana/types';
 
 export const downsideProtectionSchema = z.object({
     source: predictionSourceSchema,

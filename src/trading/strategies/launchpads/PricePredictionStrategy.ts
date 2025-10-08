@@ -4,10 +4,10 @@ import Redis from 'ioredis';
 import { Logger } from 'winston';
 import { z } from 'zod';
 
+import { HistoryRef, ShouldBuyResponse, ShouldExitMonitoringResponse } from '@src/trading/bots/types';
 import { deepClone } from '@src/utils/data/data';
 
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
-import { ShouldBuyResponse, ShouldExitMonitoringResponse } from '../../bots/types';
 import {
     PredictionRequest,
     PredictionSource,
@@ -27,7 +27,6 @@ import {
     variantFromPredictionSource,
     variantFromSellContext,
 } from './variant-builder';
-import { HistoryRef } from '../../bots/blockchains/solana/types';
 
 export const pricePredictionStrategyConfigSchema = strategyConfigSchema.merge(
     z.object({

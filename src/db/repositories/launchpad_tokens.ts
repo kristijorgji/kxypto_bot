@@ -1,6 +1,6 @@
 import { db } from '@src/db/knex';
 import { Tables } from '@src/db/tables';
-import { Blockchain, LaunchpadTokenReport, LaunchpadTokenResult } from '@src/db/types';
+import { Blockchain, LaunchpadPlatform, LaunchpadTokenReport, LaunchpadTokenResult } from '@src/db/types';
 import CompositeCursor from '@src/db/utils/CompositeCursor';
 import { applyCompositeCursorFilter, scopedColumn } from '@src/db/utils/queries';
 import { HandlePumpTokenReport } from '@src/trading/bots/blockchains/solana/types';
@@ -28,7 +28,7 @@ export interface LaunchpadTokenFullResult<R = Record<string, unknown>> {
     mint: string;
     creator: string;
     report: R;
-    net_pnl: number;
+    net_pnl: number | null;
     exit_code: string | null;
     exit_reason: string | null;
     created_at: Date;
@@ -37,10 +37,15 @@ export interface LaunchpadTokenFullResult<R = Record<string, unknown>> {
 
 export async function getLaunchpadTokenFullResult<R>(p: {
     mode: Mode | undefined;
-    chain: Blockchain;
-    platform: LaunchpadTokenResult['platform'] | undefined;
+    chain?: Blockchain;
+    platform?: LaunchpadPlatform;
     minSchemaVersion: number | undefined;
+    mint?: string;
+    strategyId?: string;
+    strategyName?: string;
+    strategyConfigVariant?: string;
     tradesOnly: boolean;
+    tradeOutcome?: 'win' | 'loss';
     exitCodes: ExitMonitoringReason[];
     excludeExitCodes: ExitMonitoringReason[];
     includeTrades: boolean;
@@ -69,9 +74,6 @@ export async function getLaunchpadTokenFullResult<R>(p: {
             scopedColumn(Tables.LaunchpadTokenResults, 'id'),
             scopedColumn(Tables.LaunchpadTokenReports, 'launchpad_token_result_id'),
         )
-        .where({
-            chain: p.chain,
-        } satisfies Partial<LaunchpadTokenResult>)
         .orderBy([
             { column: scopedColumn(Tables.LaunchpadTokenResults, 'created_at'), order: p.direction },
             { column: scopedColumn(Tables.LaunchpadTokenResults, 'id'), order: p.direction },
@@ -82,6 +84,10 @@ export async function getLaunchpadTokenFullResult<R>(p: {
         queryBuilder.where('simulation', p.mode === 'simulation' ? 1 : 0);
     }
 
+    if (p.chain) {
+        queryBuilder.where('chain', p.chain);
+    }
+
     if (p.platform) {
         queryBuilder.where('platform', p.platform);
     }
@@ -90,8 +96,20 @@ export async function getLaunchpadTokenFullResult<R>(p: {
         queryBuilder.where('schema_version', '>=', p.minSchemaVersion);
     }
 
+    if (p.mint) {
+        queryBuilder.where('mint', p.mint);
+    }
+
     if (p.tradesOnly) {
         queryBuilder.whereNotNull('net_pnl');
+
+        if (p.tradeOutcome === 'win') {
+            queryBuilder.where('net_pnl', '>', 0);
+        }
+
+        if (p.tradeOutcome === 'loss') {
+            queryBuilder.where('net_pnl', '<', 0);
+        }
     } else if (p.includeTrades) {
         queryBuilder.where(function () {
             this.whereNotNull('net_pnl');
@@ -114,6 +132,24 @@ export async function getLaunchpadTokenFullResult<R>(p: {
         if (p.excludeExitCodes.length > 0) {
             queryBuilder.whereNotIn('exit_code', p.excludeExitCodes);
         }
+    }
+
+    if (p.strategyId) {
+        // eslint-disable-next-line quotes
+        queryBuilder.whereRaw(`JSON_UNQUOTE(JSON_EXTRACT(??, '$.strategy.id')) = ?`, ['report', p.strategyId]);
+    }
+
+    if (p.strategyName) {
+        // eslint-disable-next-line quotes
+        queryBuilder.whereRaw(`JSON_UNQUOTE(JSON_EXTRACT(??, '$.strategy.name')) = ?`, ['report', p.strategyName]);
+    }
+
+    if (p.strategyConfigVariant) {
+        // eslint-disable-next-line quotes
+        queryBuilder.whereRaw(`JSON_UNQUOTE(JSON_EXTRACT(??, '$.strategy.configVariant')) = ?`, [
+            'report',
+            p.strategyConfigVariant,
+        ]);
     }
 
     if (p.cursor) {

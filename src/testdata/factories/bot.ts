@@ -3,8 +3,8 @@ import { faker } from '@faker-js/faker';
 import { lamportsToSol } from '@src/blockchains/utils/amount';
 import { HistoryEntryFactory } from '@src/testdata/factories/launchpad';
 import { randomPriceSol } from '@src/testdata/factories/solana';
-import { HistoryRef, TradeTransaction } from '@src/trading/bots/blockchains/solana/types';
-import { SwapSubCategory } from '@src/trading/bots/types';
+import { TradeTransaction } from '@src/trading/bots/blockchains/solana/types';
+import { HistoryRef, SwapSubCategory } from '@src/trading/bots/types';
 import { pickRandomItem, randomInt } from '@src/utils/data/data';
 
 export function TradeTransactionFactory(copy?: Partial<TradeTransaction>): TradeTransaction {

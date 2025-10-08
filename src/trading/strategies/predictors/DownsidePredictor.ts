@@ -3,8 +3,8 @@ import axiosRateLimit, { RateLimitedAxiosInstance } from 'axios-rate-limit';
 import Redis from 'ioredis';
 import { Logger } from 'winston';
 
-import { HistoryRef } from '@src/trading/bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '@src/trading/bots/launchpads/types';
+import { HistoryRef } from '@src/trading/bots/types';
 import {
     FormPredictionRequestFailReason,
     MakePredictionRequestResponse,

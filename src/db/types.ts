@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 import { FileStorageType } from '../core/types';
 import { BacktestRunConfig } from '../trading/bots/blockchains/solana/types';
 import { ExitMonitoringReason, SellReason } from '../trading/bots/types';
@@ -29,7 +31,8 @@ export type ApmEntry = {
     execution_time_ns: number;
 };
 
-export type Blockchain = 'solana' | 'ethereum';
+export const blockchainEnum = z.enum(['solana', 'ethereum']);
+export type Blockchain = z.infer<typeof blockchainEnum>;
 
 export type Token<T = Record<string, unknown>> = {
     chain: Blockchain;
@@ -125,11 +128,14 @@ export type Position = {
 
 export type InsertPosition = Omit<Position, 'id' | 'opened_at' | 'created_at' | 'updated_at'>;
 
+export const launchpadPlatformEnum = z.enum(['pumpfun']);
+export type LaunchpadPlatform = z.infer<typeof launchpadPlatformEnum>;
+
 export type LaunchpadTokenResult = {
     id: number;
     simulation: boolean;
     chain: Blockchain;
-    platform: 'pumpfun';
+    platform: LaunchpadPlatform;
     mint: string;
     creator: string;
     net_pnl: number | null;

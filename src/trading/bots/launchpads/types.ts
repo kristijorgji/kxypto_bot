@@ -4,6 +4,8 @@
  */
 import { z } from 'zod';
 
+import { BotAction } from '@src/trading/bots/types';
+
 export type HistoryEntry = {
     timestamp: number;
     price: number;
@@ -20,14 +22,7 @@ export type HistoryEntry = {
      * It is not needed elsewhere in backtests or other places
      */
     _metadata?: {
-        action?:
-            | 'startBuy'
-            | 'buyCompleted'
-            | 'buyError'
-            | 'startSell'
-            | 'sellCompleted'
-            | 'sellError'
-            | 'strategyExit';
+        action?: BotAction;
         diffSincePurchase?: {
             percent: number;
             inSol: number;

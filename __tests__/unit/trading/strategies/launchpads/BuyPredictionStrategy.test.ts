@@ -4,8 +4,8 @@ import { LogEntry, createLogger, format } from 'winston';
 
 import { defineShouldBuyWithPredictionTests } from './shouldBuyTestCases';
 import ArrayTransport from '../../../../../src/logger/transports/ArrayTransport';
-import { HistoryRef } from '../../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry } from '../../../../../src/trading/bots/launchpads/types';
+import { HistoryRef } from '../../../../../src/trading/bots/types';
 import BuyPredictionStrategy, {
     BuyPredictionStrategyConfig,
 } from '../../../../../src/trading/strategies/launchpads/BuyPredictionStrategy';

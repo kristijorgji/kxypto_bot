@@ -186,6 +186,16 @@
 									"disabled": true
 								},
 								{
+									"key": "chain",
+									"value": "solana",
+									"disabled": true
+								},
+								{
+									"key": "platform",
+									"value": "pumpfun",
+									"disabled": true
+								},
+								{
 									"key": "minSchemaVersion",
 									"value": "1.4",
 									"disabled": true
@@ -196,8 +206,28 @@
 									"disabled": true
 								},
 								{
+									"key": "tradeOutcome",
+									"value": "loss",
+									"disabled": true
+								},
+								{
+									"key": "strategyId",
+									"value": "BuyPredictionStrategy_7b6abc35",
+									"disabled": true
+								},
+								{
+									"key": "strategyName",
+									"value": "RiseStrategy",
+									"disabled": true
+								},
+								{
+									"key": "strategyConfigVariant",
+									"value": "b.catboost_best_bp(skf:true_rql:10_upfl:700)_s.catboost_v2_full_horizon_30_percent_sp(skf:true_rql:10_upfl:700)_buy(mpc:0.76)_sell(mpc:0.5_l(slp:15_tpp:10))",
+									"disabled": true
+								},
+								{
 									"key": "exitCodes",
-									"value": "DUMPED",
+									"value": "DUMPED,BAD_CREATOR",
 									"disabled": true
 								},
 								{

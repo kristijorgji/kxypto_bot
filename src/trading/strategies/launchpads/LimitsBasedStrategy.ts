@@ -1,9 +1,9 @@
 import { Logger } from 'winston';
 
+import { DoSellResponse, HistoryRef, ShouldSellResponse } from '@src/trading/bots/types';
+
 import LaunchpadBotStrategy from './LaunchpadBotStrategy';
-import { HistoryRef } from '../../bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
-import { DoSellResponse, ShouldSellResponse } from '../../bots/types';
 import StopLossPercentage from '../../orders/StopLossPercentage';
 import TakeProfitPercentage from '../../orders/TakeProfitPercentage';
 import TrailingStopLoss from '../../orders/TrailingStopLoss';

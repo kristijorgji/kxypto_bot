@@ -17,8 +17,6 @@ import {
     BotExitResponse,
     BotResponse,
     BotTradeResponse,
-    BoughtSold,
-    HistoryRef,
     PumpfunBuyPositionMetadata,
     PumpfunSellPositionMetadata,
     TradeTransaction,
@@ -30,7 +28,7 @@ import Wallet from '../../../../blockchains/solana/Wallet';
 import LaunchpadBotStrategy from '../../../strategies/launchpads/LaunchpadBotStrategy';
 import { generateTradeId } from '../../../utils/generateTradeId';
 import { HistoryEntry } from '../../launchpads/types';
-import { BotConfig, SellReason, ShouldBuyResponse, ShouldSellResponse } from '../../types';
+import { BotConfig, BoughtSold, HistoryRef, SellReason, ShouldBuyResponse, ShouldSellResponse } from '../../types';
 
 export const ErrorMessage = {
     unknownBuyError: 'unknown_buying_error',

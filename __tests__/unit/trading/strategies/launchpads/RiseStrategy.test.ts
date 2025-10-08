@@ -1,9 +1,9 @@
 import { createLogger } from 'winston';
 
 import { formSolBoughtOrSold } from '../../../../../src/trading/bots/blockchains/solana/PumpfunBot';
-import { HistoryRef, TradeTransaction } from '../../../../../src/trading/bots/blockchains/solana/types';
+import { TradeTransaction } from '../../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '../../../../../src/trading/bots/launchpads/types';
-import { ShouldExitMonitoringResponse, ShouldSellResponse } from '../../../../../src/trading/bots/types';
+import { HistoryRef, ShouldExitMonitoringResponse, ShouldSellResponse } from '../../../../../src/trading/bots/types';
 import { shouldExitLaunchpadToken } from '../../../../../src/trading/strategies/launchpads/common';
 import RiseStrategy, { RiseStrategyConfig } from '../../../../../src/trading/strategies/launchpads/RiseStrategy';
 import { LaunchpadBuyPosition } from '../../../../../src/trading/strategies/types';

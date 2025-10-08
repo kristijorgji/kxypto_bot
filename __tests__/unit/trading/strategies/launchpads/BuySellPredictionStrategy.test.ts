@@ -8,9 +8,8 @@ import { defineShouldBuyWithPredictionTests } from './shouldBuyTestCases';
 import ArrayTransport from '../../../../../src/logger/transports/ArrayTransport';
 import { TradeTransactionFactory } from '../../../../../src/testdata/factories/bot';
 import { NewMarketContextFactory } from '../../../../../src/testdata/factories/launchpad';
-import { HistoryRef } from '../../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry } from '../../../../../src/trading/bots/launchpads/types';
-import { ShouldSellResponse } from '../../../../../src/trading/bots/types';
+import { HistoryRef, ShouldSellResponse } from '../../../../../src/trading/bots/types';
 import BuySellPredictionStrategy, {
     BuySellPredictionStrategyConfig,
 } from '../../../../../src/trading/strategies/launchpads/BuySellPredictionStrategy';

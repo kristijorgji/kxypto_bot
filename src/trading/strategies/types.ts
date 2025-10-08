@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
-import { HistoryRef, TradeTransaction } from '../bots/blockchains/solana/types';
+import { HistoryRef } from '@src/trading/bots/types';
+
+import { TradeTransaction } from '../bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext, MarketContextKey, marketContextKeys } from '../bots/launchpads/types';
 
 export const strategyConfigSchema = z.object({

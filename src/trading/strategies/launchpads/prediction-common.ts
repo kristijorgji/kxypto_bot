@@ -2,6 +2,7 @@ import { AxiosInstance, AxiosResponse, HttpStatusCode } from 'axios';
 import Redis from 'ioredis';
 import { Logger } from 'winston';
 
+import { HistoryRef, ShouldBuyResponse, ShouldSellResponse } from '@src/trading/bots/types';
 import {
     BuyPredictionStrategyConfig,
     BuyPredictionStrategyShouldBuyResponseReason,
@@ -14,9 +15,7 @@ import DownsidePredictor, { PredictorNotStartReason } from '@src/trading/strateg
 import { deepEqual } from '@src/utils/data/equals';
 
 import { shouldBuyStateless } from './common';
-import { HistoryRef } from '../../bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
-import { ShouldBuyResponse, ShouldSellResponse } from '../../bots/types';
 import {
     ConfidencePredictionEnsembleResponse,
     ConfidencePredictionResponse,

@@ -4,9 +4,8 @@ import { HttpResponse, http } from 'msw';
 import { SetupServerApi } from 'msw/node';
 import { LogEntry } from 'winston';
 
-import { HistoryRef } from '../../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry } from '../../../../../src/trading/bots/launchpads/types';
-import { ShouldBuyResponse } from '../../../../../src/trading/bots/types';
+import { HistoryRef, ShouldBuyResponse } from '../../../../../src/trading/bots/types';
 import { BuyPredictionStrategyConfig } from '../../../../../src/trading/strategies/launchpads/BuyPredictionStrategy';
 import BuySellPredictionStrategy from '../../../../../src/trading/strategies/launchpads/BuySellPredictionStrategy';
 import LaunchpadBotStrategy from '../../../../../src/trading/strategies/launchpads/LaunchpadBotStrategy';

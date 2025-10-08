@@ -143,3 +143,35 @@ export type ShouldExitMonitoringResponse =
 
 export const modeEnum = z.enum(['real', 'simulation']);
 export type Mode = z.infer<typeof modeEnum>;
+
+export type HistoryRef = {
+    timestamp: number;
+    index: number;
+};
+
+export type BotAction =
+    | 'startBuy'
+    | 'buyCompleted'
+    | 'buyError'
+    | 'startSell'
+    | 'sellCompleted'
+    | 'sellError'
+    | 'strategyExit';
+
+export type BotStrategy = {
+    id: string;
+    name: string;
+    configVariant: string;
+};
+
+export type BotMonitorConfig = {
+    buyTimeframeMs: number;
+    sellTimeframeMs: number;
+};
+
+export type BoughtSold = {
+    address: string;
+    name: string;
+    symbol: string;
+    amount: number;
+};

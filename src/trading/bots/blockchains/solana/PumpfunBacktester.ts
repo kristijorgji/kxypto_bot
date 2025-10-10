@@ -267,7 +267,8 @@ export default class PumpfunBacktester {
                             reason: 'AUTO_SELL_TIMEOUT',
                         };
                     }
-                } else if (sellUnclosedPositionsAtEnd && i === history.length - 1) {
+                }
+                if (!shouldSellRes && sellUnclosedPositionsAtEnd && i === history.length - 1) {
                     shouldSellRes = {
                         sell: true,
                         reason: 'BEFORE_EXIT_MONITORING',

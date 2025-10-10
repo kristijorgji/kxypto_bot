@@ -305,6 +305,32 @@ describe(PumpfunBacktester.name, () => {
             });
         });
 
+        /**
+         * If autoSellTimeout is set but not reached, unclosed positions should still be sold at the end
+         * when sellUnclosedPositionsAtEnd is true.
+         */
+        it('sells unclosed positions at the end if autoSellTimeout has not triggered and sellUnclosedPositionsAtEnd=true', async () => {
+            const r = (await backtester.run(
+                {
+                    ...runConfigWithoutRandomization,
+                    autoSellTimeoutMs: 2,
+                    sellUnclosedPositionsAtEnd: true,
+                },
+                tokenInfo,
+                historyWhereShouldHaveHoldings,
+                monitorConfig,
+            )) as BacktestTradeResponse;
+
+            expect(r.tradeHistory.length).toEqual(2);
+            expect(r.tradeHistory[1].metadata).toMatchObject({
+                historyRef: {
+                    index: 1,
+                    timestamp: 8,
+                },
+                reason: 'BEFORE_EXIT_MONITORING',
+            });
+        });
+
         it('should sell when autoSellTimeout passes and position is still held', async () => {
             const autoSellTimeoutMs = 4;
 

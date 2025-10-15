@@ -6,7 +6,7 @@ import { getFiles } from '@src/data/getFiles';
 import { solToLamports } from '../../blockchains/utils/amount';
 import { redis } from '../../cache/cache';
 import { db } from '../../db/knex';
-import { getBacktest } from '../../db/repositories/backtests';
+import { getBacktestById } from '../../db/repositories/backtests';
 import { logger } from '../../logger';
 import { parseBacktestFileConfig } from '../../trading/backtesting/config-parser';
 import { formPumpfunBacktestStatsDir } from '../../trading/backtesting/data/pumpfun/utils';
@@ -56,7 +56,7 @@ async function start(args: { backtestId?: string; config?: string }) {
 
     if (args.backtestId) {
         return await runAndSelectBestStrategy(logger, {
-            backtest: await getBacktest(args.backtestId),
+            backtest: await getBacktestById(args.backtestId),
             strategies: getStrategies(),
         });
     }

@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-import { getBacktest } from '@src/db/repositories/backtests';
+import { getBacktestById } from '@src/db/repositories/backtests';
 import { Backtest } from '@src/db/types';
 import { logger, silentLogger } from '@src/logger';
 import { strategyFromConfig } from '@src/trading/strategies/launchpads/config-parser';
@@ -14,7 +14,7 @@ export async function parseBacktestFileConfig(path: string): Promise<BacktestCon
 
     let backtest: Backtest | undefined;
     if ((config as { backtestId?: string })?.backtestId) {
-        backtest = await getBacktest((config as { backtestId: string }).backtestId);
+        backtest = await getBacktestById((config as { backtestId: string }).backtestId);
         return {
             backtest: backtest,
             strategies: formStrategiesFromConfig(config),

@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package backtests;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/wrappers.proto";
+
+message BacktestMintFullResult {
+  int64 id = 1;
+  string backtest_id = 2;
+  string config_variant = 3;
+  int64 strategy_result_id = 4;
+  google.protobuf.DoubleValue net_pnl = 5;
+  double holdings_value = 6;
+  double roi = 7;
+  google.protobuf.StringValue exit_code = 8;
+  google.protobuf.StringValue exit_reason = 9;
+  google.protobuf.Struct payload = 10;
+  string created_at = 11;
+}

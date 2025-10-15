@@ -14,6 +14,7 @@ export default {
     collectCoverageFrom: [
         'src/**/*.{js,jsx,ts,tsx}',
         '!src/db/migrations/**',
+        '!src/protos/generated/**',
         '!src/examples/**',
         '!**/__mocks__/**',
         '!<rootDir>/node_modules/',

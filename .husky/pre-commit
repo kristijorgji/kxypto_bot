@@ -4,6 +4,16 @@ set -e
 
 yarn lint-staged
 
+# Detect staged .proto files
+changed_protos=$(git diff --cached --name-only --diff-filter=ACM | grep '\.proto$' || true)
+
+if [ -n "$changed_protos" ]; then
+  echo "Detected changes in proto files. Regenerating TypeScript types..."
+  yarn proto:generate
+else
+  echo "No changes in proto files. Skipping proto generation."
+fi
+
 # Disabled because it does not collect total coverage
 ## Run related tests only if TypeScript files were changed
 #changed_ts_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.tsx?$' || echo "")

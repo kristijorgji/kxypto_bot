@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+package ws;
+
+message CursorPaginatedResponse {
+  repeated google.protobuf.Any data = 1;
+  int32 count = 2;
+  optional string nextCursor = 3;
+}
+
+/**
+ * Optional array wrappers
+ */
+message StringArray {
+  repeated string values = 1;
+}
+
+message NumberArray {
+  repeated double values = 1;
+}
+
+message BoolArray {
+  repeated bool values = 1;
+}
+
+/**
+ * Represents a single filter value, which can be a single value
+ * (string, number, or bool) or optional arrays of each type.
+ */
+message FilterValue {
+  // Non-repeated values (mutually exclusive)
+  oneof single_value {
+    string string_value = 1;
+    double number_value = 2;
+    bool bool_value = 3;
+  }
+
+  // Optional arrays
+  optional StringArray string_array = 4;
+  optional NumberArray number_array = 5;
+  optional BoolArray bool_array = 6;
+}
+
+/**
+ * Wrapper for snapshot responses
+ */
+message SnapshotResponse {
+  /**
+   * The actual data for this snapshot.
+   */
+  CursorPaginatedResponse data = 1;
+
+  /**
+   * Filters applied for this subscription (optional)
+   */
+  map<string, FilterValue> appliedFilters = 2;
+}
+
+/**
+ * Wrapper for fetchMore responses
+ */
+message FetchMoreResponse {
+  CursorPaginatedResponse paginatedData = 1;
+  map<string, FilterValue> appliedFilters = 2;
+}
+
+/**
+ * Each item in an update message
+ */
+message UpdateItem {
+  string id = 1;
+
+  enum Action {
+    ADDED = 0;
+    UPDATED = 1;
+    DELETED = 2;
+  }
+
+  Action action = 2;
+
+  // Optional data; only needed for added/updated
+  google.protobuf.Any data = 3;
+
+  // Optional version or sequence number used for updates
+  optional int64 version = 4;
+}
+
+/**
+ * Wrapper for update responses
+ */
+message UpdatesPayload {
+  repeated UpdateItem items = 1;
+  map<string, FilterValue> appliedFilters = 2;
+}

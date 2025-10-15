@@ -1,7 +1,9 @@
+import { Knex } from 'knex';
+
 import { db } from '@src/db/knex';
+import { CursorPaginatedSearchParams } from '@src/db/repositories/types';
 import { Tables } from '@src/db/tables';
 import { Blockchain, LaunchpadPlatform, LaunchpadTokenReport, LaunchpadTokenResult } from '@src/db/types';
-import CompositeCursor from '@src/db/utils/CompositeCursor';
 import { applyCompositeCursorFilter, scopedColumn } from '@src/db/utils/queries';
 import { HandlePumpTokenReport } from '@src/trading/bots/blockchains/solana/types';
 import { ExitMonitoringReason, Mode } from '@src/trading/bots/types';
@@ -35,24 +37,27 @@ export interface LaunchpadTokenFullResult<R = Record<string, unknown>> {
     updated_at: Date;
 }
 
-export async function getLaunchpadTokenFullResult<R>(p: {
-    mode: Mode | undefined;
-    chain?: Blockchain;
-    platform?: LaunchpadPlatform;
-    minSchemaVersion: number | undefined;
+export type CommonTradeFilters = {
     mint?: string;
-    strategyId?: string;
-    strategyName?: string;
-    strategyConfigVariant?: string;
-    tradesOnly: boolean;
+    tradesOnly?: boolean;
     tradeOutcome?: 'win' | 'loss';
-    exitCodes: ExitMonitoringReason[];
-    excludeExitCodes: ExitMonitoringReason[];
-    includeTrades: boolean;
-    direction: 'asc' | 'desc';
-    limit: number;
-    cursor?: CompositeCursor;
-}): Promise<LaunchpadTokenFullResult<R>[]> {
+    exitCodes?: ExitMonitoringReason[];
+    excludeExitCodes?: ExitMonitoringReason[];
+    includeTrades?: boolean;
+};
+
+export async function getLaunchpadTokenFullResult<R>(
+    p: {
+        mode: Mode | undefined;
+        chain?: Blockchain;
+        platform?: LaunchpadPlatform;
+        minSchemaVersion: number | undefined;
+        strategyId?: string;
+        strategyName?: string;
+        strategyConfigVariant?: string;
+    } & CommonTradeFilters &
+        CursorPaginatedSearchParams,
+): Promise<LaunchpadTokenFullResult<R>[]> {
     const queryBuilder = db
         .table(Tables.LaunchpadTokenResults)
         .select<LaunchpadTokenFullResult<R>[]>([
@@ -96,43 +101,9 @@ export async function getLaunchpadTokenFullResult<R>(p: {
         queryBuilder.where('schema_version', '>=', p.minSchemaVersion);
     }
 
-    if (p.mint) {
-        queryBuilder.where('mint', p.mint);
-    }
-
-    if (p.tradesOnly) {
-        queryBuilder.whereNotNull('net_pnl');
-
-        if (p.tradeOutcome === 'win') {
-            queryBuilder.where('net_pnl', '>', 0);
-        }
-
-        if (p.tradeOutcome === 'loss') {
-            queryBuilder.where('net_pnl', '<', 0);
-        }
-    } else if (p.includeTrades) {
-        queryBuilder.where(function () {
-            this.whereNotNull('net_pnl');
-
-            this.orWhere(function () {
-                if (p.exitCodes.length > 0) {
-                    this.whereIn('exit_code', p.exitCodes);
-                }
-
-                if (p.excludeExitCodes.length > 0) {
-                    this.whereNotIn('exit_code', p.excludeExitCodes);
-                }
-            });
-        });
-    } else {
-        if (p.exitCodes.length > 0) {
-            queryBuilder.whereIn('exit_code', p.exitCodes);
-        }
-
-        if (p.excludeExitCodes.length > 0) {
-            queryBuilder.whereNotIn('exit_code', p.excludeExitCodes);
-        }
-    }
+    applyCommonTradeFilters(queryBuilder, p, {
+        netPnlColumn: 'net_pnl',
+    });
 
     if (p.strategyId) {
         // eslint-disable-next-line quotes
@@ -161,4 +132,52 @@ export async function getLaunchpadTokenFullResult<R>(p: {
         // @ts-ignore
         simulation: e.simulation === 1,
     }));
+}
+
+export function applyCommonTradeFilters(
+    queryBuilder: Knex.QueryBuilder,
+    p: CommonTradeFilters,
+    {
+        netPnlColumn,
+    }: {
+        netPnlColumn: string;
+    },
+): void {
+    if (p.mint) {
+        queryBuilder.where('mint', p.mint);
+    }
+
+    if (p.tradesOnly) {
+        queryBuilder.whereNotNull(netPnlColumn);
+
+        if (p.tradeOutcome === 'win') {
+            queryBuilder.where(netPnlColumn, '>', 0);
+        }
+
+        if (p.tradeOutcome === 'loss') {
+            queryBuilder.where(netPnlColumn, '<', 0);
+        }
+    } else if (p.includeTrades) {
+        queryBuilder.where(function () {
+            this.whereNotNull(netPnlColumn);
+
+            this.orWhere(function () {
+                if (p.exitCodes && p.exitCodes.length > 0) {
+                    this.whereIn('exit_code', p.exitCodes);
+                }
+
+                if (p.excludeExitCodes && p.excludeExitCodes.length > 0) {
+                    this.whereNotIn('exit_code', p.excludeExitCodes);
+                }
+            });
+        });
+    } else {
+        if (p.exitCodes && p.exitCodes.length > 0) {
+            queryBuilder.whereIn('exit_code', p.exitCodes);
+        }
+
+        if (p.excludeExitCodes && p.excludeExitCodes.length > 0) {
+            queryBuilder.whereNotIn('exit_code', p.excludeExitCodes);
+        }
+    }
 }

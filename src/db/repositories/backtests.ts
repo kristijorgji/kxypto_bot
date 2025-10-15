@@ -1,18 +1,37 @@
-import { lamportsToSol } from '../../blockchains/utils/amount';
+import { lamportsToSol } from '@src/blockchains/utils/amount';
+import { CommonTradeFilters, applyCommonTradeFilters } from '@src/db/repositories/launchpad_tokens';
+import { CursorPaginatedSearchParams } from '@src/db/repositories/types';
+import CompositeCursor from '@src/db/utils/CompositeCursor';
+import { CursorFactory } from '@src/db/utils/CursorFactory';
+import { applyCompositeCursorFilter, scopedColumn } from '@src/db/utils/queries';
+import { CursorPaginatedResponse } from '@src/http-api/types';
+import { ProtoBacktestMintFullResult } from '@src/protos/generated/backtests';
 import {
     BacktestExitResponse,
     BacktestTradeResponse,
     StrategyBacktestResult,
-} from '../../trading/bots/blockchains/solana/types';
+} from '@src/trading/bots/blockchains/solana/types';
+import { formatDateToMySQLTimestamp } from '@src/utils/time';
+import { RequestDataParams } from '@src/ws-api/types';
+
 import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
 import { db } from '../knex';
 import { Tables } from '../tables';
-import { Backtest, BacktestStrategyMintResult, BacktestStrategyResult } from '../types';
+import { Backtest, BacktestStrategyMintResult, BacktestStrategyResult, Blockchain } from '../types';
 
-export async function getBacktest(id: string): Promise<Backtest> {
+export async function getBacktestById(id: string): Promise<Backtest> {
     const r = await db.table(Tables.Backtests).select<Backtest>().where('id', id).first();
     if (!r) {
         throw new Error(`Backtest with id ${id} was not found`);
+    }
+
+    return r;
+}
+
+async function getBacktest(chain: Blockchain, name: string): Promise<Backtest> {
+    const r = await db.table(Tables.Backtests).select<Backtest>().where('chain', chain).where('name', name).first();
+    if (!r) {
+        throw new Error(`Backtest with for chain ${chain} and name ${name} was not found`);
     }
 
     return r;
@@ -122,4 +141,118 @@ export async function getBacktestStrategyResults(
     }
 
     return (await query) as BacktestStrategyResult[];
+}
+
+export type BacktestMintFullResult = ProtoBacktestMintFullResult;
+
+export type BacktestsMintResultsFilters = {
+    chain: Blockchain;
+    backtestId?: string;
+    backtestName?: string;
+    strategyId?: string;
+    strategyName?: string;
+    strategyConfigVariant?: string;
+} & CommonTradeFilters;
+
+export async function getBacktestStrategyMintResults(
+    p: BacktestsMintResultsFilters & CursorPaginatedSearchParams,
+): Promise<BacktestMintFullResult[]> {
+    let backtests: Backtest[] | undefined;
+
+    if (p.backtestId) {
+        backtests = [await getBacktestById(p.backtestId)];
+    } else if (p.backtestName) {
+        backtests = [await getBacktest(p.chain, p.backtestName)];
+    } else if (p.chain) {
+        backtests = await db.table(Tables.Backtests).select<Backtest[]>().where('chain', p.chain);
+    }
+
+    const queryBuilder = db
+        .table(Tables.BacktestStrategyResults)
+        .select({
+            id: scopedColumn(Tables.BacktestStrategyMintResults, 'id'),
+            backtest_id: 'backtest_id',
+            config_variant: 'config_variant',
+            strategy_result_id: 'strategy_result_id',
+            net_pnl: scopedColumn(Tables.BacktestStrategyMintResults, 'net_pnl_sol'),
+            holdings_value: scopedColumn(Tables.BacktestStrategyMintResults, 'holdings_value_sol'),
+            roi: scopedColumn(Tables.BacktestStrategyMintResults, 'roi'),
+            exit_code: 'exit_code',
+            exit_reason: 'exit_reason',
+            payload: 'payload',
+            created_at: scopedColumn(Tables.BacktestStrategyMintResults, 'created_at'),
+        })
+        .join(
+            Tables.BacktestStrategyMintResults,
+            scopedColumn(Tables.BacktestStrategyResults, 'id'),
+            scopedColumn(Tables.BacktestStrategyMintResults, 'strategy_result_id'),
+        )
+        .orderBy([
+            { column: scopedColumn(Tables.BacktestStrategyMintResults, 'created_at'), order: p.direction },
+            { column: scopedColumn(Tables.BacktestStrategyMintResults, 'id'), order: p.direction },
+        ])
+        .limit(p.limit);
+
+    if (backtests) {
+        queryBuilder.whereIn(
+            'backtest_id',
+            backtests.map(el => el.id),
+        );
+    }
+
+    applyCommonTradeFilters(queryBuilder, p, {
+        netPnlColumn: 'net_pnl_sol',
+    });
+
+    if (p.strategyId) {
+        queryBuilder.where('strategy_id', p.strategyId);
+    }
+
+    if (p.strategyName) {
+        queryBuilder.where('strategy', p.strategyName);
+    }
+
+    if (p.strategyConfigVariant) {
+        queryBuilder.where('config_variant', p.strategyConfigVariant);
+    }
+
+    if (p.cursor) {
+        applyCompositeCursorFilter(queryBuilder, p.cursor, Tables.BacktestStrategyMintResults, p.direction);
+    }
+
+    return queryBuilder;
+}
+
+export async function fetchBacktestsMintResultsCursorPaginated(
+    params: RequestDataParams<BacktestsMintResultsFilters>,
+): Promise<CursorPaginatedResponse<BacktestMintFullResult>> {
+    const { filters, pagination } = params as RequestDataParams<BacktestsMintResultsFilters>;
+
+    let decodedCursor: CompositeCursor | undefined;
+    if (pagination.cursor) {
+        decodedCursor = CursorFactory.decodeCursor(pagination.cursor);
+    }
+
+    const data = await getBacktestStrategyMintResults({
+        ...filters,
+        direction: 'desc',
+        limit: pagination.limit + 1,
+        cursor: decodedCursor,
+    });
+
+    let nextCursor: string | null = null;
+    if (data.length > pagination.limit) {
+        const lastItem = data[pagination.limit - 1];
+        nextCursor = CursorFactory.formCursor({
+            lastPreviousId: lastItem.id.toString(),
+            lastDate: formatDateToMySQLTimestamp(lastItem.created_at as unknown as Date, true),
+        });
+        data.pop();
+    }
+
+    return {
+        data: data,
+        count: data.length,
+        nextCursor: nextCursor,
+    };
 }

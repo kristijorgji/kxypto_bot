@@ -1,8 +1,40 @@
 import { faker } from '@faker-js/faker';
 
-import { ProtoBacktestMintFullResult } from '@src/protos/generated/backtests';
+import { ProtoBacktestMintFullResult, ProtoBacktestStrategyFullResult } from '@src/protos/generated/backtests';
 import { exitMonitoringReasonEnum } from '@src/trading/bots/types';
-import { pickRandomItem } from '@src/utils/data/data';
+import { pickRandomItem, randomInt } from '@src/utils/data/data';
+
+export function ProtoBacktestStrategyFullResultFactory(): ProtoBacktestStrategyFullResult {
+    const strategy = faker.animal.petName();
+    const totalTrades = faker.number.int();
+    const wins = randomInt(1, totalTrades);
+    const losses = totalTrades - wins;
+
+    return {
+        id: faker.number.int(),
+        backtest_id: faker.string.uuid(),
+        strategy: faker.animal.petName(),
+        strategy_id: `${strategy}_${faker.number.int()}`,
+        config_variant: faker.animal.crocodilia(),
+        config: {},
+        pnl_sol: faker.number.float(),
+        holdings_value_sol: faker.number.float(),
+        roi: faker.number.float({ min: 0.1, max: 100 }),
+        win_rate: faker.number.float(),
+        wins_count: wins,
+        biggest_win_percentage: faker.number.float(),
+        losses_count: losses,
+        biggest_loss_percentage: faker.number.float(),
+        total_trades_count: totalTrades,
+        buy_trades_count: totalTrades / 2,
+        sell_trades_count: totalTrades / 2,
+        highest_peak_sol: faker.number.float(),
+        lowest_trough_sol: faker.number.float(),
+        max_drawdown_percentage: faker.number.float(),
+        execution_time_seconds: faker.number.int(),
+        created_at: faker.date.past().toString(),
+    };
+}
 
 export function ProtoBacktestMintFullResultFactory(): ProtoBacktestMintFullResult {
     const didExit = faker.datatype.boolean();

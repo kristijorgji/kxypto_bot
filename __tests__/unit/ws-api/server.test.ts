@@ -13,7 +13,7 @@ import { CursorPaginatedResponse } from '../../../src/http-api/types';
 import { ProtoBacktestMintFullResultFactory } from '../../../src/testdata/factories/proto/backtests';
 import { make } from '../../../src/testdata/utils';
 import { WS_CLOSE_CODES, server, wss } from '../../../src/ws-api/configureWsApp';
-import { BACKTESTS_MINT_RESULTS_CHANNEL } from '../../../src/ws-api/handlers/backtestsHandler';
+import { BACKTESTS_MINT_RESULTS_CHANNEL } from '../../../src/ws-api/handlers/backtests/mintResultsHandler';
 import { DataSubscriptionResponse, SubscribeMessage, WsUserPayload } from '../../../src/ws-api/types';
 
 jest.mock('../../../src/ws-api/middlewares/verifyWsJwt');

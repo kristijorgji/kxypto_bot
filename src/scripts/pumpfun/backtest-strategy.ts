@@ -1,10 +1,12 @@
 import { program } from 'commander';
 import { createLogger } from 'winston';
 
+import { redis } from '@src/cache/cache';
 import { getFiles } from '@src/data/getFiles';
+import { createPubSub } from '@src/pubsub';
+import BacktestPubSub from '@src/pubsub/BacktestPubSub';
 
 import { solToLamports } from '../../blockchains/utils/amount';
-import { redis } from '../../cache/cache';
 import { db } from '../../db/knex';
 import { getBacktestById } from '../../db/repositories/backtests';
 import { logger } from '../../logger';
@@ -17,6 +19,8 @@ import BuyPredictionStrategy, {
 } from '../../trading/strategies/launchpads/BuyPredictionStrategy';
 import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
 import { PredictionSource } from '../../trading/strategies/types';
+
+const pubsub = createPubSub();
 
 program
     .name('backtest-strategy')
@@ -36,6 +40,7 @@ program
         } finally {
             await db.destroy();
             redis.disconnect();
+            pubsub.close();
         }
     });
 
@@ -49,19 +54,24 @@ async function start(args: { backtestId?: string; config?: string }) {
         throw new Error('Invalid configuration. You can either provide backtestId or config as an argument');
     }
 
+    const runnerDeps = {
+        logger: logger,
+        backtestPubSub: new BacktestPubSub(pubsub),
+    };
+
     if (args.config) {
         logger.info('Running backtest using config file: %s', args.config);
-        return await runAndSelectBestStrategy(logger, await parseBacktestFileConfig(args.config));
+        return await runAndSelectBestStrategy(runnerDeps, await parseBacktestFileConfig(args.config));
     }
 
     if (args.backtestId) {
-        return await runAndSelectBestStrategy(logger, {
+        return await runAndSelectBestStrategy(runnerDeps, {
             backtest: await getBacktestById(args.backtestId),
             strategies: getStrategies(),
         });
     }
 
-    await runAndSelectBestStrategy(logger, {
+    await runAndSelectBestStrategy(runnerDeps, {
         runConfig: getBacktestRunConfig(),
         strategies: getStrategies(),
     });

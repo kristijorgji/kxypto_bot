@@ -44,9 +44,15 @@ wss.on('connection', (wsRaw, req) => {
 
     ws.on('message', data => handleMessage(logger, ws, data));
 
-    ws.on('close', () => {
+    ws.on('close', async () => {
         for (const sub of ws.subscriptions.values()) {
-            if (sub.interval) clearInterval(sub.interval);
+            if (sub.interval) {
+                clearInterval(sub.interval);
+            }
+
+            if (sub.close) {
+                await sub.close();
+            }
         }
         ws.subscriptions.clear();
         logger.debug('Client disconnected');

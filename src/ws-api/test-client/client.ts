@@ -2,17 +2,22 @@ import '@src/core/loadEnv';
 import { v4 as uuidv4 } from 'uuid';
 import WebSocket from 'ws';
 
-import { BacktestMintFullResult } from '@src/db/repositories/backtests';
 import { CursorPaginatedResponse } from '@src/http-api/types';
 import { logger } from '@src/logger';
-import { ProtoBacktestMintFullResult } from '@src/protos/generated/backtests';
-import { ProtoFetchMoreResponse, ProtoSnapshotResponse, ProtoUpdatesPayload } from '@src/protos/generated/ws';
+import { ProtoBacktestMintFullResult, ProtoBacktestStrategyFullResult } from '@src/protos/generated/backtests';
+import {
+    MessageFns,
+    ProtoCursorPaginatedSnapshotPayload,
+    ProtoFetchMorePayload,
+    ProtoUpdatesPayload,
+} from '@src/protos/generated/ws';
 import { unpackAny } from '@src/protos/mappers/any';
-import { decodeCursorPaginatedResponse } from '@src/protos/mappers/cursorPaginatedResponse';
-import { unpackFilters } from '@src/protos/mappers/filters';
+import { unpackFetchMorePayload } from '@src/protos/mappers/fetchMorePayload';
+import { unpackCursorPaginatedSnapshotPayload } from '@src/protos/mappers/snapshotPayload';
 import { unpackUpdatesPayload } from '@src/protos/mappers/updatesPayload';
 import { parseHybridMessage } from '@src/protos/utils/hybridMessage';
-import { BACKTESTS_MINT_RESULTS_CHANNEL } from '@src/ws-api/handlers/backtestsHandler';
+import { BACKTESTS_MINT_RESULTS_CHANNEL } from '@src/ws-api/handlers/backtests/mintResultsHandler';
+import { BACKTESTS_STRATEGY_RESULTS_CHANNEL } from '@src/ws-api/handlers/backtests/strategyResultsHandler';
 import {
     BaseResponse,
     DataFetchMoreResponse,
@@ -23,7 +28,9 @@ import {
     SubscribeMessage,
 } from '@src/ws-api/types';
 
-const encoding: 'proto' | 'json' = 'proto';
+type SupportedEncoding = 'proto' | 'json';
+
+const encoding: SupportedEncoding = 'proto';
 
 const tokenBearer =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlblR5cGUiOiJhY2Nlc3MiLCJ1c2VySWQiOiI2ZjVlZWU2My1lNTBjLTRmMDYtYjJkNi02NTU5ZTE1ZGIxNDYiLCJpYXQiOjE3NTIzMTQ2MzMsImV4cCI6MTc2MzExNDYzMywiaXNzIjoia3h5cHRvX2JvdCJ9.LLP_MPIvU4-IDmLpEmQxVvE26Hr0YvfoiEgnWagRHdg';
@@ -43,15 +50,34 @@ async function main() {
         },
     });
 
-    const backtestsMintResultsSubscriptionId = `bmr_${uuidv4()}`;
     const fetchLimit = 50;
+    const receivedBacktestStrategyResultIds: Set<string> = new Set();
     const receivedBacktestMintResultIds: Set<string> = new Set();
 
     ws.on('open', () => {
         logger.debug(`✅ Connected to WS ${ws.url} using ${encoding} encoding`);
 
-        const message: SubscribeMessage = {
-            id: backtestsMintResultsSubscriptionId,
+        const backtestStrategyResultsSubscriptionMessage: SubscribeMessage = {
+            id: `bsr_${uuidv4()}`,
+            event: 'subscribe',
+            channel: BACKTESTS_STRATEGY_RESULTS_CHANNEL,
+            data: {
+                filters: {
+                    chain: 'solana',
+                },
+                pagination: {
+                    limit: fetchLimit,
+                },
+            },
+        };
+        ws.send(JSON.stringify(backtestStrategyResultsSubscriptionMessage));
+        logger.debug(
+            '📨 Sent backtestStrategyResultsSubscription message: %o',
+            backtestStrategyResultsSubscriptionMessage,
+        );
+
+        const backtestMintResultsSubscriptionMessage: SubscribeMessage = {
+            id: `bsmr_${uuidv4()}`,
             event: 'subscribe',
             channel: BACKTESTS_MINT_RESULTS_CHANNEL,
             data: {
@@ -67,9 +93,8 @@ async function main() {
                 },
             },
         };
-
-        ws.send(JSON.stringify(message));
-        logger.debug('📨 Sent subscription message: %o', message);
+        ws.send(JSON.stringify(backtestMintResultsSubscriptionMessage));
+        logger.debug('📨 Sent backtestMintResultsSubscription message: %o', backtestMintResultsSubscriptionMessage);
     });
 
     ws.on('message', (data: Buffer) => {
@@ -101,66 +126,16 @@ async function main() {
 
             logger.debug('Header: %o', header);
 
-            if (header.channel === BACKTESTS_MINT_RESULTS_CHANNEL) {
-                if (header.event === 'snapshot') {
-                    let parsedSnapshot: DataSubscriptionResponse<
-                        CursorPaginatedResponse<ProtoBacktestMintFullResult>
-                    >['snapshot'];
-
-                    if (encoding === 'proto') {
-                        const snapshot = ProtoSnapshotResponse.decode(protoPayloadBuffer!);
-                        parsedSnapshot = {
-                            data: decodeCursorPaginatedResponse(snapshot.data!, ProtoBacktestMintFullResult.decode)!,
-                            appliedFilters: unpackFilters(snapshot.appliedFilters),
-                        };
-                    } else {
-                        parsedSnapshot = jsonData!.snapshot as typeof parsedSnapshot;
-                    }
-
-                    logger.debug('[%s][%s] parsedSnapshot %o', header.channel, header.id, parsedSnapshot);
-
-                    assertIdUniqueness(parsedSnapshot.data.data, 'id', receivedBacktestMintResultIds);
-
-                    checkAndFetchMoreBacktestMintResultsData(parsedSnapshot.data.nextCursor);
-                } else if (header.event === 'fetchMore') {
-                    let parsedPayload: DataFetchMoreResponse<ProtoBacktestMintFullResult>['payload'];
-
-                    if (encoding === 'proto') {
-                        const payload = ProtoFetchMoreResponse.decode(protoPayloadBuffer!);
-                        parsedPayload = {
-                            paginatedData: decodeCursorPaginatedResponse(
-                                payload.paginatedData!,
-                                ProtoBacktestMintFullResult.decode,
-                            )!,
-                            appliedFilters: unpackFilters(payload.appliedFilters),
-                        };
-                    } else {
-                        parsedPayload = (jsonData as unknown as DataFetchMoreResponse<BacktestMintFullResult>).payload;
-                    }
-
-                    logger.debug(
-                        '[%s][%s] parsedPayload.paginatedData?.nextCursor %s',
-                        header.channel,
-                        header.id,
-                        parsedPayload.paginatedData?.nextCursor,
-                    );
-
-                    assertIdUniqueness(parsedPayload.paginatedData!.data, 'id', receivedBacktestMintResultIds);
-
-                    checkAndFetchMoreBacktestMintResultsData(parsedPayload.paginatedData!.nextCursor);
-                } else if (header.event === 'update') {
-                    let parsedUpdates: DataUpdateResponse<ProtoBacktestMintFullResult>['updates'];
-
-                    if (encoding === 'proto') {
-                        const payload = ProtoUpdatesPayload.decode(protoPayloadBuffer!);
-                        parsedUpdates = unpackUpdatesPayload(payload, anyMsg => unpackAny(anyMsg));
-                    } else {
-                        parsedUpdates = (jsonData as unknown as DataUpdateResponse<ProtoBacktestMintFullResult>)
-                            .updates;
-                    }
-
-                    logger.debug('[%s][%s] parsedUpdates %o', header.channel, header.id, parsedUpdates);
-                }
+            if (header.channel === BACKTESTS_STRATEGY_RESULTS_CHANNEL) {
+                handleChannelEvents(header, protoPayloadBuffer, jsonData, ProtoBacktestStrategyFullResult, {
+                    idProperty: 'id',
+                    idsSet: receivedBacktestStrategyResultIds,
+                });
+            } else if (header.channel === BACKTESTS_MINT_RESULTS_CHANNEL) {
+                handleChannelEvents(header, protoPayloadBuffer, jsonData, ProtoBacktestMintFullResult, {
+                    idProperty: 'id',
+                    idsSet: receivedBacktestMintResultIds,
+                });
             }
         } catch (err) {
             logger.error('❌ Failed to parse hybrid message: %o', err);
@@ -174,6 +149,69 @@ async function main() {
     ws.on('error', err => {
         logger.error('WebSocket error:', err);
     });
+
+    function handleChannelEvents<T>(
+        header: BaseResponse,
+        protoPayloadBuffer: Buffer | undefined,
+        jsonData: Record<string, unknown> | undefined,
+        protoClass: MessageFns<T>,
+        assertUniquenessConfig: {
+            idProperty: keyof T;
+            idsSet: Set<string | number>;
+        },
+    ) {
+        if (header.event === 'snapshot') {
+            const parsedSnapshot: DataSubscriptionResponse<CursorPaginatedResponse<T>>['snapshot'] = decodePayload(
+                encoding,
+                protoPayloadBuffer,
+                jsonData,
+                input =>
+                    unpackCursorPaginatedSnapshotPayload(
+                        ProtoCursorPaginatedSnapshotPayload.decode(input!),
+                        protoClass.decode,
+                    ),
+            );
+            logger.debug('[%s][%s] parsedSnapshot %o', header.channel, header.id, parsedSnapshot);
+            assertIdUniqueness(
+                parsedSnapshot.data.data,
+                assertUniquenessConfig.idProperty,
+                assertUniquenessConfig.idsSet,
+            );
+            checkAndFetchMore(header.id, header.channel, assertUniquenessConfig.idsSet, parsedSnapshot.data.nextCursor);
+        } else if (header.event === 'fetchMore') {
+            const parsedPayload: DataFetchMoreResponse<T>['payload'] = decodePayload(
+                encoding,
+                protoPayloadBuffer,
+                jsonData,
+                input => unpackFetchMorePayload(ProtoFetchMorePayload.decode(input), protoClass.decode),
+            );
+            logger.debug(
+                '[%s][%s] parsedPayload.paginatedData?.nextCursor %s',
+                header.channel,
+                header.id,
+                parsedPayload.paginatedData?.nextCursor,
+            );
+            assertIdUniqueness(
+                parsedPayload.paginatedData!.data,
+                assertUniquenessConfig.idProperty,
+                assertUniquenessConfig.idsSet,
+            );
+            checkAndFetchMore(
+                header.id,
+                header.channel,
+                assertUniquenessConfig.idsSet,
+                parsedPayload.paginatedData!.nextCursor,
+            );
+        } else if (header.event === 'update') {
+            const parsedUpdates: DataUpdateResponse<T>['updates'] = decodePayload(
+                encoding,
+                protoPayloadBuffer,
+                jsonData,
+                input => unpackUpdatesPayload(ProtoUpdatesPayload.decode(input), anyMsg => unpackAny(anyMsg)),
+            );
+            logger.debug('[%s][%s] parsedUpdates %o', header.channel, header.id, parsedUpdates);
+        }
+    }
 
     /**
      * A helper function to test the integrity of the response data
@@ -189,11 +227,16 @@ async function main() {
         }
     }
 
-    function checkAndFetchMoreBacktestMintResultsData(nextCursor: string | null | undefined): void {
+    function checkAndFetchMore(
+        subscriptionId: string,
+        channel: string,
+        idsSet: Set<string | number>,
+        nextCursor: string | null | undefined,
+    ): void {
         if (nextCursor) {
             const message: FetchMoreMessage = {
-                id: backtestsMintResultsSubscriptionId,
-                channel: BACKTESTS_MINT_RESULTS_CHANNEL,
+                id: subscriptionId,
+                channel: channel,
                 event: 'fetchMore',
                 data: {
                     limit: fetchLimit,
@@ -201,11 +244,26 @@ async function main() {
                 },
             };
             ws.send(JSON.stringify(message));
-            logger.debug('[%s][%s] Sent fetchMore message: %o', message.channel, message.id, message);
+            logger.debug('[%s][%s] Sent fetchMore message: %o', channel, subscriptionId, message);
         } else {
-            logger.info('Fetched all data, total items %d', receivedBacktestMintResultIds.size);
+            logger.info('[%s][%s] Fetched all data, total items %d', channel, subscriptionId, idsSet.size);
         }
     }
 }
 
 main().catch(logger.error);
+
+function decodePayload<T>(
+    encoding: SupportedEncoding,
+    protoPayloadBuffer: Buffer | undefined,
+    jsonData: Record<string, unknown> | undefined,
+    decodeFn: MessageFns<T>['decode'],
+) {
+    if (encoding === 'proto') {
+        return decodeFn(protoPayloadBuffer!);
+    } else if (encoding === 'json') {
+        return jsonData as unknown as T;
+    }
+
+    throw new Error(`Unsupported encoding ${encoding}`);
+}

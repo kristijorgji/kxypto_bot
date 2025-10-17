@@ -45,8 +45,8 @@ export interface ProtoFilterValue {
   bool_array?: ProtoBoolArray | undefined;
 }
 
-/** Wrapper for snapshot responses */
-export interface ProtoSnapshotResponse {
+/** Wrapper for snapshot response payload */
+export interface ProtoCursorPaginatedSnapshotPayload {
   /** The actual data for this snapshot. */
   data:
     | ProtoCursorPaginatedResponse
@@ -55,18 +55,18 @@ export interface ProtoSnapshotResponse {
   appliedFilters: { [key: string]: ProtoFilterValue };
 }
 
-export interface ProtoSnapshotResponse_AppliedFiltersEntry {
+export interface ProtoCursorPaginatedSnapshotPayload_AppliedFiltersEntry {
   key: string;
   value: ProtoFilterValue | undefined;
 }
 
-/** Wrapper for fetchMore responses */
-export interface ProtoFetchMoreResponse {
+/** Wrapper for fetchMore response payload */
+export interface ProtoFetchMorePayload {
   paginatedData: ProtoCursorPaginatedResponse | undefined;
   appliedFilters: { [key: string]: ProtoFilterValue };
 }
 
-export interface ProtoFetchMoreResponse_AppliedFiltersEntry {
+export interface ProtoFetchMorePayload_AppliedFiltersEntry {
   key: string;
   value: ProtoFilterValue | undefined;
 }
@@ -582,25 +582,28 @@ export const ProtoFilterValue: MessageFns<ProtoFilterValue> = {
   },
 };
 
-function createBaseProtoSnapshotResponse(): ProtoSnapshotResponse {
+function createBaseProtoCursorPaginatedSnapshotPayload(): ProtoCursorPaginatedSnapshotPayload {
   return { data: undefined, appliedFilters: {} };
 }
 
-export const ProtoSnapshotResponse: MessageFns<ProtoSnapshotResponse> = {
-  encode(message: ProtoSnapshotResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const ProtoCursorPaginatedSnapshotPayload: MessageFns<ProtoCursorPaginatedSnapshotPayload> = {
+  encode(message: ProtoCursorPaginatedSnapshotPayload, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.data !== undefined) {
       ProtoCursorPaginatedResponse.encode(message.data, writer.uint32(10).fork()).join();
     }
     Object.entries(message.appliedFilters).forEach(([key, value]) => {
-      ProtoSnapshotResponse_AppliedFiltersEntry.encode({ key: key as any, value }, writer.uint32(18).fork()).join();
+      ProtoCursorPaginatedSnapshotPayload_AppliedFiltersEntry.encode(
+        { key: key as any, value },
+        writer.uint32(18).fork(),
+      ).join();
     });
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): ProtoSnapshotResponse {
+  decode(input: BinaryReader | Uint8Array, length?: number): ProtoCursorPaginatedSnapshotPayload {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseProtoSnapshotResponse();
+    const message = createBaseProtoCursorPaginatedSnapshotPayload();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -617,7 +620,7 @@ export const ProtoSnapshotResponse: MessageFns<ProtoSnapshotResponse> = {
             break;
           }
 
-          const entry2 = ProtoSnapshotResponse_AppliedFiltersEntry.decode(reader, reader.uint32());
+          const entry2 = ProtoCursorPaginatedSnapshotPayload_AppliedFiltersEntry.decode(reader, reader.uint32());
           if (entry2.value !== undefined) {
             message.appliedFilters[entry2.key] = entry2.value;
           }
@@ -632,7 +635,7 @@ export const ProtoSnapshotResponse: MessageFns<ProtoSnapshotResponse> = {
     return message;
   },
 
-  fromJSON(object: any): ProtoSnapshotResponse {
+  fromJSON(object: any): ProtoCursorPaginatedSnapshotPayload {
     return {
       data: isSet(object.data) ? ProtoCursorPaginatedResponse.fromJSON(object.data) : undefined,
       appliedFilters: isObject(object.appliedFilters)
@@ -644,7 +647,7 @@ export const ProtoSnapshotResponse: MessageFns<ProtoSnapshotResponse> = {
     };
   },
 
-  toJSON(message: ProtoSnapshotResponse): unknown {
+  toJSON(message: ProtoCursorPaginatedSnapshotPayload): unknown {
     const obj: any = {};
     if (message.data !== undefined) {
       obj.data = ProtoCursorPaginatedResponse.toJSON(message.data);
@@ -661,11 +664,15 @@ export const ProtoSnapshotResponse: MessageFns<ProtoSnapshotResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<ProtoSnapshotResponse>, I>>(base?: I): ProtoSnapshotResponse {
-    return ProtoSnapshotResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<ProtoCursorPaginatedSnapshotPayload>, I>>(
+    base?: I,
+  ): ProtoCursorPaginatedSnapshotPayload {
+    return ProtoCursorPaginatedSnapshotPayload.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ProtoSnapshotResponse>, I>>(object: I): ProtoSnapshotResponse {
-    const message = createBaseProtoSnapshotResponse();
+  fromPartial<I extends Exact<DeepPartial<ProtoCursorPaginatedSnapshotPayload>, I>>(
+    object: I,
+  ): ProtoCursorPaginatedSnapshotPayload {
+    const message = createBaseProtoCursorPaginatedSnapshotPayload();
     message.data = (object.data !== undefined && object.data !== null)
       ? ProtoCursorPaginatedResponse.fromPartial(object.data)
       : undefined;
@@ -682,12 +689,17 @@ export const ProtoSnapshotResponse: MessageFns<ProtoSnapshotResponse> = {
   },
 };
 
-function createBaseProtoSnapshotResponse_AppliedFiltersEntry(): ProtoSnapshotResponse_AppliedFiltersEntry {
+function createBaseProtoCursorPaginatedSnapshotPayload_AppliedFiltersEntry(): ProtoCursorPaginatedSnapshotPayload_AppliedFiltersEntry {
   return { key: "", value: undefined };
 }
 
-export const ProtoSnapshotResponse_AppliedFiltersEntry: MessageFns<ProtoSnapshotResponse_AppliedFiltersEntry> = {
-  encode(message: ProtoSnapshotResponse_AppliedFiltersEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const ProtoCursorPaginatedSnapshotPayload_AppliedFiltersEntry: MessageFns<
+  ProtoCursorPaginatedSnapshotPayload_AppliedFiltersEntry
+> = {
+  encode(
+    message: ProtoCursorPaginatedSnapshotPayload_AppliedFiltersEntry,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.key !== "") {
       writer.uint32(10).string(message.key);
     }
@@ -697,10 +709,10 @@ export const ProtoSnapshotResponse_AppliedFiltersEntry: MessageFns<ProtoSnapshot
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): ProtoSnapshotResponse_AppliedFiltersEntry {
+  decode(input: BinaryReader | Uint8Array, length?: number): ProtoCursorPaginatedSnapshotPayload_AppliedFiltersEntry {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseProtoSnapshotResponse_AppliedFiltersEntry();
+    const message = createBaseProtoCursorPaginatedSnapshotPayload_AppliedFiltersEntry();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -729,14 +741,14 @@ export const ProtoSnapshotResponse_AppliedFiltersEntry: MessageFns<ProtoSnapshot
     return message;
   },
 
-  fromJSON(object: any): ProtoSnapshotResponse_AppliedFiltersEntry {
+  fromJSON(object: any): ProtoCursorPaginatedSnapshotPayload_AppliedFiltersEntry {
     return {
       key: isSet(object.key) ? globalThis.String(object.key) : "",
       value: isSet(object.value) ? ProtoFilterValue.fromJSON(object.value) : undefined,
     };
   },
 
-  toJSON(message: ProtoSnapshotResponse_AppliedFiltersEntry): unknown {
+  toJSON(message: ProtoCursorPaginatedSnapshotPayload_AppliedFiltersEntry): unknown {
     const obj: any = {};
     if (message.key !== "") {
       obj.key = message.key;
@@ -747,15 +759,15 @@ export const ProtoSnapshotResponse_AppliedFiltersEntry: MessageFns<ProtoSnapshot
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<ProtoSnapshotResponse_AppliedFiltersEntry>, I>>(
+  create<I extends Exact<DeepPartial<ProtoCursorPaginatedSnapshotPayload_AppliedFiltersEntry>, I>>(
     base?: I,
-  ): ProtoSnapshotResponse_AppliedFiltersEntry {
-    return ProtoSnapshotResponse_AppliedFiltersEntry.fromPartial(base ?? ({} as any));
+  ): ProtoCursorPaginatedSnapshotPayload_AppliedFiltersEntry {
+    return ProtoCursorPaginatedSnapshotPayload_AppliedFiltersEntry.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ProtoSnapshotResponse_AppliedFiltersEntry>, I>>(
+  fromPartial<I extends Exact<DeepPartial<ProtoCursorPaginatedSnapshotPayload_AppliedFiltersEntry>, I>>(
     object: I,
-  ): ProtoSnapshotResponse_AppliedFiltersEntry {
-    const message = createBaseProtoSnapshotResponse_AppliedFiltersEntry();
+  ): ProtoCursorPaginatedSnapshotPayload_AppliedFiltersEntry {
+    const message = createBaseProtoCursorPaginatedSnapshotPayload_AppliedFiltersEntry();
     message.key = object.key ?? "";
     message.value = (object.value !== undefined && object.value !== null)
       ? ProtoFilterValue.fromPartial(object.value)
@@ -764,25 +776,25 @@ export const ProtoSnapshotResponse_AppliedFiltersEntry: MessageFns<ProtoSnapshot
   },
 };
 
-function createBaseProtoFetchMoreResponse(): ProtoFetchMoreResponse {
+function createBaseProtoFetchMorePayload(): ProtoFetchMorePayload {
   return { paginatedData: undefined, appliedFilters: {} };
 }
 
-export const ProtoFetchMoreResponse: MessageFns<ProtoFetchMoreResponse> = {
-  encode(message: ProtoFetchMoreResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const ProtoFetchMorePayload: MessageFns<ProtoFetchMorePayload> = {
+  encode(message: ProtoFetchMorePayload, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.paginatedData !== undefined) {
       ProtoCursorPaginatedResponse.encode(message.paginatedData, writer.uint32(10).fork()).join();
     }
     Object.entries(message.appliedFilters).forEach(([key, value]) => {
-      ProtoFetchMoreResponse_AppliedFiltersEntry.encode({ key: key as any, value }, writer.uint32(18).fork()).join();
+      ProtoFetchMorePayload_AppliedFiltersEntry.encode({ key: key as any, value }, writer.uint32(18).fork()).join();
     });
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): ProtoFetchMoreResponse {
+  decode(input: BinaryReader | Uint8Array, length?: number): ProtoFetchMorePayload {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseProtoFetchMoreResponse();
+    const message = createBaseProtoFetchMorePayload();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -799,7 +811,7 @@ export const ProtoFetchMoreResponse: MessageFns<ProtoFetchMoreResponse> = {
             break;
           }
 
-          const entry2 = ProtoFetchMoreResponse_AppliedFiltersEntry.decode(reader, reader.uint32());
+          const entry2 = ProtoFetchMorePayload_AppliedFiltersEntry.decode(reader, reader.uint32());
           if (entry2.value !== undefined) {
             message.appliedFilters[entry2.key] = entry2.value;
           }
@@ -814,7 +826,7 @@ export const ProtoFetchMoreResponse: MessageFns<ProtoFetchMoreResponse> = {
     return message;
   },
 
-  fromJSON(object: any): ProtoFetchMoreResponse {
+  fromJSON(object: any): ProtoFetchMorePayload {
     return {
       paginatedData: isSet(object.paginatedData)
         ? ProtoCursorPaginatedResponse.fromJSON(object.paginatedData)
@@ -828,7 +840,7 @@ export const ProtoFetchMoreResponse: MessageFns<ProtoFetchMoreResponse> = {
     };
   },
 
-  toJSON(message: ProtoFetchMoreResponse): unknown {
+  toJSON(message: ProtoFetchMorePayload): unknown {
     const obj: any = {};
     if (message.paginatedData !== undefined) {
       obj.paginatedData = ProtoCursorPaginatedResponse.toJSON(message.paginatedData);
@@ -845,11 +857,11 @@ export const ProtoFetchMoreResponse: MessageFns<ProtoFetchMoreResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<ProtoFetchMoreResponse>, I>>(base?: I): ProtoFetchMoreResponse {
-    return ProtoFetchMoreResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<ProtoFetchMorePayload>, I>>(base?: I): ProtoFetchMorePayload {
+    return ProtoFetchMorePayload.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ProtoFetchMoreResponse>, I>>(object: I): ProtoFetchMoreResponse {
-    const message = createBaseProtoFetchMoreResponse();
+  fromPartial<I extends Exact<DeepPartial<ProtoFetchMorePayload>, I>>(object: I): ProtoFetchMorePayload {
+    const message = createBaseProtoFetchMorePayload();
     message.paginatedData = (object.paginatedData !== undefined && object.paginatedData !== null)
       ? ProtoCursorPaginatedResponse.fromPartial(object.paginatedData)
       : undefined;
@@ -866,12 +878,12 @@ export const ProtoFetchMoreResponse: MessageFns<ProtoFetchMoreResponse> = {
   },
 };
 
-function createBaseProtoFetchMoreResponse_AppliedFiltersEntry(): ProtoFetchMoreResponse_AppliedFiltersEntry {
+function createBaseProtoFetchMorePayload_AppliedFiltersEntry(): ProtoFetchMorePayload_AppliedFiltersEntry {
   return { key: "", value: undefined };
 }
 
-export const ProtoFetchMoreResponse_AppliedFiltersEntry: MessageFns<ProtoFetchMoreResponse_AppliedFiltersEntry> = {
-  encode(message: ProtoFetchMoreResponse_AppliedFiltersEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const ProtoFetchMorePayload_AppliedFiltersEntry: MessageFns<ProtoFetchMorePayload_AppliedFiltersEntry> = {
+  encode(message: ProtoFetchMorePayload_AppliedFiltersEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.key !== "") {
       writer.uint32(10).string(message.key);
     }
@@ -881,10 +893,10 @@ export const ProtoFetchMoreResponse_AppliedFiltersEntry: MessageFns<ProtoFetchMo
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): ProtoFetchMoreResponse_AppliedFiltersEntry {
+  decode(input: BinaryReader | Uint8Array, length?: number): ProtoFetchMorePayload_AppliedFiltersEntry {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseProtoFetchMoreResponse_AppliedFiltersEntry();
+    const message = createBaseProtoFetchMorePayload_AppliedFiltersEntry();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -913,14 +925,14 @@ export const ProtoFetchMoreResponse_AppliedFiltersEntry: MessageFns<ProtoFetchMo
     return message;
   },
 
-  fromJSON(object: any): ProtoFetchMoreResponse_AppliedFiltersEntry {
+  fromJSON(object: any): ProtoFetchMorePayload_AppliedFiltersEntry {
     return {
       key: isSet(object.key) ? globalThis.String(object.key) : "",
       value: isSet(object.value) ? ProtoFilterValue.fromJSON(object.value) : undefined,
     };
   },
 
-  toJSON(message: ProtoFetchMoreResponse_AppliedFiltersEntry): unknown {
+  toJSON(message: ProtoFetchMorePayload_AppliedFiltersEntry): unknown {
     const obj: any = {};
     if (message.key !== "") {
       obj.key = message.key;
@@ -931,15 +943,15 @@ export const ProtoFetchMoreResponse_AppliedFiltersEntry: MessageFns<ProtoFetchMo
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<ProtoFetchMoreResponse_AppliedFiltersEntry>, I>>(
+  create<I extends Exact<DeepPartial<ProtoFetchMorePayload_AppliedFiltersEntry>, I>>(
     base?: I,
-  ): ProtoFetchMoreResponse_AppliedFiltersEntry {
-    return ProtoFetchMoreResponse_AppliedFiltersEntry.fromPartial(base ?? ({} as any));
+  ): ProtoFetchMorePayload_AppliedFiltersEntry {
+    return ProtoFetchMorePayload_AppliedFiltersEntry.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ProtoFetchMoreResponse_AppliedFiltersEntry>, I>>(
+  fromPartial<I extends Exact<DeepPartial<ProtoFetchMorePayload_AppliedFiltersEntry>, I>>(
     object: I,
-  ): ProtoFetchMoreResponse_AppliedFiltersEntry {
-    const message = createBaseProtoFetchMoreResponse_AppliedFiltersEntry();
+  ): ProtoFetchMorePayload_AppliedFiltersEntry {
+    const message = createBaseProtoFetchMorePayload_AppliedFiltersEntry();
     message.key = object.key ?? "";
     message.value = (object.value !== undefined && object.value !== null)
       ? ProtoFilterValue.fromPartial(object.value)

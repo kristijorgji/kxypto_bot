@@ -1,7 +1,7 @@
 import { WebSocket } from 'ws';
 
 import { CursorPaginatedResponse } from '@src/http-api/types';
-import { PlainFilters } from '@src/types/data';
+import { Pagination, PlainFilters } from '@src/types/data';
 
 /**
  * Represents a single active subscription for a WebSocket client.
@@ -42,6 +42,13 @@ export interface SubscriptionContext {
      * Cleared when unsubscribing or disconnecting.
      */
     interval?: ReturnType<typeof setInterval>;
+
+    /**
+     * Optional callback to perform asynchronous resource cleanup.
+     * * This should be called to ensure all open subscriptions, listeners,
+     * intervals, event buses, and other external handles are properly closed.
+     */
+    close?: () => void | Promise<void>;
 }
 
 /**
@@ -91,17 +98,7 @@ export type RequestDataParams<TFilters = PlainFilters> = {
     /**
      * Pagination details
      */
-    pagination: {
-        /**
-         * Cursor for the last item received
-         */
-        cursor?: string;
-
-        /**
-         * Number of items per fetch/page
-         */
-        limit: number;
-    };
+    pagination: Pagination;
 };
 
 /**
@@ -200,27 +197,36 @@ export interface BaseResponse<T extends ResponseEventType = ResponseEventType> {
     event: T;
 }
 
+export type SnapshotPayload<T> = {
+    /**
+     * Initial batch of data
+     */
+    data: T;
+    /**
+     * Filters applied for this subscription (optional)
+     */
+    appliedFilters?: PlainFilters;
+};
+
 /**
  * Response containing initial snapshot of data for a subscription
  */
 export interface DataSubscriptionResponse<T> extends BaseResponse {
     event: 'snapshot';
+    snapshot: SnapshotPayload<T>;
+}
+
+export type FetchMorePayload<T> = {
+    /**
+     * Items returned
+     */
+    paginatedData: CursorPaginatedResponse<T>;
 
     /**
-     * Initial batch of data
+     * Filters applied for this subscription (optional)
      */
-    snapshot: {
-        /**
-         * Data
-         */
-        data: T;
-
-        /**
-         * Filters applied for this subscription (optional)
-         */
-        appliedFilters?: PlainFilters;
-    };
-}
+    appliedFilters?: PlainFilters;
+};
 
 /**
  * Response containing additional paginated data for a subscription.
@@ -230,18 +236,7 @@ export interface DataFetchMoreResponse<T> extends BaseResponse {
      * Event type is "fetchMore" to distinguish from snapshot and update
      */
     event: 'fetchMore';
-
-    payload: {
-        /**
-         * Items returned
-         */
-        paginatedData: CursorPaginatedResponse<T>;
-
-        /**
-         * Filters applied for this subscription (optional)
-         */
-        appliedFilters?: PlainFilters;
-    };
+    payload: FetchMorePayload<T>;
 }
 
 type UpdateAction = 'added' | 'updated' | 'deleted';

@@ -25,6 +25,31 @@ export interface ProtoBacktestMintFullResult {
   created_at: string;
 }
 
+export interface ProtoBacktestStrategyFullResult {
+  id: number;
+  backtest_id: string;
+  strategy: string;
+  strategy_id: string;
+  config_variant: string;
+  config: { [key: string]: any } | undefined;
+  pnl_sol: number;
+  holdings_value_sol: number;
+  roi: number;
+  win_rate: number;
+  wins_count: number;
+  biggest_win_percentage: number;
+  losses_count: number;
+  biggest_loss_percentage: number;
+  total_trades_count: number;
+  buy_trades_count: number;
+  sell_trades_count: number;
+  highest_peak_sol: number;
+  lowest_trough_sol: number;
+  max_drawdown_percentage: number;
+  execution_time_seconds: number;
+  created_at: string;
+}
+
 function createBaseProtoBacktestMintFullResult(): ProtoBacktestMintFullResult {
   return {
     id: 0,
@@ -252,6 +277,435 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
     message.exit_code = object.exit_code ?? undefined;
     message.exit_reason = object.exit_reason ?? undefined;
     message.payload = object.payload ?? undefined;
+    message.created_at = object.created_at ?? "";
+    return message;
+  },
+};
+
+function createBaseProtoBacktestStrategyFullResult(): ProtoBacktestStrategyFullResult {
+  return {
+    id: 0,
+    backtest_id: "",
+    strategy: "",
+    strategy_id: "",
+    config_variant: "",
+    config: undefined,
+    pnl_sol: 0,
+    holdings_value_sol: 0,
+    roi: 0,
+    win_rate: 0,
+    wins_count: 0,
+    biggest_win_percentage: 0,
+    losses_count: 0,
+    biggest_loss_percentage: 0,
+    total_trades_count: 0,
+    buy_trades_count: 0,
+    sell_trades_count: 0,
+    highest_peak_sol: 0,
+    lowest_trough_sol: 0,
+    max_drawdown_percentage: 0,
+    execution_time_seconds: 0,
+    created_at: "",
+  };
+}
+
+export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFullResult> = {
+  encode(message: ProtoBacktestStrategyFullResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== 0) {
+      writer.uint32(8).int64(message.id);
+    }
+    if (message.backtest_id !== "") {
+      writer.uint32(18).string(message.backtest_id);
+    }
+    if (message.strategy !== "") {
+      writer.uint32(26).string(message.strategy);
+    }
+    if (message.strategy_id !== "") {
+      writer.uint32(34).string(message.strategy_id);
+    }
+    if (message.config_variant !== "") {
+      writer.uint32(42).string(message.config_variant);
+    }
+    if (message.config !== undefined) {
+      ProtoStruct.encode(ProtoStruct.wrap(message.config), writer.uint32(50).fork()).join();
+    }
+    if (message.pnl_sol !== 0) {
+      writer.uint32(57).double(message.pnl_sol);
+    }
+    if (message.holdings_value_sol !== 0) {
+      writer.uint32(65).double(message.holdings_value_sol);
+    }
+    if (message.roi !== 0) {
+      writer.uint32(73).double(message.roi);
+    }
+    if (message.win_rate !== 0) {
+      writer.uint32(81).double(message.win_rate);
+    }
+    if (message.wins_count !== 0) {
+      writer.uint32(89).double(message.wins_count);
+    }
+    if (message.biggest_win_percentage !== 0) {
+      writer.uint32(97).double(message.biggest_win_percentage);
+    }
+    if (message.losses_count !== 0) {
+      writer.uint32(105).double(message.losses_count);
+    }
+    if (message.biggest_loss_percentage !== 0) {
+      writer.uint32(113).double(message.biggest_loss_percentage);
+    }
+    if (message.total_trades_count !== 0) {
+      writer.uint32(121).double(message.total_trades_count);
+    }
+    if (message.buy_trades_count !== 0) {
+      writer.uint32(129).double(message.buy_trades_count);
+    }
+    if (message.sell_trades_count !== 0) {
+      writer.uint32(137).double(message.sell_trades_count);
+    }
+    if (message.highest_peak_sol !== 0) {
+      writer.uint32(145).double(message.highest_peak_sol);
+    }
+    if (message.lowest_trough_sol !== 0) {
+      writer.uint32(153).double(message.lowest_trough_sol);
+    }
+    if (message.max_drawdown_percentage !== 0) {
+      writer.uint32(161).double(message.max_drawdown_percentage);
+    }
+    if (message.execution_time_seconds !== 0) {
+      writer.uint32(169).double(message.execution_time_seconds);
+    }
+    if (message.created_at !== "") {
+      writer.uint32(178).string(message.created_at);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ProtoBacktestStrategyFullResult {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProtoBacktestStrategyFullResult();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = longToNumber(reader.int64());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.backtest_id = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.strategy = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.strategy_id = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.config_variant = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.config = ProtoStruct.unwrap(ProtoStruct.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 7: {
+          if (tag !== 57) {
+            break;
+          }
+
+          message.pnl_sol = reader.double();
+          continue;
+        }
+        case 8: {
+          if (tag !== 65) {
+            break;
+          }
+
+          message.holdings_value_sol = reader.double();
+          continue;
+        }
+        case 9: {
+          if (tag !== 73) {
+            break;
+          }
+
+          message.roi = reader.double();
+          continue;
+        }
+        case 10: {
+          if (tag !== 81) {
+            break;
+          }
+
+          message.win_rate = reader.double();
+          continue;
+        }
+        case 11: {
+          if (tag !== 89) {
+            break;
+          }
+
+          message.wins_count = reader.double();
+          continue;
+        }
+        case 12: {
+          if (tag !== 97) {
+            break;
+          }
+
+          message.biggest_win_percentage = reader.double();
+          continue;
+        }
+        case 13: {
+          if (tag !== 105) {
+            break;
+          }
+
+          message.losses_count = reader.double();
+          continue;
+        }
+        case 14: {
+          if (tag !== 113) {
+            break;
+          }
+
+          message.biggest_loss_percentage = reader.double();
+          continue;
+        }
+        case 15: {
+          if (tag !== 121) {
+            break;
+          }
+
+          message.total_trades_count = reader.double();
+          continue;
+        }
+        case 16: {
+          if (tag !== 129) {
+            break;
+          }
+
+          message.buy_trades_count = reader.double();
+          continue;
+        }
+        case 17: {
+          if (tag !== 137) {
+            break;
+          }
+
+          message.sell_trades_count = reader.double();
+          continue;
+        }
+        case 18: {
+          if (tag !== 145) {
+            break;
+          }
+
+          message.highest_peak_sol = reader.double();
+          continue;
+        }
+        case 19: {
+          if (tag !== 153) {
+            break;
+          }
+
+          message.lowest_trough_sol = reader.double();
+          continue;
+        }
+        case 20: {
+          if (tag !== 161) {
+            break;
+          }
+
+          message.max_drawdown_percentage = reader.double();
+          continue;
+        }
+        case 21: {
+          if (tag !== 169) {
+            break;
+          }
+
+          message.execution_time_seconds = reader.double();
+          continue;
+        }
+        case 22: {
+          if (tag !== 178) {
+            break;
+          }
+
+          message.created_at = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ProtoBacktestStrategyFullResult {
+    return {
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      backtest_id: isSet(object.backtest_id) ? globalThis.String(object.backtest_id) : "",
+      strategy: isSet(object.strategy) ? globalThis.String(object.strategy) : "",
+      strategy_id: isSet(object.strategy_id) ? globalThis.String(object.strategy_id) : "",
+      config_variant: isSet(object.config_variant) ? globalThis.String(object.config_variant) : "",
+      config: isObject(object.config) ? object.config : undefined,
+      pnl_sol: isSet(object.pnl_sol) ? globalThis.Number(object.pnl_sol) : 0,
+      holdings_value_sol: isSet(object.holdings_value_sol) ? globalThis.Number(object.holdings_value_sol) : 0,
+      roi: isSet(object.roi) ? globalThis.Number(object.roi) : 0,
+      win_rate: isSet(object.win_rate) ? globalThis.Number(object.win_rate) : 0,
+      wins_count: isSet(object.wins_count) ? globalThis.Number(object.wins_count) : 0,
+      biggest_win_percentage: isSet(object.biggest_win_percentage)
+        ? globalThis.Number(object.biggest_win_percentage)
+        : 0,
+      losses_count: isSet(object.losses_count) ? globalThis.Number(object.losses_count) : 0,
+      biggest_loss_percentage: isSet(object.biggest_loss_percentage)
+        ? globalThis.Number(object.biggest_loss_percentage)
+        : 0,
+      total_trades_count: isSet(object.total_trades_count) ? globalThis.Number(object.total_trades_count) : 0,
+      buy_trades_count: isSet(object.buy_trades_count) ? globalThis.Number(object.buy_trades_count) : 0,
+      sell_trades_count: isSet(object.sell_trades_count) ? globalThis.Number(object.sell_trades_count) : 0,
+      highest_peak_sol: isSet(object.highest_peak_sol) ? globalThis.Number(object.highest_peak_sol) : 0,
+      lowest_trough_sol: isSet(object.lowest_trough_sol) ? globalThis.Number(object.lowest_trough_sol) : 0,
+      max_drawdown_percentage: isSet(object.max_drawdown_percentage)
+        ? globalThis.Number(object.max_drawdown_percentage)
+        : 0,
+      execution_time_seconds: isSet(object.execution_time_seconds)
+        ? globalThis.Number(object.execution_time_seconds)
+        : 0,
+      created_at: isSet(object.created_at) ? globalThis.String(object.created_at) : "",
+    };
+  },
+
+  toJSON(message: ProtoBacktestStrategyFullResult): unknown {
+    const obj: any = {};
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
+    if (message.backtest_id !== "") {
+      obj.backtest_id = message.backtest_id;
+    }
+    if (message.strategy !== "") {
+      obj.strategy = message.strategy;
+    }
+    if (message.strategy_id !== "") {
+      obj.strategy_id = message.strategy_id;
+    }
+    if (message.config_variant !== "") {
+      obj.config_variant = message.config_variant;
+    }
+    if (message.config !== undefined) {
+      obj.config = message.config;
+    }
+    if (message.pnl_sol !== 0) {
+      obj.pnl_sol = message.pnl_sol;
+    }
+    if (message.holdings_value_sol !== 0) {
+      obj.holdings_value_sol = message.holdings_value_sol;
+    }
+    if (message.roi !== 0) {
+      obj.roi = message.roi;
+    }
+    if (message.win_rate !== 0) {
+      obj.win_rate = message.win_rate;
+    }
+    if (message.wins_count !== 0) {
+      obj.wins_count = message.wins_count;
+    }
+    if (message.biggest_win_percentage !== 0) {
+      obj.biggest_win_percentage = message.biggest_win_percentage;
+    }
+    if (message.losses_count !== 0) {
+      obj.losses_count = message.losses_count;
+    }
+    if (message.biggest_loss_percentage !== 0) {
+      obj.biggest_loss_percentage = message.biggest_loss_percentage;
+    }
+    if (message.total_trades_count !== 0) {
+      obj.total_trades_count = message.total_trades_count;
+    }
+    if (message.buy_trades_count !== 0) {
+      obj.buy_trades_count = message.buy_trades_count;
+    }
+    if (message.sell_trades_count !== 0) {
+      obj.sell_trades_count = message.sell_trades_count;
+    }
+    if (message.highest_peak_sol !== 0) {
+      obj.highest_peak_sol = message.highest_peak_sol;
+    }
+    if (message.lowest_trough_sol !== 0) {
+      obj.lowest_trough_sol = message.lowest_trough_sol;
+    }
+    if (message.max_drawdown_percentage !== 0) {
+      obj.max_drawdown_percentage = message.max_drawdown_percentage;
+    }
+    if (message.execution_time_seconds !== 0) {
+      obj.execution_time_seconds = message.execution_time_seconds;
+    }
+    if (message.created_at !== "") {
+      obj.created_at = message.created_at;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ProtoBacktestStrategyFullResult>, I>>(base?: I): ProtoBacktestStrategyFullResult {
+    return ProtoBacktestStrategyFullResult.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ProtoBacktestStrategyFullResult>, I>>(
+    object: I,
+  ): ProtoBacktestStrategyFullResult {
+    const message = createBaseProtoBacktestStrategyFullResult();
+    message.id = object.id ?? 0;
+    message.backtest_id = object.backtest_id ?? "";
+    message.strategy = object.strategy ?? "";
+    message.strategy_id = object.strategy_id ?? "";
+    message.config_variant = object.config_variant ?? "";
+    message.config = object.config ?? undefined;
+    message.pnl_sol = object.pnl_sol ?? 0;
+    message.holdings_value_sol = object.holdings_value_sol ?? 0;
+    message.roi = object.roi ?? 0;
+    message.win_rate = object.win_rate ?? 0;
+    message.wins_count = object.wins_count ?? 0;
+    message.biggest_win_percentage = object.biggest_win_percentage ?? 0;
+    message.losses_count = object.losses_count ?? 0;
+    message.biggest_loss_percentage = object.biggest_loss_percentage ?? 0;
+    message.total_trades_count = object.total_trades_count ?? 0;
+    message.buy_trades_count = object.buy_trades_count ?? 0;
+    message.sell_trades_count = object.sell_trades_count ?? 0;
+    message.highest_peak_sol = object.highest_peak_sol ?? 0;
+    message.lowest_trough_sol = object.lowest_trough_sol ?? 0;
+    message.max_drawdown_percentage = object.max_drawdown_percentage ?? 0;
+    message.execution_time_seconds = object.execution_time_seconds ?? 0;
     message.created_at = object.created_at ?? "";
     return message;
   },

@@ -44,9 +44,9 @@ message FilterValue {
 }
 
 /**
- * Wrapper for snapshot responses
+ * Wrapper for snapshot response payload
  */
-message SnapshotResponse {
+message CursorPaginatedSnapshotPayload {
   /**
    * The actual data for this snapshot.
    */
@@ -59,9 +59,9 @@ message SnapshotResponse {
 }
 
 /**
- * Wrapper for fetchMore responses
+ * Wrapper for fetchMore response payload
  */
-message FetchMoreResponse {
+message FetchMorePayload {
   CursorPaginatedResponse paginatedData = 1;
   map<string, FilterValue> appliedFilters = 2;
 }

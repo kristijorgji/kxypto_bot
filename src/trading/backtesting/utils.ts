@@ -37,6 +37,7 @@ export async function runStrategy(
     files: FileInfo[],
     config?: {
         verbose?: boolean;
+        onMintResult?: (mr: StrategyMintBacktestResult) => void;
     },
 ): Promise<StrategyBacktestResult> {
     const verbose = config?.verbose ?? false;
@@ -100,6 +101,9 @@ export async function runStrategy(
                 mintFilePath: file.fullPath,
                 backtestResponse: r,
             };
+            if (config?.onMintResult) {
+                config.onMintResult(mintResults[content.mint]);
+            }
 
             if (verbose) {
                 logger.info(

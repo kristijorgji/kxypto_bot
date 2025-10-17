@@ -1,17 +1,15 @@
 import { lamportsToSol } from '@src/blockchains/utils/amount';
 import { CommonTradeFilters, applyCommonTradeFilters } from '@src/db/repositories/launchpad_tokens';
-import { CursorPaginatedSearchParams } from '@src/db/repositories/types';
-import CompositeCursor from '@src/db/utils/CompositeCursor';
-import { CursorFactory } from '@src/db/utils/CursorFactory';
+import { CompositeCursorPaginationParams } from '@src/db/repositories/types';
+import fetchCursorPaginatedData from '@src/db/utils/fetchCursorPaginatedData';
 import { applyCompositeCursorFilter, scopedColumn } from '@src/db/utils/queries';
 import { CursorPaginatedResponse } from '@src/http-api/types';
-import { ProtoBacktestMintFullResult } from '@src/protos/generated/backtests';
+import { ProtoBacktestMintFullResult, ProtoBacktestStrategyFullResult } from '@src/protos/generated/backtests';
 import {
     BacktestExitResponse,
     BacktestTradeResponse,
     StrategyBacktestResult,
 } from '@src/trading/bots/blockchains/solana/types';
-import { formatDateToMySQLTimestamp } from '@src/utils/time';
 import { RequestDataParams } from '@src/ws-api/types';
 
 import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
@@ -49,9 +47,10 @@ export async function storeBacktestStrategyResult(
     strategy: LaunchpadBotStrategy,
     sr: StrategyBacktestResult,
     executionTimeSeconds: number,
-): Promise<void> {
-    await db.transaction(async trx => {
-        const [strategyResultId] = (await trx(Tables.BacktestStrategyResults).insert({
+): Promise<BacktestStrategyResult> {
+    return await db.transaction<BacktestStrategyResult>(async trx => {
+        const now = new Date();
+        const backtestStrategyResult: Omit<BacktestStrategyResult, 'id'> = {
             backtest_id: backtestId,
             strategy: strategy.name,
             strategy_id: strategy.identifier,
@@ -72,7 +71,12 @@ export async function storeBacktestStrategyResult(
             lowest_trough_sol: lamportsToSol(sr.lowestTroughLamports),
             max_drawdown_percentage: sr.maxDrawdownPercentage,
             execution_time_seconds: executionTimeSeconds,
-        } satisfies Omit<BacktestStrategyResult, 'id' | 'created_at' | 'updated_at'>)) as [number];
+            created_at: now,
+            updated_at: now,
+        };
+        const [strategyResultId] = (await trx(Tables.BacktestStrategyResults).insert(backtestStrategyResult)) as [
+            number,
+        ];
 
         const mintResults = [];
         for (const [mint, { mintFileStorageType, mintFilePath, backtestResponse: result }] of Object.entries(
@@ -114,6 +118,11 @@ export async function storeBacktestStrategyResult(
         }
 
         await trx(Tables.BacktestStrategyMintResults).insert(mintResults);
+
+        return {
+            id: strategyResultId,
+            ...backtestStrategyResult,
+        };
     });
 }
 
@@ -143,6 +152,72 @@ export async function getBacktestStrategyResults(
     return (await query) as BacktestStrategyResult[];
 }
 
+export type BacktestStrategyFullResult = ProtoBacktestStrategyFullResult;
+
+export type BacktestsStrategyResultsFilters = {
+    chain: Blockchain;
+    backtestId?: string;
+    backtestName?: string;
+    strategyId?: string;
+    strategyName?: string;
+    strategyConfigVariant?: string;
+};
+
+async function getBacktestsStrategyResults(
+    p: CompositeCursorPaginationParams,
+    f: BacktestsStrategyResultsFilters,
+): Promise<BacktestStrategyFullResult[]> {
+    let backtests: Backtest[] | undefined;
+
+    if (f.backtestId) {
+        backtests = [await getBacktestById(f.backtestId)];
+    } else if (f.backtestName) {
+        backtests = [await getBacktest(f.chain, f.backtestName)];
+    } else if (f.chain) {
+        backtests = await db.table(Tables.Backtests).select<Backtest[]>().where('chain', f.chain);
+    }
+
+    const queryBuilder = db
+        .table(Tables.BacktestStrategyResults)
+        .select()
+        .orderBy([
+            { column: 'created_at', order: p.direction },
+            { column: 'id', order: p.direction },
+        ])
+        .limit(p.limit);
+
+    if (backtests) {
+        queryBuilder.whereIn(
+            'backtest_id',
+            backtests.map(el => el.id),
+        );
+    }
+
+    if (f.strategyId) {
+        queryBuilder.where('strategy_id', f.strategyId);
+    }
+
+    if (f.strategyName) {
+        queryBuilder.where('strategy', f.strategyName);
+    }
+
+    if (f.strategyConfigVariant) {
+        queryBuilder.where('config_variant', f.strategyConfigVariant);
+    }
+
+    if (p.cursor) {
+        applyCompositeCursorFilter(queryBuilder, p.cursor, '', p.direction);
+    }
+
+    return queryBuilder;
+}
+
+export async function fetchBacktestsStrategyResultsCursorPaginated(
+    params: RequestDataParams<BacktestsStrategyResultsFilters>,
+): Promise<CursorPaginatedResponse<BacktestStrategyFullResult>> {
+    return fetchCursorPaginatedData(getBacktestsStrategyResults, params.pagination, params.filters);
+}
+
 export type BacktestMintFullResult = ProtoBacktestMintFullResult;
 
 export type BacktestsMintResultsFilters = {
@@ -154,17 +229,18 @@ export type BacktestsMintResultsFilters = {
     strategyConfigVariant?: string;
 } & CommonTradeFilters;
 
-export async function getBacktestStrategyMintResults(
-    p: BacktestsMintResultsFilters & CursorPaginatedSearchParams,
+async function getBacktestStrategyMintResults(
+    p: CompositeCursorPaginationParams,
+    f: BacktestsMintResultsFilters,
 ): Promise<BacktestMintFullResult[]> {
     let backtests: Backtest[] | undefined;
 
-    if (p.backtestId) {
-        backtests = [await getBacktestById(p.backtestId)];
-    } else if (p.backtestName) {
-        backtests = [await getBacktest(p.chain, p.backtestName)];
-    } else if (p.chain) {
-        backtests = await db.table(Tables.Backtests).select<Backtest[]>().where('chain', p.chain);
+    if (f.backtestId) {
+        backtests = [await getBacktestById(f.backtestId)];
+    } else if (f.backtestName) {
+        backtests = [await getBacktest(f.chain, f.backtestName)];
+    } else if (f.chain) {
+        backtests = await db.table(Tables.Backtests).select<Backtest[]>().where('chain', f.chain);
     }
 
     const queryBuilder = db
@@ -200,20 +276,20 @@ export async function getBacktestStrategyMintResults(
         );
     }
 
-    applyCommonTradeFilters(queryBuilder, p, {
+    applyCommonTradeFilters(queryBuilder, f, {
         netPnlColumn: 'net_pnl_sol',
     });
 
-    if (p.strategyId) {
-        queryBuilder.where('strategy_id', p.strategyId);
+    if (f.strategyId) {
+        queryBuilder.where('strategy_id', f.strategyId);
     }
 
-    if (p.strategyName) {
-        queryBuilder.where('strategy', p.strategyName);
+    if (f.strategyName) {
+        queryBuilder.where('strategy', f.strategyName);
     }
 
-    if (p.strategyConfigVariant) {
-        queryBuilder.where('config_variant', p.strategyConfigVariant);
+    if (f.strategyConfigVariant) {
+        queryBuilder.where('config_variant', f.strategyConfigVariant);
     }
 
     if (p.cursor) {
@@ -226,33 +302,5 @@ export async function getBacktestStrategyMintResults(
 export async function fetchBacktestsMintResultsCursorPaginated(
     params: RequestDataParams<BacktestsMintResultsFilters>,
 ): Promise<CursorPaginatedResponse<BacktestMintFullResult>> {
-    const { filters, pagination } = params as RequestDataParams<BacktestsMintResultsFilters>;
-
-    let decodedCursor: CompositeCursor | undefined;
-    if (pagination.cursor) {
-        decodedCursor = CursorFactory.decodeCursor(pagination.cursor);
-    }
-
-    const data = await getBacktestStrategyMintResults({
-        ...filters,
-        direction: 'desc',
-        limit: pagination.limit + 1,
-        cursor: decodedCursor,
-    });
-
-    let nextCursor: string | null = null;
-    if (data.length > pagination.limit) {
-        const lastItem = data[pagination.limit - 1];
-        nextCursor = CursorFactory.formCursor({
-            lastPreviousId: lastItem.id.toString(),
-            lastDate: formatDateToMySQLTimestamp(lastItem.created_at as unknown as Date, true),
-        });
-        data.pop();
-    }
-
-    return {
-        data: data,
-        count: data.length,
-        nextCursor: nextCursor,
-    };
+    return fetchCursorPaginatedData(getBacktestStrategyMintResults, params.pagination, params.filters);
 }

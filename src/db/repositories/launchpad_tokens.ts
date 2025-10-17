@@ -1,7 +1,7 @@
 import { Knex } from 'knex';
 
 import { db } from '@src/db/knex';
-import { CursorPaginatedSearchParams } from '@src/db/repositories/types';
+import { CompositeCursorPaginationParams } from '@src/db/repositories/types';
 import { Tables } from '@src/db/tables';
 import { Blockchain, LaunchpadPlatform, LaunchpadTokenReport, LaunchpadTokenResult } from '@src/db/types';
 import { applyCompositeCursorFilter, scopedColumn } from '@src/db/utils/queries';
@@ -56,7 +56,7 @@ export async function getLaunchpadTokenFullResult<R>(
         strategyName?: string;
         strategyConfigVariant?: string;
     } & CommonTradeFilters &
-        CursorPaginatedSearchParams,
+        CompositeCursorPaginationParams,
 ): Promise<LaunchpadTokenFullResult<R>[]> {
     const queryBuilder = db
         .table(Tables.LaunchpadTokenResults)

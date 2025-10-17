@@ -2,10 +2,16 @@ import { Logger } from 'winston';
 import { RawData } from 'ws';
 
 import {
+    BACKTESTS_STRATEGY_RESULTS_CHANNEL,
+    handleBacktestsStrategyResultsFetchMore,
+    handleBacktestsStrategyResultsSubscription,
+} from '@src/ws-api/handlers/backtests/strategyResultsHandler';
+
+import {
     BACKTESTS_MINT_RESULTS_CHANNEL,
     handleBacktestsMintResultsFetchMore,
     handleBacktestsMintResultsSubscription,
-} from './handlers/backtestsHandler';
+} from './handlers/backtests/mintResultsHandler';
 import { FetchMoreMessage, SubscribeMessage, UnsubscribeMessage, WsConnection, WsMessage } from './types';
 
 export async function handleMessage(
@@ -41,6 +47,8 @@ export async function handleMessage(
 
 async function handleSubscribeEvent(logger: Logger, ws: WsConnection, msg: SubscribeMessage): Promise<void> {
     switch (msg.channel) {
+        case BACKTESTS_STRATEGY_RESULTS_CHANNEL:
+            return handleBacktestsStrategyResultsSubscription(logger, ws, msg.id, msg.data);
         case BACKTESTS_MINT_RESULTS_CHANNEL:
             return handleBacktestsMintResultsSubscription(logger, ws, msg.id, msg.data);
         default:
@@ -51,6 +59,8 @@ async function handleSubscribeEvent(logger: Logger, ws: WsConnection, msg: Subsc
 
 async function handleFetchMoreEvent(logger: Logger, ws: WsConnection, msg: FetchMoreMessage): Promise<void> {
     switch (msg.channel) {
+        case BACKTESTS_STRATEGY_RESULTS_CHANNEL:
+            return handleBacktestsStrategyResultsFetchMore(logger, ws, msg.id, msg.data);
         case BACKTESTS_MINT_RESULTS_CHANNEL:
             return handleBacktestsMintResultsFetchMore(logger, ws, msg.id, msg.data);
         default:
@@ -61,7 +71,12 @@ async function handleFetchMoreEvent(logger: Logger, ws: WsConnection, msg: Fetch
 
 async function handleUnsubscribeEvent(logger: Logger, ws: WsConnection, msg: UnsubscribeMessage): Promise<void> {
     const sub = ws.subscriptions.get(msg.id);
-    if (sub?.interval) clearInterval(sub.interval);
+    if (sub?.interval) {
+        clearInterval(sub.interval);
+    }
+    if (sub?.close) {
+        await sub.close();
+    }
     ws.subscriptions.delete(msg.id);
 
     logger.debug(`Unsubscribed ${msg.id} (${msg.channel})`);

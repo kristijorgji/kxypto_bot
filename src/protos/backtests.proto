@@ -18,3 +18,28 @@ message BacktestMintFullResult {
   google.protobuf.Struct payload = 10;
   string created_at = 11;
 }
+
+message BacktestStrategyFullResult {
+  int64 id = 1;
+  string backtest_id = 2;
+  string strategy = 3;
+  string strategy_id = 4;
+  string config_variant = 5;
+  google.protobuf.Struct config = 6;
+  double pnl_sol = 7;
+  double holdings_value_sol = 8;
+  double roi = 9;
+  double win_rate = 10;
+  double wins_count = 11;
+  double biggest_win_percentage = 12;
+  double losses_count = 13;
+  double biggest_loss_percentage = 14;
+  double total_trades_count = 15;
+  double buy_trades_count = 16;
+  double sell_trades_count = 17;
+  double highest_peak_sol = 18;
+  double lowest_trough_sol = 19;
+  double max_drawdown_percentage = 20;
+  double execution_time_seconds = 21;
+  string created_at = 22;
+}

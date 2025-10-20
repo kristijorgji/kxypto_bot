@@ -4,6 +4,7 @@ export const Tables = {
     Apm: 'apm',
     Tokens: 'tokens',
     Backtests: 'backtests',
+    BacktestRuns: 'backtest_runs',
     BacktestStrategyResults: 'backtest_strategy_results',
     BacktestStrategyMintResults: 'backtest_strategy_mint_results',
     Positions: 'positions',

@@ -1,6 +1,7 @@
 import type { Knex } from 'knex';
 
 import { Tables } from '../tables';
+import { addCreatedAtTimestamp } from '../utils/tableTimestamps';
 
 export async function up(knex: Knex): Promise<void> {
     await knex.schema.createTable(Tables.Apm, table => {
@@ -9,7 +10,7 @@ export async function up(knex: Knex): Promise<void> {
         table.string('provider').notNullable().index();
         table.bigint('start_timestamp_ms').notNullable();
         table.double('execution_time_ns').notNullable();
-        table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
+        addCreatedAtTimestamp(knex, table);
     });
 }
 

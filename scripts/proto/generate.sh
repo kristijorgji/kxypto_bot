@@ -22,7 +22,6 @@ protoc \
     --ts_proto_out="$outputDir" \
     --ts_proto_opt=esModuleInterop=true \
     --ts_proto_opt=snakeToCamel=false \
-    --ts_proto_opt=snakeToCamel=false \
     --ts_proto_opt=typePrefix=Proto \
     -I "./src/protos" \
     ./src/protos/*.proto

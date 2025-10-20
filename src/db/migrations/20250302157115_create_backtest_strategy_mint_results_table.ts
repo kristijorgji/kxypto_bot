@@ -1,6 +1,7 @@
 import type { Knex } from 'knex';
 
 import { Tables } from '../tables';
+import { addTableTimestamps } from '../utils/tableTimestamps';
 
 export async function up(knex: Knex): Promise<void> {
     await knex.schema.createTable(Tables.BacktestStrategyMintResults, table => {
@@ -18,7 +19,7 @@ export async function up(knex: Knex): Promise<void> {
         table.integer('total_trades_count').unsigned().notNullable().index();
         table.integer('buy_trades_count').unsigned().notNullable();
         table.integer('sell_trades_count').unsigned().notNullable();
-        table.timestamps(true, true);
+        addTableTimestamps(knex, table);
 
         table.foreign('strategy_result_id').references('id').inTable(Tables.BacktestStrategyResults);
     });

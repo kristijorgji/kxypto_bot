@@ -3,9 +3,17 @@ import { createLogger } from 'winston';
 
 import { solToLamports } from '@src/blockchains/utils/amount';
 import { redis } from '@src/cache/cache';
+import { ActionSource } from '@src/core/types';
 import { getFiles } from '@src/data/getFiles';
 import { db } from '@src/db/knex';
-import { storeBacktest, storeBacktestStrategyResult } from '@src/db/repositories/backtests';
+import {
+    completeBacktestStrategyResult,
+    createBacktestRun,
+    initBacktestStrategyResult,
+    markBacktestRunCompleted,
+    storeBacktest,
+} from '@src/db/repositories/backtests';
+import { ProcessingStatus } from '@src/db/types';
 import { logger } from '@src/logger';
 import { formPumpfunBacktestStatsDir } from '@src/trading/backtesting/data/pumpfun/utils';
 import { logStrategyResult, runStrategy } from '@src/trading/backtesting/utils';
@@ -128,6 +136,18 @@ async function findBestStrategy() {
 
     let tested = 0;
 
+    /**
+     * TODO resolve properly instead of hardcoding my user and cli
+     */
+    const backtestRunId = await createBacktestRun({
+        backtest_id: backtestId,
+        source: ActionSource.Cli,
+        status: ProcessingStatus.Running,
+        user_id: '6f5eee63-e50c-4f06-b2d6-6559e15db146',
+        api_client_id: null,
+        started_at: new Date(),
+    });
+
     for (const config of riseStrategyConfigGenerator.formConfigs(s)) {
         const backtestStrategyRunConfig: BacktestStrategyRunConfig = {
             ...runConfig,
@@ -146,6 +166,12 @@ async function findBestStrategy() {
             '='.repeat(100),
         );
 
+        const runningPartialStrategyResult = await initBacktestStrategyResult(
+            backtestId,
+            backtestRunId,
+            backtestStrategyRunConfig.strategy,
+            ProcessingStatus.Running,
+        );
         const strategyStartTime = process.hrtime();
         const sr = await runStrategy(
             {
@@ -173,7 +199,7 @@ async function findBestStrategy() {
             },
             sr,
         );
-        await storeBacktestStrategyResult(backtestId, backtestStrategyRunConfig.strategy, sr, executionTimeInS);
+        await completeBacktestStrategyResult(runningPartialStrategyResult.id, sr, executionTimeInS);
 
         tested++;
     }
@@ -182,6 +208,8 @@ async function findBestStrategy() {
 
     const diff = process.hrtime(start);
     const timeInNs = diff[0] * 1e9 + diff[1];
+
+    await markBacktestRunCompleted(backtestRunId);
 
     logger.info('Finished testing %d strategies in %s seconds\n', tested, timeInNs / 1e9);
     logger.info(

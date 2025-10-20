@@ -1,6 +1,7 @@
 import type { Knex } from 'knex';
 
 import { Tables } from '../tables';
+import { addTableTimestamps } from '../utils/tableTimestamps';
 
 export async function up(knex: Knex): Promise<void> {
     await knex.schema.createTable(Tables.LaunchpadTokenResults, table => {
@@ -13,8 +14,7 @@ export async function up(knex: Knex): Promise<void> {
         table.decimal('net_pnl', 38, 18).nullable();
         table.enum('exit_code', ['NO_PUMP', 'DUMPED', 'STOPPED', 'BAD_CREATOR']).nullable().index();
         table.string('exit_reason').nullable();
-        table.timestamp('created_at').defaultTo(knex.fn.now());
-        table.timestamp('updated_at').defaultTo(knex.raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'));
+        addTableTimestamps(knex, table);
     });
 }
 

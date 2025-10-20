@@ -17,6 +17,8 @@
     "maxDrawdownPercentage": 100.02725,
     "mintResults": {
       "la": {
+        "mint": "la",
+        "createdAt": "2021-03-19 10:00:00",
         "mintFileStorageType": "local",
         "mintFilePath": "tmp_test/la.json",
         "backtestResponse": {
@@ -136,6 +138,8 @@
         }
       },
       "lb": {
+        "mint": "lb",
+        "createdAt": "2021-03-19 10:00:00",
         "mintFileStorageType": "local",
         "mintFilePath": "tmp_test/lb.json",
         "backtestResponse": {

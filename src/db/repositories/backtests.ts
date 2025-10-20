@@ -5,17 +5,26 @@ import fetchCursorPaginatedData from '@src/db/utils/fetchCursorPaginatedData';
 import { applyCompositeCursorFilter, scopedColumn } from '@src/db/utils/queries';
 import { CursorPaginatedResponse } from '@src/http-api/types';
 import { ProtoBacktestMintFullResult, ProtoBacktestStrategyFullResult } from '@src/protos/generated/backtests';
+import normalizeOptionalFields from '@src/protos/mappers/normalizeOptionalFields';
 import {
     BacktestExitResponse,
     BacktestTradeResponse,
     StrategyBacktestResult,
+    StrategyMintBacktestResult,
 } from '@src/trading/bots/blockchains/solana/types';
 import { RequestDataParams } from '@src/ws-api/types';
 
 import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
 import { db } from '../knex';
 import { Tables } from '../tables';
-import { Backtest, BacktestStrategyMintResult, BacktestStrategyResult, Blockchain } from '../types';
+import {
+    Backtest,
+    BacktestRun,
+    BacktestStrategyMintResult,
+    BacktestStrategyResult,
+    Blockchain,
+    ProcessingStatus,
+} from '../types';
 
 export async function getBacktestById(id: string): Promise<Backtest> {
     const r = await db.table(Tables.Backtests).select<Backtest>().where('id', id).first();
@@ -42,20 +51,86 @@ export async function storeBacktest(backtest: Backtest) {
     });
 }
 
-export async function storeBacktestStrategyResult(
+export async function createBacktestRun(
+    data: Omit<BacktestRun, 'id' | 'finished_at' | 'created_at' | 'updated_at'>,
+): Promise<number> {
+    const [id] = (await db.table(Tables.BacktestRuns).insert(data)) as [number];
+    return id;
+}
+
+export async function markBacktestRunCompleted(id: number): Promise<void> {
+    await db
+        .table(Tables.BacktestRuns)
+        .where('id', id)
+        .update({
+            status: ProcessingStatus.Completed,
+            finished_at: new Date(),
+        } satisfies Pick<BacktestRun, 'status' | 'finished_at'>);
+}
+
+export async function initBacktestStrategyResult(
     backtestId: string,
+    backtestRunId: number,
     strategy: LaunchpadBotStrategy,
+    status: ProcessingStatus.Pending | ProcessingStatus.Running,
+): Promise<BacktestStrategyResult> {
+    const now = new Date();
+
+    const draftInsert: Omit<BacktestStrategyResult, 'id'> = {
+        backtest_id: backtestId,
+        backtest_run_id: backtestRunId,
+        status: status,
+        strategy: strategy.name,
+        strategy_id: strategy.identifier,
+        config_variant: strategy.configVariant,
+        config: strategy.config,
+        pnl_sol: 0,
+        holdings_value_sol: 0,
+        roi: 0,
+        win_rate: 0,
+        wins_count: 0,
+        biggest_win_percentage: 0,
+        losses_count: 0,
+        biggest_loss_percentage: 0,
+        total_trades_count: 0,
+        buy_trades_count: 0,
+        sell_trades_count: 0,
+        highest_peak_sol: 0,
+        lowest_trough_sol: 0,
+        max_drawdown_percentage: 0,
+        execution_time_seconds: 0,
+        created_at: now,
+        updated_at: now,
+    };
+    const [strategyResultId] = (await db(Tables.BacktestStrategyResults).insert(draftInsert)) as [number];
+
+    return {
+        id: strategyResultId,
+        ...draftInsert,
+    };
+}
+
+type PartialBacktestStrategyResultUpdateResponse = Omit<
+    BacktestStrategyResult,
+    | 'id'
+    | 'backtest_id'
+    | 'backtest_run_id'
+    | 'strategy'
+    | 'strategy_id'
+    | 'config_variant'
+    | 'config'
+    | 'created_at'
+    | 'updated_at'
+>;
+
+export async function completeBacktestStrategyResult(
+    strategyResultId: number,
     sr: StrategyBacktestResult,
     executionTimeSeconds: number,
-): Promise<BacktestStrategyResult> {
-    return await db.transaction<BacktestStrategyResult>(async trx => {
-        const now = new Date();
-        const backtestStrategyResult: Omit<BacktestStrategyResult, 'id'> = {
-            backtest_id: backtestId,
-            strategy: strategy.name,
-            strategy_id: strategy.identifier,
-            config_variant: strategy.configVariant,
-            config: strategy.config,
+): Promise<PartialBacktestStrategyResultUpdateResponse> {
+    return await db.transaction<PartialBacktestStrategyResultUpdateResponse>(async trx => {
+        const update: PartialBacktestStrategyResultUpdateResponse = {
+            status: ProcessingStatus.Completed,
             pnl_sol: sr.totalPnlInSol,
             holdings_value_sol: sr.totalHoldingsValueInSol,
             roi: sr.totalRoi,
@@ -71,58 +146,14 @@ export async function storeBacktestStrategyResult(
             lowest_trough_sol: lamportsToSol(sr.lowestTroughLamports),
             max_drawdown_percentage: sr.maxDrawdownPercentage,
             execution_time_seconds: executionTimeSeconds,
-            created_at: now,
-            updated_at: now,
         };
-        const [strategyResultId] = (await trx(Tables.BacktestStrategyResults).insert(backtestStrategyResult)) as [
-            number,
-        ];
+        await trx(Tables.BacktestStrategyResults).where('id', strategyResultId).update(update);
 
-        const mintResults = [];
-        for (const [mint, { mintFileStorageType, mintFilePath, backtestResponse: result }] of Object.entries(
-            sr.mintResults,
-        )) {
-            const tradeResponse: BacktestTradeResponse | null = (
-                (result as BacktestTradeResponse)?.profitLossLamports ? result : null
-            ) as BacktestTradeResponse | null;
+        await trx(Tables.BacktestStrategyMintResults).insert(
+            Object.values(sr.mintResults).map(bmr => formDraftMintResultFromBacktestMintResult(strategyResultId, bmr)),
+        );
 
-            let totalTradesCount = 0;
-            let buyTradesCount = 0;
-            let sellTradesCount = 0;
-            if (tradeResponse) {
-                for (const trade of tradeResponse.tradeHistory) {
-                    totalTradesCount++;
-                    if (trade.transactionType === 'buy') {
-                        buyTradesCount++;
-                    } else if (trade.transactionType === 'sell') {
-                        sellTradesCount++;
-                    }
-                }
-            }
-
-            mintResults.push({
-                strategy_result_id: strategyResultId,
-                mint: mint,
-                mint_file_storage_type: mintFileStorageType,
-                mint_file_path: mintFilePath,
-                net_pnl_sol: tradeResponse ? lamportsToSol(tradeResponse.profitLossLamports) : null,
-                holdings_value_sol: tradeResponse ? lamportsToSol(tradeResponse.holdings.lamportsValue) : null,
-                total_trades_count: totalTradesCount,
-                buy_trades_count: buyTradesCount,
-                sell_trades_count: sellTradesCount,
-                roi: tradeResponse?.roi ?? null,
-                exit_code: (result as BacktestExitResponse)?.exitCode ?? null,
-                exit_reason: (result as BacktestExitResponse)?.exitReason ?? null,
-                payload: result,
-            } satisfies Omit<BacktestStrategyMintResult, 'id' | 'created_at' | 'updated_at'>);
-        }
-
-        await trx(Tables.BacktestStrategyMintResults).insert(mintResults);
-
-        return {
-            id: strategyResultId,
-            ...backtestStrategyResult,
-        };
+        return update;
     });
 }
 
@@ -152,7 +183,9 @@ export async function getBacktestStrategyResults(
     return (await query) as BacktestStrategyResult[];
 }
 
-export type BacktestStrategyFullResult = ProtoBacktestStrategyFullResult;
+export type BacktestStrategyFullResult = Omit<ProtoBacktestStrategyFullResult, 'created_at'> & {
+    created_at: Date;
+};
 
 export type BacktestsStrategyResultsFilters = {
     chain: Blockchain;
@@ -218,7 +251,9 @@ export async function fetchBacktestsStrategyResultsCursorPaginated(
     return fetchCursorPaginatedData(getBacktestsStrategyResults, params.pagination, params.filters);
 }
 
-export type BacktestMintFullResult = ProtoBacktestMintFullResult;
+export type BacktestMintFullResult = Omit<ProtoBacktestMintFullResult, 'created_at'> & {
+    created_at: Date;
+};
 
 export type BacktestsMintResultsFilters = {
     chain: Blockchain;
@@ -247,9 +282,8 @@ async function getBacktestStrategyMintResults(
         .table(Tables.BacktestStrategyResults)
         .select({
             id: scopedColumn(Tables.BacktestStrategyMintResults, 'id'),
-            backtest_id: 'backtest_id',
-            config_variant: 'config_variant',
             strategy_result_id: 'strategy_result_id',
+            mint: 'mint',
             net_pnl: scopedColumn(Tables.BacktestStrategyMintResults, 'net_pnl_sol'),
             holdings_value: scopedColumn(Tables.BacktestStrategyMintResults, 'holdings_value_sol'),
             roi: scopedColumn(Tables.BacktestStrategyMintResults, 'roi'),
@@ -296,11 +330,57 @@ async function getBacktestStrategyMintResults(
         applyCompositeCursorFilter(queryBuilder, p.cursor, Tables.BacktestStrategyMintResults, p.direction);
     }
 
-    return queryBuilder;
+    return normalizeOptionalFields(await queryBuilder, [
+        'net_pnl',
+        'holdings_value',
+        'roi',
+        'exit_code',
+        'exit_reason',
+    ]);
 }
 
 export async function fetchBacktestsMintResultsCursorPaginated(
     params: RequestDataParams<BacktestsMintResultsFilters>,
 ): Promise<CursorPaginatedResponse<BacktestMintFullResult>> {
     return fetchCursorPaginatedData(getBacktestStrategyMintResults, params.pagination, params.filters);
+}
+
+export function formDraftMintResultFromBacktestMintResult(
+    strategyResultId: number,
+    bmr: StrategyMintBacktestResult,
+): Omit<BacktestStrategyMintResult, 'id' | 'updated_at'> {
+    const tradeResponse: BacktestTradeResponse | null = (
+        (bmr.backtestResponse as BacktestTradeResponse)?.profitLossLamports ? bmr.backtestResponse : null
+    ) as BacktestTradeResponse | null;
+
+    let totalTradesCount = 0;
+    let buyTradesCount = 0;
+    let sellTradesCount = 0;
+    if (tradeResponse) {
+        for (const trade of tradeResponse.tradeHistory) {
+            totalTradesCount++;
+            if (trade.transactionType === 'buy') {
+                buyTradesCount++;
+            } else if (trade.transactionType === 'sell') {
+                sellTradesCount++;
+            }
+        }
+    }
+
+    return {
+        strategy_result_id: strategyResultId,
+        mint: bmr.mint,
+        mint_file_storage_type: bmr.mintFileStorageType,
+        mint_file_path: bmr.mintFilePath,
+        net_pnl_sol: tradeResponse ? lamportsToSol(tradeResponse.profitLossLamports) : null,
+        holdings_value_sol: tradeResponse ? lamportsToSol(tradeResponse.holdings.lamportsValue) : null,
+        total_trades_count: totalTradesCount,
+        buy_trades_count: buyTradesCount,
+        sell_trades_count: sellTradesCount,
+        roi: tradeResponse?.roi ?? null,
+        exit_code: (bmr.backtestResponse as BacktestExitResponse)?.exitCode ?? null,
+        exit_reason: (bmr.backtestResponse as BacktestExitResponse)?.exitReason ?? null,
+        payload: bmr.backtestResponse,
+        created_at: new Date(bmr.createdAt),
+    } satisfies Omit<BacktestStrategyMintResult, 'id' | 'updated_at'>;
 }

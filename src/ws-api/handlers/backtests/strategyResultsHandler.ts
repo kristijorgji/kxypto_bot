@@ -14,7 +14,7 @@ import sendCursorPaginatedSnapshotResponse, {
     sendUpdatesResponse,
 } from '@src/ws-api/utils/sendMessage';
 
-import { FetchMoreMessage, RequestDataParams, WsConnection } from '../../types';
+import { FetchMoreMessage, RequestDataParams, UpdateItem, WsConnection } from '../../types';
 
 export const BACKTESTS_STRATEGY_RESULTS_CHANNEL = 'backtests_strategy_results';
 const DEFAULT_FETCH_LIMIT = 100;
@@ -49,7 +49,7 @@ export async function handleBacktestsStrategyResultsSubscription(
         ProtoBacktestStrategyFullResult,
     );
 
-    backtestsPubSub.subscribeAllStrategyResults(data => {
+    backtestsPubSub.subscribeAllStrategyResults((data: UpdateItem<ProtoBacktestStrategyFullResult>) => {
         sendUpdatesResponse(
             ws,
             {
@@ -58,14 +58,7 @@ export async function handleBacktestsStrategyResultsSubscription(
                 channel: BACKTESTS_STRATEGY_RESULTS_CHANNEL,
             },
             {
-                items: [
-                    {
-                        // @ts-ignore
-                        id: data.id,
-                        data: data as unknown as ProtoBacktestStrategyFullResult,
-                        action: 'added',
-                    },
-                ],
+                items: [data],
             },
             ProtoBacktestStrategyFullResult,
         );

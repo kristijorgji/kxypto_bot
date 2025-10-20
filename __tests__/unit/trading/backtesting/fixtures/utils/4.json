@@ -17,6 +17,8 @@
     "maxDrawdownPercentage": 0,
     "mintResults": {
       "nta": {
+        "mint": "nta",
+        "createdAt": "2021-03-19 10:00:00",
         "mintFileStorageType": "local",
         "mintFilePath": "tmp_test/nta.json",
         "backtestResponse": {

@@ -21,3 +21,21 @@ export const dataSourceSchema = z.object({
 });
 
 export type DataSource = z.infer<typeof dataSourceSchema>;
+
+export enum ActionSource {
+    ApiClient = 'api_client',
+    Cli = 'cli',
+    App = 'app',
+    System = 'system',
+}
+
+type ActorBase = {
+    source: ActionSource;
+    userId?: string;
+    apiClientId?: string;
+};
+
+export type ActorContext =
+    | (ActorBase & { source: ActionSource.ApiClient; apiClientId: string })
+    | (ActorBase & { source: ActionSource.Cli | ActionSource.App; userId: string })
+    | (ActorBase & { source: ActionSource.System });

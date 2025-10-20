@@ -1,6 +1,7 @@
 import type { Knex } from 'knex';
 
 import { Tables } from '../tables';
+import { addTableTimestamps } from '../utils/tableTimestamps';
 
 export async function up(knex: Knex): Promise<void> {
     await knex.schema.createTable(Tables.Tokens, table => {
@@ -11,8 +12,7 @@ export async function up(knex: Knex): Promise<void> {
         table.json('other').nullable();
         table.string('createdOn').notNullable().index();
         table.timestamp('token_created_at').notNullable();
-        table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
-        table.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable();
+        addTableTimestamps(knex, table);
 
         table.primary(['chain', 'mint']);
     });

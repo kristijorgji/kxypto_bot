@@ -1,24 +1,25 @@
 import { program } from 'commander';
 import { createLogger } from 'winston';
 
+import { solToLamports } from '@src/blockchains/utils/amount';
 import { redis } from '@src/cache/cache';
+import { ActionSource, ActorContext } from '@src/core/types';
 import { getFiles } from '@src/data/getFiles';
+import { db } from '@src/db/knex';
+import { getBacktestById } from '@src/db/repositories/backtests';
+import { logger } from '@src/logger';
 import { createPubSub } from '@src/pubsub';
 import BacktestPubSub from '@src/pubsub/BacktestPubSub';
+import { parseBacktestFileConfig } from '@src/trading/backtesting/config-parser';
+import { formPumpfunBacktestStatsDir } from '@src/trading/backtesting/data/pumpfun/utils';
+import { BacktestRunConfig } from '@src/trading/bots/blockchains/solana/types';
+import { PredictionSource } from '@src/trading/strategies/types';
 
-import { solToLamports } from '../../blockchains/utils/amount';
-import { db } from '../../db/knex';
-import { getBacktestById } from '../../db/repositories/backtests';
-import { logger } from '../../logger';
-import { parseBacktestFileConfig } from '../../trading/backtesting/config-parser';
-import { formPumpfunBacktestStatsDir } from '../../trading/backtesting/data/pumpfun/utils';
 import runAndSelectBestStrategy from '../../trading/backtesting/runAndSelectBestStrategy';
-import { BacktestRunConfig } from '../../trading/bots/blockchains/solana/types';
 import BuyPredictionStrategy, {
     BuyPredictionStrategyConfig,
 } from '../../trading/strategies/launchpads/BuyPredictionStrategy';
 import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
-import { PredictionSource } from '../../trading/strategies/types';
 
 const pubsub = createPubSub();
 
@@ -59,19 +60,27 @@ async function start(args: { backtestId?: string; config?: string }) {
         backtestPubSub: new BacktestPubSub(pubsub),
     };
 
+    /**
+     * TODO resolve properly instead of hardcoding my user and cli
+     */
+    const actorContext: ActorContext = {
+        source: ActionSource.Cli,
+        userId: '6f5eee63-e50c-4f06-b2d6-6559e15db146',
+    };
+
     if (args.config) {
         logger.info('Running backtest using config file: %s', args.config);
-        return await runAndSelectBestStrategy(runnerDeps, await parseBacktestFileConfig(args.config));
+        return await runAndSelectBestStrategy(runnerDeps, actorContext, await parseBacktestFileConfig(args.config));
     }
 
     if (args.backtestId) {
-        return await runAndSelectBestStrategy(runnerDeps, {
+        return await runAndSelectBestStrategy(runnerDeps, actorContext, {
             backtest: await getBacktestById(args.backtestId),
             strategies: getStrategies(),
         });
     }
 
-    await runAndSelectBestStrategy(runnerDeps, {
+    await runAndSelectBestStrategy(runnerDeps, actorContext, {
         runConfig: getBacktestRunConfig(),
         strategies: getStrategies(),
     });

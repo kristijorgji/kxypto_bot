@@ -1,17 +1,32 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from 'winston';
 
+import { ActorContext } from '@src/core/types';
 import { getFiles } from '@src/data/getFiles';
-import { getBacktestStrategyResults, storeBacktest, storeBacktestStrategyResult } from '@src/db/repositories/backtests';
-import { Backtest } from '@src/db/types';
+import {
+    completeBacktestStrategyResult,
+    createBacktestRun,
+    formDraftMintResultFromBacktestMintResult,
+    getBacktestStrategyResults,
+    initBacktestStrategyResult,
+    markBacktestRunCompleted,
+    storeBacktest,
+} from '@src/db/repositories/backtests';
+import { Backtest, BacktestStrategyResult, ProcessingStatus } from '@src/db/types';
+import { ProtoBacktestMintResultDraft } from '@src/protos/generated/backtests';
 import BacktestPubSub from '@src/pubsub/BacktestPubSub';
 import { formatElapsedTime } from '@src/utils/time';
+import { UpdateItem } from '@src/ws-api/types';
 
 import { BacktestConfig } from './types';
 import { logStrategyResult, runStrategy } from './utils';
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
-import { BacktestRunConfig, BacktestStrategyRunConfig } from '../bots/blockchains/solana/types';
+import {
+    BacktestRunConfig,
+    BacktestStrategyRunConfig,
+    StrategyMintBacktestResult,
+} from '../bots/blockchains/solana/types';
 
 export default async function runAndSelectBestStrategy(
     {
@@ -21,6 +36,7 @@ export default async function runAndSelectBestStrategy(
         logger: Logger;
         backtestPubSub: BacktestPubSub;
     },
+    actorContext: ActorContext,
     config: BacktestConfig,
 ): Promise<void> {
     const start = process.hrtime();
@@ -46,6 +62,15 @@ export default async function runAndSelectBestStrategy(
         };
         await storeBacktest(backtest);
     }
+
+    const backtestRunId = await createBacktestRun({
+        backtest_id: backtestId,
+        source: actorContext.source,
+        status: ProcessingStatus.Running,
+        user_id: actorContext?.userId ?? null,
+        api_client_id: actorContext?.apiClientId ?? null,
+        started_at: new Date(),
+    });
 
     const files = getFiles(runConfig.data);
     const totalFiles = files.length;
@@ -82,6 +107,19 @@ export default async function runAndSelectBestStrategy(
             '='.repeat(100),
         );
 
+        const runningPartialStrategyResult = await initBacktestStrategyResult(
+            backtestId,
+            backtestRunId,
+            backtestStrategyRunConfig.strategy,
+            ProcessingStatus.Running,
+        );
+        backtestPubSub.publishBacktestStrategyResult(backtestId, strategy.identifier, {
+            id: runningPartialStrategyResult.id.toString(),
+            action: 'added',
+            data: runningPartialStrategyResult,
+            version: 1,
+        } satisfies UpdateItem<BacktestStrategyResult>);
+
         const strategyStartTime = process.hrtime();
         const sr = await runStrategy(
             {
@@ -93,8 +131,12 @@ export default async function runAndSelectBestStrategy(
             files,
             {
                 verbose: true,
-                onMintResult: mr => {
-                    backtestPubSub.publishBacktestStrategyMintResult(backtestId, strategy.identifier, mr);
+                onMintResult: bmr => {
+                    backtestPubSub.publishBacktestStrategyMintResult(
+                        backtestId,
+                        strategy.identifier,
+                        strategyMintBacktestResultToDraftMintResult(runningPartialStrategyResult.id, bmr),
+                    );
                 },
             },
         );
@@ -111,13 +153,16 @@ export default async function runAndSelectBestStrategy(
             },
             sr,
         );
-        const backtestStrategyResult = await storeBacktestStrategyResult(
-            backtestId,
-            backtestStrategyRunConfig.strategy,
-            sr,
-            executionTimeInS,
-        );
-        backtestPubSub.publishBacktestStrategyResult(backtestId, strategy.identifier, backtestStrategyResult);
+        const backtestStrategyResult: BacktestStrategyResult = {
+            ...runningPartialStrategyResult,
+            ...(await completeBacktestStrategyResult(runningPartialStrategyResult.id, sr, executionTimeInS)),
+        };
+        backtestPubSub.publishBacktestStrategyResult(backtestId, strategy.identifier, {
+            id: backtestStrategyResult.id.toString(),
+            action: 'updated',
+            data: backtestStrategyResult,
+            version: 1,
+        } satisfies UpdateItem<BacktestStrategyResult>);
 
         tested++;
     }
@@ -135,6 +180,8 @@ export default async function runAndSelectBestStrategy(
     const diff = process.hrtime(start);
     const timeInNs = diff[0] * 1e9 + diff[1];
 
+    await markBacktestRunCompleted(backtestRunId);
+
     logger.info('Finished testing %d strategies in %s', tested, formatElapsedTime(timeInNs / 1e9));
     logger.info(
         'The best strategy is: %s with variant config: %s, config: %o',
@@ -142,4 +189,23 @@ export default async function runAndSelectBestStrategy(
         bestStrategyResult.config_variant,
         bestStrategyResult.config,
     );
+}
+
+function strategyMintBacktestResultToDraftMintResult(
+    strategyResultId: number,
+    bmr: StrategyMintBacktestResult,
+): ProtoBacktestMintResultDraft {
+    const dmr = formDraftMintResultFromBacktestMintResult(strategyResultId, bmr);
+
+    return {
+        strategy_result_id: dmr.strategy_result_id,
+        mint: dmr.mint,
+        net_pnl: dmr.net_pnl_sol ?? undefined,
+        holdings_value: dmr.holdings_value_sol ?? undefined,
+        roi: dmr.roi ?? undefined,
+        exit_code: dmr.exit_code ?? undefined,
+        exit_reason: dmr.exit_reason ?? undefined,
+        payload: dmr.payload,
+        created_at: dmr.created_at as unknown as string,
+    };
 }

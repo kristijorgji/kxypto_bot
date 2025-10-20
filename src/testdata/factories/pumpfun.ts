@@ -79,6 +79,6 @@ export const NewPumpFunCoinDataFactory = (copy?: Partial<PumpFunCoinData>): Pump
     };
 };
 
-function fakeMint(): string {
+export function fakeMint(): string {
     return `f_${faker.string.alpha(42)}`;
 }

@@ -1,7 +1,7 @@
 import { Logger } from 'winston';
 
 import { BacktestsMintResultsFilters, fetchBacktestsMintResultsCursorPaginated } from '@src/db/repositories/backtests';
-import { ProtoBacktestMintFullResult } from '@src/protos/generated/backtests';
+import { ProtoBacktestMintFullResult, ProtoBacktestMintResultDraft } from '@src/protos/generated/backtests';
 import { createBacktestPubSub } from '@src/pubsub';
 import { ProtoBacktestMintFullResultFactory } from '@src/testdata/factories/proto/backtests';
 import { PlainFilters } from '@src/types/data';
@@ -46,7 +46,7 @@ export async function handleBacktestsMintResultsSubscription(
         ProtoBacktestMintFullResult,
     );
 
-    backtestsPubSub.subscribeAllMintsResults(data => {
+    backtestsPubSub.subscribeAllMintsResults((data: ProtoBacktestMintResultDraft) => {
         sendUpdatesResponse(
             ws,
             {
@@ -57,18 +57,13 @@ export async function handleBacktestsMintResultsSubscription(
             {
                 items: [
                     {
-                        // @ts-ignore
-                        id: data.id,
-                        /**
-                         * TODO  incorrect mapping - decide on exact data type, create and use its encoder instead of ProtoBacktestMintFullResult
-                         * Adjust the test interval as well
-                         */
-                        data: data as unknown as ProtoBacktestMintFullResult,
+                        id: `${data.mint}_${data.strategy_result_id}`,
+                        data: data,
                         action: 'added',
                     },
                 ],
             },
-            ProtoBacktestMintFullResult,
+            ProtoBacktestMintResultDraft,
         );
     });
 

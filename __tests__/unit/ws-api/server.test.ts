@@ -159,7 +159,10 @@ describe('ws-api', () => {
                                     data: expect.objectContaining({
                                         count: jsonData.snapshot.data.data.length,
                                         data: expect.arrayContaining([
-                                            expect.objectContaining({ backtest_id: expect.any(String) }),
+                                            expect.objectContaining({
+                                                mint: expect.any(String),
+                                                strategy_result_id: expect.any(Number),
+                                            }),
                                         ]),
                                         nextCursor: null,
                                     }),

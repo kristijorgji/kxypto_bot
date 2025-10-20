@@ -17,6 +17,8 @@
     "maxDrawdownPercentage": 52.6855,
     "mintResults": {
       "fla": {
+        "mint": "fla",
+        "createdAt": "2021-03-19 10:00:00",
         "mintFileStorageType": "local",
         "mintFilePath": "tmp_test/fla.json",
         "backtestResponse": {

@@ -1,6 +1,7 @@
 import type { Knex } from 'knex';
 
 import { Tables } from '../tables';
+import { addTableTimestamps } from '../utils/tableTimestamps';
 
 export async function up(knex: Knex): Promise<void> {
     await knex.schema.createTable(Tables.Users, table => {
@@ -9,7 +10,7 @@ export async function up(knex: Knex): Promise<void> {
         table.string('email').notNullable().unique();
         table.string('username').notNullable();
         table.string('password').notNullable();
-        table.timestamps(true, true);
+        addTableTimestamps(knex, table);
     });
 }
 

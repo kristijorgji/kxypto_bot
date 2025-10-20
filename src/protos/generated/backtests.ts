@@ -7,27 +7,40 @@
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 import { ProtoStruct } from "./google/protobuf/struct";
-import { ProtoDoubleValue, ProtoStringValue } from "./google/protobuf/wrappers";
+import { ProtoTimestamp } from "./google/protobuf/timestamp";
 
 export const protobufPackage = "backtests";
 
+export interface ProtoBacktestMintResultDraft {
+  strategy_result_id: number;
+  mint: string;
+  net_pnl?: number | undefined;
+  holdings_value?: number | undefined;
+  roi?: number | undefined;
+  exit_code?: string | undefined;
+  exit_reason?: string | undefined;
+  payload: { [key: string]: any } | undefined;
+  created_at: Date | undefined;
+}
+
 export interface ProtoBacktestMintFullResult {
   id: number;
-  backtest_id: string;
-  config_variant: string;
   strategy_result_id: number;
-  net_pnl: number | undefined;
-  holdings_value: number;
-  roi: number;
-  exit_code: string | undefined;
-  exit_reason: string | undefined;
+  mint: string;
+  net_pnl?: number | undefined;
+  holdings_value?: number | undefined;
+  roi?: number | undefined;
+  exit_code?: string | undefined;
+  exit_reason?: string | undefined;
   payload: { [key: string]: any } | undefined;
-  created_at: string;
+  created_at: Date | undefined;
 }
 
 export interface ProtoBacktestStrategyFullResult {
   id: number;
   backtest_id: string;
+  backtest_run_id: number;
+  status: string;
   strategy: string;
   strategy_id: string;
   config_variant: string;
@@ -47,59 +60,253 @@ export interface ProtoBacktestStrategyFullResult {
   lowest_trough_sol: number;
   max_drawdown_percentage: number;
   execution_time_seconds: number;
-  created_at: string;
+  created_at: Date | undefined;
 }
+
+function createBaseProtoBacktestMintResultDraft(): ProtoBacktestMintResultDraft {
+  return {
+    strategy_result_id: 0,
+    mint: "",
+    net_pnl: undefined,
+    holdings_value: undefined,
+    roi: undefined,
+    exit_code: undefined,
+    exit_reason: undefined,
+    payload: undefined,
+    created_at: undefined,
+  };
+}
+
+export const ProtoBacktestMintResultDraft: MessageFns<ProtoBacktestMintResultDraft> = {
+  encode(message: ProtoBacktestMintResultDraft, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.strategy_result_id !== 0) {
+      writer.uint32(8).uint64(message.strategy_result_id);
+    }
+    if (message.mint !== "") {
+      writer.uint32(18).string(message.mint);
+    }
+    if (message.net_pnl !== undefined) {
+      writer.uint32(25).double(message.net_pnl);
+    }
+    if (message.holdings_value !== undefined) {
+      writer.uint32(33).double(message.holdings_value);
+    }
+    if (message.roi !== undefined) {
+      writer.uint32(65).double(message.roi);
+    }
+    if (message.exit_code !== undefined) {
+      writer.uint32(74).string(message.exit_code);
+    }
+    if (message.exit_reason !== undefined) {
+      writer.uint32(82).string(message.exit_reason);
+    }
+    if (message.payload !== undefined) {
+      ProtoStruct.encode(ProtoStruct.wrap(message.payload), writer.uint32(90).fork()).join();
+    }
+    if (message.created_at !== undefined) {
+      ProtoTimestamp.encode(toTimestamp(message.created_at), writer.uint32(98).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ProtoBacktestMintResultDraft {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProtoBacktestMintResultDraft();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.strategy_result_id = longToNumber(reader.uint64());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.mint = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 25) {
+            break;
+          }
+
+          message.net_pnl = reader.double();
+          continue;
+        }
+        case 4: {
+          if (tag !== 33) {
+            break;
+          }
+
+          message.holdings_value = reader.double();
+          continue;
+        }
+        case 8: {
+          if (tag !== 65) {
+            break;
+          }
+
+          message.roi = reader.double();
+          continue;
+        }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.exit_code = reader.string();
+          continue;
+        }
+        case 10: {
+          if (tag !== 82) {
+            break;
+          }
+
+          message.exit_reason = reader.string();
+          continue;
+        }
+        case 11: {
+          if (tag !== 90) {
+            break;
+          }
+
+          message.payload = ProtoStruct.unwrap(ProtoStruct.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 12: {
+          if (tag !== 98) {
+            break;
+          }
+
+          message.created_at = fromTimestamp(ProtoTimestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ProtoBacktestMintResultDraft {
+    return {
+      strategy_result_id: isSet(object.strategy_result_id) ? globalThis.Number(object.strategy_result_id) : 0,
+      mint: isSet(object.mint) ? globalThis.String(object.mint) : "",
+      net_pnl: isSet(object.net_pnl) ? globalThis.Number(object.net_pnl) : undefined,
+      holdings_value: isSet(object.holdings_value) ? globalThis.Number(object.holdings_value) : undefined,
+      roi: isSet(object.roi) ? globalThis.Number(object.roi) : undefined,
+      exit_code: isSet(object.exit_code) ? globalThis.String(object.exit_code) : undefined,
+      exit_reason: isSet(object.exit_reason) ? globalThis.String(object.exit_reason) : undefined,
+      payload: isObject(object.payload) ? object.payload : undefined,
+      created_at: isSet(object.created_at) ? fromJsonTimestamp(object.created_at) : undefined,
+    };
+  },
+
+  toJSON(message: ProtoBacktestMintResultDraft): unknown {
+    const obj: any = {};
+    if (message.strategy_result_id !== 0) {
+      obj.strategy_result_id = Math.round(message.strategy_result_id);
+    }
+    if (message.mint !== "") {
+      obj.mint = message.mint;
+    }
+    if (message.net_pnl !== undefined) {
+      obj.net_pnl = message.net_pnl;
+    }
+    if (message.holdings_value !== undefined) {
+      obj.holdings_value = message.holdings_value;
+    }
+    if (message.roi !== undefined) {
+      obj.roi = message.roi;
+    }
+    if (message.exit_code !== undefined) {
+      obj.exit_code = message.exit_code;
+    }
+    if (message.exit_reason !== undefined) {
+      obj.exit_reason = message.exit_reason;
+    }
+    if (message.payload !== undefined) {
+      obj.payload = message.payload;
+    }
+    if (message.created_at !== undefined) {
+      obj.created_at = message.created_at.toISOString();
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ProtoBacktestMintResultDraft>, I>>(base?: I): ProtoBacktestMintResultDraft {
+    return ProtoBacktestMintResultDraft.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ProtoBacktestMintResultDraft>, I>>(object: I): ProtoBacktestMintResultDraft {
+    const message = createBaseProtoBacktestMintResultDraft();
+    message.strategy_result_id = object.strategy_result_id ?? 0;
+    message.mint = object.mint ?? "";
+    message.net_pnl = object.net_pnl ?? undefined;
+    message.holdings_value = object.holdings_value ?? undefined;
+    message.roi = object.roi ?? undefined;
+    message.exit_code = object.exit_code ?? undefined;
+    message.exit_reason = object.exit_reason ?? undefined;
+    message.payload = object.payload ?? undefined;
+    message.created_at = object.created_at ?? undefined;
+    return message;
+  },
+};
 
 function createBaseProtoBacktestMintFullResult(): ProtoBacktestMintFullResult {
   return {
     id: 0,
-    backtest_id: "",
-    config_variant: "",
     strategy_result_id: 0,
+    mint: "",
     net_pnl: undefined,
-    holdings_value: 0,
-    roi: 0,
+    holdings_value: undefined,
+    roi: undefined,
     exit_code: undefined,
     exit_reason: undefined,
     payload: undefined,
-    created_at: "",
+    created_at: undefined,
   };
 }
 
 export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult> = {
   encode(message: ProtoBacktestMintFullResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.id !== 0) {
-      writer.uint32(8).int64(message.id);
-    }
-    if (message.backtest_id !== "") {
-      writer.uint32(18).string(message.backtest_id);
-    }
-    if (message.config_variant !== "") {
-      writer.uint32(26).string(message.config_variant);
+      writer.uint32(8).uint64(message.id);
     }
     if (message.strategy_result_id !== 0) {
-      writer.uint32(32).int64(message.strategy_result_id);
+      writer.uint32(16).int64(message.strategy_result_id);
+    }
+    if (message.mint !== "") {
+      writer.uint32(26).string(message.mint);
     }
     if (message.net_pnl !== undefined) {
-      ProtoDoubleValue.encode({ value: message.net_pnl! }, writer.uint32(42).fork()).join();
+      writer.uint32(33).double(message.net_pnl);
     }
-    if (message.holdings_value !== 0) {
-      writer.uint32(49).double(message.holdings_value);
+    if (message.holdings_value !== undefined) {
+      writer.uint32(41).double(message.holdings_value);
     }
-    if (message.roi !== 0) {
-      writer.uint32(57).double(message.roi);
+    if (message.roi !== undefined) {
+      writer.uint32(49).double(message.roi);
     }
     if (message.exit_code !== undefined) {
-      ProtoStringValue.encode({ value: message.exit_code! }, writer.uint32(66).fork()).join();
+      writer.uint32(58).string(message.exit_code);
     }
     if (message.exit_reason !== undefined) {
-      ProtoStringValue.encode({ value: message.exit_reason! }, writer.uint32(74).fork()).join();
+      writer.uint32(66).string(message.exit_reason);
     }
     if (message.payload !== undefined) {
-      ProtoStruct.encode(ProtoStruct.wrap(message.payload), writer.uint32(82).fork()).join();
+      ProtoStruct.encode(ProtoStruct.wrap(message.payload), writer.uint32(74).fork()).join();
     }
-    if (message.created_at !== "") {
-      writer.uint32(90).string(message.created_at);
+    if (message.created_at !== undefined) {
+      ProtoTimestamp.encode(toTimestamp(message.created_at), writer.uint32(82).fork()).join();
     }
     return writer;
   },
@@ -116,15 +323,15 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
             break;
           }
 
-          message.id = longToNumber(reader.int64());
+          message.id = longToNumber(reader.uint64());
           continue;
         }
         case 2: {
-          if (tag !== 18) {
+          if (tag !== 16) {
             break;
           }
 
-          message.backtest_id = reader.string();
+          message.strategy_result_id = longToNumber(reader.int64());
           continue;
         }
         case 3: {
@@ -132,23 +339,23 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
             break;
           }
 
-          message.config_variant = reader.string();
+          message.mint = reader.string();
           continue;
         }
         case 4: {
-          if (tag !== 32) {
+          if (tag !== 33) {
             break;
           }
 
-          message.strategy_result_id = longToNumber(reader.int64());
+          message.net_pnl = reader.double();
           continue;
         }
         case 5: {
-          if (tag !== 42) {
+          if (tag !== 41) {
             break;
           }
 
-          message.net_pnl = ProtoDoubleValue.decode(reader, reader.uint32()).value;
+          message.holdings_value = reader.double();
           continue;
         }
         case 6: {
@@ -156,15 +363,15 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
             break;
           }
 
-          message.holdings_value = reader.double();
+          message.roi = reader.double();
           continue;
         }
         case 7: {
-          if (tag !== 57) {
+          if (tag !== 58) {
             break;
           }
 
-          message.roi = reader.double();
+          message.exit_code = reader.string();
           continue;
         }
         case 8: {
@@ -172,7 +379,7 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
             break;
           }
 
-          message.exit_code = ProtoStringValue.decode(reader, reader.uint32()).value;
+          message.exit_reason = reader.string();
           continue;
         }
         case 9: {
@@ -180,7 +387,7 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
             break;
           }
 
-          message.exit_reason = ProtoStringValue.decode(reader, reader.uint32()).value;
+          message.payload = ProtoStruct.unwrap(ProtoStruct.decode(reader, reader.uint32()));
           continue;
         }
         case 10: {
@@ -188,15 +395,7 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
             break;
           }
 
-          message.payload = ProtoStruct.unwrap(ProtoStruct.decode(reader, reader.uint32()));
-          continue;
-        }
-        case 11: {
-          if (tag !== 90) {
-            break;
-          }
-
-          message.created_at = reader.string();
+          message.created_at = fromTimestamp(ProtoTimestamp.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -211,16 +410,15 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
   fromJSON(object: any): ProtoBacktestMintFullResult {
     return {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
-      backtest_id: isSet(object.backtest_id) ? globalThis.String(object.backtest_id) : "",
-      config_variant: isSet(object.config_variant) ? globalThis.String(object.config_variant) : "",
       strategy_result_id: isSet(object.strategy_result_id) ? globalThis.Number(object.strategy_result_id) : 0,
-      net_pnl: isSet(object.net_pnl) ? Number(object.net_pnl) : undefined,
-      holdings_value: isSet(object.holdings_value) ? globalThis.Number(object.holdings_value) : 0,
-      roi: isSet(object.roi) ? globalThis.Number(object.roi) : 0,
-      exit_code: isSet(object.exit_code) ? String(object.exit_code) : undefined,
-      exit_reason: isSet(object.exit_reason) ? String(object.exit_reason) : undefined,
+      mint: isSet(object.mint) ? globalThis.String(object.mint) : "",
+      net_pnl: isSet(object.net_pnl) ? globalThis.Number(object.net_pnl) : undefined,
+      holdings_value: isSet(object.holdings_value) ? globalThis.Number(object.holdings_value) : undefined,
+      roi: isSet(object.roi) ? globalThis.Number(object.roi) : undefined,
+      exit_code: isSet(object.exit_code) ? globalThis.String(object.exit_code) : undefined,
+      exit_reason: isSet(object.exit_reason) ? globalThis.String(object.exit_reason) : undefined,
       payload: isObject(object.payload) ? object.payload : undefined,
-      created_at: isSet(object.created_at) ? globalThis.String(object.created_at) : "",
+      created_at: isSet(object.created_at) ? fromJsonTimestamp(object.created_at) : undefined,
     };
   },
 
@@ -229,22 +427,19 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
     if (message.id !== 0) {
       obj.id = Math.round(message.id);
     }
-    if (message.backtest_id !== "") {
-      obj.backtest_id = message.backtest_id;
-    }
-    if (message.config_variant !== "") {
-      obj.config_variant = message.config_variant;
-    }
     if (message.strategy_result_id !== 0) {
       obj.strategy_result_id = Math.round(message.strategy_result_id);
+    }
+    if (message.mint !== "") {
+      obj.mint = message.mint;
     }
     if (message.net_pnl !== undefined) {
       obj.net_pnl = message.net_pnl;
     }
-    if (message.holdings_value !== 0) {
+    if (message.holdings_value !== undefined) {
       obj.holdings_value = message.holdings_value;
     }
-    if (message.roi !== 0) {
+    if (message.roi !== undefined) {
       obj.roi = message.roi;
     }
     if (message.exit_code !== undefined) {
@@ -256,8 +451,8 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
     if (message.payload !== undefined) {
       obj.payload = message.payload;
     }
-    if (message.created_at !== "") {
-      obj.created_at = message.created_at;
+    if (message.created_at !== undefined) {
+      obj.created_at = message.created_at.toISOString();
     }
     return obj;
   },
@@ -268,16 +463,15 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
   fromPartial<I extends Exact<DeepPartial<ProtoBacktestMintFullResult>, I>>(object: I): ProtoBacktestMintFullResult {
     const message = createBaseProtoBacktestMintFullResult();
     message.id = object.id ?? 0;
-    message.backtest_id = object.backtest_id ?? "";
-    message.config_variant = object.config_variant ?? "";
     message.strategy_result_id = object.strategy_result_id ?? 0;
+    message.mint = object.mint ?? "";
     message.net_pnl = object.net_pnl ?? undefined;
-    message.holdings_value = object.holdings_value ?? 0;
-    message.roi = object.roi ?? 0;
+    message.holdings_value = object.holdings_value ?? undefined;
+    message.roi = object.roi ?? undefined;
     message.exit_code = object.exit_code ?? undefined;
     message.exit_reason = object.exit_reason ?? undefined;
     message.payload = object.payload ?? undefined;
-    message.created_at = object.created_at ?? "";
+    message.created_at = object.created_at ?? undefined;
     return message;
   },
 };
@@ -286,6 +480,8 @@ function createBaseProtoBacktestStrategyFullResult(): ProtoBacktestStrategyFullR
   return {
     id: 0,
     backtest_id: "",
+    backtest_run_id: 0,
+    status: "",
     strategy: "",
     strategy_id: "",
     config_variant: "",
@@ -305,7 +501,7 @@ function createBaseProtoBacktestStrategyFullResult(): ProtoBacktestStrategyFullR
     lowest_trough_sol: 0,
     max_drawdown_percentage: 0,
     execution_time_seconds: 0,
-    created_at: "",
+    created_at: undefined,
   };
 }
 
@@ -317,65 +513,71 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
     if (message.backtest_id !== "") {
       writer.uint32(18).string(message.backtest_id);
     }
+    if (message.backtest_run_id !== 0) {
+      writer.uint32(24).uint64(message.backtest_run_id);
+    }
+    if (message.status !== "") {
+      writer.uint32(34).string(message.status);
+    }
     if (message.strategy !== "") {
-      writer.uint32(26).string(message.strategy);
+      writer.uint32(42).string(message.strategy);
     }
     if (message.strategy_id !== "") {
-      writer.uint32(34).string(message.strategy_id);
+      writer.uint32(50).string(message.strategy_id);
     }
     if (message.config_variant !== "") {
-      writer.uint32(42).string(message.config_variant);
+      writer.uint32(58).string(message.config_variant);
     }
     if (message.config !== undefined) {
-      ProtoStruct.encode(ProtoStruct.wrap(message.config), writer.uint32(50).fork()).join();
+      ProtoStruct.encode(ProtoStruct.wrap(message.config), writer.uint32(66).fork()).join();
     }
     if (message.pnl_sol !== 0) {
-      writer.uint32(57).double(message.pnl_sol);
+      writer.uint32(73).double(message.pnl_sol);
     }
     if (message.holdings_value_sol !== 0) {
-      writer.uint32(65).double(message.holdings_value_sol);
+      writer.uint32(81).double(message.holdings_value_sol);
     }
     if (message.roi !== 0) {
-      writer.uint32(73).double(message.roi);
+      writer.uint32(89).double(message.roi);
     }
     if (message.win_rate !== 0) {
-      writer.uint32(81).double(message.win_rate);
+      writer.uint32(97).double(message.win_rate);
     }
     if (message.wins_count !== 0) {
-      writer.uint32(89).double(message.wins_count);
+      writer.uint32(105).double(message.wins_count);
     }
     if (message.biggest_win_percentage !== 0) {
-      writer.uint32(97).double(message.biggest_win_percentage);
+      writer.uint32(113).double(message.biggest_win_percentage);
     }
     if (message.losses_count !== 0) {
-      writer.uint32(105).double(message.losses_count);
+      writer.uint32(121).double(message.losses_count);
     }
     if (message.biggest_loss_percentage !== 0) {
-      writer.uint32(113).double(message.biggest_loss_percentage);
+      writer.uint32(129).double(message.biggest_loss_percentage);
     }
     if (message.total_trades_count !== 0) {
-      writer.uint32(121).double(message.total_trades_count);
+      writer.uint32(136).uint32(message.total_trades_count);
     }
     if (message.buy_trades_count !== 0) {
-      writer.uint32(129).double(message.buy_trades_count);
+      writer.uint32(144).uint32(message.buy_trades_count);
     }
     if (message.sell_trades_count !== 0) {
-      writer.uint32(137).double(message.sell_trades_count);
+      writer.uint32(152).uint32(message.sell_trades_count);
     }
     if (message.highest_peak_sol !== 0) {
-      writer.uint32(145).double(message.highest_peak_sol);
+      writer.uint32(161).double(message.highest_peak_sol);
     }
     if (message.lowest_trough_sol !== 0) {
-      writer.uint32(153).double(message.lowest_trough_sol);
+      writer.uint32(169).double(message.lowest_trough_sol);
     }
     if (message.max_drawdown_percentage !== 0) {
-      writer.uint32(161).double(message.max_drawdown_percentage);
+      writer.uint32(177).double(message.max_drawdown_percentage);
     }
     if (message.execution_time_seconds !== 0) {
-      writer.uint32(169).double(message.execution_time_seconds);
+      writer.uint32(185).double(message.execution_time_seconds);
     }
-    if (message.created_at !== "") {
-      writer.uint32(178).string(message.created_at);
+    if (message.created_at !== undefined) {
+      ProtoTimestamp.encode(toTimestamp(message.created_at), writer.uint32(194).fork()).join();
     }
     return writer;
   },
@@ -404,11 +606,11 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
           continue;
         }
         case 3: {
-          if (tag !== 26) {
+          if (tag !== 24) {
             break;
           }
 
-          message.strategy = reader.string();
+          message.backtest_run_id = longToNumber(reader.uint64());
           continue;
         }
         case 4: {
@@ -416,7 +618,7 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
             break;
           }
 
-          message.strategy_id = reader.string();
+          message.status = reader.string();
           continue;
         }
         case 5: {
@@ -424,7 +626,7 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
             break;
           }
 
-          message.config_variant = reader.string();
+          message.strategy = reader.string();
           continue;
         }
         case 6: {
@@ -432,23 +634,23 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
             break;
           }
 
-          message.config = ProtoStruct.unwrap(ProtoStruct.decode(reader, reader.uint32()));
+          message.strategy_id = reader.string();
           continue;
         }
         case 7: {
-          if (tag !== 57) {
+          if (tag !== 58) {
             break;
           }
 
-          message.pnl_sol = reader.double();
+          message.config_variant = reader.string();
           continue;
         }
         case 8: {
-          if (tag !== 65) {
+          if (tag !== 66) {
             break;
           }
 
-          message.holdings_value_sol = reader.double();
+          message.config = ProtoStruct.unwrap(ProtoStruct.decode(reader, reader.uint32()));
           continue;
         }
         case 9: {
@@ -456,7 +658,7 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
             break;
           }
 
-          message.roi = reader.double();
+          message.pnl_sol = reader.double();
           continue;
         }
         case 10: {
@@ -464,7 +666,7 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
             break;
           }
 
-          message.win_rate = reader.double();
+          message.holdings_value_sol = reader.double();
           continue;
         }
         case 11: {
@@ -472,7 +674,7 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
             break;
           }
 
-          message.wins_count = reader.double();
+          message.roi = reader.double();
           continue;
         }
         case 12: {
@@ -480,7 +682,7 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
             break;
           }
 
-          message.biggest_win_percentage = reader.double();
+          message.win_rate = reader.double();
           continue;
         }
         case 13: {
@@ -488,7 +690,7 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
             break;
           }
 
-          message.losses_count = reader.double();
+          message.wins_count = reader.double();
           continue;
         }
         case 14: {
@@ -496,7 +698,7 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
             break;
           }
 
-          message.biggest_loss_percentage = reader.double();
+          message.biggest_win_percentage = reader.double();
           continue;
         }
         case 15: {
@@ -504,7 +706,7 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
             break;
           }
 
-          message.total_trades_count = reader.double();
+          message.losses_count = reader.double();
           continue;
         }
         case 16: {
@@ -512,31 +714,31 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
             break;
           }
 
-          message.buy_trades_count = reader.double();
+          message.biggest_loss_percentage = reader.double();
           continue;
         }
         case 17: {
-          if (tag !== 137) {
+          if (tag !== 136) {
             break;
           }
 
-          message.sell_trades_count = reader.double();
+          message.total_trades_count = reader.uint32();
           continue;
         }
         case 18: {
-          if (tag !== 145) {
+          if (tag !== 144) {
             break;
           }
 
-          message.highest_peak_sol = reader.double();
+          message.buy_trades_count = reader.uint32();
           continue;
         }
         case 19: {
-          if (tag !== 153) {
+          if (tag !== 152) {
             break;
           }
 
-          message.lowest_trough_sol = reader.double();
+          message.sell_trades_count = reader.uint32();
           continue;
         }
         case 20: {
@@ -544,7 +746,7 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
             break;
           }
 
-          message.max_drawdown_percentage = reader.double();
+          message.highest_peak_sol = reader.double();
           continue;
         }
         case 21: {
@@ -552,15 +754,31 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
             break;
           }
 
-          message.execution_time_seconds = reader.double();
+          message.lowest_trough_sol = reader.double();
           continue;
         }
         case 22: {
-          if (tag !== 178) {
+          if (tag !== 177) {
             break;
           }
 
-          message.created_at = reader.string();
+          message.max_drawdown_percentage = reader.double();
+          continue;
+        }
+        case 23: {
+          if (tag !== 185) {
+            break;
+          }
+
+          message.execution_time_seconds = reader.double();
+          continue;
+        }
+        case 24: {
+          if (tag !== 194) {
+            break;
+          }
+
+          message.created_at = fromTimestamp(ProtoTimestamp.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -576,6 +794,8 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
     return {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       backtest_id: isSet(object.backtest_id) ? globalThis.String(object.backtest_id) : "",
+      backtest_run_id: isSet(object.backtest_run_id) ? globalThis.Number(object.backtest_run_id) : 0,
+      status: isSet(object.status) ? globalThis.String(object.status) : "",
       strategy: isSet(object.strategy) ? globalThis.String(object.strategy) : "",
       strategy_id: isSet(object.strategy_id) ? globalThis.String(object.strategy_id) : "",
       config_variant: isSet(object.config_variant) ? globalThis.String(object.config_variant) : "",
@@ -603,7 +823,7 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
       execution_time_seconds: isSet(object.execution_time_seconds)
         ? globalThis.Number(object.execution_time_seconds)
         : 0,
-      created_at: isSet(object.created_at) ? globalThis.String(object.created_at) : "",
+      created_at: isSet(object.created_at) ? fromJsonTimestamp(object.created_at) : undefined,
     };
   },
 
@@ -614,6 +834,12 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
     }
     if (message.backtest_id !== "") {
       obj.backtest_id = message.backtest_id;
+    }
+    if (message.backtest_run_id !== 0) {
+      obj.backtest_run_id = Math.round(message.backtest_run_id);
+    }
+    if (message.status !== "") {
+      obj.status = message.status;
     }
     if (message.strategy !== "") {
       obj.strategy = message.strategy;
@@ -652,13 +878,13 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
       obj.biggest_loss_percentage = message.biggest_loss_percentage;
     }
     if (message.total_trades_count !== 0) {
-      obj.total_trades_count = message.total_trades_count;
+      obj.total_trades_count = Math.round(message.total_trades_count);
     }
     if (message.buy_trades_count !== 0) {
-      obj.buy_trades_count = message.buy_trades_count;
+      obj.buy_trades_count = Math.round(message.buy_trades_count);
     }
     if (message.sell_trades_count !== 0) {
-      obj.sell_trades_count = message.sell_trades_count;
+      obj.sell_trades_count = Math.round(message.sell_trades_count);
     }
     if (message.highest_peak_sol !== 0) {
       obj.highest_peak_sol = message.highest_peak_sol;
@@ -672,8 +898,8 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
     if (message.execution_time_seconds !== 0) {
       obj.execution_time_seconds = message.execution_time_seconds;
     }
-    if (message.created_at !== "") {
-      obj.created_at = message.created_at;
+    if (message.created_at !== undefined) {
+      obj.created_at = message.created_at.toISOString();
     }
     return obj;
   },
@@ -687,6 +913,8 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
     const message = createBaseProtoBacktestStrategyFullResult();
     message.id = object.id ?? 0;
     message.backtest_id = object.backtest_id ?? "";
+    message.backtest_run_id = object.backtest_run_id ?? 0;
+    message.status = object.status ?? "";
     message.strategy = object.strategy ?? "";
     message.strategy_id = object.strategy_id ?? "";
     message.config_variant = object.config_variant ?? "";
@@ -706,7 +934,7 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
     message.lowest_trough_sol = object.lowest_trough_sol ?? 0;
     message.max_drawdown_percentage = object.max_drawdown_percentage ?? 0;
     message.execution_time_seconds = object.execution_time_seconds ?? 0;
-    message.created_at = object.created_at ?? "";
+    message.created_at = object.created_at ?? undefined;
     return message;
   },
 };
@@ -722,6 +950,28 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function toTimestamp(date: Date): ProtoTimestamp {
+  const seconds = Math.trunc(date.getTime() / 1_000);
+  const nanos = (date.getTime() % 1_000) * 1_000_000;
+  return { seconds, nanos };
+}
+
+function fromTimestamp(t: ProtoTimestamp): Date {
+  let millis = (t.seconds || 0) * 1_000;
+  millis += (t.nanos || 0) / 1_000_000;
+  return new globalThis.Date(millis);
+}
+
+function fromJsonTimestamp(o: any): Date {
+  if (o instanceof globalThis.Date) {
+    return o;
+  } else if (typeof o === "string") {
+    return new globalThis.Date(o);
+  } else {
+    return fromTimestamp(ProtoTimestamp.fromJSON(o));
+  }
+}
 
 function longToNumber(int64: { toString(): string }): number {
   const num = globalThis.Number(int64.toString());

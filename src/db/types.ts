@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { FileStorageType } from '../core/types';
+import { ActionSource, FileStorageType } from '../core/types';
 import { BacktestRunConfig } from '../trading/bots/blockchains/solana/types';
 import { ExitMonitoringReason, SellReason } from '../trading/bots/types';
 
@@ -51,9 +51,31 @@ export type Backtest = {
     created_at?: Date;
 };
 
+export enum ProcessingStatus {
+    Pending = 'pending',
+    Running = 'running',
+    Completed = 'completed',
+    Failed = 'failed',
+}
+
+export type BacktestRun = {
+    id: string;
+    backtest_id: string;
+    source: ActionSource;
+    status: ProcessingStatus;
+    user_id: string | null;
+    api_client_id: string | null;
+    started_at: Date | null;
+    finished_at: Date | null;
+    created_at: Date;
+    updated_at: Date;
+};
+
 export type BacktestStrategyResult = {
     id: number;
     backtest_id: string;
+    backtest_run_id: number;
+    status: ProcessingStatus;
     strategy: string;
     strategy_id: string;
     config_variant: string;

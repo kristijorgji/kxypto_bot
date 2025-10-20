@@ -1,6 +1,7 @@
 import type { Knex } from 'knex';
 
 import { Tables } from '../tables';
+import { addTableTimestamps } from '../utils/tableTimestamps';
 
 export async function up(knex: Knex): Promise<void> {
     await knex.schema.createTable(Tables.Positions, table => {
@@ -42,8 +43,7 @@ export async function up(knex: Knex): Promise<void> {
         table.decimal('exit_price', 38, 18).nullable();
         table.decimal('realized_profit', 38, 18).nullable();
         table.decimal('exit_amount', 38, 18).nullable();
-        table.timestamp('created_at').defaultTo(knex.fn.now());
-        table.timestamp('updated_at').defaultTo(knex.raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'));
+        addTableTimestamps(knex, table);
     });
 }
 

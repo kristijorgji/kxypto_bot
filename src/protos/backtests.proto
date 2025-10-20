@@ -4,42 +4,56 @@ package backtests;
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+
+message BacktestMintResultDraft {
+  uint64 strategy_result_id = 1;
+  string mint = 2;
+  optional double net_pnl = 3;
+  optional double holdings_value = 4;
+  optional double roi = 8;
+  optional string exit_code = 9;
+  optional string exit_reason = 10;
+  google.protobuf.Struct payload = 11;
+  google.protobuf.Timestamp created_at = 12;
+}
 
 message BacktestMintFullResult {
-  int64 id = 1;
-  string backtest_id = 2;
-  string config_variant = 3;
-  int64 strategy_result_id = 4;
-  google.protobuf.DoubleValue net_pnl = 5;
-  double holdings_value = 6;
-  double roi = 7;
-  google.protobuf.StringValue exit_code = 8;
-  google.protobuf.StringValue exit_reason = 9;
-  google.protobuf.Struct payload = 10;
-  string created_at = 11;
+  uint64 id = 1;
+  int64 strategy_result_id = 2;
+  string mint = 3;
+  optional double net_pnl = 4;
+  optional double holdings_value = 5;
+  optional double roi = 6;
+  optional string exit_code = 7;
+  optional string exit_reason = 8;
+  google.protobuf.Struct payload = 9;
+  google.protobuf.Timestamp created_at = 10;
 }
 
 message BacktestStrategyFullResult {
   int64 id = 1;
   string backtest_id = 2;
-  string strategy = 3;
-  string strategy_id = 4;
-  string config_variant = 5;
-  google.protobuf.Struct config = 6;
-  double pnl_sol = 7;
-  double holdings_value_sol = 8;
-  double roi = 9;
-  double win_rate = 10;
-  double wins_count = 11;
-  double biggest_win_percentage = 12;
-  double losses_count = 13;
-  double biggest_loss_percentage = 14;
-  double total_trades_count = 15;
-  double buy_trades_count = 16;
-  double sell_trades_count = 17;
-  double highest_peak_sol = 18;
-  double lowest_trough_sol = 19;
-  double max_drawdown_percentage = 20;
-  double execution_time_seconds = 21;
-  string created_at = 22;
+  uint64 backtest_run_id = 3;
+  string status = 4;
+  string strategy = 5;
+  string strategy_id = 6;
+  string config_variant = 7;
+  google.protobuf.Struct config = 8;
+  double pnl_sol = 9;
+  double holdings_value_sol = 10;
+  double roi = 11;
+  double win_rate = 12;
+  double wins_count = 13;
+  double biggest_win_percentage = 14;
+  double losses_count = 15;
+  double biggest_loss_percentage = 16;
+  uint32 total_trades_count = 17;
+  uint32 buy_trades_count = 18;
+  uint32 sell_trades_count = 19;
+  double highest_peak_sol = 20;
+  double lowest_trough_sol = 21;
+  double max_drawdown_percentage = 22;
+  double execution_time_seconds = 23;
+  google.protobuf.Timestamp created_at = 24;
 }

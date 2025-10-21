@@ -4,14 +4,43 @@ import { HttpResponse, http } from 'msw';
 import { SetupServerApi } from 'msw/node';
 import { LogEntry } from 'winston';
 
+import { buyEnsemblePredictionSource } from './data';
 import { HistoryEntry } from '../../../../../src/trading/bots/launchpads/types';
 import { HistoryRef, ShouldBuyResponse } from '../../../../../src/trading/bots/types';
 import { BuyPredictionStrategyConfig } from '../../../../../src/trading/strategies/launchpads/BuyPredictionStrategy';
 import BuySellPredictionStrategy from '../../../../../src/trading/strategies/launchpads/BuySellPredictionStrategy';
 import LaunchpadBotStrategy from '../../../../../src/trading/strategies/launchpads/LaunchpadBotStrategy';
-import { StrategyPredictionConfig } from '../../../../../src/trading/strategies/types';
+import {
+    ConfidencePredictionResponse,
+    PredictionSource,
+    StrategyPredictionConfig,
+} from '../../../../../src/trading/strategies/types';
 import { deepEqual } from '../../../../../src/utils/data/equals';
 import { readLocalFixture } from '../../../../__utils/data';
+
+const formMswPredictionRequestHandler = (p: {
+    endpoint: string;
+    matchesLocalFixture?: string;
+    response?: ConfidencePredictionResponse;
+    error?: string;
+}) =>
+    http.post(p.endpoint, async ({ request }) => {
+        if (p.error) {
+            return HttpResponse.json(
+                {
+                    error: p.error,
+                },
+                { status: 400 },
+            );
+        }
+
+        const body = await request.json();
+        if (!deepEqual(body, readLocalFixture(p?.matchesLocalFixture ?? 'prediction-strategy-http-request-1'))) {
+            return HttpResponse.json({}, { status: 400 });
+        }
+
+        return HttpResponse.json(p.response, { status: 200 });
+    });
 
 export function defineShouldBuyWithPredictionTests({
     mockServer,
@@ -30,6 +59,7 @@ export function defineShouldBuyWithPredictionTests({
     getLogs: () => LogEntry[];
     getStrategy: () => LaunchpadBotStrategy;
     formStrategy: (overrides: {
+        source?: PredictionSource;
         prediction?: Partial<StrategyPredictionConfig>;
         buy?: Partial<BuyPredictionStrategyConfig['buy']>;
     }) => void;
@@ -38,41 +68,25 @@ export function defineShouldBuyWithPredictionTests({
     history: HistoryEntry[];
 }) {
     describe('shouldBuy', () => {
-        const mswPredictAboveThresholdBuyHandler = http.post(predictionEndpoint, async ({ request }) => {
-            const body = await request.json();
-            if (!deepEqual(body, readLocalFixture('prediction-strategy-http-request-1'))) {
-                return HttpResponse.json({}, { status: 400 });
-            }
-
-            return HttpResponse.json(
-                {
-                    confidence: 0.51,
-                },
-                { status: 200 },
-            );
+        const mswPredictAboveThresholdBuyHandler = formMswPredictionRequestHandler({
+            endpoint: predictionEndpoint,
+            response: {
+                status: 'single_model_success',
+                confidence: 0.51,
+            },
         });
 
-        const mswPredictBelowThresholdBuyHandler = http.post(predictionEndpoint, async ({ request }) => {
-            const body = await request.json();
-            if (!deepEqual(body, readLocalFixture('prediction-strategy-http-request-1'))) {
-                return HttpResponse.json({}, { status: 400 });
-            }
-
-            return HttpResponse.json(
-                {
-                    confidence: 0.49,
-                },
-                { status: 200 },
-            );
+        const mswPredictBelowThresholdBuyHandler = formMswPredictionRequestHandler({
+            endpoint: predictionEndpoint,
+            response: {
+                status: 'single_model_success',
+                confidence: 0.49,
+            },
         });
 
-        const mswPredictThrowErrorBuyHandler = http.post(predictionEndpoint, async () => {
-            return HttpResponse.json(
-                {
-                    error: 'for fun',
-                },
-                { status: 400 },
-            );
+        const mswPredictThrowErrorBuyHandler = formMswPredictionRequestHandler({
+            endpoint: predictionEndpoint,
+            error: 'for fun',
         });
 
         it('should buy when predicted confidence exceeds threshold for required consecutive confirmations and not use cache', async () => {
@@ -333,39 +347,21 @@ export function defineShouldBuyWithPredictionTests({
                 },
             };
 
-            const mswDownsidePredictBelowThresholdHandler = http.post(
-                downsideProtectionConfig.source.endpoint,
-                async ({ request }) => {
-                    const body = await request.json();
-                    if (!deepEqual(body, readLocalFixture('prediction-strategy-http-request-1'))) {
-                        return HttpResponse.json({}, { status: 400 });
-                    }
-
-                    return HttpResponse.json(
-                        {
-                            confidence: downsideProtectionConfig.minPredictedConfidence - 0.1,
-                        },
-                        { status: 200 },
-                    );
+            const mswDownsidePredictBelowThresholdHandler = formMswPredictionRequestHandler({
+                endpoint: downsideProtectionConfig.source.endpoint,
+                response: {
+                    status: 'single_model_success',
+                    confidence: downsideProtectionConfig.minPredictedConfidence - 0.1,
                 },
-            );
+            });
 
-            const mswDownsidePredictAboveThresholdHandler = http.post(
-                downsideProtectionConfig.source.endpoint,
-                async ({ request }) => {
-                    const body = await request.json();
-                    if (!deepEqual(body, readLocalFixture('prediction-strategy-http-request-1'))) {
-                        return HttpResponse.json({}, { status: 400 });
-                    }
-
-                    return HttpResponse.json(
-                        {
-                            confidence: downsideProtectionConfig.minPredictedConfidence + 0.2,
-                        },
-                        { status: 200 },
-                    );
+            const mswDownsidePredictAboveThresholdHandler = formMswPredictionRequestHandler({
+                endpoint: downsideProtectionConfig.source.endpoint,
+                response: {
+                    status: 'single_model_success',
+                    confidence: downsideProtectionConfig.minPredictedConfidence + 0.2,
                 },
-            );
+            });
 
             beforeEach(() => {
                 formStrategy({
@@ -390,11 +386,12 @@ export function defineShouldBuyWithPredictionTests({
                 } satisfies ShouldBuyResponse);
 
                 const expectedCache: Record<string, string> = {
-                    'sp.t_drop_30_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10': '{"confidence":0.37}',
+                    'sp.t_drop_30_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10':
+                        '{"status":"single_model_success","confidence":0.37}',
                 };
                 if (getStrategy() instanceof BuySellPredictionStrategy) {
                     expectedCache['bp.t_test_rsi7_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10'] =
-                        '{"confidence":0.51}';
+                        '{"status":"single_model_success","confidence":0.51}';
                 }
                 expect(
                     Object.fromEntries(
@@ -453,11 +450,12 @@ export function defineShouldBuyWithPredictionTests({
                 } satisfies ShouldBuyResponse);
 
                 const expectedCache: Record<string, string> = {
-                    'sp.t_drop_30_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10': '{"confidence":0.07}',
+                    'sp.t_drop_30_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10':
+                        '{"status":"single_model_success","confidence":0.07}',
                 };
                 if (getStrategy() instanceof BuySellPredictionStrategy) {
                     expectedCache['bp.t_test_rsi7_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10'] =
-                        '{"confidence":0.51}';
+                        '{"status":"single_model_success","confidence":0.51}';
                 }
                 expect(
                     Object.fromEntries(
@@ -495,6 +493,74 @@ export function defineShouldBuyWithPredictionTests({
                         },
                     },
                 } satisfies ShouldBuyResponse);
+            });
+        });
+    });
+
+    describe('shouldBuy works with ensemble mode', () => {
+        it('aggregates the 2 model responses and uses stores in separate cache for each model', async () => {
+            formStrategy({
+                source: buyEnsemblePredictionSource,
+                prediction: {
+                    cache: {
+                        enabled: true,
+                    },
+                },
+            });
+            mockServer.use(
+                formMswPredictionRequestHandler({
+                    endpoint: buyEnsemblePredictionSource.sources[0].endpoint,
+                    response: {
+                        status: 'single_model_success',
+                        confidence: 0.51,
+                    },
+                }),
+            );
+            mockServer.use(
+                formMswPredictionRequestHandler({
+                    endpoint: buyEnsemblePredictionSource.sources[1].endpoint,
+                    response: {
+                        status: 'single_model_success',
+                        confidence: 0.7,
+                    },
+                }),
+            );
+            expect(await getStrategy().shouldBuy(mint, historyRef, history[4], history)).toEqual({
+                buy: true,
+                data: {
+                    aggregationMode: 'weighted',
+                    consecutivePredictionConfirmations: 1,
+                    individualResults: [
+                        {
+                            algorithm: 'catboost',
+                            confidence: 0.51,
+                            endpoint: 'http://localhost:3878/buy/cat/v100',
+                            model: 'v100',
+                            weight: 0.77,
+                        },
+                        {
+                            algorithm: 'transformers',
+                            confidence: 0.7,
+                            endpoint: 'http://localhost:3878/buy/transformers/v7',
+                            model: 'supra_transformers_v7',
+                            weight: 0.23,
+                        },
+                    ],
+                    predictedBuyConfidence: 0.5537,
+                },
+                reason: 'consecutivePredictionConfirmations',
+            });
+            expect(
+                Object.fromEntries(
+                    await Promise.all(
+                        (await redisMockInstance.keys('*')).map(async k => [k, await redisMockInstance.get(k)]),
+                    ),
+                ),
+            ).toEqual({
+                'bp.c_v100_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10':
+                    '{"status":"single_model_success","confidence":0.51}',
+                'bp.t_supra_transformers_v7_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10':
+                    '{"status":"single_model_success","confidence":0.7}',
             });
         });
     });

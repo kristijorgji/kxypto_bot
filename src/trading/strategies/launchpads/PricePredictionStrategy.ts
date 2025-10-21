@@ -10,8 +10,8 @@ import { deepClone } from '@src/utils/data/data';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
 import {
     PredictionRequest,
-    PredictionSource,
     PredictionStrategyShouldBuyResponseReason,
+    SinglePredictionSource,
     marketContextIntervalConfigSchema,
     strategyConfigSchema,
     strategyPredictionConfigSchema,
@@ -95,7 +95,7 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
     constructor(
         readonly logger: Logger,
         private readonly cache: Redis,
-        private readonly source: PredictionSource,
+        private readonly source: SinglePredictionSource,
         config?: Partial<PricePredictionStrategyConfig>,
     ) {
         super(logger);
@@ -223,7 +223,7 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
         this.consecutivePredictionConfirmations = 0;
     }
 
-    public static formVariant(source: PredictionSource, config: PricePredictionStrategyConfig): string {
+    public static formVariant(source: SinglePredictionSource, config: PricePredictionStrategyConfig): string {
         let r = `${variantFromPredictionSource(source)}_p(${variantFromPredictionConfig(config.prediction)})`;
 
         r += `_buy(mppip:${config.buy.minPredictedPriceIncreasePercentage}`;

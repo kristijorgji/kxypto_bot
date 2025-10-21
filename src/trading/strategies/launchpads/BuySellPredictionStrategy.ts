@@ -22,6 +22,7 @@ import {
 import {
     PredictionSource,
     PredictionStrategyShouldSellResponseReason,
+    isSingleSource,
     strategyConfigSchema,
     strategyPredictionConfigSchema,
     strategySellConfigSchema,
@@ -110,8 +111,8 @@ export default class BuySellPredictionStrategy extends LimitsBasedStrategy {
     private readonly buyClient: RateLimitedAxiosInstance;
     private readonly sellClient: RateLimitedAxiosInstance;
 
-    private readonly buyCacheBaseKey: string;
-    private readonly sellCacheBaseKey: string;
+    private readonly buyCacheBaseKey: string | string[];
+    private readonly sellCacheBaseKey: string | string[];
 
     private consecutiveBuyPredictionConfirmations: number = 0;
     private consecutiveSellPredictionConfirmations: number = 0;
@@ -149,21 +150,36 @@ export default class BuySellPredictionStrategy extends LimitsBasedStrategy {
             this.config.variant = BuySellPredictionStrategy.formVariant(buySource, sellSource, this.config);
         }
 
+        const buySourcesCount = isSingleSource(this.buySource) ? 1 : this.buySource.sources.length;
+        const sellSourcesCount = isSingleSource(this.sellSource) ? 1 : this.sellSource.sources.length;
+
         this.buyClient = axiosRateLimit(
             axios.create({
                 validateStatus: () => true,
             }),
-            { maxRequests: 16000, perMilliseconds: 1000 },
+            { maxRequests: 16000 * buySourcesCount, perMilliseconds: 1000 },
         );
         this.sellClient = axiosRateLimit(
             axios.create({
                 validateStatus: () => true,
             }),
-            { maxRequests: 16000, perMilliseconds: 1000 },
+            { maxRequests: 16000 * sellSourcesCount, perMilliseconds: 1000 },
         );
 
-        this.buyCacheBaseKey = formBaseCacheKey('buy', this.config.prediction.buy, this.buySource);
-        this.sellCacheBaseKey = formBaseCacheKey('sell', this.config.prediction.sell, this.sellSource);
+        if (isSingleSource(this.buySource)) {
+            this.buyCacheBaseKey = formBaseCacheKey('buy', this.config.prediction.buy, this.buySource);
+        } else {
+            this.buyCacheBaseKey = this.buySource.sources.map(el =>
+                formBaseCacheKey('buy', this.config.prediction.buy, el),
+            );
+        }
+        if (isSingleSource(this.sellSource)) {
+            this.sellCacheBaseKey = formBaseCacheKey('sell', this.config.prediction.sell, this.sellSource);
+        } else {
+            this.sellCacheBaseKey = this.sellSource.sources.map(el =>
+                formBaseCacheKey('sell', this.config.prediction.sell, el),
+            );
+        }
 
         this.shouldBuyCommonParams = {
             deps: {
@@ -262,8 +278,8 @@ export default class BuySellPredictionStrategy extends LimitsBasedStrategy {
         sellSource: PredictionSource,
         config: BuySellPredictionStrategyConfig,
     ): string {
-        let r = `${variantFromPredictionSource(buySource)}_bp(${variantFromPredictionConfig(config.prediction.buy)})`;
-        r += `_${variantFromPredictionSource(sellSource)}_sp(${variantFromPredictionConfig(config.prediction.sell)})`;
+        let r = `bp(${variantFromPredictionSource(buySource)}_bp(${variantFromPredictionConfig(config.prediction.buy)}))`;
+        r += `_sp(${variantFromPredictionSource(sellSource)}_sp(${variantFromPredictionConfig(config.prediction.sell)}))`;
         r += `_${variantFromBuyConfig(config.buy)}`;
         r += `_sell(mpc:${config.sell.minPredictedConfidence}`;
         if (

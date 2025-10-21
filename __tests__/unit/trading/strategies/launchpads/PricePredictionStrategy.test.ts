@@ -12,7 +12,7 @@ import PricePredictionStrategy, {
 } from '../../../../../src/trading/strategies/launchpads/PricePredictionStrategy';
 import {
     PredictionRequest,
-    PredictionSource,
+    SinglePredictionSource,
     StrategyPredictionConfig,
 } from '../../../../../src/trading/strategies/types';
 import { deepEqual } from '../../../../../src/utils/data/equals';
@@ -26,7 +26,7 @@ describe('PricePredictionStrategy', () => {
         level: 'silly',
     });
     const redisMockInstance = new redisMock();
-    const sourceConfig: PredictionSource = {
+    const sourceConfig: SinglePredictionSource = {
         algorithm: 'transformers',
         model: 'test_rsi7',
         endpoint: process.env.PRICE_PREDICTION_ENDPOINT as string,
@@ -505,7 +505,7 @@ describe('PricePredictionStrategy', () => {
     });
 
     describe('formBaseCacheKey', () => {
-        const sourceConfig: PredictionSource = {
+        const sourceConfig: SinglePredictionSource = {
             endpoint: process.env.PRICE_PREDICTION_ENDPOINT as string,
             algorithm: 'transformers',
             model: 'm1',

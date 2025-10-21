@@ -1,7 +1,9 @@
 import {
     variantFromBuyContext,
+    variantFromPredictionSource,
     variantFromSellContext,
 } from '../../../../../src/trading/strategies/launchpads/variant-builder';
+import { EnsemblePredictionSource, SinglePredictionSource } from '../../../../../src/trading/strategies/types';
 
 describe('variantConfigFromContext', () => {
     it('returns empty string for empty context', () => {
@@ -162,5 +164,59 @@ describe('variantFromSellContext', () => {
         };
         const result = variantFromSellContext(input);
         expect(result).toBe('slp:9_tslp:8_tpp:7_ttp(pp:6:sp:5)');
+    });
+});
+
+describe('variantFromPredictionSource', () => {
+    it('return proper value for single prediction source', () => {
+        expect(
+            variantFromPredictionSource({
+                endpoint: 'http://localhost:3878/magic',
+                algorithm: 'xgboost',
+                model: 'supra_v5',
+            } satisfies SinglePredictionSource),
+        ).toBe('x_supra_v5');
+    });
+
+    it('return proper value for ensemble prediction source', () => {
+        expect(
+            variantFromPredictionSource({
+                algorithm: 'ensemble',
+                aggregationMode: 'weighted',
+                sources: [
+                    {
+                        algorithm: 'catboost',
+                        model: 'v100',
+                        endpoint: 'http://localhost:3878/buy/cat/v100',
+                        weight: 0.77,
+                    },
+                    {
+                        algorithm: 'transformers',
+                        model: 'supra_transformers_v7',
+                        endpoint: 'http://localhost:3878/buy/transformers/v7',
+                        weight: 0.23,
+                    },
+                ],
+            } satisfies EnsemblePredictionSource),
+        ).toBe('e_ag:weighted_[(c_v100:w0.77)+(t_supra_transformers_v7:w0.23)]');
+
+        expect(
+            variantFromPredictionSource({
+                algorithm: 'ensemble',
+                aggregationMode: 'min',
+                sources: [
+                    {
+                        algorithm: 'catboost',
+                        model: 'v100',
+                        endpoint: 'http://localhost:3878/buy/cat/v100',
+                    },
+                    {
+                        algorithm: 'transformers',
+                        model: 'supra_transformers_v7',
+                        endpoint: 'http://localhost:3878/buy/transformers/v7',
+                    },
+                ],
+            } satisfies EnsemblePredictionSource),
+        ).toBe('e_ag:min_[(c_v100)+(t_supra_transformers_v7)]');
     });
 });

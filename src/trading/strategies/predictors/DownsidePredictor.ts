@@ -14,8 +14,8 @@ import {
 } from '@src/trading/strategies/launchpads/prediction-common';
 import {
     PredictionRequest,
-    PredictionSource,
     Predictor,
+    SinglePredictionSource,
     StrategyPredictionConfig,
 } from '@src/trading/strategies/types';
 
@@ -35,7 +35,7 @@ export default class DownsidePredictor implements Predictor<DownsidePredictorRes
     constructor(
         private readonly logger: Logger,
         private readonly cache: Redis,
-        private readonly source: PredictionSource,
+        private readonly source: SinglePredictionSource,
         private readonly config: {
             prediction: StrategyPredictionConfig;
         },

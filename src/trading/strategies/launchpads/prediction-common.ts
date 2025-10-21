@@ -3,6 +3,7 @@ import Redis from 'ioredis';
 import { Logger } from 'winston';
 
 import { HistoryRef, ShouldBuyResponse, ShouldSellResponse } from '@src/trading/bots/types';
+import { aggregateValue } from '@src/trading/strategies/aggregation';
 import {
     BuyPredictionStrategyConfig,
     BuyPredictionStrategyShouldBuyResponseReason,
@@ -17,12 +18,17 @@ import { deepEqual } from '@src/utils/data/equals';
 import { shouldBuyStateless } from './common';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
 import {
+    AggregationMode,
+    ConfidencePredictionEnsembleLocalResponse,
     ConfidencePredictionEnsembleResponse,
     ConfidencePredictionResponse,
+    EnsemblePredictionSource,
     IntervalConfig,
     PredictionRequest,
     PredictionSource,
+    SinglePredictionSource,
     StrategyPredictionConfig,
+    isMultiSourceEnsemble,
 } from '../types';
 
 const CacheDefaultTtlSeconds = 3600 * 24 * 7;
@@ -100,7 +106,7 @@ export type MakePredictionRequestResponse = ConfidencePredictionResponse | MakeP
 export async function makePredictionRequest(
     client: AxiosInstance,
     cache: Redis,
-    source: PredictionSource,
+    source: SinglePredictionSource,
     config: {
         prediction: StrategyPredictionConfig;
     },
@@ -161,6 +167,107 @@ export async function makePredictionRequest(
     return prediction;
 }
 
+async function makeEnsemblePredictionRequest(
+    {
+        deps,
+        source,
+        config,
+        cacheBaseKey,
+        cacheDefaultTtlSeconds,
+    }: Omit<ShouldBuyParams | ShouldSellParams, 'source'> & {
+        source: EnsemblePredictionSource;
+    },
+    r: PredictionRequest,
+    mint: string,
+    historyRef: HistoryRef,
+): Promise<
+    | ConfidencePredictionEnsembleLocalResponse
+    | {
+          ensembleError: string;
+      }
+> {
+    const { client, cache } = deps;
+
+    const responses = await Promise.allSettled(
+        source.sources.map((el, index) =>
+            makePredictionRequest(
+                client,
+                cache,
+                el,
+                config,
+                (cacheBaseKey as string[])[index],
+                mint,
+                historyRef,
+                r,
+                cacheDefaultTtlSeconds,
+            ),
+        ),
+    );
+
+    let errors: Error[] = [];
+    let predictionResponses: MakePredictionRequestResponse[] = [];
+    const confidencePredictions: ConfidencePredictionResponse[] = [];
+
+    for (const response of responses) {
+        if (response.status === 'rejected') {
+            errors.push(response.reason);
+        } else {
+            predictionResponses.push(response.value);
+        }
+    }
+
+    if (errors.length > 0) {
+        throw new Error(`Error getting ensemble prediction response: ${JSON.stringify(errors)}`);
+    }
+
+    const nonFatalErrors: string[] = [];
+    for (const predictionResponse of predictionResponses) {
+        if ((predictionResponse as MakePredictionRequestErrorResponse).error) {
+            nonFatalErrors.push(
+                JSON.stringify((predictionResponse as MakePredictionRequestErrorResponse).error.response),
+            );
+        }
+        confidencePredictions.push(predictionResponse as ConfidencePredictionResponse);
+    }
+
+    if (nonFatalErrors.length > 0) {
+        return {
+            ensembleError: errors.join('\n'),
+        };
+    }
+
+    const weights = source.aggregationMode === 'weighted' ? source.sources.map(s => s.weight!) : undefined;
+
+    return {
+        status: 'ensemble_success',
+        confidence: aggregateValue(
+            source.aggregationMode,
+            confidencePredictions.map(e => e.confidence),
+            weights,
+        ),
+        aggregationMode: source.aggregationMode,
+        individualResults: confidencePredictions.map((e, index) => {
+            const base = {
+                algorithm: source.sources[index].algorithm,
+                model: source.sources[index].model,
+                endpoint: source.sources[index].endpoint,
+                confidence: e.confidence,
+                weight: weights ? weights[index] : undefined,
+            };
+
+            if ((e as ConfidencePredictionEnsembleResponse).status === 'ensemble_success') {
+                return {
+                    ...base,
+                    aggregationMode: 'mean',
+                    individualResults: (e as ConfidencePredictionEnsembleResponse).individualResults,
+                };
+            }
+
+            return base;
+        }),
+    };
+}
+
 interface PredictStrategyDependencies {
     logger: Logger;
     client: AxiosInstance;
@@ -183,7 +290,12 @@ export type ShouldBuyParams = {
         prediction: StrategyPredictionConfig;
         buy: BuyPredictionStrategyConfig['buy'];
     };
-    cacheBaseKey: string;
+    /**
+     * Cache key(s) used to identify prediction results.
+     * - For single-source predictions: a single string key.
+     * - For ensemble predictions: an array of keys, where each index corresponds to a source in `sources`.
+     */
+    cacheBaseKey: string | string[];
     cacheDefaultTtlSeconds?: number;
     consecutivePredictionConfirmations: number;
     setConsecutivePredictionConfirmations: (value: number) => number;
@@ -232,10 +344,16 @@ export async function shouldBuyCommon(
 export type BuyResponseSuccessData = {
     predictedBuyConfidence: number;
     consecutivePredictionConfirmations?: number;
-    individualResults?: ConfidencePredictionEnsembleResponse['individual_results'];
+    aggregationMode?: AggregationMode;
+    individualResults?: ConfidencePredictionEnsembleResponse['individualResults'];
 };
 
-type ShouldBuyBaseResponseData = BuyResponseSuccessData | PredictionErrorData;
+type ShouldBuyBaseResponseData =
+    | BuyResponseSuccessData
+    | PredictionErrorData
+    | {
+          error: string;
+      };
 
 type ShouldBuyResponseData =
     | ShouldBuyBaseResponseData
@@ -243,7 +361,7 @@ type ShouldBuyResponseData =
           (
               | {
                     predictedDownsideConfidence: number;
-                    downsideIndividualResults?: ConfidencePredictionEnsembleResponse['individual_results'];
+                    downsideIndividualResults?: ConfidencePredictionEnsembleResponse['individualResults'];
                 }
               | {
                     downsideResponse: PredictionErrorData['response'];
@@ -337,20 +455,15 @@ type ShouldBuyWithPredictionBaseResponse = ShouldBuyResponse<
 >;
 
 async function shouldBuyWithPredictionBase(
-    {
-        deps,
-        source,
-        config,
-        cacheBaseKey,
-        cacheDefaultTtlSeconds,
-        consecutivePredictionConfirmations,
-        setConsecutivePredictionConfirmations,
-    }: ShouldBuyParams,
+    shouldBuyParams: ShouldBuyParams,
     mint: string,
     historyRef: HistoryRef,
     context: MarketContext,
     history: HistoryEntry[],
 ): Promise<ShouldBuyWithPredictionBaseResponse> {
+    const { deps, source, config, cacheBaseKey, cacheDefaultTtlSeconds, setConsecutivePredictionConfirmations } =
+        shouldBuyParams;
+    let consecutivePredictionConfirmations = shouldBuyParams.consecutivePredictionConfirmations;
     const { logger, client, cache } = deps;
 
     const r = await shouldBuyCommon(logger, mint, historyRef, context, history, config);
@@ -358,40 +471,66 @@ async function shouldBuyWithPredictionBase(
         return r as ShouldBuyWithBuyPredictionResponse;
     }
 
-    const predictionResponse = await makePredictionRequest(
-        client,
-        cache,
-        source,
-        config,
-        cacheBaseKey,
-        mint,
-        historyRef,
-        r as PredictionRequest,
-        cacheDefaultTtlSeconds,
-    );
+    const predictionResponse = isMultiSourceEnsemble(source)
+        ? await makeEnsemblePredictionRequest(
+              shouldBuyParams as Omit<ShouldBuyParams, 'source'> & {
+                  source: EnsemblePredictionSource;
+              },
+              r as PredictionRequest,
+              mint,
+              historyRef,
+          )
+        : await makePredictionRequest(
+              client,
+              cache,
+              source,
+              config,
+              cacheBaseKey as string,
+              mint,
+              historyRef,
+              r as PredictionRequest,
+              cacheDefaultTtlSeconds,
+          );
+
+    let errorData;
+
+    if ((predictionResponse as { ensembleError: string }).ensembleError) {
+        logger.error('Error getting buy prediction for mint %s, returning false', mint);
+        const ensembleError = (predictionResponse as { ensembleError: string }).ensembleError;
+        logger.error(ensembleError);
+
+        errorData = {
+            error: ensembleError,
+        };
+    }
 
     if ((predictionResponse as MakePredictionRequestErrorResponse).error) {
         logger.error('Error getting buy prediction for mint %s, returning false', mint);
         logger.error((predictionResponse as MakePredictionRequestErrorResponse).error.response);
 
-        return {
-            buy: false,
-            reason: 'prediction_error',
-            data: {
-                response: {
-                    status: (predictionResponse as MakePredictionRequestErrorResponse).error.response.status,
-                    body: (predictionResponse as MakePredictionRequestErrorResponse).error.response.data,
-                },
+        errorData = {
+            response: {
+                status: (predictionResponse as MakePredictionRequestErrorResponse).error.response.status,
+                body: (predictionResponse as MakePredictionRequestErrorResponse).error.response.data,
             },
         };
     }
-    const prediction = predictionResponse as ConfidencePredictionResponse;
 
+    if (errorData) {
+        return {
+            buy: false,
+            reason: 'prediction_error',
+            data: errorData,
+        };
+    }
+
+    const prediction = predictionResponse as ConfidencePredictionResponse;
     const responseData: BuyResponseSuccessData = {
         predictedBuyConfidence: prediction.confidence,
     };
     if ((prediction as ConfidencePredictionEnsembleResponse)?.status === 'ensemble_success') {
-        responseData.individualResults = (prediction as ConfidencePredictionEnsembleResponse).individual_results;
+        responseData.aggregationMode = (prediction as ConfidencePredictionEnsembleResponse).aggregationMode;
+        responseData.individualResults = (prediction as ConfidencePredictionEnsembleResponse).individualResults;
     }
 
     if (prediction.confidence >= config.buy.minPredictedConfidence) {
@@ -425,7 +564,7 @@ export type ShouldSellParams = {
         prediction: StrategyPredictionConfig;
         sell: BuySellPredictionStrategyConfig['sell'];
     };
-    cacheBaseKey: string;
+    cacheBaseKey: string | string[];
     cacheDefaultTtlSeconds?: number;
     consecutivePredictionConfirmations: number;
     setConsecutivePredictionConfirmations: (value: number) => number;
@@ -434,26 +573,25 @@ export type ShouldSellParams = {
 type SellResponseSuccessData = {
     predictedSellConfidence: number;
     consecutivePredictionConfirmations?: number;
-    individualResults?: ConfidencePredictionEnsembleResponse['individual_results'];
+    aggregationMode?: AggregationMode;
+    individualResults?: ConfidencePredictionEnsembleResponse['individualResults'];
 };
 
 export async function shouldSellPredicted(
-    {
-        deps,
-        source,
-        config,
-        cacheBaseKey,
-        cacheDefaultTtlSeconds,
-        consecutivePredictionConfirmations,
-        setConsecutivePredictionConfirmations,
-    }: ShouldSellParams,
+    shouldSellParams: ShouldSellParams,
     mint: string,
     historyRef: HistoryRef,
     _context: MarketContext,
     history: HistoryEntry[],
 ): Promise<
-    ShouldSellResponse<BuySellPredictionStrategyShouldSellResponseReason, PredictionErrorData | SellResponseSuccessData>
+    ShouldSellResponse<
+        BuySellPredictionStrategyShouldSellResponseReason,
+        PredictionErrorData | { error: string } | SellResponseSuccessData
+    >
 > {
+    const { deps, source, config, cacheBaseKey, cacheDefaultTtlSeconds, setConsecutivePredictionConfirmations } =
+        shouldSellParams;
+    let consecutivePredictionConfirmations = shouldSellParams.consecutivePredictionConfirmations;
     const { logger, client, cache } = deps;
 
     if (history.length < config.prediction.requiredFeaturesLength) {
@@ -471,38 +609,67 @@ export async function shouldSellPredicted(
         };
     }
 
-    const predictionResponse = await makePredictionRequest(
-        client,
-        cache,
-        source,
-        config,
-        cacheBaseKey,
-        mint,
-        historyRef,
-        r as PredictionRequest,
-        cacheDefaultTtlSeconds,
-    );
+    const predictionResponse = isMultiSourceEnsemble(source)
+        ? await makeEnsemblePredictionRequest(
+              shouldSellParams as Omit<ShouldSellParams, 'source'> & {
+                  source: EnsemblePredictionSource;
+              },
+              r as PredictionRequest,
+              mint,
+              historyRef,
+          )
+        : await makePredictionRequest(
+              client,
+              cache,
+              source,
+              config,
+              cacheBaseKey as string,
+              mint,
+              historyRef,
+              r as PredictionRequest,
+              cacheDefaultTtlSeconds,
+          );
+
+    let errorData;
+
+    if ((predictionResponse as { ensembleError: string }).ensembleError) {
+        logger.error('Error getting sell prediction for mint %s, returning false', mint);
+        const ensembleError = (predictionResponse as { ensembleError: string }).ensembleError;
+        logger.error(ensembleError);
+
+        errorData = {
+            error: ensembleError,
+        };
+    }
 
     if ((predictionResponse as MakePredictionRequestErrorResponse).error) {
         logger.error('Error getting sell prediction for mint %s, returning false', mint);
         logger.error((predictionResponse as MakePredictionRequestErrorResponse).error.response);
 
-        return {
-            sell: false,
-            reason: 'prediction_error',
-            data: {
-                response: {
-                    status: (predictionResponse as MakePredictionRequestErrorResponse).error.response.status,
-                    body: (predictionResponse as MakePredictionRequestErrorResponse).error.response.data,
-                },
+        errorData = {
+            response: {
+                status: (predictionResponse as MakePredictionRequestErrorResponse).error.response.status,
+                body: (predictionResponse as MakePredictionRequestErrorResponse).error.response.data,
             },
         };
     }
-    const prediction = predictionResponse as ConfidencePredictionResponse;
 
-    const responseData = {
+    if (errorData) {
+        return {
+            sell: false,
+            reason: 'prediction_error',
+            data: errorData,
+        };
+    }
+
+    const prediction = predictionResponse as ConfidencePredictionResponse;
+    const responseData: SellResponseSuccessData = {
         predictedSellConfidence: prediction.confidence,
     };
+    if ((prediction as ConfidencePredictionEnsembleResponse)?.status === 'ensemble_success') {
+        responseData.aggregationMode = (prediction as ConfidencePredictionEnsembleResponse).aggregationMode;
+        responseData.individualResults = (prediction as ConfidencePredictionEnsembleResponse).individualResults;
+    }
 
     if (prediction.confidence >= config.sell.minPredictedConfidence) {
         consecutivePredictionConfirmations = setConsecutivePredictionConfirmations(
@@ -539,7 +706,7 @@ const predictionTypeAbbreviation: Record<PredictionType, string> = {
 export function formBaseCacheKey(
     predictionType: 'price' | 'buy' | 'sell',
     prediction: StrategyPredictionConfig,
-    source: PredictionSource,
+    source: SinglePredictionSource,
 ): string {
     const pc = prediction.skipAllSameFeatures !== undefined ? `skf:${prediction.skipAllSameFeatures}` : '';
     return `${predictionTypeAbbreviation[predictionType]}p.${source.algorithm[0]}_${source.model}${pc.length === 0 ? '' : `_${pc}`}`;

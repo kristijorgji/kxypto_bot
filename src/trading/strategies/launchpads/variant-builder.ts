@@ -4,7 +4,14 @@ import {
 } from '@src/trading/strategies/launchpads/BuyPredictionStrategy';
 
 import { MarketContext } from '../../bots/launchpads/types';
-import { IntervalConfig, PredictionSource, StrategyPredictionConfig, StrategySellConfig } from '../types';
+import {
+    IntervalConfig,
+    PredictionSource,
+    SinglePredictionSource,
+    StrategyPredictionConfig,
+    StrategySellConfig,
+    isSingleSource,
+} from '../types';
 
 export function variantFromBuyContext(context: Partial<Record<keyof MarketContext, IntervalConfig>>): string {
     const abbreviations: Record<keyof MarketContext, string> = {
@@ -107,6 +114,27 @@ export function variantFromSellContext(c: StrategySellConfig): string {
 }
 
 export function variantFromPredictionSource(s: PredictionSource): string {
+    if (isSingleSource(s)) {
+        return `${s.algorithm[0]}_${s.model}`;
+    } else {
+        let p = '';
+        for (let i = 0; i < s.sources.length; i++) {
+            const source = s.sources[i];
+            p += `(${variantFromSinglePredictionSource(source)}`;
+            if (s.aggregationMode === 'weighted') {
+                p += `:w${source.weight!}`;
+            }
+            p += ')';
+            if (i < s.sources.length - 1) {
+                p += '+';
+            }
+        }
+
+        return `${s.algorithm[0]}_ag:${s.aggregationMode}_[${p}]`;
+    }
+}
+
+function variantFromSinglePredictionSource(s: SinglePredictionSource): string {
     return `${s.algorithm[0]}_${s.model}`;
 }
 

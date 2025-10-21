@@ -12,8 +12,9 @@ import { HistoryRef, ShouldBuyResponse, ShouldExitMonitoringResponse } from '../
 import {
     PredictionSource,
     PredictionStrategyShouldBuyResponseReason,
+    isSingleSource,
     marketContextIntervalConfigSchema,
-    predictionSourceSchema,
+    singlePredictionSourceSchema,
     strategyConfigSchema,
     strategyPredictionConfigSchema,
     strategySellConfigSchema,
@@ -30,7 +31,7 @@ import {
 } from './variant-builder';
 
 export const downsideProtectionSchema = z.object({
-    source: predictionSourceSchema,
+    source: singlePredictionSourceSchema,
     prediction: strategyPredictionConfigSchema,
     minPredictedConfidence: z.number().positive(),
 });
@@ -94,7 +95,7 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
 
     private readonly client: RateLimitedAxiosInstance;
 
-    private readonly cacheBaseKey: string;
+    private readonly cacheBaseKey: string | string[];
 
     private consecutivePredictionConfirmations: number = 0;
 
@@ -120,14 +121,19 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
             this.config.variant = BuyPredictionStrategy.formVariant(source, this.config);
         }
 
+        const sourcesCount = isSingleSource(source) ? 1 : source.sources.length;
         this.client = axiosRateLimit(
             axios.create({
                 validateStatus: () => true,
             }),
-            { maxRequests: 16000, perMilliseconds: 1000 },
+            { maxRequests: 16000 * sourcesCount, perMilliseconds: 1000 },
         );
 
-        this.cacheBaseKey = formBaseCacheKey('buy', this.config.prediction, this.source);
+        if (isSingleSource(source)) {
+            this.cacheBaseKey = formBaseCacheKey('buy', this.config.prediction, source);
+        } else {
+            this.cacheBaseKey = source.sources.map(el => formBaseCacheKey('buy', this.config.prediction, el));
+        }
 
         this.shouldBuyCommonParams = {
             deps: {

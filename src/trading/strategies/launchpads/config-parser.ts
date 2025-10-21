@@ -8,6 +8,7 @@ import BuySellPredictionStrategy from '@src/trading/strategies/launchpads/BuySel
 import LaunchpadBotStrategy from '@src/trading/strategies/launchpads/LaunchpadBotStrategy';
 import PricePredictionStrategy from '@src/trading/strategies/launchpads/PricePredictionStrategy';
 import RiseStrategy from '@src/trading/strategies/launchpads/RiseStrategy';
+import { SinglePredictionSource } from '@src/trading/strategies/types';
 
 export function strategyFromConfig(sc: StrategyFileConfig, defaultStrategyLogger: Logger): LaunchpadBotStrategy {
     const strategyLogger = sc?.logger ? (sc.logger === 'silent' ? silentLogger : logger) : defaultStrategyLogger;
@@ -21,7 +22,7 @@ export function strategyFromConfig(sc: StrategyFileConfig, defaultStrategyLogger
         case 'BuySellPredictionStrategy':
             return new BuySellPredictionStrategy(strategyLogger, redis, sc.buySource, sc.sellSource, sc.config);
         case 'PricePredictionStrategy':
-            return new PricePredictionStrategy(strategyLogger, redis, sc.source, sc.config);
+            return new PricePredictionStrategy(strategyLogger, redis, sc.source as SinglePredictionSource, sc.config);
         default:
             throw new Error(`Unknown strategy type ${type}`);
     }

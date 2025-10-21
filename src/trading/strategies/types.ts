@@ -35,7 +35,7 @@ export type LaunchpadBuyPosition = {
     transaction: TradeTransaction;
 };
 
-export const predictionSourceSchema = z.object({
+export const singlePredictionSourceSchema = z.object({
     endpoint: z.string().url(),
 
     /**
@@ -48,7 +48,44 @@ export const predictionSourceSchema = z.object({
      */
     model: z.string(),
 });
+
+export type SinglePredictionSource = z.infer<typeof singlePredictionSourceSchema>;
+
+const ensembleMemberSchema = singlePredictionSourceSchema.extend({
+    weight: z.number().min(0).optional(),
+});
+
+export const ensemblePredictionSourceSchema = z
+    .object({
+        algorithm: z.literal('ensemble'),
+        sources: z.array(ensembleMemberSchema).min(1),
+        aggregationMode: z.enum(['mean', 'median', 'weighted', 'max', 'min', 'stacked', 'custom']),
+    })
+    .refine(data => data.aggregationMode !== 'weighted' || data.sources.every(s => s.weight !== undefined), {
+        message: 'All ensemble members must have a weight when aggregationMode is weighted',
+    });
+
+export type AggregationMode = z.infer<typeof ensemblePredictionSourceSchema>['aggregationMode'];
+
+export type EnsemblePredictionSource = z.infer<typeof ensemblePredictionSourceSchema>;
+
+export const predictionSourceSchema = z.union([singlePredictionSourceSchema, ensemblePredictionSourceSchema]);
+
 export type PredictionSource = z.infer<typeof predictionSourceSchema>;
+
+/**
+ * type guards for the prediction source
+ */
+
+export function isMultiSourceEnsemble(
+    source: PredictionSource,
+): source is z.infer<typeof ensemblePredictionSourceSchema> {
+    return 'sources' in source && source.sources.length > 1;
+}
+
+export function isSingleSource(source: PredictionSource): source is z.infer<typeof singlePredictionSourceSchema> {
+    return !('sources' in source) || source.sources.length <= 1;
+}
 
 export const strategyPredictionConfigSchema = z.object({
     /**
@@ -110,17 +147,34 @@ type ConfidencePredictionSingleModelResponse = ConfidencePredictionBaseResponse 
 };
 
 export type ConfidencePredictionEnsembleResponse = ConfidencePredictionBaseResponse & {
-    confidence: number;
     status: 'ensemble_success';
-    individual_results: {
-        mode: string;
+    aggregationMode: AggregationMode;
+    individualResults: {
+        algorithm: string;
+        model: string;
         prediction: number;
+        weight?: number;
     }[];
+};
+
+export type ConfidencePredictionEnsembleLocalResponse = {
+    status: 'ensemble_success';
+    confidence: number;
+    aggregationMode: AggregationMode;
+    individualResults: (SinglePredictionSource &
+        (
+            | {
+                  confidence: number;
+                  weight?: number;
+              }
+            | ConfidencePredictionEnsembleLocalResponse
+        ))[];
 };
 
 export type ConfidencePredictionResponse =
     | ConfidencePredictionSingleModelResponse
-    | ConfidencePredictionEnsembleResponse;
+    | ConfidencePredictionEnsembleResponse
+    | ConfidencePredictionEnsembleLocalResponse;
 
 export type PredictionStrategyShouldBuyResponseReason =
     | 'requiredFeaturesLength'

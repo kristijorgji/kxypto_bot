@@ -2,6 +2,7 @@ import redisMock from 'ioredis-mock';
 import { setupServer } from 'msw/node';
 import { LogEntry, createLogger, format } from 'winston';
 
+import { buyEnsemblePredictionSource } from './data';
 import { defineShouldBuyWithPredictionTests } from './shouldBuyTestCases';
 import ArrayTransport from '../../../../../src/logger/transports/ArrayTransport';
 import { HistoryEntry } from '../../../../../src/trading/bots/launchpads/types';
@@ -82,7 +83,7 @@ describe('BuyPredictionStrategy', () => {
         predictionEndpoint: sourceConfig.endpoint,
         getLogs: () => logs,
         getStrategy: () => strategy,
-        formStrategy: ({ buy, prediction }) => {
+        formStrategy: ({ source, prediction, buy }) => {
             let newConfig: Partial<BuyPredictionStrategyConfig> = {
                 ...config,
             };
@@ -101,7 +102,7 @@ describe('BuyPredictionStrategy', () => {
                 } as BuyPredictionStrategyConfig['prediction'];
             }
 
-            strategy = new BuyPredictionStrategy(logger, redisMockInstance, sourceConfig, newConfig);
+            strategy = new BuyPredictionStrategy(logger, redisMockInstance, source ?? sourceConfig, newConfig);
         },
         mint: mint,
         historyRef: historyRef,
@@ -109,8 +110,9 @@ describe('BuyPredictionStrategy', () => {
     });
 
     describe('formVariant', () => {
-        function getVariant(customConfig: Partial<BuyPredictionStrategyConfig> = {}) {
-            return new BuyPredictionStrategy(logger, redisMockInstance, sourceConfig, customConfig).config.variant;
+        function getVariant(customConfig: Partial<BuyPredictionStrategyConfig> = {}, source?: PredictionSource) {
+            return new BuyPredictionStrategy(logger, redisMockInstance, source ?? sourceConfig, customConfig).config
+                .variant;
         }
 
         it('should full variant key with all values', () => {
@@ -178,6 +180,13 @@ describe('BuyPredictionStrategy', () => {
             });
             expect(key).toBe('t_test_rsi7_p(skf:true_rql:10)_buy(mpc:0.5)_sell(tpp:17)');
         });
+
+        it('should form proper variant when using ensemble prediction source', () => {
+            const key = getVariant({}, buyEnsemblePredictionSource);
+            expect(key).toBe(
+                'e_ag:weighted_[(c_v100:w0.77)+(t_supra_transformers_v7:w0.23)]_p(skf:true_rql:10)_buy(mpc:0.5)_sell(tslp:15_tpp:15)',
+            );
+        });
     });
 
     describe('formBaseCacheKey', () => {
@@ -197,9 +206,9 @@ describe('BuyPredictionStrategy', () => {
             },
         };
 
-        function getKeyFromConfig(customConfig: Partial<BuyPredictionStrategyConfig> = {}) {
+        function getKeyFromConfig(customConfig: Partial<BuyPredictionStrategyConfig> = {}, source?: PredictionSource) {
             let strategy: BuyPredictionStrategy;
-            strategy = new BuyPredictionStrategy(logger, redisMockInstance, sourceConfig, {
+            strategy = new BuyPredictionStrategy(logger, redisMockInstance, source ?? sourceConfig, {
                 ...defaultConfig,
                 ...customConfig,
             });
@@ -226,6 +235,13 @@ describe('BuyPredictionStrategy', () => {
             });
             expect(key).toContain('_skf:false');
             expect(key).toBe('bp.t_m1_skf:false');
+        });
+
+        it('should generate multiple cache keys when using client-side ensemble mode', () => {
+            expect(getKeyFromConfig({}, buyEnsemblePredictionSource)).toEqual([
+                'bp.c_v100_skf:false',
+                'bp.t_supra_transformers_v7_skf:false',
+            ]);
         });
     });
 });

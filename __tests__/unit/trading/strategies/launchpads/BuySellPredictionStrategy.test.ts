@@ -4,6 +4,7 @@ import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { LogEntry, createLogger, format } from 'winston';
 
+import { buyEnsemblePredictionSource, sellEnsemblePredictionSource } from './data';
 import { defineShouldBuyWithPredictionTests } from './shouldBuyTestCases';
 import ArrayTransport from '../../../../../src/logger/transports/ArrayTransport';
 import { TradeTransactionFactory } from '../../../../../src/testdata/factories/bot';
@@ -131,7 +132,7 @@ describe('BuySellPredictionStrategy', () => {
         predictionEndpoint: buySourceConfig.endpoint,
         getLogs: () => logs,
         getStrategy: () => strategy,
-        formStrategy: ({ buy, prediction }) => {
+        formStrategy: ({ source, prediction, buy }) => {
             let newConfig: Partial<BuySellPredictionStrategyConfig> = {
                 ...config,
             };
@@ -153,7 +154,7 @@ describe('BuySellPredictionStrategy', () => {
             strategy = new BuySellPredictionStrategy(
                 logger,
                 redisMockInstance,
-                buySourceConfig,
+                source ?? buySourceConfig,
                 sellSourceConfig,
                 newConfig,
             );
@@ -450,12 +451,16 @@ describe('BuySellPredictionStrategy', () => {
     });
 
     describe('formVariant', () => {
-        function getVariant(customConfig: Partial<BuySellPredictionStrategyConfig> = {}) {
+        function getVariant(
+            customConfig: Partial<BuySellPredictionStrategyConfig> = {},
+            buySource?: PredictionSource,
+            sellSource?: PredictionSource,
+        ) {
             return new BuySellPredictionStrategy(
                 logger,
                 redisMockInstance,
-                buySourceConfig,
-                sellSourceConfig,
+                buySource ?? buySourceConfig,
+                sellSource ?? sellSourceConfig,
                 customConfig,
             ).config.variant;
         }
@@ -501,7 +506,7 @@ describe('BuySellPredictionStrategy', () => {
                 },
             });
             expect(key).toBe(
-                't_test_rsi7_bp(skf:false_rql:3_upfl:5)_c_v2_30p_sp(skf:false_rql:10_upfl:7)_buy(mpc:10_mcpc:3_c(hc:l1-h2_mc:l2-h77))_sell(mpc:0.5_mcpc:7_l(tslp:15_slp:33_tpp:10_ttp(pp:30:sp:5)))',
+                'bp(t_test_rsi7_bp(skf:false_rql:3_upfl:5))_sp(c_v2_30p_sp(skf:false_rql:10_upfl:7))_buy(mpc:10_mcpc:3_c(hc:l1-h2_mc:l2-h77))_sell(mpc:0.5_mcpc:7_l(tslp:15_slp:33_tpp:10_ttp(pp:30:sp:5)))',
             );
         });
 
@@ -541,7 +546,13 @@ describe('BuySellPredictionStrategy', () => {
                 },
             });
             expect(key).toBe(
-                't_test_rsi7_bp(skf:true_rql:10)_c_v2_30p_sp(skf:false_rql:2)_buy(mpc:0.5_downsideProtection(c_v2_50_drop_p(skf:true_rql:10_upfl:700)_mpc:0.5))_sell(mpc:0.25_l(tpp:17))',
+                'bp(t_test_rsi7_bp(skf:true_rql:10))_sp(c_v2_30p_sp(skf:false_rql:2))_buy(mpc:0.5_downsideProtection(c_v2_50_drop_p(skf:true_rql:10_upfl:700)_mpc:0.5))_sell(mpc:0.25_l(tpp:17))',
+            );
+        });
+
+        it('should create proper variant with ensemble both in buy and sell sources', () => {
+            expect(getVariant({}, buyEnsemblePredictionSource, sellEnsemblePredictionSource)).toBe(
+                'bp(e_ag:weighted_[(c_v100:w0.77)+(t_supra_transformers_v7:w0.23)]_bp(skf:true_rql:10))_sp(e_ag:weighted_[(c_7:w0.4)+(t_supra_transformers_v7:w0.6)]_sp(skf:true_rql:10))_buy(mpc:0.5)_sell(mpc:0.5_l(tslp:15_tpp:15))',
             );
         });
     });

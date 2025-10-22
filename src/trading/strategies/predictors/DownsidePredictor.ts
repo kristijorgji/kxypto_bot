@@ -14,9 +14,10 @@ import {
 } from '@src/trading/strategies/launchpads/prediction-common';
 import {
     PredictionRequest,
+    PredictionSource,
     Predictor,
-    SinglePredictionSource,
     StrategyPredictionConfig,
+    isSingleSource,
 } from '@src/trading/strategies/types';
 
 export type PredictorNotStartReason = {
@@ -30,12 +31,12 @@ export type DownsidePredictorResponse = MakePredictionRequestResponse | Predicto
 export default class DownsidePredictor implements Predictor<DownsidePredictorResponse> {
     private readonly client: RateLimitedAxiosInstance;
 
-    private readonly cacheBaseKey: string;
+    private readonly cacheBaseKey: string | string[];
 
     constructor(
         private readonly logger: Logger,
         private readonly cache: Redis,
-        private readonly source: SinglePredictionSource,
+        private readonly source: PredictionSource,
         private readonly config: {
             prediction: StrategyPredictionConfig;
         },
@@ -47,7 +48,11 @@ export default class DownsidePredictor implements Predictor<DownsidePredictorRes
             { maxRequests: 16000, perMilliseconds: 1000 },
         );
 
-        this.cacheBaseKey = formBaseCacheKey('sell', this.config.prediction, this.source);
+        if (isSingleSource(this.source)) {
+            this.cacheBaseKey = formBaseCacheKey('sell', this.config.prediction, this.source);
+        } else {
+            this.cacheBaseKey = this.source.sources.map(el => formBaseCacheKey('sell', this.config.prediction, el));
+        }
     }
 
     async predict(

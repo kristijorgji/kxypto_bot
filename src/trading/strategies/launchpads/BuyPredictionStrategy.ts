@@ -14,7 +14,7 @@ import {
     PredictionStrategyShouldBuyResponseReason,
     isSingleSource,
     marketContextIntervalConfigSchema,
-    singlePredictionSourceSchema,
+    predictionSourceSchema,
     strategyConfigSchema,
     strategyPredictionConfigSchema,
     strategySellConfigSchema,
@@ -31,7 +31,7 @@ import {
 } from './variant-builder';
 
 export const downsideProtectionSchema = z.object({
-    source: singlePredictionSourceSchema,
+    source: predictionSourceSchema,
     prediction: strategyPredictionConfigSchema,
     minPredictedConfidence: z.number().positive(),
 });

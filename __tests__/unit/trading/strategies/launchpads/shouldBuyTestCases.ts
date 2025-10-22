@@ -4,7 +4,7 @@ import { HttpResponse, http } from 'msw';
 import { SetupServerApi } from 'msw/node';
 import { LogEntry } from 'winston';
 
-import { buyEnsemblePredictionSource } from './data';
+import { buyEnsemblePredictionSource, sellEnsemblePredictionSource } from './data';
 import { HistoryEntry } from '../../../../../src/trading/bots/launchpads/types';
 import { HistoryRef, ShouldBuyResponse } from '../../../../../src/trading/bots/types';
 import { BuyPredictionStrategyConfig } from '../../../../../src/trading/strategies/launchpads/BuyPredictionStrategy';
@@ -13,18 +13,27 @@ import LaunchpadBotStrategy from '../../../../../src/trading/strategies/launchpa
 import {
     ConfidencePredictionResponse,
     PredictionSource,
+    SinglePredictionSource,
     StrategyPredictionConfig,
 } from '../../../../../src/trading/strategies/types';
 import { deepEqual } from '../../../../../src/utils/data/equals';
 import { readLocalFixture } from '../../../../__utils/data';
 
-const formMswPredictionRequestHandler = (p: {
+import Mock = jest.Mock;
+
+export const formMswPredictionRequestHandler = (p: {
     endpoint: string;
+    mockHandler?: Mock;
+    matchesRequestBody?: Record<string, unknown>;
     matchesLocalFixture?: string;
     response?: ConfidencePredictionResponse;
     error?: string;
 }) =>
     http.post(p.endpoint, async ({ request }) => {
+        if (p.mockHandler) {
+            p.mockHandler(request);
+        }
+
         if (p.error) {
             return HttpResponse.json(
                 {
@@ -35,8 +44,15 @@ const formMswPredictionRequestHandler = (p: {
         }
 
         const body = await request.json();
-        if (!deepEqual(body, readLocalFixture(p?.matchesLocalFixture ?? 'prediction-strategy-http-request-1'))) {
-            return HttpResponse.json({}, { status: 400 });
+        const expectedBody =
+            p.matchesRequestBody ?? readLocalFixture(p?.matchesLocalFixture ?? 'prediction-strategy-http-request-1');
+        if (!deepEqual(body, expectedBody)) {
+            return HttpResponse.json(
+                {
+                    error: 'msw_does not match expected request body',
+                },
+                { status: 400 },
+            );
         }
 
         return HttpResponse.json(p.response, { status: 200 });
@@ -348,7 +364,7 @@ export function defineShouldBuyWithPredictionTests({
             };
 
             const mswDownsidePredictBelowThresholdHandler = formMswPredictionRequestHandler({
-                endpoint: downsideProtectionConfig.source.endpoint,
+                endpoint: (downsideProtectionConfig.source as SinglePredictionSource).endpoint,
                 response: {
                     status: 'single_model_success',
                     confidence: downsideProtectionConfig.minPredictedConfidence - 0.1,
@@ -356,7 +372,7 @@ export function defineShouldBuyWithPredictionTests({
             });
 
             const mswDownsidePredictAboveThresholdHandler = formMswPredictionRequestHandler({
-                endpoint: downsideProtectionConfig.source.endpoint,
+                endpoint: (downsideProtectionConfig.source as SinglePredictionSource).endpoint,
                 response: {
                     status: 'single_model_success',
                     confidence: downsideProtectionConfig.minPredictedConfidence + 0.2,
@@ -381,7 +397,9 @@ export function defineShouldBuyWithPredictionTests({
                     data: {
                         predictedBuyConfidence: 0.51,
                         consecutivePredictionConfirmations: 1,
-                        predictedDownsideConfidence: 0.37,
+                        downside: {
+                            predictedConfidence: 0.37,
+                        },
                     },
                 } satisfies ShouldBuyResponse);
 
@@ -411,7 +429,9 @@ export function defineShouldBuyWithPredictionTests({
                     reason: 'minPredictedBuyConfidence',
                     data: {
                         predictedBuyConfidence: 0.49,
-                        predictedDownsideConfidence: 0.07,
+                        downside: {
+                            predictedConfidence: 0.07,
+                        },
                     },
                 } satisfies ShouldBuyResponse);
             });
@@ -424,7 +444,9 @@ export function defineShouldBuyWithPredictionTests({
                     buy: false,
                     reason: 'prediction_error',
                     data: {
-                        predictedDownsideConfidence: 0.07,
+                        downside: {
+                            predictedConfidence: 0.07,
+                        },
                         response: {
                             body: {
                                 error: 'for fun',
@@ -445,7 +467,9 @@ export function defineShouldBuyWithPredictionTests({
                     data: {
                         predictedBuyConfidence: 0.51,
                         consecutivePredictionConfirmations: 1,
-                        predictedDownsideConfidence: 0.07,
+                        downside: {
+                            predictedConfidence: 0.07,
+                        },
                     },
                 } satisfies ShouldBuyResponse);
 
@@ -469,7 +493,7 @@ export function defineShouldBuyWithPredictionTests({
             it('should not buy when buyPred meets and downsidePrediction call fails', async () => {
                 mockServer.use(mswPredictAboveThresholdBuyHandler);
                 mockServer.use(
-                    http.post(downsideProtectionConfig.source.endpoint, async () => {
+                    http.post((downsideProtectionConfig.source as SinglePredictionSource).endpoint, async () => {
                         return HttpResponse.json(
                             {
                                 error: 'for fun',
@@ -485,14 +509,114 @@ export function defineShouldBuyWithPredictionTests({
                     data: {
                         predictedBuyConfidence: 0.51,
                         consecutivePredictionConfirmations: 1,
-                        downsideResponse: {
-                            body: {
-                                error: 'for fun',
+                        downside: {
+                            response: {
+                                body: {
+                                    error: 'for fun',
+                                },
+                                status: 400,
                             },
-                            status: 400,
                         },
                     },
                 } satisfies ShouldBuyResponse);
+            });
+
+            describe('with ensemble prediction source, not buy as predictedDownside is more than threshold', () => {
+                beforeEach(() => {
+                    formStrategy({
+                        buy: {
+                            downsideProtection: {
+                                ...downsideProtectionConfig,
+                                source: sellEnsemblePredictionSource,
+                            },
+                        },
+                    });
+
+                    mockServer.use(mswPredictAboveThresholdBuyHandler);
+                });
+
+                it('works with ensemble prediction source', async () => {
+                    mockServer.use(
+                        formMswPredictionRequestHandler({
+                            endpoint: sellEnsemblePredictionSource.sources[0].endpoint,
+                            response: {
+                                status: 'single_model_success',
+                                confidence: 0.3,
+                            },
+                        }),
+                    );
+                    mockServer.use(
+                        formMswPredictionRequestHandler({
+                            endpoint: sellEnsemblePredictionSource.sources[1].endpoint,
+                            response: {
+                                status: 'single_model_success',
+                                confidence: 0.9,
+                            },
+                        }),
+                    );
+
+                    expect(await getStrategy().shouldBuy(mint, historyRef, history[4], history)).toEqual({
+                        buy: false,
+                        reason: 'downside_prediction',
+                        data: {
+                            consecutivePredictionConfirmations: 1,
+                            downside: {
+                                predictedConfidence: 0.66,
+                                aggregationMode: 'weighted',
+                                individualResults: [
+                                    {
+                                        algorithm: 'catboost',
+                                        confidence: 0.3,
+                                        endpoint: 'http://localhost:3878/sell/cat/7',
+                                        model: '7',
+                                        weight: 0.4,
+                                    },
+                                    {
+                                        algorithm: 'transformers',
+                                        confidence: 0.9,
+                                        endpoint: 'http://localhost:3878/sell/transformers/v7',
+                                        model: 'supra_transformers_v7',
+                                        weight: 0.6,
+                                    },
+                                ],
+                            },
+                            predictedBuyConfidence: 0.51,
+                        },
+                    } satisfies ShouldBuyResponse);
+                });
+
+                it('should handle ensemble error', async () => {
+                    mockServer.use(
+                        formMswPredictionRequestHandler({
+                            endpoint: sellEnsemblePredictionSource.sources[0].endpoint,
+                            response: {
+                                status: 'single_model_success',
+                                confidence: 0.51,
+                            },
+                        }),
+                    );
+                    mockServer.use(
+                        formMswPredictionRequestHandler({
+                            endpoint: sellEnsemblePredictionSource.sources[1].endpoint,
+                            error: 'i failed master',
+                        }),
+                    );
+
+                    expect(await getStrategy().shouldBuy(mint, historyRef, history[4], history)).toEqual({
+                        buy: false,
+                        reason: 'downside_prediction_error',
+                        data: {
+                            consecutivePredictionConfirmations: 1,
+                            downside: {
+                                response: {
+                                    ensembleError:
+                                        '[http://localhost:3878/sell/transformers/v7] - 400: {"error":"i failed master"}',
+                                },
+                            },
+                            predictedBuyConfidence: 0.51,
+                        },
+                    } satisfies ShouldBuyResponse);
+                });
             });
         });
     });

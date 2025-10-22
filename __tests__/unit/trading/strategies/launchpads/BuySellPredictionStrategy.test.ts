@@ -4,8 +4,8 @@ import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { LogEntry, createLogger, format } from 'winston';
 
-import { buyEnsemblePredictionSource, sellEnsemblePredictionSource } from './data';
-import { defineShouldBuyWithPredictionTests } from './shouldBuyTestCases';
+import { buyEnsemblePredictionSource, sampleSinglePredictionSource, sellEnsemblePredictionSource } from './data';
+import { defineShouldBuyWithPredictionTests, formMswPredictionRequestHandler } from './shouldBuyTestCases';
 import ArrayTransport from '../../../../../src/logger/transports/ArrayTransport';
 import { TradeTransactionFactory } from '../../../../../src/testdata/factories/bot';
 import { NewMarketContextFactory } from '../../../../../src/testdata/factories/launchpad';
@@ -27,11 +27,7 @@ describe('BuySellPredictionStrategy', () => {
     });
     const redisMockInstance = new redisMock();
 
-    const buySourceConfig: PredictionSource = {
-        algorithm: 'transformers',
-        model: 'test_rsi7',
-        endpoint: 'http://localhost/predict/buy',
-    };
+    const buySourceConfig: PredictionSource = sampleSinglePredictionSource;
     const sellSourceConfig: PredictionSource = {
         algorithm: 'catboost',
         model: 'v2_30p',
@@ -447,6 +443,84 @@ describe('BuySellPredictionStrategy', () => {
             await expect(strategy.shouldSell(mint, historyRef, history[4], history)).rejects.toThrow(
                 new Error('Expected confidence to be in the interval [0, 1], but got 1.0001'),
             );
+        });
+    });
+
+    describe('shouldSell works with ensemble mode', () => {
+        it('aggregates the 2 model responses and uses stores in separate cache for each model', async () => {
+            strategy = new BuySellPredictionStrategy(
+                logger,
+                redisMockInstance,
+                buySourceConfig,
+                sellEnsemblePredictionSource,
+                {
+                    ...config,
+                    prediction: {
+                        ...config.prediction!,
+                        sell: {
+                            ...config.prediction!.sell,
+                            cache: {
+                                enabled: true,
+                            },
+                        },
+                    },
+                },
+            );
+            mockServer.use(
+                formMswPredictionRequestHandler({
+                    endpoint: sellEnsemblePredictionSource.sources[0].endpoint,
+                    response: {
+                        status: 'single_model_success',
+                        confidence: 0.51,
+                    },
+                }),
+            );
+            mockServer.use(
+                formMswPredictionRequestHandler({
+                    endpoint: sellEnsemblePredictionSource.sources[1].endpoint,
+                    response: {
+                        status: 'single_model_success',
+                        confidence: 0.7,
+                    },
+                }),
+            );
+            expect(await strategy.shouldSell(mint, historyRef, history[4], history)).toEqual({
+                sell: true,
+                reason: 'CONSECUTIVE_SELL_PREDICTION_CONFIRMATIONS',
+                data: {
+                    aggregationMode: 'weighted',
+                    consecutivePredictionConfirmations: 1,
+                    individualResults: [
+                        {
+                            algorithm: 'catboost',
+                            confidence: 0.51,
+                            endpoint: 'http://localhost:3878/sell/cat/7',
+                            model: '7',
+                            weight: 0.4,
+                        },
+                        {
+                            algorithm: 'transformers',
+                            confidence: 0.7,
+                            endpoint: 'http://localhost:3878/sell/transformers/v7',
+                            model: 'supra_transformers_v7',
+                            weight: 0.6,
+                        },
+                    ],
+                    predictedSellConfidence: 0.624,
+                },
+            });
+            expect(
+                Object.fromEntries(
+                    await Promise.all(
+                        (await redisMockInstance.keys('*')).map(async k => [k, await redisMockInstance.get(k)]),
+                    ),
+                ),
+            ).toEqual({
+                'sp.c_7_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10':
+                    '{"status":"single_model_success","confidence":0.51}',
+                'sp.t_supra_transformers_v7_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_10:10':
+                    '{"status":"single_model_success","confidence":0.7}',
+            });
         });
     });
 

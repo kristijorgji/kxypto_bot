@@ -2,7 +2,7 @@ import redisMock from 'ioredis-mock';
 import { setupServer } from 'msw/node';
 import { LogEntry, createLogger, format } from 'winston';
 
-import { buyEnsemblePredictionSource } from './data';
+import { buyEnsemblePredictionSource, sampleSinglePredictionSource } from './data';
 import { defineShouldBuyWithPredictionTests } from './shouldBuyTestCases';
 import ArrayTransport from '../../../../../src/logger/transports/ArrayTransport';
 import { HistoryEntry } from '../../../../../src/trading/bots/launchpads/types';
@@ -21,11 +21,7 @@ describe('BuyPredictionStrategy', () => {
         level: 'silly',
     });
     const redisMockInstance = new redisMock();
-    const sourceConfig: PredictionSource = {
-        algorithm: 'transformers',
-        model: 'test_rsi7',
-        endpoint: process.env.BUY_PREDICTION_ENDPOINT as string,
-    };
+    const sourceConfig: PredictionSource = sampleSinglePredictionSource;
     const config = {
         prediction: {
             requiredFeaturesLength: 10,

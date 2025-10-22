@@ -1,4 +1,10 @@
-import { EnsemblePredictionSource } from '../../../../../src/trading/strategies/types';
+import { EnsemblePredictionSource, SinglePredictionSource } from '../../../../../src/trading/strategies/types';
+
+export const sampleSinglePredictionSource: SinglePredictionSource = {
+    algorithm: 'transformers',
+    model: 'test_rsi7',
+    endpoint: 'http://localhost/predict/buy/transformers/test_rsi7',
+};
 
 export const buyEnsemblePredictionSource: EnsemblePredictionSource = {
     algorithm: 'ensemble',
@@ -26,7 +32,7 @@ export const sellEnsemblePredictionSource: EnsemblePredictionSource = {
         {
             algorithm: 'catboost',
             model: '7',
-            endpoint: 'http://localhost:3878/sell/cat?model=7',
+            endpoint: 'http://localhost:3878/sell/cat/7',
             weight: 0.4,
         },
         {

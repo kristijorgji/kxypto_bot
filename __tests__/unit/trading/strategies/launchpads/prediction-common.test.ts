@@ -1,11 +1,325 @@
+import axios from 'axios';
+import redisMock from 'ioredis-mock';
+import { setupServer } from 'msw/node';
 import { LogEntry, createLogger, format } from 'winston';
 
+import { buyEnsemblePredictionSource, sampleSinglePredictionSource } from './data';
+import { formMswPredictionRequestHandler } from './shouldBuyTestCases';
 import ArrayTransport from '../../../../../src/logger/transports/ArrayTransport';
+import { PredictionRequestFactory } from '../../../../../src/testdata/factories/strategies';
 import { HistoryEntry } from '../../../../../src/trading/bots/launchpads/types';
 import { HistoryRef } from '../../../../../src/trading/bots/types';
-import { formBaseCacheKey, shouldBuyCommon } from '../../../../../src/trading/strategies/launchpads/prediction-common';
-import { PredictionSource, StrategyPredictionConfig } from '../../../../../src/trading/strategies/types';
+import {
+    formBaseCacheKey,
+    makePredictionRequest,
+    shouldBuyCommon,
+} from '../../../../../src/trading/strategies/launchpads/prediction-common';
+import {
+    ConfidencePredictionResponse,
+    PredictionRequest,
+    PredictionSource,
+    StrategyPredictionConfig,
+} from '../../../../../src/trading/strategies/types';
 import { readFixture, readLocalFixture } from '../../../../__utils/data';
+
+describe('makePredictionRequest', () => {
+    const mockServer = setupServer();
+    let logs: LogEntry[] = [];
+    const logger = createLogger({
+        level: 'silly',
+    });
+    const redisMockInstance = new redisMock();
+
+    beforeAll(() => {
+        mockServer.listen();
+    });
+
+    beforeEach(() => {
+        logs = [];
+        logger.clear().add(new ArrayTransport({ array: logs, json: true, format: format.splat() }));
+    });
+
+    afterEach(() => {
+        mockServer.resetHandlers();
+        redisMockInstance.flushall();
+    });
+
+    afterAll(() => {
+        mockServer.close();
+    });
+
+    const predictionConfig: StrategyPredictionConfig = {
+        skipAllSameFeatures: true,
+        requiredFeaturesLength: 10,
+        upToFeaturesLength: 700,
+        cache: {
+            enabled: true,
+            ttlSeconds: 3600,
+        },
+    };
+
+    const mint = '2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx';
+    const predictionRequest: PredictionRequest = PredictionRequestFactory(
+        {
+            mint: mint,
+        },
+        4,
+    );
+    const historyRef: HistoryRef = {
+        timestamp: predictionRequest.features[2].timestamp,
+        index: 2,
+    };
+
+    const axiosClient = axios.create({ validateStatus: () => true });
+
+    describe('with a single source', () => {
+        it('should work and use the cache properly when enabled/disabled', async () => {
+            const predictionHandlerMockFn = jest.fn();
+
+            mockServer.use(
+                formMswPredictionRequestHandler({
+                    endpoint: sampleSinglePredictionSource.endpoint,
+                    matchesRequestBody: predictionRequest,
+                    mockHandler: predictionHandlerMockFn,
+                    response: {
+                        status: 'single_model_success',
+                        confidence: 0.51,
+                    },
+                }),
+            );
+
+            const makeRequest = async (predictionConfig: StrategyPredictionConfig) =>
+                await makePredictionRequest(
+                    axiosClient,
+                    redisMockInstance,
+                    sampleSinglePredictionSource,
+                    {
+                        prediction: predictionConfig,
+                    },
+                    'bp.x_test_v7_skf:true',
+                    mint,
+                    historyRef,
+                    predictionRequest,
+                    predictionConfig.cache?.ttlSeconds ?? 1800,
+                );
+
+            const assertCache = async () =>
+                expect(
+                    Object.fromEntries(
+                        await Promise.all(
+                            (await redisMockInstance.keys('*')).map(async k => [k, await redisMockInstance.get(k)]),
+                        ),
+                    ),
+                ).toEqual({
+                    'bp.x_test_v7_skf:true_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_2:4':
+                        '{"status":"single_model_success","confidence":0.51}',
+                });
+
+            const expectedResponse: ConfidencePredictionResponse = {
+                status: 'single_model_success',
+                confidence: 0.51,
+            };
+
+            expect(await makeRequest(predictionConfig)).toEqual(expectedResponse);
+            await assertCache();
+            expect(predictionHandlerMockFn).toHaveBeenCalledTimes(1);
+
+            // we call a 2nd time and expect the values to be used from cache, and no api call done
+            expect(await makeRequest(predictionConfig)).toEqual(expectedResponse);
+            await assertCache();
+            expect(predictionHandlerMockFn).toHaveBeenCalledTimes(1);
+
+            // we call a 3rd time with cache disabled, and should have 1 more api call
+            expect(
+                await makeRequest({
+                    ...predictionConfig,
+                    cache: {
+                        enabled: false,
+                    },
+                }),
+            ).toEqual(expectedResponse);
+            await assertCache();
+            expect(predictionHandlerMockFn).toHaveBeenCalledTimes(2);
+        });
+    });
+
+    describe('with multiple sources (ensemble)', () => {
+        it('aggregates properly errors, uses cache for each model when enabled/disabled', async () => {
+            const predictionHandlerMockFn = jest.fn();
+
+            mockServer.use(
+                formMswPredictionRequestHandler({
+                    endpoint: buyEnsemblePredictionSource.sources[0].endpoint,
+                    matchesRequestBody: predictionRequest,
+                    mockHandler: predictionHandlerMockFn,
+                    response: {
+                        status: 'single_model_success',
+                        confidence: 0.51,
+                    },
+                }),
+            );
+            mockServer.use(
+                formMswPredictionRequestHandler({
+                    endpoint: buyEnsemblePredictionSource.sources[1].endpoint,
+                    mockHandler: predictionHandlerMockFn,
+                    matchesRequestBody: predictionRequest,
+                    response: {
+                        status: 'single_model_success',
+                        confidence: 0.7,
+                    },
+                }),
+            );
+
+            const makeRequest = async (predictionConfig: StrategyPredictionConfig) =>
+                await makePredictionRequest(
+                    axiosClient,
+                    redisMockInstance,
+                    buyEnsemblePredictionSource,
+                    {
+                        prediction: predictionConfig,
+                    },
+                    'bp.x_test_v7_skf:true',
+                    mint,
+                    historyRef,
+                    predictionRequest,
+                    predictionConfig.cache?.ttlSeconds ?? 1800,
+                );
+
+            const assertCache = async () =>
+                expect(
+                    Object.fromEntries(
+                        await Promise.all(
+                            (await redisMockInstance.keys('*')).map(async k => [k, await redisMockInstance.get(k)]),
+                        ),
+                    ),
+                ).toEqual({
+                    'b_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_2:4':
+                        '{"status":"single_model_success","confidence":0.51}',
+                    'p_2By2AVdjSfxoihhqy6Mm4nzz6uXEZADKEodiyQ1RZzTx_2:4':
+                        '{"status":"single_model_success","confidence":0.7}',
+                });
+
+            const expectedResponse: ConfidencePredictionResponse = {
+                aggregationMode: 'weighted',
+                confidence: 0.5537,
+                individualResults: [
+                    {
+                        algorithm: 'catboost',
+                        confidence: 0.51,
+                        endpoint: 'http://localhost:3878/buy/cat/v100',
+                        model: 'v100',
+                        weight: 0.77,
+                    },
+                    {
+                        algorithm: 'transformers',
+                        confidence: 0.7,
+                        endpoint: 'http://localhost:3878/buy/transformers/v7',
+                        model: 'supra_transformers_v7',
+                        weight: 0.23,
+                    },
+                ],
+                status: 'ensemble_success',
+            };
+
+            expect(await makeRequest(predictionConfig)).toEqual(expectedResponse);
+            await assertCache();
+            expect(predictionHandlerMockFn).toHaveBeenCalledTimes(2);
+
+            // we call a 2nd time and expect the values to be used from cache, and no api call done
+            expect(await makeRequest(predictionConfig)).toEqual(expectedResponse);
+            await assertCache();
+            expect(predictionHandlerMockFn).toHaveBeenCalledTimes(2);
+
+            // we call a 3rd time with cache disabled, and should have 2 more api calls
+            expect(
+                await makeRequest({
+                    ...predictionConfig,
+                    cache: {
+                        enabled: false,
+                    },
+                }),
+            ).toEqual(expectedResponse);
+            await assertCache();
+            expect(predictionHandlerMockFn).toHaveBeenCalledTimes(4);
+        });
+
+        it('returns error if one source faces http response with status not 200', async () => {
+            mockServer.use(
+                formMswPredictionRequestHandler({
+                    endpoint: buyEnsemblePredictionSource.sources[0].endpoint,
+                    matchesRequestBody: predictionRequest,
+                    response: {
+                        status: 'single_model_success',
+                        confidence: 0.51,
+                    },
+                }),
+            );
+            mockServer.use(
+                formMswPredictionRequestHandler({
+                    endpoint: buyEnsemblePredictionSource.sources[1].endpoint,
+                    matchesRequestBody: predictionRequest,
+                    error: 'i failed master',
+                }),
+            );
+
+            expect(
+                await makePredictionRequest(
+                    axiosClient,
+                    redisMockInstance,
+                    buyEnsemblePredictionSource,
+                    {
+                        prediction: predictionConfig,
+                    },
+                    'bp.x_test_v7_skf:true',
+                    mint,
+                    historyRef,
+                    predictionRequest,
+                    predictionConfig.cache?.ttlSeconds ?? 1800,
+                ),
+            ).toEqual({
+                ensembleError: '[http://localhost:3878/buy/transformers/v7] - 400: {"error":"i failed master"}',
+            });
+        });
+
+        it('throws error if one source fails with unhandled error', async () => {
+            mockServer.use(
+                formMswPredictionRequestHandler({
+                    endpoint: buyEnsemblePredictionSource.sources[0].endpoint,
+                    matchesRequestBody: predictionRequest,
+                    response: {
+                        status: 'single_model_success',
+                        confidence: 0.51,
+                    },
+                }),
+            );
+            mockServer.use(
+                formMswPredictionRequestHandler({
+                    endpoint: buyEnsemblePredictionSource.sources[1].endpoint,
+                    matchesRequestBody: predictionRequest,
+                    response: {
+                        wrongPayload: '💀',
+                    } as unknown as ConfidencePredictionResponse,
+                }),
+            );
+
+            await expect(
+                makePredictionRequest(
+                    axiosClient,
+                    redisMockInstance,
+                    buyEnsemblePredictionSource,
+                    {
+                        prediction: predictionConfig,
+                    },
+                    'bp.x_test_v7_skf:true',
+                    mint,
+                    historyRef,
+                    predictionRequest,
+                    predictionConfig.cache?.ttlSeconds ?? 1800,
+                ),
+            ).rejects.toThrow('The response is missing the required field confidence. {"wrongPayload":"💀"}');
+        });
+    });
+});
 
 describe(shouldBuyCommon.name, () => {
     let logs: LogEntry[] = [];

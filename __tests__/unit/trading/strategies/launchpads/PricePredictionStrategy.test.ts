@@ -4,6 +4,7 @@ import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { LogEntry, createLogger, format } from 'winston';
 
+import { sampleSinglePredictionSource } from './data';
 import ArrayTransport from '../../../../../src/logger/transports/ArrayTransport';
 import { HistoryEntry } from '../../../../../src/trading/bots/launchpads/types';
 import { HistoryRef } from '../../../../../src/trading/bots/types';
@@ -26,11 +27,7 @@ describe('PricePredictionStrategy', () => {
         level: 'silly',
     });
     const redisMockInstance = new redisMock();
-    const sourceConfig: SinglePredictionSource = {
-        algorithm: 'transformers',
-        model: 'test_rsi7',
-        endpoint: process.env.PRICE_PREDICTION_ENDPOINT as string,
-    };
+    const sourceConfig: SinglePredictionSource = sampleSinglePredictionSource;
     const config = {
         prediction: {
             requiredFeaturesLength: 10,
@@ -89,17 +86,14 @@ describe('PricePredictionStrategy', () => {
     });
 
     describe('shouldBuy', () => {
-        const mswPredictPriceWillIncreaseHandler = http.post(
-            process.env.PRICE_PREDICTION_ENDPOINT as string,
-            async ({ request }) => {
-                const body = await request.json();
-                if (!deepEqual(body, readLocalFixture('prediction-strategy-http-request-1'))) {
-                    return HttpResponse.json({}, { status: 400 });
-                }
+        const mswPredictPriceWillIncreaseHandler = http.post(sourceConfig.endpoint, async ({ request }) => {
+            const body = await request.json();
+            if (!deepEqual(body, readLocalFixture('prediction-strategy-http-request-1'))) {
+                return HttpResponse.json({}, { status: 400 });
+            }
 
-                return HttpResponse.json(dummyApiSuccessResponse, { status: 200 });
-            },
-        );
+            return HttpResponse.json(dummyApiSuccessResponse, { status: 200 });
+        });
 
         it('should buy when predicted price exceeds threshold for required consecutive confirmations and not use cache', async () => {
             mockServer.use(mswPredictPriceWillIncreaseHandler);
@@ -129,7 +123,7 @@ describe('PricePredictionStrategy', () => {
             const indexesWithLowPrice = [2];
             let callCount = 0;
             mockServer.use(
-                http.post(process.env.PRICE_PREDICTION_ENDPOINT as string, async ({ request }) => {
+                http.post(sourceConfig.endpoint, async ({ request }) => {
                     const body = await request.json();
                     if (!deepEqual(body, readLocalFixture('prediction-strategy-http-request-1'))) {
                         return HttpResponse.json({}, { status: 400 });
@@ -190,7 +184,7 @@ describe('PricePredictionStrategy', () => {
                     },
                 });
                 mockServer.use(
-                    http.post(process.env.PRICE_PREDICTION_ENDPOINT as string, async ({ request }) => {
+                    http.post(sourceConfig.endpoint, async ({ request }) => {
                         const body = (await request.json()) as PredictionRequest;
                         if (body.features.length !== 380) {
                             return HttpResponse.json({}, { status: 400 });
@@ -219,7 +213,7 @@ describe('PricePredictionStrategy', () => {
                     },
                 });
                 mockServer.use(
-                    http.post(process.env.PRICE_PREDICTION_ENDPOINT as string, async ({ request }) => {
+                    http.post(sourceConfig.endpoint, async ({ request }) => {
                         const body = (await request.json()) as PredictionRequest;
                         if (body.features.length !== 1256) {
                             return HttpResponse.json({}, { status: 400 });
@@ -273,7 +267,7 @@ describe('PricePredictionStrategy', () => {
                 });
 
                 mockServer.use(
-                    http.post(process.env.PRICE_PREDICTION_ENDPOINT as string, async ({ request }) => {
+                    http.post(sourceConfig.endpoint, async ({ request }) => {
                         const body = (await request.json()) as PredictionRequest;
                         if (body.features.length !== 10) {
                             return HttpResponse.json({}, { status: 400 });
@@ -321,7 +315,7 @@ describe('PricePredictionStrategy', () => {
 
         it('should not buy when the last predicted price is below the defined threshold', async () => {
             mockServer.use(
-                http.post(process.env.PRICE_PREDICTION_ENDPOINT as string, async ({ request }) => {
+                http.post(sourceConfig.endpoint, async ({ request }) => {
                     const body = await request.json();
                     if (!deepEqual(body, readLocalFixture('prediction-strategy-http-request-1'))) {
                         return HttpResponse.json({}, { status: 400 });
@@ -355,7 +349,7 @@ describe('PricePredictionStrategy', () => {
 
         it('should log error and return false when it fails to get the predicted prices', async () => {
             mockServer.use(
-                http.post(process.env.PRICE_PREDICTION_ENDPOINT as string, async () => {
+                http.post(sourceConfig.endpoint, async () => {
                     return HttpResponse.json(
                         {
                             error: 'for fun',
@@ -399,7 +393,7 @@ describe('PricePredictionStrategy', () => {
 
             let callCount = 0;
             mockServer.use(
-                http.post(process.env.PRICE_PREDICTION_ENDPOINT as string, async () => {
+                http.post(sourceConfig.endpoint, async () => {
                     if (callCount++ === 0) {
                         return HttpResponse.json(
                             {

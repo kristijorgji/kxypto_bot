@@ -4,9 +4,15 @@ import { buyPredictionStrategyConfigSchema } from '@src/trading/strategies/launc
 import { buySellPredictionStrategyConfigSchema } from '@src/trading/strategies/launchpads/BuySellPredictionStrategy';
 import { pricePredictionStrategyConfigSchema } from '@src/trading/strategies/launchpads/PricePredictionStrategy';
 import { riseStrategyConfigSchema } from '@src/trading/strategies/launchpads/RiseStrategy';
+import { stupidSniperStrategyConfigSchema } from '@src/trading/strategies/launchpads/StupidSniperStrategy';
 import { predictionSourceSchema } from '@src/trading/strategies/types';
 
 export const loggerTypeSchema = z.enum(['silent', 'normal']);
+
+const stupidSniperStrategySchema = z.object({
+    type: z.literal('StupidSniperStrategy'),
+    config: stupidSniperStrategyConfigSchema.partial(),
+});
 
 const riseStrategySchema = z.object({
     type: z.literal('RiseStrategy'),
@@ -38,6 +44,7 @@ const baseStrategySchema = z.object({
 
 export const strategyFileConfigSchema = baseStrategySchema.and(
     z.union([
+        stupidSniperStrategySchema,
         riseStrategySchema,
         buyPredictionStrategySchema,
         buySellPredictionStrategySchema,

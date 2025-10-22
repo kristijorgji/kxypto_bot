@@ -206,6 +206,6 @@ function strategyMintBacktestResultToDraftMintResult(
         exit_code: dmr.exit_code ?? undefined,
         exit_reason: dmr.exit_reason ?? undefined,
         payload: dmr.payload,
-        created_at: dmr.created_at as unknown as string,
+        created_at: dmr.created_at,
     };
 }

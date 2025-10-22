@@ -8,6 +8,7 @@ import BuySellPredictionStrategy from '@src/trading/strategies/launchpads/BuySel
 import LaunchpadBotStrategy from '@src/trading/strategies/launchpads/LaunchpadBotStrategy';
 import PricePredictionStrategy from '@src/trading/strategies/launchpads/PricePredictionStrategy';
 import RiseStrategy from '@src/trading/strategies/launchpads/RiseStrategy';
+import StupidSniperStrategy from '@src/trading/strategies/launchpads/StupidSniperStrategy';
 import { SinglePredictionSource } from '@src/trading/strategies/types';
 
 export function strategyFromConfig(sc: StrategyFileConfig, defaultStrategyLogger: Logger): LaunchpadBotStrategy {
@@ -15,6 +16,8 @@ export function strategyFromConfig(sc: StrategyFileConfig, defaultStrategyLogger
     const type = sc.type;
 
     switch (type) {
+        case 'StupidSniperStrategy':
+            return new StupidSniperStrategy(strategyLogger, sc.config);
         case 'RiseStrategy':
             return new RiseStrategy(strategyLogger, sc.config);
         case 'BuyPredictionStrategy':

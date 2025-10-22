@@ -1,11 +1,18 @@
 import { Logger } from 'winston';
+import { z } from 'zod';
+
+import { deepClone } from '@src/utils/data/data';
 
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
-import { deepClone } from '../../../utils/data/data';
 import { ShouldBuyResponse, ShouldExitMonitoringResponse } from '../../bots/types';
-import { StrategyConfig, StrategySellConfig } from '../types';
+import { strategyConfigSchema, strategySellConfigSchema } from '../types';
 
-type StupidSniperStrategyConfig = StrategyConfig<{ sell: StrategySellConfig }>;
+export const stupidSniperStrategyConfigSchema = strategyConfigSchema.merge(
+    z.object({
+        sell: strategySellConfigSchema,
+    }),
+);
+type StupidSniperStrategyConfig = z.infer<typeof stupidSniperStrategyConfigSchema>;
 
 export default class StupidSniperStrategy extends LimitsBasedStrategy {
     readonly name = 'StupidSniperStrategy';

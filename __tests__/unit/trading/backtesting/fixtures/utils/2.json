@@ -18,7 +18,7 @@
     "mintResults": {
       "a": {
         "mint": "a",
-        "createdAt": "2021-03-19 10:00:00",
+        "createdAt": "2021-03-19T10:00:00.000Z",
         "mintFileStorageType": "local",
         "mintFilePath": "tmp_test/a.json",
         "backtestResponse": {
@@ -139,7 +139,7 @@
       },
       "b": {
         "mint": "b",
-        "createdAt": "2021-03-19 10:00:00",
+        "createdAt": "2021-03-19T10:00:00.000Z",
         "mintFileStorageType": "local",
         "mintFilePath": "tmp_test/b.json",
         "backtestResponse": {

@@ -271,7 +271,7 @@ export type StrategyMintBacktestResult = {
     mintFileStorageType: FileStorageType;
     mintFilePath: string;
     backtestResponse: BacktestResponse;
-    createdAt: string;
+    createdAt: Date;
 };
 
 export type StrategyBacktestResult = {

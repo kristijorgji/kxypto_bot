@@ -1,3 +1,5 @@
+import { reviveDates } from '@src/utils/json';
+
 import PubSub from './PubSub';
 
 type Handler<T> = (data: T, channel: string) => void;
@@ -87,13 +89,13 @@ export default class BacktestPubSub {
 
     private subscribeChannel<T>(channel: string, handler: Handler<T>): void {
         this.pubsub.subscribe(channel, (message: string) => {
-            handler(JSON.parse(message) as T, channel);
+            handler(JSON.parse(message, reviveDates) as T, channel);
         });
     }
 
     private subscribePattern<T>(pattern: string, handler: Handler<T>): void {
         this.pubsub.psubscribe(pattern, (message: string, channel: string) => {
-            handler(JSON.parse(message) as T, channel);
+            handler(JSON.parse(message, reviveDates) as T, channel);
         });
     }
 

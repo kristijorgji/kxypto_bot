@@ -18,7 +18,7 @@
     "mintResults": {
       "nta": {
         "mint": "nta",
-        "createdAt": "2021-03-19 10:00:00",
+        "createdAt": "2021-03-19T10:00:00.000Z",
         "mintFileStorageType": "local",
         "mintFilePath": "tmp_test/nta.json",
         "backtestResponse": {

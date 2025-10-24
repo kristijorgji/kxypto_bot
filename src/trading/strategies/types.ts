@@ -41,7 +41,7 @@ export const singlePredictionSourceSchema = z.object({
     /**
      * The algorithm of the prediction
      */
-    algorithm: z.enum(['catboost', 'transformers', 'ensemble', 'xgboost', 'original']),
+    algorithm: z.enum(['catboost', 'transformers', 'xgboost', 'tabm', 'ensemble', 'original']),
 
     /**
      * The model of the prediction, example: 'v1_rsi7_macd5'

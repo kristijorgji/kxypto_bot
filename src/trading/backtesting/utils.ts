@@ -6,7 +6,7 @@ import { forceGetPumpCoinInitialData } from '@src/blockchains/solana/dex/pumpfun
 import { lamportsToSol, solToLamports } from '@src/blockchains/utils/amount';
 import { pumpfunRepository } from '@src/db/repositories/PumpfunRepository';
 import { FileInfo } from '@src/utils/files';
-import { dateToMySQLTimestamp, formatElapsedTime } from '@src/utils/time';
+import { formatElapsedTime } from '@src/utils/time';
 
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
@@ -101,7 +101,7 @@ export async function runStrategy(
                 mintFileStorageType: 'local',
                 mintFilePath: file.fullPath,
                 backtestResponse: r,
-                createdAt: dateToMySQLTimestamp(new Date()),
+                createdAt: new Date(),
             };
             if (config?.onMintResult) {
                 config.onMintResult(mintResults[content.mint]);

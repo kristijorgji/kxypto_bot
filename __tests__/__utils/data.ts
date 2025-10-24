@@ -3,6 +3,8 @@ import * as path from 'path';
 
 import Callsite from 'callsite';
 
+import { reviveDates } from '../../src/utils/json';
+
 const fixturesPath = (name: string, ext = '.json'): string => {
     const _ext = getExt(name);
     return path.resolve(__dirname, `../data/fixtures/${name}${_ext.length !== 0 ? '' : ext}`);
@@ -23,11 +25,11 @@ export const rawLocalFixture = (name: string, ext = '.json'): string => {
 };
 
 export const readLocalFixture = <T>(name: string): T => {
-    return JSON.parse(rawLocalFixture(name)) as unknown as T;
+    return JSON.parse(rawLocalFixture(name), reviveDates) as unknown as T;
 };
 
 export const readFixture = <T>(name: string): T => {
-    return JSON.parse(rawFixture(name)) as unknown as T;
+    return JSON.parse(rawFixture(name), reviveDates) as unknown as T;
 };
 
 function getExt(filename: string): string {

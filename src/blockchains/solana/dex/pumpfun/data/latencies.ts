@@ -19,17 +19,17 @@ export const pumpfunBuyLatencies: ExecutionLatencyData = {
     },
     jito: {
         default: {
-            minTimeNs: 1157826625,
-            maxTimeNs: 3742123167,
-            avgTimeNs: 2189585292.820513,
-            medianTimeNs: 1988424791,
+            minTimeNs: 1549232875,
+            maxTimeNs: 8000264750,
+            avgTimeNs: 3223903639.77,
+            medianTimeNs: 2895500583,
         },
         tip: {
             0.00015: {
-                minTimeNs: 1157826625,
-                maxTimeNs: 3742123167,
-                avgTimeNs: 2189585292.820513,
-                medianTimeNs: 1988424791,
+                minTimeNs: 1549232875,
+                maxTimeNs: 8000264750,
+                avgTimeNs: 3223903639.77,
+                medianTimeNs: 2895500583,
             },
         },
     },
@@ -47,17 +47,17 @@ export const pumpfunSellLatencies: ExecutionLatencyData = {
     },
     jito: {
         default: {
-            minTimeNs: 1011567167,
-            maxTimeNs: 4110722458,
-            avgTimeNs: 1965935294.9473684,
-            medianTimeNs: 1801843834,
+            minTimeNs: 1334819291,
+            maxTimeNs: 9549916292,
+            avgTimeNs: 3006956258.09,
+            medianTimeNs: 2918996084,
         },
         tip: {
             0.00015: {
-                minTimeNs: 1011567167,
-                maxTimeNs: 4110722458,
-                avgTimeNs: 1965935294.9473684,
-                medianTimeNs: 1801843834,
+                minTimeNs: 1334819291,
+                maxTimeNs: 9549916292,
+                avgTimeNs: 3006956258.09,
+                medianTimeNs: 2918996084,
             },
         },
     },

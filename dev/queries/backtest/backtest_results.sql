@@ -12,7 +12,8 @@ select backtests.name                as backtest,
        losses_count                  as losses,
        max_drawdown_percentage       as max_drawdown_pct,
        backtest_strategy_results.created_at,
-       execution_time_seconds
+       execution_time_seconds,
+       status
 from backtest_strategy_results
          inner join backtests on backtest_strategy_results.backtest_id = backtests.id
 #where backtest_id = 'e6e21319-e06a-4ad1-9429-2d342273d05a'

@@ -51,14 +51,15 @@ export const singlePredictionSourceSchema = z.object({
 
 export type SinglePredictionSource = z.infer<typeof singlePredictionSourceSchema>;
 
-const ensembleMemberSchema = singlePredictionSourceSchema.extend({
+const ensembleMemberPredictionSourceSchema = singlePredictionSourceSchema.extend({
     weight: z.number().min(0).optional(),
 });
+export type EnsembleMemberPredictionSource = z.infer<typeof ensembleMemberPredictionSourceSchema>;
 
 export const ensemblePredictionSourceSchema = z
     .object({
         algorithm: z.literal('ensemble'),
-        sources: z.array(ensembleMemberSchema).min(1),
+        sources: z.array(ensembleMemberPredictionSourceSchema).min(1),
         aggregationMode: z.enum(['mean', 'median', 'weighted', 'max', 'min', 'stacked', 'custom']),
     })
     .refine(data => data.aggregationMode !== 'weighted' || data.sources.every(s => s.weight !== undefined), {

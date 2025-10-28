@@ -74,7 +74,7 @@ describe('ws-api', () => {
     });
 
     describe('authentication', () => {
-        it('should fail to connect without an Authorization header (code 4001)', async () => {
+        it('should fail to connect without an Authorization header (code 4001) or Sec-WebSocket-Protocol token', async () => {
             expect.assertions(3);
 
             // Client connects with no headers
@@ -93,31 +93,109 @@ describe('ws-api', () => {
             expect(verifyWsJwt).not.toHaveBeenCalled();
         });
 
-        it('should fail to connect with an invalid JWT (code 4001)', async () => {
-            // Configure the mock to throw a specific error
-            const errorMessage = 'JWT expired';
-            verifyWsJwt.mockImplementation(() => {
-                throw new Error(errorMessage);
-            });
-
-            const headers = { Authorization: 'Bearer EXPIRED_TOKEN' };
-            const client = new WebSocket(WS_URL, { headers });
-
-            const closePromise = new Promise<void>(resolve => {
-                client.on('close', (code, reason) => {
-                    expect(code).toBe(WS_CLOSE_CODES.INVALID_JWT);
-                    expect(reason.toString()).toBe(errorMessage);
-                    resolve();
+        describe('using Authorization header', () => {
+            it('should fail to connect with an invalid JWT (code 4001)', async () => {
+                // Configure the mock to throw a specific error
+                const errorMessage = 'JWT expired';
+                verifyWsJwt.mockImplementation(() => {
+                    throw new Error(errorMessage);
                 });
+
+                const headers = { Authorization: 'Bearer EXPIRED_TOKEN' };
+                const client = new WebSocket(WS_URL, { headers });
+
+                const closePromise = new Promise<void>(resolve => {
+                    client.on('close', (code, reason) => {
+                        expect(code).toBe(WS_CLOSE_CODES.INVALID_JWT);
+                        expect(reason.toString()).toBe(errorMessage);
+                        resolve();
+                    });
+                });
+
+                await closePromise;
+                expect(verifyWsJwt).toHaveBeenCalledWith('EXPIRED_TOKEN');
             });
 
-            await closePromise;
-            expect(verifyWsJwt).toHaveBeenCalledWith('EXPIRED_TOKEN');
+            it('should successfully connect with a valid JWT', async () => {
+                expect.assertions(2);
+                await connectWithValidAuth();
+            });
         });
 
-        it('should successfully connect with a valid JWT', async () => {
-            expect.assertions(2);
-            await connectWithValidAuth();
+        describe('using Sec-WebSocket-Protocol', () => {
+            const formLifecyclePromise = (client: WebSocket) =>
+                new Promise<void>((resolve, reject) => {
+                    client.on('error', err => {
+                        reject(new Error(`WebSocket error during connection: ${err.message}`));
+                    });
+
+                    client.on('open', () => {
+                        try {
+                            expect(client.readyState).toBe(WebSocket.OPEN);
+                            client.close(WS_CLOSE_CODES.NORMAL);
+                            resolve();
+                        } catch (error) {
+                            reject(error);
+                        }
+                    });
+
+                    client.on('close', (code, reason) => {
+                        if (code === WS_CLOSE_CODES.NORMAL) {
+                            resolve();
+                        } else if (code === WS_CLOSE_CODES.INVALID_JWT) {
+                            reject(new Error(`Server rejected connection: ${reason.toString()}`));
+                        } else {
+                            reject(new Error(`Unexpected close: Code ${code}, Reason: ${reason.toString()}`));
+                        }
+                    });
+                });
+
+            it('should successfully authenticate using Sec-WebSocket-Protocol token', async () => {
+                expect.assertions(2);
+
+                // mock verifyWsJwt to accept the token
+                verifyWsJwt.mockImplementation(() => ({ userId: 'user-2' }) satisfies WsUserPayload);
+
+                // browser-style subprotocol authentication
+                const client = new WebSocket(WS_URL, ['auth', 'token.VALID_TOKEN_PROTO']);
+                const lifecyclePromise = formLifecyclePromise(client);
+
+                await lifecyclePromise;
+
+                expect(verifyWsJwt).toHaveBeenCalledWith('VALID_TOKEN_PROTO');
+            });
+
+            it('should reject malformed Sec-WebSocket-Protocol tokens', async () => {
+                expect.assertions(3);
+
+                // malformed: missing "token." prefix
+                const client = new WebSocket(WS_URL, ['auth', 'INVALIDPREFIX_ABC123']);
+
+                const closePromise = new Promise<void>(resolve => {
+                    client.on('close', (code, reason) => {
+                        expect(code).toBe(WS_CLOSE_CODES.INVALID_JWT);
+                        expect(reason.toString()).toBe('Unauthorized');
+                        resolve();
+                    });
+                });
+
+                await closePromise;
+                expect(verifyWsJwt).not.toHaveBeenCalled();
+            });
+
+            it('should correctly authenticate when multiple subprotocols are provided (token in the middle)', async () => {
+                expect.assertions(2);
+
+                verifyWsJwt.mockImplementation(() => ({ userId: 'multi-1' }) satisfies WsUserPayload);
+
+                // token subprotocol mixed between others
+                const client = new WebSocket(WS_URL, ['chat', 'token.MULTI_TOKEN_ABC', 'json']);
+                const lifecyclePromise = formLifecyclePromise(client);
+
+                await lifecyclePromise;
+
+                expect(verifyWsJwt).toHaveBeenCalledWith('MULTI_TOKEN_ABC');
+            });
         });
     });
 

@@ -99,6 +99,7 @@ export default async (req: Request, res: ExpressResponse) => {
                     message: err.message,
                 })),
             });
+            return;
         }
 
         throw error;

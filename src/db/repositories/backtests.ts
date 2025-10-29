@@ -58,6 +58,23 @@ export async function createBacktestRun(
     return id;
 }
 
+export function getBacktestRuns(p: CompositeCursorPaginationParams, _: {}): Promise<BacktestRun[]> {
+    const queryBuilder = db
+        .table(Tables.BacktestRuns)
+        .select()
+        .orderBy([
+            { column: 'created_at', order: p.direction },
+            { column: 'id', order: p.direction },
+        ])
+        .limit(p.limit);
+
+    if (p.cursor) {
+        applyCompositeCursorFilter(queryBuilder, p.cursor, '', p.direction);
+    }
+
+    return queryBuilder;
+}
+
 export async function markBacktestRunCompleted(id: number): Promise<void> {
     await db
         .table(Tables.BacktestRuns)

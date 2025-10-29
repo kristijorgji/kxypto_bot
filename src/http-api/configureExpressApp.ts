@@ -3,6 +3,8 @@ import cors from 'cors';
 import express, { Application, RequestHandler, json, urlencoded } from 'express';
 import morgan from 'morgan';
 
+import getBacktestRuns from '@src/http-api/handlers/backtests/getBacktestRuns';
+
 import loginHandler from './handlers/auth/loginHandler';
 import logoutHandler from './handlers/auth/logoutHandler';
 import renewAccessTokenHandler from './handlers/auth/renewAccessTokenHandler';
@@ -46,6 +48,8 @@ export default function configureExpressApp(requestHandlers: RequestHandler[] = 
     app.get('/user', verifyJwtTokenMiddleware, meHandler);
 
     app.get('/launchpad-token-results', verifyJwtTokenMiddleware, getLaunchpadTokenResultsHandler);
+
+    app.get('/backtest-runs', verifyJwtTokenMiddleware, getBacktestRuns);
 
     return app;
 }

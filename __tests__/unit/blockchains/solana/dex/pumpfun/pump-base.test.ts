@@ -1,3 +1,4 @@
+import { TxWithIllegalOwnerError, TxWithNotEnoughTokensToSellError } from './data';
 import {
     calculatePriceInLamports,
     calculatePumpTokenLamportsValue,
@@ -85,6 +86,18 @@ describe('extractPossibleErrorFromTx', () => {
         } satisfies SolPumpfunTransactionDetails);
     });
 
+    it('should handle pumpfun sell error when we do not have enough tokens to sell', async () => {
+        expect(
+            extractPossibleErrorFromTx({
+                ...parseSolTransactionDetails(
+                    TxWithNotEnoughTokensToSellError.fullTransaction,
+                    'CPp14jCnVJMt5nPA3A37S58gjxQEnc8Bn5U1J72LiWD1',
+                ),
+                fullTransaction: TxWithNotEnoughTokensToSellError.fullTransaction,
+            }),
+        ).toEqual(TxWithNotEnoughTokensToSellError.parsedTx);
+    });
+
     /**
      * This error happens very rarely when we try to sell almost immediately after buying and the sell function
      * doesn't fetch the existing associated token account and tries to create it again
@@ -102,22 +115,3 @@ describe('extractPossibleErrorFromTx', () => {
         ).toEqual(TxWithIllegalOwnerError.parsedTx);
     });
 });
-
-export const TxWithIllegalOwnerError = {
-    parsedTx: {
-        grossTransferredLamports: 0,
-        netTransferredLamports: -7005000,
-        baseFeeLamports: 5000,
-        priorityFeeLamports: 7000000,
-        totalFeeLamports: 7005000,
-        error: {
-            type: 'unknown',
-            object: {
-                InstructionError: [3, 'IllegalOwner'],
-            },
-        },
-    } satisfies SolPumpfunTransactionDetails,
-    fullTransaction: fixtureToParsedTransactionWithMeta(
-        'blockchains/solana/get-parsed-transaction-provider-owner-not-allowed-response',
-    ),
-};

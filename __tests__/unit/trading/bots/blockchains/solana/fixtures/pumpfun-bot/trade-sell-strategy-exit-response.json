@@ -31,7 +31,7 @@
           "topHolderCirculatingPercentage": 12
         },
         "historyRef": {
-          "index": 1,
+          "index": 0,
           "timestamp": 1616175603000
         },
         "pumpBuyPriceInSol": 4.1e-7,
@@ -101,7 +101,7 @@
           "topHolderCirculatingPercentage": 12
         },
         "historyRef": {
-          "index": 4,
+          "index": 3,
           "timestamp": 1616175609000
         },
         "pumpMinLamportsOutput": 710000000,

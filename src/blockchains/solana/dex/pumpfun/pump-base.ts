@@ -153,6 +153,8 @@ export function extractPossibleErrorFromTx(tx: SolFullTransactionDetails): SolPu
                 log.includes('Error Message: slippage: Too much SOL required to buy the given amount of tokens..')
             ) {
                 errorType = 'pumpfun_slippage_more_sol_required';
+            } else if (log.includes('Error Message: Not enough tokens to sell.')) {
+                errorType = 'pump_sell_not_enough_tokens';
             }
 
             if (errorType) {

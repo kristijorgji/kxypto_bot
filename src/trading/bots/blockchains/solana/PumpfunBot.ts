@@ -34,6 +34,8 @@ export const ErrorMessage = {
     unknownBuyError: 'unknown_buying_error',
     insufficientFundsToBuy: 'no_funds_to_buy',
     buySlippageMoreSolRequired: 'pumpfun_slippage_more_sol_required',
+    notEnoughTokensToSell: 'not_enough_tokens_to_sell',
+    maxSellRetriesReached: 'max_sell_retries_reached',
 };
 
 const DefaultPriorityFeeSol = 0.005;
@@ -125,10 +127,16 @@ export default class PumpfunBot {
         let position: InsertPosition | undefined;
         let shouldSellRes: ShouldSellResponse | undefined;
         let sellInProgress = false;
-        let historyIndex: number = 0;
+        /**
+         * Initialize to -1 because we increment at the start of each loop iteration.
+         * This ensures that the first iteration uses index 0 for the first history entry,
+         * keeping the index aligned with the array positions.
+         */
+        let historyIndex: number = -1;
         const history: HistoryEntry[] = [];
         let fatalError: Error | undefined;
         let result: BotResponse | undefined;
+        let sellTriesCount: number = 0;
 
         const fallbackSellToken = async () => {
             const fn = () =>
@@ -155,6 +163,8 @@ export default class PumpfunBot {
          *  we have a result and are monitoring until maxWaitMonitorAfterResultMs is met
          */
         while (this.isRunning || strategy.buyPosition || sellInProgress || buyInProgress || result) {
+            historyIndex++;
+
             if (fatalError) {
                 throw fatalError;
             }
@@ -192,7 +202,6 @@ export default class PumpfunBot {
                 topHolderCirculatingPercentage: topHolderCirculatingPercentage,
             };
             history.push(lastHistoryEntry);
-            historyIndex++;
             const historyRef: HistoryRef = {
                 timestamp: lastHistoryEntry.timestamp,
                 index: historyIndex,
@@ -255,7 +264,8 @@ export default class PumpfunBot {
             const mcDiffFromInitialPercentage = ((marketCapInSol - initialMarketCap) / initialMarketCap) * 100;
 
             logger.debug(
-                'price=%s, marketCap=%s, bondingCurveProgress=%s%%, entryTimestamp=%s',
+                'hi=%d, price=%s, marketCap=%s, bondingCurveProgress=%s%%, entryTimestamp=%s',
+                historyIndex,
                 priceInSol,
                 marketCapInSol,
                 bondingCurveProgress,
@@ -526,7 +536,18 @@ export default class PumpfunBot {
             }
 
             if (!actionInProgress && shouldSellRes?.sell && strategy.buyPosition) {
-                logger.info('We will start the sell sellInProgress=true');
+                if (sellTriesCount > this.config.maxSellRetries) {
+                    logger.info(
+                        `Wont start sell because sellRetriesCount(${sellTriesCount - 1}) >= maxSellRetries(${this.config.maxSellRetries})`,
+                    );
+                    fatalError = new Error(ErrorMessage.maxSellRetriesReached);
+                    continue;
+                }
+
+                logger.info(
+                    `We will start the sell sellInProgress=true${sellTriesCount === 0 ? '' : `, retryNr=${sellTriesCount}`}`,
+                );
+                sellTriesCount++;
                 sellInProgress = true;
                 history[history.length - 1]._metadata = {
                     action: 'startSell',
@@ -641,7 +662,9 @@ export default class PumpfunBot {
                             action: 'sellError',
                         };
 
-                        if ((e as SolPumpfunTransactionDetails).error?.object) {
+                        if ((e as SolPumpfunTransactionDetails).error?.type === 'pump_sell_not_enough_tokens') {
+                            fatalError = new Error(ErrorMessage.notEnoughTokensToSell);
+                        } else if ((e as SolPumpfunTransactionDetails).error?.object) {
                             const errorObj = (e as SolPumpfunTransactionDetails).error?.object as {
                                 InstructionError?: (number | string)[];
                             };

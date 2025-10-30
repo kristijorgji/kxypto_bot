@@ -74,6 +74,7 @@ const defaultConfig: BotManagerConfig = {
     buyInSol: 0.4,
     maxFullTrades: null,
     stopAtMinWalletBalanceLamports: null,
+    maxSellRetries: 2,
 };
 
 const runBotCommand = new Command();

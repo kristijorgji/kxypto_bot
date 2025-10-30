@@ -2,6 +2,9 @@ import { deserializeMetadata } from '@metaplex-foundation/mpl-token-metadata';
 import { SPL_ACCOUNT_LAYOUT } from '@raydium-io/raydium-sdk';
 import { getMint } from '@solana/spl-token';
 import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
+import { isAxiosError } from 'axios';
+
+import { logger } from '@src/logger';
 
 import { TOKEN_METADATA_PROGRAM_ID, TOKEN_PROGRAM_ID } from './constants/core';
 import { IfpsMetadata, TokenHolder, TokenInWalletFullInfo } from './types';
@@ -134,7 +137,23 @@ export default class SolanaAdapter {
 
         let ipfsMetadata: IfpsMetadata | undefined;
         if (metadata.uri.length > 0) {
-            ipfsMetadata = await getTokenIfpsMetadata(metadata.uri);
+            try {
+                ipfsMetadata = await getTokenIfpsMetadata(metadata.uri);
+            } catch (e) {
+                let errorToThrow = e;
+                if (isAxiosError(e)) {
+                    if (e.code === 'ENOTFOUND') {
+                        logger.warn(
+                            `⚠️ Could not resolve IPFS gateway for ${metadata.uri}, skipping metadata fetch for mint ${mint}.`,
+                        );
+                        errorToThrow = null;
+                    }
+                }
+
+                if (errorToThrow) {
+                    throw errorToThrow;
+                }
+            }
         }
 
         return {

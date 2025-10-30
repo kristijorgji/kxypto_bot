@@ -32,7 +32,7 @@
             "topHolderCirculatingPercentage": 12
           },
           "historyRef": {
-            "index": 1,
+            "index": 0,
             "timestamp": 1616175603000
           },
           "pumpBuyPriceInSol": 3.0999999999999517e-8,
@@ -102,7 +102,7 @@
             "topHolderCirculatingPercentage": 12
           },
           "historyRef": {
-            "index": 6,
+            "index": 5,
             "timestamp": 1616175613000
           },
           "pumpMinLamportsOutput": 620000000,
@@ -287,7 +287,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "price=3.1e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175603000"
+      "message": "hi=0, price=3.1e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175603000"
     },
     {
       "contextMap": {
@@ -327,7 +327,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "price=3.12e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175605000"
+      "message": "hi=1, price=3.12e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175605000"
     },
     {
       "contextMap": {
@@ -359,7 +359,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "price=3.13e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175609000"
+      "message": "hi=2, price=3.13e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175609000"
     },
     {
       "contextMap": {
@@ -399,7 +399,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "price=3.14e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175611000"
+      "message": "hi=3, price=3.14e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175611000"
     },
     {
       "contextMap": {
@@ -439,7 +439,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "price=3.41e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175613000"
+      "message": "hi=4, price=3.41e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175613000"
     },
     {
       "contextMap": {
@@ -491,7 +491,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "price=3.42e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175615000"
+      "message": "hi=5, price=3.42e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175615000"
     },
     {
       "contextMap": {
@@ -531,7 +531,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "price=3.4299999999999996e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175618000"
+      "message": "hi=6, price=3.4299999999999996e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175618000"
     },
     {
       "contextMap": {
@@ -555,7 +555,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "debug",
-      "message": "price=3.44e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175620000"
+      "message": "hi=7, price=3.44e-8, marketCap=60, bondingCurveProgress=50%, entryTimestamp=1616175620000"
     },
     {
       "contextMap": {

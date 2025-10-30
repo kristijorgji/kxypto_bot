@@ -33,6 +33,8 @@ import { sleep } from '@src/utils/functions';
 
 import {
     PUMP_BUY_BUFFER,
+    PUMP_FEE_CONFIG,
+    PUMP_FEE_PROGRAM,
     PUMP_FEE_RECIPIENT,
     PUMP_FUN_ACCOUNT,
     PUMP_FUN_PROGRAM,
@@ -645,8 +647,14 @@ export default class Pumpfun implements PumpfunListener {
                 },
                 { pubkey: PUMP_FUN_ACCOUNT, isSigner: false, isWritable: false },
                 { pubkey: PUMP_FUN_PROGRAM, isSigner: false, isWritable: false },
-                { pubkey: PUMP_GLOBAL_VOLUME_ACCUMULATOR, isSigner: false, isWritable: true },
-                { pubkey: PUMP_USER_VOLUME_ACCUMULATOR, isSigner: false, isWritable: true },
+                ...(transactionType === 'buy'
+                    ? [
+                          { pubkey: PUMP_GLOBAL_VOLUME_ACCUMULATOR, isSigner: false, isWritable: true },
+                          { pubkey: PUMP_USER_VOLUME_ACCUMULATOR, isSigner: false, isWritable: true },
+                      ]
+                    : []),
+                { pubkey: PUMP_FEE_CONFIG, isSigner: false, isWritable: false },
+                { pubkey: PUMP_FEE_PROGRAM, isSigner: false, isWritable: false },
             ],
             willCreateTokenAccount: willCreateTokenAccount,
         };

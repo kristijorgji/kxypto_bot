@@ -42,7 +42,10 @@ import { formMarketContext } from '../../../../../__utils/blockchains/solana';
 import { readFixture, readLocalFixture } from '../../../../../__utils/data';
 import { FullTestExpectation, FullTestMultiCaseExpectation, MultiCaseFixture } from '../../../../../__utils/types';
 import { dummyPumpfunPositionMetadata } from '../../../../../data/vars/blockchains/solana/pumpfun';
-import { TxWithIllegalOwnerError } from '../../../../blockchains/solana/dex/pumpfun/pump-base.test';
+import {
+    TxWithIllegalOwnerError,
+    TxWithNotEnoughTokensToSellError,
+} from '../../../../blockchains/solana/dex/pumpfun/data';
 
 jest.mock('../../../../../../src/apm/apm');
 
@@ -96,6 +99,7 @@ describe(PumpfunBot.name, () => {
         sellMonitorWaitPeriodMs: 250,
         maxWaitMonitorAfterResultMs: 3 * 1e3,
         buyInSol: 0.4,
+        maxSellRetries: 2,
     };
 
     let pumpfunBot: PumpfunBot;
@@ -131,6 +135,7 @@ describe(PumpfunBot.name, () => {
         jest.clearAllMocks();
         Date.now = originalDateNow;
         (marketContextProvider.get as jest.Mock).mockReset();
+        (pumpfun.sell as jest.Mock).mockReset();
     });
 
     it('should fail to construct when buyMonitorWaitPeriodMs is not a multiple of sellMonitorWaitPeriodMs', () => {
@@ -425,7 +430,7 @@ describe(PumpfunBot.name, () => {
         expect((actual as BotTradeResponse).transactions[1].metadata).toEqual(
             expect.objectContaining({
                 historyRef: expect.objectContaining({
-                    index: 20,
+                    index: 19,
                 }),
                 reason: 'AUTO_SELL_TIMEOUT',
             }),
@@ -650,20 +655,7 @@ describe(PumpfunBot.name, () => {
     });
 
     it('should try to sell the token if we get tx error while buying and throw a fatal error', async () => {
-        const mockReturnedMarketContexts: MarketContext[] = [
-            // buys here
-            formMarketContext({
-                price: 3.2e-7,
-            }),
-            ...Array(4)
-                .fill(0)
-                .map((_, i) =>
-                    formMarketContext({
-                        price: (3.22 + i / 1000) * 1e-8,
-                    }),
-                ),
-        ];
-        mockReturnedMarketContexts.forEach(mr => (marketContextProvider.get as jest.Mock).mockResolvedValueOnce(mr));
+        defaultMockReturnedMarketContexts();
 
         const strategy = new RiseStrategy(logger, {
             buy: {
@@ -689,21 +681,8 @@ describe(PumpfunBot.name, () => {
         expect(sellPumpfunTokensWithRetries as jest.Mock).toHaveBeenCalledTimes(2);
     });
 
-    it('should throw fatal error when it happens during buy or sell', async () => {
-        const mockReturnedMarketContexts: MarketContext[] = [
-            // buys here
-            formMarketContext({
-                price: 3.2e-7,
-            }),
-            ...Array(4)
-                .fill(0)
-                .map((_, i) =>
-                    formMarketContext({
-                        price: (3.22 + i / 1000) * 1e-8,
-                    }),
-                ),
-        ];
-        mockReturnedMarketContexts.forEach(mr => (marketContextProvider.get as jest.Mock).mockResolvedValueOnce(mr));
+    it('should throw fatal buy error when it happens', async () => {
+        defaultMockReturnedMarketContexts();
 
         const strategy = new RiseStrategy(logger, {
             buy: {
@@ -756,11 +735,15 @@ describe(PumpfunBot.name, () => {
         formMarketContext({
             price: 4.25e-8,
         }),
-        ...Array(4)
+        formMarketContext({
+            price: 3.2e-8,
+        }),
+        // sell conditions keep meeting till end of history, needed for testing multiple sell retries
+        ...Array(7)
             .fill(0)
             .map((_, i) =>
                 formMarketContext({
-                    price: (3.141 + i / 1000) * 1e-8,
+                    price: 4.26e-8 + i * 1e-10,
                 }),
             ),
     ];
@@ -771,6 +754,9 @@ describe(PumpfunBot.name, () => {
             mockMarketContextThatBuysSellFailsResellOnNext,
             new Error('sell_error'),
             {
+                throwErrorTimes: 1,
+            },
+            {
                 path: 'pumpfun-bot/sell-error-that-is-ignored-and-continues-on-next-tick',
                 case: 'unknownError',
             },
@@ -780,13 +766,38 @@ describe(PumpfunBot.name, () => {
             mockMarketContextThatBuysSellFailsResellOnNext,
             TxWithIllegalOwnerError.parsedTx,
             {
+                throwErrorTimes: 1,
+            },
+            {
                 path: 'pumpfun-bot/sell-error-that-is-ignored-and-continues-on-next-tick',
                 case: 'recreatingExistingAssociatedTokenAccountError',
             },
         ],
-    ] satisfies [string, MarketContext[], Error | SolPumpfunTransactionDetails, MultiCaseFixture][])(
-        'should handle sell error of type %s properly, log error and try to sell on next try if conditions still meet',
-        async (_, mockReturnedMarketContexts, sellError, localFixtureInfo) => {
+        [
+            'throws_fatal_error_when_max_sell_retries_are_reached',
+            mockMarketContextThatBuysSellFailsResellOnNext,
+            new Error('sell_error'),
+            {
+                throwErrorTimes: botConfig.maxSellRetries! + 1,
+                expectedError: new Error('max_sell_retries_reached'),
+            },
+            {
+                path: 'pumpfun-bot/sell-error-that-is-ignored-and-continues-on-next-tick',
+                case: 'reachesMaxSellRetries',
+            },
+        ],
+    ] satisfies [
+        string,
+        MarketContext[],
+        Error | SolPumpfunTransactionDetails,
+        {
+            throwErrorTimes: number;
+            expectedError?: Error;
+        },
+        MultiCaseFixture,
+    ][])(
+        'should handle non fatal sell error of type %s, log error and try to sell on next try if conditions still meet',
+        async (_, mockReturnedMarketContexts, sellError, expectedSellRetries, localFixtureInfo) => {
             mockReturnedMarketContexts.forEach(mr =>
                 (marketContextProvider.get as jest.Mock).mockResolvedValueOnce(mr),
             );
@@ -806,22 +817,78 @@ describe(PumpfunBot.name, () => {
                 calculatePumpfunBuyResponse(dummyPumpfunBuyResponse, mockReturnedMarketContexts[0].price),
             );
             (insertPosition as jest.Mock).mockResolvedValue(undefined);
-            (pumpfun.sell as jest.Mock)
-                .mockRejectedValueOnce(sellError)
-                .mockResolvedValueOnce(dummyPumpfunSellResponse);
+            for (let i = 0; i < expectedSellRetries.throwErrorTimes; i++) {
+                (pumpfun.sell as jest.Mock).mockRejectedValueOnce(sellError);
+            }
+            (pumpfun.sell as jest.Mock).mockResolvedValueOnce(dummyPumpfunSellResponse);
 
             (closePosition as jest.Mock).mockResolvedValue(undefined);
 
             const expected = readLocalFixture<FullTestMultiCaseExpectation>(localFixtureInfo.path);
 
-            expect(await pumpfunBot.run('a', initialCoinData, strategy)).toEqual(
-                expected[localFixtureInfo.case]?.result ?? expected['default'].result,
-            );
-            expect(logs).toEqual(expected[localFixtureInfo.case]?.logs ?? expected['default'].logs);
-            expect(marketContextProvider.get as jest.Mock).toHaveBeenCalledTimes(11);
+            const resPromise = pumpfunBot.run('a', initialCoinData, strategy);
+
+            if ((expectedSellRetries as { expectedError?: Error }).expectedError) {
+                await expect(resPromise).rejects.toThrow(
+                    (expectedSellRetries as { expectedError?: Error }).expectedError,
+                );
+                expect(closePosition).not.toHaveBeenCalled();
+                expect(marketContextProvider.get as jest.Mock).toHaveBeenCalledTimes(15);
+                expect(pumpfun.sell as jest.Mock).toHaveBeenCalledTimes(botConfig.maxSellRetries! + 1);
+            } else {
+                expect(await resPromise).toEqual(expected[localFixtureInfo.case]?.result ?? expected['default'].result);
+                expect(closePosition).toHaveBeenCalledTimes(1);
+                expect(marketContextProvider.get as jest.Mock).toHaveBeenCalledTimes(11);
+                expect(pumpfun.sell as jest.Mock).toHaveBeenCalledTimes(botConfig.maxSellRetries!);
+            }
+
             expect(pumpfun.buy as jest.Mock).toHaveBeenCalledTimes(1);
-            expect(pumpfun.sell as jest.Mock).toHaveBeenCalledTimes(2);
-            expect(closePosition).toHaveBeenCalledTimes(1);
+            expect(logs).toEqual(expected[localFixtureInfo.case]?.logs ?? expected['default'].logs);
+        },
+    );
+
+    test.each([
+        [
+            'not_enough_tokens_to_sell',
+            TxWithNotEnoughTokensToSellError.parsedTx,
+            new Error('not_enough_tokens_to_sell'),
+            {
+                path: 'pumpfun-bot/sell-fatal-errors-should-be-thrown',
+                case: 'not_enough_tokens_to_sell',
+            },
+        ],
+    ] satisfies [string, Error | SolPumpfunTransactionDetails, Error, MultiCaseFixture][])(
+        'should throw fatal sell error of type %s when it happens',
+        async (_, sellError, expectedError, localFixtureInfo) => {
+            const mockReturnedMarketContexts = defaultMockReturnedMarketContexts();
+
+            const strategy = new RiseStrategy(logger, {
+                buy: {
+                    marketCap: {
+                        min: 1,
+                    },
+                },
+                sell: {
+                    takeProfitPercentage: 0.0000001,
+                },
+            });
+
+            (pumpfun.buy as jest.Mock).mockResolvedValue(
+                calculatePumpfunBuyResponse(dummyPumpfunBuyResponse, mockReturnedMarketContexts[0].price),
+            );
+            (insertPosition as jest.Mock).mockResolvedValue(undefined);
+            (pumpfun.sell as jest.Mock).mockRejectedValueOnce(sellError);
+
+            const expected = readLocalFixture<FullTestMultiCaseExpectation>(localFixtureInfo.path);
+
+            await expect(pumpfunBot.run('a', initialCoinData, strategy)).rejects.toThrow(expectedError);
+
+            expect(closePosition).not.toHaveBeenCalled();
+            expect(marketContextProvider.get as jest.Mock).toHaveBeenCalledTimes(5);
+            expect(pumpfun.buy as jest.Mock).toHaveBeenCalledTimes(1);
+            expect(pumpfun.sell as jest.Mock).toHaveBeenCalledTimes(1);
+
+            expect(logs).toEqual(expected[localFixtureInfo.case]?.logs ?? expected['default'].logs);
         },
     );
 
@@ -844,7 +911,7 @@ describe(PumpfunBot.name, () => {
         }).rejects.toThrow('Bot is already running!');
     });
 
-    function defaultMockReturnedMarketContexts(): void {
+    function defaultMockReturnedMarketContexts(): MarketContext[] {
         const mockReturnedMarketContexts: MarketContext[] = Array(100)
             .fill(0)
             .map((_, i) =>
@@ -854,6 +921,8 @@ describe(PumpfunBot.name, () => {
                 }),
             );
         mockReturnedMarketContexts.forEach(mr => (marketContextProvider.get as jest.Mock).mockResolvedValueOnce(mr));
+
+        return mockReturnedMarketContexts;
     }
 });
 

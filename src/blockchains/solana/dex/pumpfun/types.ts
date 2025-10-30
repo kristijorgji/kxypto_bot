@@ -68,7 +68,11 @@ export type PumpFunCoinData = {
     usd_market_cap: number;
 };
 
-export type PumpfunTransactionErrorType = 'pumpfun_slippage_more_sol_required' | 'insufficient_lamports' | 'unknown';
+export type PumpfunTransactionErrorType =
+    | 'pumpfun_slippage_more_sol_required'
+    | 'insufficient_lamports'
+    | 'unknown'
+    | 'pump_sell_not_enough_tokens';
 
 export type SolPumpfunTransactionDetails = Omit<SolFullTransactionDetails, 'fullTransaction' | 'error'> & {
     error?: {

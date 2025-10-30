@@ -44,6 +44,13 @@ const botConfigSchema = z.object({
      * - If set to a number, it specifies a fixed buy-in amount in SOL.
      */
     buyInSol: z.number().positive().nullable(),
+
+    /**
+     * The maximum number of times the bot will retry selling
+     * a token if the initial sell transaction fails.
+     * - Useful for handling temporary network or RPC issues.
+     */
+    maxSellRetries: z.number().int().min(0).max(10),
 });
 export type BotConfig = z.infer<typeof botConfigSchema>;
 

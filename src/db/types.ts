@@ -59,7 +59,7 @@ export enum ProcessingStatus {
 }
 
 export type BacktestRun = {
-    id: string;
+    id: number;
     backtest_id: string;
     source: ActionSource;
     status: ProcessingStatus;

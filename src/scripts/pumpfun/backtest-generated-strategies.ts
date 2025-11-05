@@ -139,7 +139,7 @@ async function findBestStrategy() {
     /**
      * TODO resolve properly instead of hardcoding my user and cli
      */
-    const backtestRunId = await createBacktestRun({
+    const backtestRun = await createBacktestRun({
         backtest_id: backtestId,
         source: ActionSource.Cli,
         status: ProcessingStatus.Running,
@@ -168,7 +168,7 @@ async function findBestStrategy() {
 
         const runningPartialStrategyResult = await initBacktestStrategyResult(
             backtestId,
-            backtestRunId,
+            backtestRun.id,
             backtestStrategyRunConfig.strategy,
             ProcessingStatus.Running,
         );
@@ -209,7 +209,7 @@ async function findBestStrategy() {
     const diff = process.hrtime(start);
     const timeInNs = diff[0] * 1e9 + diff[1];
 
-    await markBacktestRunCompleted(backtestRunId);
+    await markBacktestRunCompleted(backtestRun.id);
 
     logger.info('Finished testing %d strategies in %s seconds\n', tested, timeInNs / 1e9);
     logger.info(

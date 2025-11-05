@@ -1,4 +1,6 @@
+import { ProtoBacktestRun } from '@src/protos/generated/backtests';
 import { reviveDates } from '@src/utils/json';
+import { UpdateItem } from '@src/ws-api/types';
 
 import PubSub from './PubSub';
 
@@ -13,6 +15,7 @@ export default class BacktestPubSub {
     constructor(private pubsub: PubSub) {}
 
     private patterns = {
+        allRunsResult: 'backtestRun:*',
         allStrategyResults: 'backtest:*:strategy:*:result',
         allMintResults: 'backtest:*:strategy:*:mint',
     };
@@ -20,6 +23,14 @@ export default class BacktestPubSub {
     // -----------------------------
     // SUBSCRIPTIONS
     // -----------------------------
+
+    subscribeAllRuns<T>(handler: Handler<T>): void {
+        this.subscribePattern(this.patterns.allRunsResult, handler);
+    }
+
+    async unsubscribeAllRuns(): Promise<void> {
+        await this.pubsub.punsubscribe(this.patterns.allRunsResult);
+    }
 
     // Subscribe to a single backtest strategy mint
     subscribeBacktestStrategyMint<T>(backtestId: string, strategyId: string, handler: Handler<T>): void {
@@ -72,6 +83,11 @@ export default class BacktestPubSub {
     // -----------------------------
     // PUBLISHERS
     // -----------------------------
+
+    publishBacktestRun(data: UpdateItem<ProtoBacktestRun>): void {
+        const channel = `backtestRun:${data.id}`;
+        this.publishChannel(channel, data);
+    }
 
     publishBacktestStrategyMintResult<T>(backtestId: string, strategyId: string, data: T): void {
         const channel = `backtest:${backtestId}:strategy:${strategyId}:mint`;

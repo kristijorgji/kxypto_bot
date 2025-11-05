@@ -1,6 +1,7 @@
 import { WebSocket } from 'ws';
 
 import { CursorPaginatedResponse } from '@src/http-api/types';
+import { ProtoFetchStatus } from '@src/protos/generated/ws';
 import { Pagination, PlainFilters } from '@src/types/data';
 
 /**
@@ -104,7 +105,7 @@ export type RequestDataParams<TFilters = PlainFilters> = {
 /**
  * Possible client event types
  */
-export type InputEventType = 'subscribe' | 'fetchMore' | 'unsubscribe';
+export type InputEventType = 'subscribe' | 'fetch' | 'fetchMore' | 'unsubscribe';
 
 /**
  * Base structure for all incoming WebSocket messages from the client.
@@ -155,21 +156,38 @@ export interface FetchMoreMessage extends BaseMessage {
 }
 
 /**
+ * Represents a one-time RPC-style fetch request sent over WebSocket.
+ * Unlike a subscription, it does not require prior channel registration.
+ *
+ * The `id` acts as a request correlation ID (not a subscription ID)
+ * and should be echoed back in the corresponding fetch_response message.
+ */
+export interface FetchRequestMessage extends BaseMessage {
+    event: 'fetch';
+    /**
+     * Request data containing filters and pagination
+     */
+    data: RequestDataParams;
+}
+
+/**
  * Unsubscribe message sent by client
  */
-export interface UnsubscribeMessage extends BaseMessage {
+export type UnsubscribeMessage = Omit<BaseMessage, 'id' | 'channel'> & {
     event: 'unsubscribe';
-}
+    id?: string;
+    channel?: string;
+};
 
 /**
  * Union of all client message types
  */
-export type WsMessage = SubscribeMessage | FetchMoreMessage | UnsubscribeMessage;
+export type WsMessage = SubscribeMessage | FetchRequestMessage | FetchMoreMessage | UnsubscribeMessage;
 
 /**
  * Server response event types
  */
-export type ResponseEventType = 'snapshot' | 'fetchMore' | 'update';
+export type ResponseEventType = 'snapshot' | 'fetchMore' | 'fetch_response' | 'update';
 
 /**
  * Base structure for all server responses
@@ -237,6 +255,17 @@ export interface DataFetchMoreResponse<T> extends BaseResponse {
      */
     event: 'fetchMore';
     payload: FetchMorePayload<T>;
+}
+
+export type FetchResponsePayload<T> = {
+    requestId: string;
+    status: ProtoFetchStatus;
+    data: T | null;
+};
+
+export interface FetchResponse<T> extends Omit<BaseResponse, 'id'> {
+    event: 'fetch_response';
+    payload: FetchResponsePayload<T>;
 }
 
 type UpdateAction = 'added' | 'updated' | 'deleted';

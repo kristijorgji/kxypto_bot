@@ -58,7 +58,7 @@ export type BuyPredictionStrategyShouldBuyResponseReason =
     | PredictionStrategyShouldBuyResponseReason
     | 'minPredictedBuyConfidence';
 
-const CacheDefaultTtlSeconds = 3600 * 24 * 7;
+const CacheDefaultTtlSeconds = 3600 * 24 * 30;
 
 export default class BuyPredictionStrategy extends LimitsBasedStrategy {
     readonly name = 'BuyPredictionStrategy';

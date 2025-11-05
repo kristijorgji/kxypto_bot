@@ -4,8 +4,12 @@ import { CompositeCursorPaginationParams } from '@src/db/repositories/types';
 import fetchCursorPaginatedData from '@src/db/utils/fetchCursorPaginatedData';
 import { applyCompositeCursorFilter, scopedColumn } from '@src/db/utils/queries';
 import { CursorPaginatedResponse } from '@src/http-api/types';
-import { ProtoBacktestMintFullResult, ProtoBacktestStrategyFullResult } from '@src/protos/generated/backtests';
-import normalizeOptionalFields from '@src/protos/mappers/normalizeOptionalFields';
+import {
+    ProtoBacktestMintFullResult,
+    ProtoBacktestRun,
+    ProtoBacktestStrategyFullResult,
+} from '@src/protos/generated/backtests';
+import { normalizeOptionalFields, normalizeOptionalFieldsInArray } from '@src/protos/mappers/normalizeOptionalFields';
 import {
     BacktestExitResponse,
     BacktestTradeResponse,
@@ -53,9 +57,26 @@ export async function storeBacktest(backtest: Backtest) {
 
 export async function createBacktestRun(
     data: Omit<BacktestRun, 'id' | 'finished_at' | 'created_at' | 'updated_at'>,
-): Promise<number> {
-    const [id] = (await db.table(Tables.BacktestRuns).insert(data)) as [number];
-    return id;
+): Promise<ProtoBacktestRun> {
+    const now = new Date();
+
+    const draftInsert: Omit<BacktestRun, 'id'> = {
+        ...data,
+        started_at: now,
+        finished_at: null,
+        created_at: now,
+        updated_at: now,
+    };
+
+    const [id] = (await db.table(Tables.BacktestRuns).insert(draftInsert)) as [number];
+
+    return normalizeOptionalFields(
+        {
+            id: id,
+            ...draftInsert,
+        },
+        ['user_id', 'api_client_id', 'finished_at'],
+    ) as ProtoBacktestRun;
 }
 
 export function getBacktestRuns(p: CompositeCursorPaginationParams, _: {}): Promise<BacktestRun[]> {
@@ -75,14 +96,17 @@ export function getBacktestRuns(p: CompositeCursorPaginationParams, _: {}): Prom
     return queryBuilder;
 }
 
-export async function markBacktestRunCompleted(id: number): Promise<void> {
-    await db
-        .table(Tables.BacktestRuns)
-        .where('id', id)
-        .update({
-            status: ProcessingStatus.Completed,
-            finished_at: new Date(),
-        } satisfies Pick<BacktestRun, 'status' | 'finished_at'>);
+type PartialBacktestRunUpdateResponse = Pick<ProtoBacktestRun, 'status' | 'finished_at'>;
+
+export async function markBacktestRunCompleted(id: number): Promise<PartialBacktestRunUpdateResponse> {
+    const update: PartialBacktestRunUpdateResponse = {
+        status: ProcessingStatus.Completed,
+        finished_at: new Date(),
+    } satisfies Pick<BacktestRun, 'status' | 'finished_at'>;
+
+    await db.table(Tables.BacktestRuns).where('id', id).update(update);
+
+    return normalizeOptionalFields(update, ['finished_at']);
 }
 
 export async function initBacktestStrategyResult(
@@ -268,6 +292,20 @@ export async function fetchBacktestsStrategyResultsCursorPaginated(
     return fetchCursorPaginatedData(getBacktestsStrategyResults, params.pagination, params.filters);
 }
 
+export async function deleteBacktestStrategyById(
+    id: number,
+): Promise<{ deletedStrategy: number; deletedMints: number }> {
+    return await db.transaction(async trx => {
+        // delete children first
+        const deletedMints = await trx(Tables.BacktestStrategyMintResults).where({ strategy_result_id: id }).del();
+
+        // delete parent
+        const deletedStrategy = await trx(Tables.BacktestStrategyResults).where({ id }).del();
+
+        return { deletedStrategy, deletedMints };
+    });
+}
+
 export type BacktestMintFullResult = Omit<ProtoBacktestMintFullResult, 'created_at'> & {
     created_at: Date;
 };
@@ -347,7 +385,7 @@ async function getBacktestStrategyMintResults(
         applyCompositeCursorFilter(queryBuilder, p.cursor, Tables.BacktestStrategyMintResults, p.direction);
     }
 
-    return normalizeOptionalFields(await queryBuilder, [
+    return normalizeOptionalFieldsInArray(await queryBuilder, [
         'net_pnl',
         'holdings_value',
         'roi',

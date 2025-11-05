@@ -67,6 +67,35 @@ message FetchMorePayload {
 }
 
 /**
+ * Represents the status of a fetch response.
+ */
+enum FetchStatus {
+  FETCH_STATUS_UNSPECIFIED = 0; // Default fallback (required by proto3)
+  FETCH_STATUS_OK = 1;          // Successful response
+  FETCH_STATUS_ERROR = 2;       // Generic error
+  FETCH_STATUS_NOT_FOUND = 3;   // No data found
+  FETCH_STATUS_UNAUTHORIZED = 4;// Permission denied / invalid token
+  FETCH_STATUS_TIMEOUT = 5;     // Server timeout
+}
+
+/**
+ * Represents the backend response to a one-time fetch request.
+ * Includes a correlation ID, status, and the packed result data.
+ */
+message FetchResponsePayload {
+  string requestId = 1;
+
+  // Status code (e.g. "OK", "ERROR", "NOT_FOUND", etc.)
+  FetchStatus status = 2;
+
+  // Human-readable message (useful on errors)
+  optional string message = 3;
+
+  // The actual data payload, type packed in Any
+  google.protobuf.Any data = 4;
+}
+
+/**
  * Each item in an update message
  */
 message UpdateItem {

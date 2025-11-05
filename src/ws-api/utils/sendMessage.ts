@@ -3,10 +3,12 @@ import {
     MessageFns,
     ProtoCursorPaginatedSnapshotPayload,
     ProtoFetchMorePayload,
+    ProtoFetchResponsePayload,
     ProtoUpdatesPayload,
 } from '@src/protos/generated/ws';
 import { packAny } from '@src/protos/mappers/any';
 import { packFetchMorePayload } from '@src/protos/mappers/fetchMorePayload';
+import { packFetchResponsePayload } from '@src/protos/mappers/fetchResponsePayload';
 import { packCursorPaginatedSnapshotPayload } from '@src/protos/mappers/snapshotPayload';
 import { packUpdatesPayload } from '@src/protos/mappers/updatesPayload';
 import {
@@ -15,6 +17,8 @@ import {
     DataSubscriptionResponse,
     DataUpdateResponse,
     FetchMorePayload,
+    FetchResponse,
+    FetchResponsePayload,
     SnapshotPayload,
     UpdatesPayload,
     WsConnection,
@@ -57,6 +61,29 @@ export function sendFetchMoreResponse<T>(
     } else {
         sendHybridMessage(ws, header, packFetchMorePayload(fetchMorePayload, encodeFn), msg =>
             ProtoFetchMorePayload.encode(msg).finish(),
+        );
+    }
+}
+
+export function sendFetchResponse<T>(
+    ws: WsConnection,
+    header: Omit<BaseResponse<'fetch_response'>, 'id'>,
+    fetchPayload: FetchResponsePayload<T>,
+    encodeFn: MessageFns<T>,
+): void {
+    if (ws.debugMode) {
+        ws.send(
+            JSON.stringify({
+                ...header,
+                payload: fetchPayload,
+            } satisfies FetchResponse<T>),
+        );
+    } else {
+        sendHybridMessage(
+            ws,
+            header,
+            packFetchResponsePayload(fetchPayload, item => packAny(item, encodeFn)),
+            msg => ProtoFetchResponsePayload.encode(msg).finish(),
         );
     }
 }

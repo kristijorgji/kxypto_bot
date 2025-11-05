@@ -4,6 +4,7 @@ import express, { Application, RequestHandler, json, urlencoded } from 'express'
 import morgan from 'morgan';
 
 import getBacktestRuns from '@src/http-api/handlers/backtests/getBacktestRuns';
+import { deleteStrategyResultByIdHandler } from '@src/http-api/handlers/backtests/strategyResults';
 
 import loginHandler from './handlers/auth/loginHandler';
 import logoutHandler from './handlers/auth/logoutHandler';
@@ -50,6 +51,8 @@ export default function configureExpressApp(requestHandlers: RequestHandler[] = 
     app.get('/launchpad-token-results', verifyJwtTokenMiddleware, getLaunchpadTokenResultsHandler);
 
     app.get('/backtest-runs', verifyJwtTokenMiddleware, getBacktestRuns);
+
+    app.delete('/backtest-strategy-result/:id', verifyJwtTokenMiddleware, deleteStrategyResultByIdHandler);
 
     return app;
 }

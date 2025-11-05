@@ -63,13 +63,19 @@ export default async function runAndSelectBestStrategy(
         await storeBacktest(backtest);
     }
 
-    const backtestRunId = await createBacktestRun({
+    const backtestRun = await createBacktestRun({
         backtest_id: backtestId,
         source: actorContext.source,
         status: ProcessingStatus.Running,
         user_id: actorContext?.userId ?? null,
         api_client_id: actorContext?.apiClientId ?? null,
         started_at: new Date(),
+    });
+    backtestPubSub.publishBacktestRun({
+        id: backtestRun.id.toString(),
+        action: 'added',
+        data: backtestRun,
+        version: 1,
     });
 
     const files = getFiles(runConfig.data);
@@ -109,7 +115,7 @@ export default async function runAndSelectBestStrategy(
 
         const runningPartialStrategyResult = await initBacktestStrategyResult(
             backtestId,
-            backtestRunId,
+            backtestRun.id,
             backtestStrategyRunConfig.strategy,
             ProcessingStatus.Running,
         );
@@ -161,7 +167,7 @@ export default async function runAndSelectBestStrategy(
             id: backtestStrategyResult.id.toString(),
             action: 'updated',
             data: backtestStrategyResult,
-            version: 1,
+            version: 2,
         } satisfies UpdateItem<BacktestStrategyResult>);
 
         tested++;
@@ -180,7 +186,15 @@ export default async function runAndSelectBestStrategy(
     const diff = process.hrtime(start);
     const timeInNs = diff[0] * 1e9 + diff[1];
 
-    await markBacktestRunCompleted(backtestRunId);
+    backtestPubSub.publishBacktestRun({
+        id: backtestRun.id.toString(),
+        action: 'updated',
+        data: {
+            ...backtestRun,
+            ...(await markBacktestRunCompleted(backtestRun.id)),
+        },
+        version: 2,
+    });
 
     logger.info('Finished testing %d strategies in %s', tested, formatElapsedTime(timeInNs / 1e9));
     logger.info(

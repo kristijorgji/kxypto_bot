@@ -6,14 +6,15 @@ import { v4 as uuidv4 } from 'uuid';
 import { WebSocket } from 'ws';
 
 import {
-    BacktestMintFullResult,
-    fetchBacktestsMintResultsCursorPaginated,
+    BacktestStrategyFullResult,
+    fetchBacktestsStrategyResultsCursorPaginated,
 } from '../../../src/db/repositories/backtests';
 import { CursorPaginatedResponse } from '../../../src/http-api/types';
-import { ProtoBacktestMintFullResultFactory } from '../../../src/testdata/factories/proto/backtests';
+import { ProtoBacktestStrategyFullResult } from '../../../src/protos/generated/backtests';
+import { ProtoBacktestStrategyFullResultFactory } from '../../../src/testdata/factories/proto/backtests';
 import { make } from '../../../src/testdata/utils';
 import { WS_CLOSE_CODES, server, wss } from '../../../src/ws-api/configureWsApp';
-import { BACKTESTS_MINT_RESULTS_CHANNEL } from '../../../src/ws-api/handlers/backtests/mintResultsHandler';
+import { BACKTESTS_STRATEGY_RESULTS_CHANNEL } from '../../../src/ws-api/handlers/backtests/strategyResultsHandler';
 import { DataSubscriptionResponse, SubscribeMessage, WsUserPayload } from '../../../src/ws-api/types';
 
 jest.mock('../../../src/ws-api/middlewares/verifyWsJwt');
@@ -21,18 +22,18 @@ const { verifyWsJwt } = require('../../../src/ws-api/middlewares/verifyWsJwt');
 
 jest.mock('../../../src/db/repositories/backtests', () => ({
     ...jest.requireActual('../../../src/db/repositories/backtests'),
-    fetchBacktestsMintResultsCursorPaginated: jest.fn().mockImplementation(async () => {
-        const data = make(randomInt(1, 4), ProtoBacktestMintFullResultFactory);
+    fetchBacktestsStrategyResultsCursorPaginated: jest.fn().mockImplementation(async () => {
+        const data = make(randomInt(1, 4), ProtoBacktestStrategyFullResultFactory);
         return {
             data: data,
             count: data.length,
             nextCursor: null,
-        } satisfies CursorPaginatedResponse<BacktestMintFullResult>;
+        } satisfies CursorPaginatedResponse<ProtoBacktestStrategyFullResult>;
     }),
 }));
 
-const mockedHandleBacktestsMintResultsSubscription = fetchBacktestsMintResultsCursorPaginated as jest.Mocked<
-    typeof fetchBacktestsMintResultsCursorPaginated
+const mockFetchBacktestsStrategyResultsCursorPaginated = fetchBacktestsStrategyResultsCursorPaginated as jest.Mocked<
+    typeof fetchBacktestsStrategyResultsCursorPaginated
 >;
 
 describe('ws-api', () => {
@@ -201,14 +202,14 @@ describe('ws-api', () => {
 
     it('should connect, subscribe to backtestMintsResults and receive snapshot with a valid JWT and json encoding', async () => {
         expect.assertions(4);
-        const backtestsMintResultsSubscriptionId = `bmr_${uuidv4()}`;
+        const backtestsMintResultsSubscriptionId = `bsr_${uuidv4()}`;
 
         await connectWithValidAuth({
             onOpen: ws => {
                 const subscriptionMessage: SubscribeMessage = {
                     id: backtestsMintResultsSubscriptionId,
                     event: 'subscribe',
-                    channel: BACKTESTS_MINT_RESULTS_CHANNEL,
+                    channel: BACKTESTS_STRATEGY_RESULTS_CHANNEL,
                     data: {
                         filters: {
                             chain: 'solana',
@@ -226,20 +227,22 @@ describe('ws-api', () => {
                 return new Promise<void>((resolve, reject) => {
                     ws.once('message', (data: Buffer) => {
                         const jsonData = JSON.parse(data.toString()) as DataSubscriptionResponse<
-                            CursorPaginatedResponse<BacktestMintFullResult>
+                            CursorPaginatedResponse<BacktestStrategyFullResult>
                         >;
                         try {
                             expect(jsonData).toEqual({
                                 id: backtestsMintResultsSubscriptionId,
-                                channel: BACKTESTS_MINT_RESULTS_CHANNEL,
+                                channel: BACKTESTS_STRATEGY_RESULTS_CHANNEL,
                                 event: 'snapshot',
                                 snapshot: expect.objectContaining({
                                     data: expect.objectContaining({
                                         count: jsonData.snapshot.data.data.length,
                                         data: expect.arrayContaining([
                                             expect.objectContaining({
-                                                mint: expect.any(String),
-                                                strategy_result_id: expect.any(Number),
+                                                backtest_id: expect.any(String),
+                                                backtest_run_id: expect.any(Number),
+                                                status: expect.any(String),
+                                                strategy: expect.any(String),
                                             }),
                                         ]),
                                         nextCursor: null,
@@ -247,7 +250,7 @@ describe('ws-api', () => {
                                     appliedFilters: subscriptionMessage.data.filters,
                                 }),
                             });
-                            expect(mockedHandleBacktestsMintResultsSubscription).toHaveBeenCalledTimes(1);
+                            expect(mockFetchBacktestsStrategyResultsCursorPaginated).toHaveBeenCalledTimes(1);
                             resolve();
                         } catch (error) {
                             reject(error);

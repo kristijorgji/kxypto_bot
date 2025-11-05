@@ -32,6 +32,23 @@ export async function handleBacktestsStrategyResultsSubscription(
     );
 
     const { filters, pagination } = params as RequestDataParams<BacktestsStrategyResultsFilters>;
+
+    ws.subscriptions.set(subscriptionId, {
+        id: subscriptionId,
+        channel: BACKTESTS_STRATEGY_RESULTS_CHANNEL,
+        filters,
+        cursor: pagination.cursor,
+        limit: pagination.limit,
+        // interval: _createMockUpdatesInterval(ws, subscriptionId, 5000, filters),
+        close: () => {
+            backtestsPubSub.unsubscribeAllStrategyResults();
+        },
+    });
+    logger.debug(`Subscription registered, ${subscriptionId}`);
+
+    /**
+     * Fetching and dispatching snapshot
+     */
     const paginatedData = await fetchBacktestsStrategyResultsCursorPaginated(
         params as RequestDataParams<BacktestsStrategyResultsFilters>,
     );
@@ -63,19 +80,6 @@ export async function handleBacktestsStrategyResultsSubscription(
             ProtoBacktestStrategyFullResult,
         );
     });
-
-    ws.subscriptions.set(subscriptionId, {
-        id: subscriptionId,
-        channel: BACKTESTS_STRATEGY_RESULTS_CHANNEL,
-        filters,
-        cursor: pagination.cursor,
-        limit: pagination.limit,
-        // interval: _createMockUpdatesInterval(ws, subscriptionId, 5000, filters),
-        close: () => {
-            backtestsPubSub.unsubscribeAllStrategyResults();
-        },
-    });
-    logger.debug(`Subscription registered, ${subscriptionId}`);
 }
 
 export async function handleBacktestsStrategyResultsFetchMore(

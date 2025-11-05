@@ -11,6 +11,18 @@ import { ProtoTimestamp } from "./google/protobuf/timestamp";
 
 export const protobufPackage = "backtests";
 
+export interface ProtoBacktestRun {
+  id: number;
+  backtest_id: string;
+  source: string;
+  status: string;
+  user_id?: string | undefined;
+  api_client_id?: string | undefined;
+  started_at: Date | undefined;
+  finished_at?: Date | undefined;
+  created_at: Date | undefined;
+}
+
 export interface ProtoBacktestMintResultDraft {
   strategy_result_id: number;
   mint: string;
@@ -62,6 +74,204 @@ export interface ProtoBacktestStrategyFullResult {
   execution_time_seconds: number;
   created_at: Date | undefined;
 }
+
+function createBaseProtoBacktestRun(): ProtoBacktestRun {
+  return {
+    id: 0,
+    backtest_id: "",
+    source: "",
+    status: "",
+    user_id: undefined,
+    api_client_id: undefined,
+    started_at: undefined,
+    finished_at: undefined,
+    created_at: undefined,
+  };
+}
+
+export const ProtoBacktestRun: MessageFns<ProtoBacktestRun> = {
+  encode(message: ProtoBacktestRun, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== 0) {
+      writer.uint32(8).uint64(message.id);
+    }
+    if (message.backtest_id !== "") {
+      writer.uint32(18).string(message.backtest_id);
+    }
+    if (message.source !== "") {
+      writer.uint32(26).string(message.source);
+    }
+    if (message.status !== "") {
+      writer.uint32(34).string(message.status);
+    }
+    if (message.user_id !== undefined) {
+      writer.uint32(42).string(message.user_id);
+    }
+    if (message.api_client_id !== undefined) {
+      writer.uint32(50).string(message.api_client_id);
+    }
+    if (message.started_at !== undefined) {
+      ProtoTimestamp.encode(toTimestamp(message.started_at), writer.uint32(98).fork()).join();
+    }
+    if (message.finished_at !== undefined) {
+      ProtoTimestamp.encode(toTimestamp(message.finished_at), writer.uint32(106).fork()).join();
+    }
+    if (message.created_at !== undefined) {
+      ProtoTimestamp.encode(toTimestamp(message.created_at), writer.uint32(114).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ProtoBacktestRun {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProtoBacktestRun();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = longToNumber(reader.uint64());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.backtest_id = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.source = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.status = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.user_id = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.api_client_id = reader.string();
+          continue;
+        }
+        case 12: {
+          if (tag !== 98) {
+            break;
+          }
+
+          message.started_at = fromTimestamp(ProtoTimestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 13: {
+          if (tag !== 106) {
+            break;
+          }
+
+          message.finished_at = fromTimestamp(ProtoTimestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 14: {
+          if (tag !== 114) {
+            break;
+          }
+
+          message.created_at = fromTimestamp(ProtoTimestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ProtoBacktestRun {
+    return {
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      backtest_id: isSet(object.backtest_id) ? globalThis.String(object.backtest_id) : "",
+      source: isSet(object.source) ? globalThis.String(object.source) : "",
+      status: isSet(object.status) ? globalThis.String(object.status) : "",
+      user_id: isSet(object.user_id) ? globalThis.String(object.user_id) : undefined,
+      api_client_id: isSet(object.api_client_id) ? globalThis.String(object.api_client_id) : undefined,
+      started_at: isSet(object.started_at) ? fromJsonTimestamp(object.started_at) : undefined,
+      finished_at: isSet(object.finished_at) ? fromJsonTimestamp(object.finished_at) : undefined,
+      created_at: isSet(object.created_at) ? fromJsonTimestamp(object.created_at) : undefined,
+    };
+  },
+
+  toJSON(message: ProtoBacktestRun): unknown {
+    const obj: any = {};
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
+    if (message.backtest_id !== "") {
+      obj.backtest_id = message.backtest_id;
+    }
+    if (message.source !== "") {
+      obj.source = message.source;
+    }
+    if (message.status !== "") {
+      obj.status = message.status;
+    }
+    if (message.user_id !== undefined) {
+      obj.user_id = message.user_id;
+    }
+    if (message.api_client_id !== undefined) {
+      obj.api_client_id = message.api_client_id;
+    }
+    if (message.started_at !== undefined) {
+      obj.started_at = message.started_at.toISOString();
+    }
+    if (message.finished_at !== undefined) {
+      obj.finished_at = message.finished_at.toISOString();
+    }
+    if (message.created_at !== undefined) {
+      obj.created_at = message.created_at.toISOString();
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ProtoBacktestRun>, I>>(base?: I): ProtoBacktestRun {
+    return ProtoBacktestRun.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ProtoBacktestRun>, I>>(object: I): ProtoBacktestRun {
+    const message = createBaseProtoBacktestRun();
+    message.id = object.id ?? 0;
+    message.backtest_id = object.backtest_id ?? "";
+    message.source = object.source ?? "";
+    message.status = object.status ?? "";
+    message.user_id = object.user_id ?? undefined;
+    message.api_client_id = object.api_client_id ?? undefined;
+    message.started_at = object.started_at ?? undefined;
+    message.finished_at = object.finished_at ?? undefined;
+    message.created_at = object.created_at ?? undefined;
+    return message;
+  },
+};
 
 function createBaseProtoBacktestMintResultDraft(): ProtoBacktestMintResultDraft {
   return {

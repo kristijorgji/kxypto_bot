@@ -24,7 +24,7 @@ export type PredictorNotStartReason = {
     stopReason: 'requiredFeaturesLength' | FormPredictionRequestFailReason;
 };
 
-const CacheDefaultTtlSeconds = 3600 * 24 * 7;
+const CacheDefaultTtlSeconds = 3600 * 24 * 30;
 
 export type DownsidePredictorResponse = MakePredictionRequestResponse | PredictorNotStartReason;
 

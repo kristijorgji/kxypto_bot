@@ -5,7 +5,7 @@ import { WebSocketServer } from 'ws';
 import { logger } from '@src/logger';
 
 import { verifyWsJwt } from './middlewares/verifyWsJwt';
-import { handleMessage } from './router';
+import { closeSubscription, handleMessage } from './router';
 import { SubscriptionContext, WsConnection, WsUserPayload } from './types';
 
 export const WS_CLOSE_CODES = {
@@ -44,13 +44,7 @@ wss.on('connection', (wsRaw, req) => {
 
     ws.on('close', async () => {
         for (const sub of ws.subscriptions.values()) {
-            if (sub.interval) {
-                clearInterval(sub.interval);
-            }
-
-            if (sub.close) {
-                await sub.close();
-            }
+            await closeSubscription(sub);
         }
         ws.subscriptions.clear();
         logger.debug('Client disconnected');

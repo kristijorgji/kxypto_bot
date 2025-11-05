@@ -6,6 +6,18 @@ import "google/protobuf/struct.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
 
+message BacktestRun {
+  uint64 id = 1;
+  string backtest_id = 2;
+  string source = 3;
+  string status = 4;
+  optional string user_id = 5;
+  optional string api_client_id = 6;
+  google.protobuf.Timestamp started_at = 12;
+  optional google.protobuf.Timestamp finished_at = 13;
+  google.protobuf.Timestamp created_at = 14;
+}
+
 message BacktestMintResultDraft {
   uint64 strategy_result_id = 1;
   string mint = 2;

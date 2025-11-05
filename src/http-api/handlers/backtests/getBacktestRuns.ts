@@ -7,7 +7,6 @@ import { Tables } from '@src/db/tables';
 import { Backtest, BacktestRun } from '@src/db/types';
 import fetchCursorPaginatedData from '@src/db/utils/fetchCursorPaginatedData';
 import { CursorPaginatedResponse } from '@src/http-api/types';
-import { sleep } from '@src/utils/functions';
 
 const querySchema = z.object({
     limit: z.coerce
@@ -38,8 +37,6 @@ export default async (req: Request, res: ExpressResponse) => {
 
         throw error;
     }
-
-    await sleep(2000);
 
     const paginatedData = await fetchCursorPaginatedData(
         getBacktestRuns,

@@ -1,17 +1,17 @@
 import { Logger } from 'winston';
 
 import { BacktestsMintResultsFilters, fetchBacktestsMintResultsCursorPaginated } from '@src/db/repositories/backtests';
+import { CursorPaginatedResponse } from '@src/http-api/types';
 import { ProtoBacktestMintFullResult, ProtoBacktestMintResultDraft } from '@src/protos/generated/backtests';
+import { MessageFns, ProtoCursorPaginatedResponse, ProtoFetchStatus } from '@src/protos/generated/ws';
+import { packCursorPaginatedResponse } from '@src/protos/mappers/cursorPaginatedResponse';
 import { createBacktestPubSub } from '@src/pubsub';
 import { ProtoBacktestMintFullResultFactory } from '@src/testdata/factories/proto/backtests';
 import { PlainFilters } from '@src/types/data';
 import { randomInt } from '@src/utils/data/data';
-import sendCursorPaginatedSnapshotResponse, {
-    sendFetchMoreResponse,
-    sendUpdatesResponse,
-} from '@src/ws-api/utils/sendMessage';
+import { sendFetchMoreResponse, sendFetchResponse, sendUpdatesResponse } from '@src/ws-api/utils/sendMessage';
 
-import { FetchMoreMessage, RequestDataParams, WsConnection } from '../../types';
+import { FetchMoreMessage, FetchRequestMessage, RequestDataParams, WsConnection } from '../../types';
 
 export const BACKTESTS_MINT_RESULTS_CHANNEL = 'backtests_mint_results';
 const DEFAULT_FETCH_LIMIT = 100;
@@ -26,24 +26,6 @@ export async function handleBacktestsMintResultsSubscription(
     logger.debug(
         `handleBacktestsMintResultsSubscription - userId-${ws.user.userId}, id=${subscriptionId}, params %o`,
         params,
-    );
-
-    const { filters, pagination } = params as RequestDataParams<BacktestsMintResultsFilters>;
-    const paginatedData = await fetchBacktestsMintResultsCursorPaginated(
-        params as RequestDataParams<BacktestsMintResultsFilters>,
-    );
-    sendCursorPaginatedSnapshotResponse(
-        ws,
-        {
-            event: 'snapshot',
-            channel: BACKTESTS_MINT_RESULTS_CHANNEL,
-            id: subscriptionId,
-        },
-        {
-            data: paginatedData,
-            appliedFilters: filters,
-        },
-        ProtoBacktestMintFullResult,
     );
 
     backtestsPubSub.subscribeAllMintsResults((data: ProtoBacktestMintResultDraft) => {
@@ -70,15 +52,45 @@ export async function handleBacktestsMintResultsSubscription(
     ws.subscriptions.set(subscriptionId, {
         id: subscriptionId,
         channel: BACKTESTS_MINT_RESULTS_CHANNEL,
-        filters,
-        cursor: pagination.cursor,
-        limit: pagination.limit,
         // interval: _createMockUpdatesInterval(ws, subscriptionId, 5000, filters),
         close: () => {
             backtestsPubSub.unsubscribeAllMintsResults();
         },
     });
     logger.debug(`Subscription registered, ${subscriptionId}`);
+}
+
+export const ProtoCursorPaginatedBacktestMintResultsResponse = {
+    encode: (input: CursorPaginatedResponse<ProtoBacktestMintFullResult>) =>
+        ProtoCursorPaginatedResponse.encode(packCursorPaginatedResponse(input, ProtoBacktestMintFullResult)),
+    decode: ProtoCursorPaginatedResponse.decode,
+} as MessageFns<unknown>;
+
+export async function handleBacktestMintResultsFetchRequest(
+    _logger: Logger,
+    ws: WsConnection,
+    fetchRequestId: string,
+    params: FetchRequestMessage['data'],
+): Promise<void> {
+    const { filters, pagination } = params as RequestDataParams<BacktestsMintResultsFilters>;
+    const paginatedData = await fetchBacktestsMintResultsCursorPaginated({
+        filters: filters,
+        pagination: pagination,
+    });
+
+    sendFetchResponse(
+        ws,
+        {
+            event: 'fetch_response',
+            channel: BACKTESTS_MINT_RESULTS_CHANNEL,
+        },
+        {
+            requestId: fetchRequestId,
+            status: ProtoFetchStatus.FETCH_STATUS_OK,
+            data: paginatedData,
+        },
+        ProtoCursorPaginatedBacktestMintResultsResponse,
+    );
 }
 
 export async function handleBacktestsMintResultsFetchMore(

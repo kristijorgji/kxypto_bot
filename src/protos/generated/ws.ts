@@ -10,6 +10,70 @@ import { ProtoAny } from "./google/protobuf/any";
 
 export const protobufPackage = "ws";
 
+/** Represents the status of a fetch response. */
+export enum ProtoFetchStatus {
+  /** FETCH_STATUS_UNSPECIFIED - Default fallback (required by proto3) */
+  FETCH_STATUS_UNSPECIFIED = 0,
+  /** FETCH_STATUS_OK - Successful response */
+  FETCH_STATUS_OK = 1,
+  /** FETCH_STATUS_ERROR - Generic error */
+  FETCH_STATUS_ERROR = 2,
+  /** FETCH_STATUS_NOT_FOUND - No data found */
+  FETCH_STATUS_NOT_FOUND = 3,
+  /** FETCH_STATUS_UNAUTHORIZED - Permission denied / invalid token */
+  FETCH_STATUS_UNAUTHORIZED = 4,
+  /** FETCH_STATUS_TIMEOUT - Server timeout */
+  FETCH_STATUS_TIMEOUT = 5,
+  UNRECOGNIZED = -1,
+}
+
+export function protoFetchStatusFromJSON(object: any): ProtoFetchStatus {
+  switch (object) {
+    case 0:
+    case "FETCH_STATUS_UNSPECIFIED":
+      return ProtoFetchStatus.FETCH_STATUS_UNSPECIFIED;
+    case 1:
+    case "FETCH_STATUS_OK":
+      return ProtoFetchStatus.FETCH_STATUS_OK;
+    case 2:
+    case "FETCH_STATUS_ERROR":
+      return ProtoFetchStatus.FETCH_STATUS_ERROR;
+    case 3:
+    case "FETCH_STATUS_NOT_FOUND":
+      return ProtoFetchStatus.FETCH_STATUS_NOT_FOUND;
+    case 4:
+    case "FETCH_STATUS_UNAUTHORIZED":
+      return ProtoFetchStatus.FETCH_STATUS_UNAUTHORIZED;
+    case 5:
+    case "FETCH_STATUS_TIMEOUT":
+      return ProtoFetchStatus.FETCH_STATUS_TIMEOUT;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return ProtoFetchStatus.UNRECOGNIZED;
+  }
+}
+
+export function protoFetchStatusToJSON(object: ProtoFetchStatus): string {
+  switch (object) {
+    case ProtoFetchStatus.FETCH_STATUS_UNSPECIFIED:
+      return "FETCH_STATUS_UNSPECIFIED";
+    case ProtoFetchStatus.FETCH_STATUS_OK:
+      return "FETCH_STATUS_OK";
+    case ProtoFetchStatus.FETCH_STATUS_ERROR:
+      return "FETCH_STATUS_ERROR";
+    case ProtoFetchStatus.FETCH_STATUS_NOT_FOUND:
+      return "FETCH_STATUS_NOT_FOUND";
+    case ProtoFetchStatus.FETCH_STATUS_UNAUTHORIZED:
+      return "FETCH_STATUS_UNAUTHORIZED";
+    case ProtoFetchStatus.FETCH_STATUS_TIMEOUT:
+      return "FETCH_STATUS_TIMEOUT";
+    case ProtoFetchStatus.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export interface ProtoCursorPaginatedResponse {
   data: ProtoAny[];
   count: number;
@@ -69,6 +133,22 @@ export interface ProtoFetchMorePayload {
 export interface ProtoFetchMorePayload_AppliedFiltersEntry {
   key: string;
   value: ProtoFilterValue | undefined;
+}
+
+/**
+ * Represents the backend response to a one-time fetch request.
+ * Includes a correlation ID, status, and the packed result data.
+ */
+export interface ProtoFetchResponsePayload {
+  requestId: string;
+  /** Status code (e.g. "OK", "ERROR", "NOT_FOUND", etc.) */
+  status: ProtoFetchStatus;
+  /** Human-readable message (useful on errors) */
+  message?:
+    | string
+    | undefined;
+  /** The actual data payload, type packed in Any */
+  data: ProtoAny | undefined;
 }
 
 /** Each item in an update message */
@@ -956,6 +1036,114 @@ export const ProtoFetchMorePayload_AppliedFiltersEntry: MessageFns<ProtoFetchMor
     message.value = (object.value !== undefined && object.value !== null)
       ? ProtoFilterValue.fromPartial(object.value)
       : undefined;
+    return message;
+  },
+};
+
+function createBaseProtoFetchResponsePayload(): ProtoFetchResponsePayload {
+  return { requestId: "", status: 0, message: undefined, data: undefined };
+}
+
+export const ProtoFetchResponsePayload: MessageFns<ProtoFetchResponsePayload> = {
+  encode(message: ProtoFetchResponsePayload, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.requestId !== "") {
+      writer.uint32(10).string(message.requestId);
+    }
+    if (message.status !== 0) {
+      writer.uint32(16).int32(message.status);
+    }
+    if (message.message !== undefined) {
+      writer.uint32(26).string(message.message);
+    }
+    if (message.data !== undefined) {
+      ProtoAny.encode(message.data, writer.uint32(34).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ProtoFetchResponsePayload {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProtoFetchResponsePayload();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.requestId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.status = reader.int32() as any;
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.data = ProtoAny.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ProtoFetchResponsePayload {
+    return {
+      requestId: isSet(object.requestId) ? globalThis.String(object.requestId) : "",
+      status: isSet(object.status) ? protoFetchStatusFromJSON(object.status) : 0,
+      message: isSet(object.message) ? globalThis.String(object.message) : undefined,
+      data: isSet(object.data) ? ProtoAny.fromJSON(object.data) : undefined,
+    };
+  },
+
+  toJSON(message: ProtoFetchResponsePayload): unknown {
+    const obj: any = {};
+    if (message.requestId !== "") {
+      obj.requestId = message.requestId;
+    }
+    if (message.status !== 0) {
+      obj.status = protoFetchStatusToJSON(message.status);
+    }
+    if (message.message !== undefined) {
+      obj.message = message.message;
+    }
+    if (message.data !== undefined) {
+      obj.data = ProtoAny.toJSON(message.data);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ProtoFetchResponsePayload>, I>>(base?: I): ProtoFetchResponsePayload {
+    return ProtoFetchResponsePayload.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ProtoFetchResponsePayload>, I>>(object: I): ProtoFetchResponsePayload {
+    const message = createBaseProtoFetchResponsePayload();
+    message.requestId = object.requestId ?? "";
+    message.status = object.status ?? 0;
+    message.message = object.message ?? undefined;
+    message.data = (object.data !== undefined && object.data !== null) ? ProtoAny.fromPartial(object.data) : undefined;
     return message;
   },
 };

@@ -12,16 +12,22 @@
  * @param fields - List of keys on each object to normalize (`null` → `undefined`).
  * @returns The same array of rows with the specified fields normalized in place.
  */
-export default function normalizeOptionalFields<T extends Record<string, unknown>, K extends keyof T>(
+export function normalizeOptionalFieldsInArray<T extends Record<string, unknown>, K extends keyof T>(
     rows: T[],
     fields: K[],
 ): T[] {
     for (const row of rows) {
-        for (const field of fields) {
-            if (row[field] === null) {
-                row[field] = undefined as unknown as T[K];
-            }
-        }
+        normalizeOptionalFields(row, fields);
     }
     return rows;
+}
+
+export function normalizeOptionalFields<T extends Record<string, unknown>, K extends keyof T>(item: T, fields: K[]): T {
+    for (const field of fields) {
+        if (item[field] === null) {
+            item[field] = undefined as unknown as T[K];
+        }
+    }
+
+    return item;
 }

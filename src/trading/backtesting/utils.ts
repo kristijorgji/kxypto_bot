@@ -75,7 +75,9 @@ export async function runStrategy(
     };
     const mintResults: Record<string, StrategyMintBacktestResult> = {};
 
-    for (const file of files) {
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+
         let content: HandlePumpTokenBotReport;
         if (cache[file.fullPath]) {
             content = cache[file.fullPath];
@@ -97,6 +99,7 @@ export async function runStrategy(
             );
             runConfig.strategy.resetState();
             mintResults[content.mint] = {
+                index: i,
                 mint: content.mint,
                 mintFileStorageType: 'local',
                 mintFilePath: file.fullPath,

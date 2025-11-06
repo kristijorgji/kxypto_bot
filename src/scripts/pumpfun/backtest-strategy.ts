@@ -41,7 +41,7 @@ program
         } finally {
             await db.destroy();
             redis.disconnect();
-            pubsub.close();
+            await pubsub.close();
         }
     });
 

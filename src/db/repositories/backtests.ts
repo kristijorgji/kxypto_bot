@@ -317,6 +317,7 @@ export type BacktestsMintResultsFilters = {
     strategyId?: string;
     strategyName?: string;
     strategyConfigVariant?: string;
+    strategyResultId?: string;
 } & CommonTradeFilters;
 
 async function getBacktestStrategyMintResults(
@@ -363,6 +364,10 @@ async function getBacktestStrategyMintResults(
             'backtest_id',
             backtests.map(el => el.id),
         );
+    }
+
+    if (f.strategyResultId) {
+        queryBuilder.where('strategy_result_id', f.strategyResultId);
     }
 
     applyCommonTradeFilters(queryBuilder, f, {
@@ -424,6 +429,7 @@ export function formDraftMintResultFromBacktestMintResult(
 
     return {
         strategy_result_id: strategyResultId,
+        index: bmr.index,
         mint: bmr.mint,
         mint_file_storage_type: bmr.mintFileStorageType,
         mint_file_path: bmr.mintFilePath,

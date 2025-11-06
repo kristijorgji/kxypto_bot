@@ -101,6 +101,7 @@ export type BacktestStrategyResult = {
 
 export type BacktestStrategyMintResult = {
     id: number;
+    index: number;
     strategy_result_id: number;
     mint: string;
     mint_file_storage_type: FileStorageType;

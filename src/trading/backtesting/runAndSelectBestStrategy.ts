@@ -13,7 +13,7 @@ import {
     storeBacktest,
 } from '@src/db/repositories/backtests';
 import { Backtest, BacktestStrategyResult, ProcessingStatus } from '@src/db/types';
-import { ProtoBacktestMintResultDraft } from '@src/protos/generated/backtests';
+import { ProtoBacktestMintFullResult } from '@src/protos/generated/backtests';
 import BacktestPubSub from '@src/pubsub/BacktestPubSub';
 import { formatElapsedTime } from '@src/utils/time';
 import { UpdateItem } from '@src/ws-api/types';
@@ -208,11 +208,13 @@ export default async function runAndSelectBestStrategy(
 function strategyMintBacktestResultToDraftMintResult(
     strategyResultId: number,
     bmr: StrategyMintBacktestResult,
-): ProtoBacktestMintResultDraft {
+): ProtoBacktestMintFullResult {
     const dmr = formDraftMintResultFromBacktestMintResult(strategyResultId, bmr);
 
     return {
+        id: 0, // temporary id for mint results that aren't persisted yet
         strategy_result_id: dmr.strategy_result_id,
+        index: dmr.index,
         mint: dmr.mint,
         net_pnl: dmr.net_pnl_sol ?? undefined,
         holdings_value: dmr.holdings_value_sol ?? undefined,

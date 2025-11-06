@@ -1,10 +1,44 @@
 import { faker } from '@faker-js/faker';
 
+import { ActionSource } from '@src/core/types';
 import { ProcessingStatus } from '@src/db/types';
-import { ProtoBacktestMintFullResult, ProtoBacktestStrategyFullResult } from '@src/protos/generated/backtests';
+import {
+    ProtoBacktestMintFullResult,
+    ProtoBacktestRun,
+    ProtoBacktestStrategyFullResult,
+} from '@src/protos/generated/backtests';
 import { fakeMint } from '@src/testdata/factories/pumpfun';
 import { exitMonitoringReasonEnum } from '@src/trading/bots/types';
 import { pickRandomItem, randomInt } from '@src/utils/data/data';
+import { getRandomEnumValue, mapStringToEnum } from '@src/utils/data/enum';
+
+export function ProtoBacktestRunFactory(copy?: Partial<ProtoBacktestRun>): ProtoBacktestRun {
+    const backtestId = copy?.backtest_id ?? faker.string.uuid();
+    const status = copy?.status ?? getRandomEnumValue(ProcessingStatus);
+
+    let finishedAt = undefined;
+    if (copy?.finished_at) {
+        finishedAt = copy.finished_at;
+    } else if (
+        [ProcessingStatus.Completed, ProcessingStatus.Failed].includes(mapStringToEnum(status, ProcessingStatus))
+    ) {
+        finishedAt = faker.date.past();
+    }
+
+    const userId = copy?.user_id ?? faker.string.alpha();
+
+    return {
+        id: copy?.id ?? faker.number.int({ min: 0 }),
+        backtest_id: backtestId,
+        source: copy?.source ?? getRandomEnumValue(ActionSource),
+        status: status,
+        user_id: userId,
+        api_client_id: (copy?.api_client_id ?? faker.datatype.boolean()) ? faker.string.alpha() : undefined,
+        started_at: copy?.started_at ?? faker.date.past(),
+        finished_at: finishedAt,
+        created_at: copy?.created_at ?? faker.date.past(),
+    };
+}
 
 export function ProtoBacktestStrategyFullResultFactory(): Omit<ProtoBacktestStrategyFullResult, 'created_at'> & {
     created_at: Date;
@@ -49,6 +83,9 @@ export function ProtoBacktestMintFullResultFactory(): Omit<ProtoBacktestMintFull
 
     return {
         id: faker.number.int(),
+        index: faker.number.int({
+            min: 0,
+        }),
         strategy_result_id: faker.number.int(),
         mint: fakeMint(),
         net_pnl: didExit ? undefined : faker.number.float(),

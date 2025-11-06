@@ -23,21 +23,10 @@ export interface ProtoBacktestRun {
   created_at: Date | undefined;
 }
 
-export interface ProtoBacktestMintResultDraft {
-  strategy_result_id: number;
-  mint: string;
-  net_pnl?: number | undefined;
-  holdings_value?: number | undefined;
-  roi?: number | undefined;
-  exit_code?: string | undefined;
-  exit_reason?: string | undefined;
-  payload: { [key: string]: any } | undefined;
-  created_at: Date | undefined;
-}
-
 export interface ProtoBacktestMintFullResult {
   id: number;
   strategy_result_id: number;
+  index: number;
   mint: string;
   net_pnl?: number | undefined;
   holdings_value?: number | undefined;
@@ -273,208 +262,11 @@ export const ProtoBacktestRun: MessageFns<ProtoBacktestRun> = {
   },
 };
 
-function createBaseProtoBacktestMintResultDraft(): ProtoBacktestMintResultDraft {
-  return {
-    strategy_result_id: 0,
-    mint: "",
-    net_pnl: undefined,
-    holdings_value: undefined,
-    roi: undefined,
-    exit_code: undefined,
-    exit_reason: undefined,
-    payload: undefined,
-    created_at: undefined,
-  };
-}
-
-export const ProtoBacktestMintResultDraft: MessageFns<ProtoBacktestMintResultDraft> = {
-  encode(message: ProtoBacktestMintResultDraft, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.strategy_result_id !== 0) {
-      writer.uint32(8).uint64(message.strategy_result_id);
-    }
-    if (message.mint !== "") {
-      writer.uint32(18).string(message.mint);
-    }
-    if (message.net_pnl !== undefined) {
-      writer.uint32(25).double(message.net_pnl);
-    }
-    if (message.holdings_value !== undefined) {
-      writer.uint32(33).double(message.holdings_value);
-    }
-    if (message.roi !== undefined) {
-      writer.uint32(65).double(message.roi);
-    }
-    if (message.exit_code !== undefined) {
-      writer.uint32(74).string(message.exit_code);
-    }
-    if (message.exit_reason !== undefined) {
-      writer.uint32(82).string(message.exit_reason);
-    }
-    if (message.payload !== undefined) {
-      ProtoStruct.encode(ProtoStruct.wrap(message.payload), writer.uint32(90).fork()).join();
-    }
-    if (message.created_at !== undefined) {
-      ProtoTimestamp.encode(toTimestamp(message.created_at), writer.uint32(98).fork()).join();
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): ProtoBacktestMintResultDraft {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseProtoBacktestMintResultDraft();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.strategy_result_id = longToNumber(reader.uint64());
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.mint = reader.string();
-          continue;
-        }
-        case 3: {
-          if (tag !== 25) {
-            break;
-          }
-
-          message.net_pnl = reader.double();
-          continue;
-        }
-        case 4: {
-          if (tag !== 33) {
-            break;
-          }
-
-          message.holdings_value = reader.double();
-          continue;
-        }
-        case 8: {
-          if (tag !== 65) {
-            break;
-          }
-
-          message.roi = reader.double();
-          continue;
-        }
-        case 9: {
-          if (tag !== 74) {
-            break;
-          }
-
-          message.exit_code = reader.string();
-          continue;
-        }
-        case 10: {
-          if (tag !== 82) {
-            break;
-          }
-
-          message.exit_reason = reader.string();
-          continue;
-        }
-        case 11: {
-          if (tag !== 90) {
-            break;
-          }
-
-          message.payload = ProtoStruct.unwrap(ProtoStruct.decode(reader, reader.uint32()));
-          continue;
-        }
-        case 12: {
-          if (tag !== 98) {
-            break;
-          }
-
-          message.created_at = fromTimestamp(ProtoTimestamp.decode(reader, reader.uint32()));
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ProtoBacktestMintResultDraft {
-    return {
-      strategy_result_id: isSet(object.strategy_result_id) ? globalThis.Number(object.strategy_result_id) : 0,
-      mint: isSet(object.mint) ? globalThis.String(object.mint) : "",
-      net_pnl: isSet(object.net_pnl) ? globalThis.Number(object.net_pnl) : undefined,
-      holdings_value: isSet(object.holdings_value) ? globalThis.Number(object.holdings_value) : undefined,
-      roi: isSet(object.roi) ? globalThis.Number(object.roi) : undefined,
-      exit_code: isSet(object.exit_code) ? globalThis.String(object.exit_code) : undefined,
-      exit_reason: isSet(object.exit_reason) ? globalThis.String(object.exit_reason) : undefined,
-      payload: isObject(object.payload) ? object.payload : undefined,
-      created_at: isSet(object.created_at) ? fromJsonTimestamp(object.created_at) : undefined,
-    };
-  },
-
-  toJSON(message: ProtoBacktestMintResultDraft): unknown {
-    const obj: any = {};
-    if (message.strategy_result_id !== 0) {
-      obj.strategy_result_id = Math.round(message.strategy_result_id);
-    }
-    if (message.mint !== "") {
-      obj.mint = message.mint;
-    }
-    if (message.net_pnl !== undefined) {
-      obj.net_pnl = message.net_pnl;
-    }
-    if (message.holdings_value !== undefined) {
-      obj.holdings_value = message.holdings_value;
-    }
-    if (message.roi !== undefined) {
-      obj.roi = message.roi;
-    }
-    if (message.exit_code !== undefined) {
-      obj.exit_code = message.exit_code;
-    }
-    if (message.exit_reason !== undefined) {
-      obj.exit_reason = message.exit_reason;
-    }
-    if (message.payload !== undefined) {
-      obj.payload = message.payload;
-    }
-    if (message.created_at !== undefined) {
-      obj.created_at = message.created_at.toISOString();
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ProtoBacktestMintResultDraft>, I>>(base?: I): ProtoBacktestMintResultDraft {
-    return ProtoBacktestMintResultDraft.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<ProtoBacktestMintResultDraft>, I>>(object: I): ProtoBacktestMintResultDraft {
-    const message = createBaseProtoBacktestMintResultDraft();
-    message.strategy_result_id = object.strategy_result_id ?? 0;
-    message.mint = object.mint ?? "";
-    message.net_pnl = object.net_pnl ?? undefined;
-    message.holdings_value = object.holdings_value ?? undefined;
-    message.roi = object.roi ?? undefined;
-    message.exit_code = object.exit_code ?? undefined;
-    message.exit_reason = object.exit_reason ?? undefined;
-    message.payload = object.payload ?? undefined;
-    message.created_at = object.created_at ?? undefined;
-    return message;
-  },
-};
-
 function createBaseProtoBacktestMintFullResult(): ProtoBacktestMintFullResult {
   return {
     id: 0,
     strategy_result_id: 0,
+    index: 0,
     mint: "",
     net_pnl: undefined,
     holdings_value: undefined,
@@ -492,31 +284,34 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
       writer.uint32(8).uint64(message.id);
     }
     if (message.strategy_result_id !== 0) {
-      writer.uint32(16).int64(message.strategy_result_id);
+      writer.uint32(16).uint64(message.strategy_result_id);
+    }
+    if (message.index !== 0) {
+      writer.uint32(24).uint64(message.index);
     }
     if (message.mint !== "") {
-      writer.uint32(26).string(message.mint);
+      writer.uint32(34).string(message.mint);
     }
     if (message.net_pnl !== undefined) {
-      writer.uint32(33).double(message.net_pnl);
+      writer.uint32(41).double(message.net_pnl);
     }
     if (message.holdings_value !== undefined) {
-      writer.uint32(41).double(message.holdings_value);
+      writer.uint32(49).double(message.holdings_value);
     }
     if (message.roi !== undefined) {
-      writer.uint32(49).double(message.roi);
+      writer.uint32(57).double(message.roi);
     }
     if (message.exit_code !== undefined) {
-      writer.uint32(58).string(message.exit_code);
+      writer.uint32(66).string(message.exit_code);
     }
     if (message.exit_reason !== undefined) {
-      writer.uint32(66).string(message.exit_reason);
+      writer.uint32(74).string(message.exit_reason);
     }
     if (message.payload !== undefined) {
-      ProtoStruct.encode(ProtoStruct.wrap(message.payload), writer.uint32(74).fork()).join();
+      ProtoStruct.encode(ProtoStruct.wrap(message.payload), writer.uint32(82).fork()).join();
     }
     if (message.created_at !== undefined) {
-      ProtoTimestamp.encode(toTimestamp(message.created_at), writer.uint32(82).fork()).join();
+      ProtoTimestamp.encode(toTimestamp(message.created_at), writer.uint32(90).fork()).join();
     }
     return writer;
   },
@@ -541,23 +336,23 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
             break;
           }
 
-          message.strategy_result_id = longToNumber(reader.int64());
+          message.strategy_result_id = longToNumber(reader.uint64());
           continue;
         }
         case 3: {
-          if (tag !== 26) {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.index = longToNumber(reader.uint64());
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
             break;
           }
 
           message.mint = reader.string();
-          continue;
-        }
-        case 4: {
-          if (tag !== 33) {
-            break;
-          }
-
-          message.net_pnl = reader.double();
           continue;
         }
         case 5: {
@@ -565,7 +360,7 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
             break;
           }
 
-          message.holdings_value = reader.double();
+          message.net_pnl = reader.double();
           continue;
         }
         case 6: {
@@ -573,15 +368,15 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
             break;
           }
 
-          message.roi = reader.double();
+          message.holdings_value = reader.double();
           continue;
         }
         case 7: {
-          if (tag !== 58) {
+          if (tag !== 57) {
             break;
           }
 
-          message.exit_code = reader.string();
+          message.roi = reader.double();
           continue;
         }
         case 8: {
@@ -589,7 +384,7 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
             break;
           }
 
-          message.exit_reason = reader.string();
+          message.exit_code = reader.string();
           continue;
         }
         case 9: {
@@ -597,11 +392,19 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
             break;
           }
 
-          message.payload = ProtoStruct.unwrap(ProtoStruct.decode(reader, reader.uint32()));
+          message.exit_reason = reader.string();
           continue;
         }
         case 10: {
           if (tag !== 82) {
+            break;
+          }
+
+          message.payload = ProtoStruct.unwrap(ProtoStruct.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 11: {
+          if (tag !== 90) {
             break;
           }
 
@@ -621,6 +424,7 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
     return {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       strategy_result_id: isSet(object.strategy_result_id) ? globalThis.Number(object.strategy_result_id) : 0,
+      index: isSet(object.index) ? globalThis.Number(object.index) : 0,
       mint: isSet(object.mint) ? globalThis.String(object.mint) : "",
       net_pnl: isSet(object.net_pnl) ? globalThis.Number(object.net_pnl) : undefined,
       holdings_value: isSet(object.holdings_value) ? globalThis.Number(object.holdings_value) : undefined,
@@ -639,6 +443,9 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
     }
     if (message.strategy_result_id !== 0) {
       obj.strategy_result_id = Math.round(message.strategy_result_id);
+    }
+    if (message.index !== 0) {
+      obj.index = Math.round(message.index);
     }
     if (message.mint !== "") {
       obj.mint = message.mint;
@@ -674,6 +481,7 @@ export const ProtoBacktestMintFullResult: MessageFns<ProtoBacktestMintFullResult
     const message = createBaseProtoBacktestMintFullResult();
     message.id = object.id ?? 0;
     message.strategy_result_id = object.strategy_result_id ?? 0;
+    message.index = object.index ?? 0;
     message.mint = object.mint ?? "";
     message.net_pnl = object.net_pnl ?? undefined;
     message.holdings_value = object.holdings_value ?? undefined;

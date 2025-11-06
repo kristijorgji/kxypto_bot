@@ -18,29 +18,18 @@ message BacktestRun {
   google.protobuf.Timestamp created_at = 14;
 }
 
-message BacktestMintResultDraft {
-  uint64 strategy_result_id = 1;
-  string mint = 2;
-  optional double net_pnl = 3;
-  optional double holdings_value = 4;
-  optional double roi = 8;
-  optional string exit_code = 9;
-  optional string exit_reason = 10;
-  google.protobuf.Struct payload = 11;
-  google.protobuf.Timestamp created_at = 12;
-}
-
 message BacktestMintFullResult {
   uint64 id = 1;
-  int64 strategy_result_id = 2;
-  string mint = 3;
-  optional double net_pnl = 4;
-  optional double holdings_value = 5;
-  optional double roi = 6;
-  optional string exit_code = 7;
-  optional string exit_reason = 8;
-  google.protobuf.Struct payload = 9;
-  google.protobuf.Timestamp created_at = 10;
+  uint64 strategy_result_id = 2;
+  uint64 index = 3;
+  string mint = 4;
+  optional double net_pnl = 5;
+  optional double holdings_value = 6;
+  optional double roi = 7;
+  optional string exit_code = 8;
+  optional string exit_reason = 9;
+  google.protobuf.Struct payload = 10;
+  google.protobuf.Timestamp created_at = 11;
 }
 
 message BacktestStrategyFullResult {

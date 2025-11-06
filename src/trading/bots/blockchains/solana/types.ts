@@ -267,6 +267,7 @@ export const backtestRunConfigSchema = backtestStrategyRunConfigSchema
 export type BacktestRunConfig = z.infer<typeof backtestRunConfigSchema>;
 
 export type StrategyMintBacktestResult = {
+    index: number;
     mint: string;
     mintFileStorageType: FileStorageType;
     mintFilePath: string;

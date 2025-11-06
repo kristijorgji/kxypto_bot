@@ -1,10 +1,13 @@
 import redisMock from 'ioredis-mock';
 import { createLogger } from 'winston';
 
+import { ProtoBacktestRun } from '../../../src/protos/generated/backtests';
 import BacktestPubSub from '../../../src/pubsub/BacktestPubSub';
 import MemoryPubSub from '../../../src/pubsub/MemoryPubSub';
 import PubSub from '../../../src/pubsub/PubSub';
 import RedisPubSub from '../../../src/pubsub/RedisPubSub';
+import { ProtoBacktestRunFactory } from '../../../src/testdata/factories/proto/backtests';
+import { UpdateItem } from '../../../src/ws-api/types';
 
 type PubSubFactory = () => PubSub;
 
@@ -32,6 +35,58 @@ function backtestPubSubTests(pubsubFactory: PubSubFactory, label: string) {
 
             backtestPubSub.subscribeBacktestStrategyMint('bt1', 'st1', handler);
             backtestPubSub.publishBacktestStrategyMintResult('bt1', 'st1', { value: 42 });
+        });
+
+        it('should receive all backtestRuns and stop receiving on unsubscribe', done => {
+            const itemsToDispatch: UpdateItem<ProtoBacktestRun>[] = [
+                {
+                    id: '1',
+                    action: 'added',
+                    data: ProtoBacktestRunFactory({ id: 1 }),
+                },
+                {
+                    id: '2',
+                    action: 'added',
+                    data: ProtoBacktestRunFactory({ id: 2 }),
+                },
+                {
+                    id: '3',
+                    action: 'added',
+                    data: ProtoBacktestRunFactory({ id: 3 }),
+                },
+            ];
+
+            const received: {
+                channel: string;
+                data: UpdateItem<ProtoBacktestRun>;
+            }[] = [];
+            const handler = (data: UpdateItem<ProtoBacktestRun>, channel: string) => {
+                received.push({
+                    data: data,
+                    channel: channel,
+                });
+                if (received.length === 2) {
+                    expect(received).toEqual([
+                        {
+                            channel: 'backtestRun:1',
+                            data: itemsToDispatch[0],
+                        },
+                        {
+                            channel: 'backtestRun:3',
+                            data: itemsToDispatch[2],
+                        },
+                    ]);
+                    done();
+                }
+            };
+
+            backtestPubSub.subscribeAllRuns(handler);
+            backtestPubSub.publishBacktestRun(itemsToDispatch[0]);
+            backtestPubSub.unsubscribeAllRuns().then(() => {
+                backtestPubSub.publishBacktestRun(itemsToDispatch[1]);
+                backtestPubSub.subscribeAllRuns(handler);
+                backtestPubSub.publishBacktestRun(itemsToDispatch[2]);
+            });
         });
 
         it('should receive all strategy mints for a backtest', done => {

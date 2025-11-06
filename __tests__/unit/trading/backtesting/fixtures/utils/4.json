@@ -17,6 +17,7 @@
     "maxDrawdownPercentage": 0,
     "mintResults": {
       "nta": {
+        "index": 0,
         "mint": "nta",
         "createdAt": "2021-03-19T10:00:00.000Z",
         "mintFileStorageType": "local",

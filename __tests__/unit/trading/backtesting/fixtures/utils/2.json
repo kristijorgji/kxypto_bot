@@ -17,6 +17,7 @@
     "maxDrawdownPercentage": 57.10195426981619,
     "mintResults": {
       "a": {
+        "index": 0,
         "mint": "a",
         "createdAt": "2021-03-19T10:00:00.000Z",
         "mintFileStorageType": "local",
@@ -138,6 +139,7 @@
         }
       },
       "b": {
+        "index": 1,
         "mint": "b",
         "createdAt": "2021-03-19T10:00:00.000Z",
         "mintFileStorageType": "local",

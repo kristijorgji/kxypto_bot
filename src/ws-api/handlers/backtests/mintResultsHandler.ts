@@ -2,7 +2,7 @@ import { Logger } from 'winston';
 
 import { BacktestsMintResultsFilters, fetchBacktestsMintResultsCursorPaginated } from '@src/db/repositories/backtests';
 import { CursorPaginatedResponse } from '@src/http-api/types';
-import { ProtoBacktestMintFullResult, ProtoBacktestMintResultDraft } from '@src/protos/generated/backtests';
+import { ProtoBacktestMintFullResult } from '@src/protos/generated/backtests';
 import { MessageFns, ProtoCursorPaginatedResponse, ProtoFetchStatus } from '@src/protos/generated/ws';
 import { packCursorPaginatedResponse } from '@src/protos/mappers/cursorPaginatedResponse';
 import { createBacktestPubSub } from '@src/pubsub';
@@ -28,7 +28,7 @@ export async function handleBacktestsMintResultsSubscription(
         params,
     );
 
-    backtestsPubSub.subscribeAllMintsResults((data: ProtoBacktestMintResultDraft) => {
+    backtestsPubSub.subscribeAllMintsResults((data: ProtoBacktestMintFullResult) => {
         sendUpdatesResponse(
             ws,
             {
@@ -45,7 +45,7 @@ export async function handleBacktestsMintResultsSubscription(
                     },
                 ],
             },
-            ProtoBacktestMintResultDraft,
+            ProtoBacktestMintFullResult,
         );
     });
 

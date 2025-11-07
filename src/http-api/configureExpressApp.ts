@@ -3,13 +3,20 @@ import cors from 'cors';
 import express, { Application, RequestHandler, json, urlencoded } from 'express';
 import morgan from 'morgan';
 
-import getBacktestRuns from '@src/http-api/handlers/backtests/getBacktestRuns';
-import { deleteStrategyResultByIdHandler } from '@src/http-api/handlers/backtests/strategyResults';
+import { getBacktestHandler, getBacktestRequestSchema } from '@src/http-api/handlers/backtests/backtests';
+import getBacktestRuns, { getBacktestRunsRequestSchema } from '@src/http-api/handlers/backtests/getBacktestRuns';
+import {
+    deleteStrategyResultByIdHandler,
+    deleteStrategyResultByIdRequestSchema,
+} from '@src/http-api/handlers/backtests/strategyResults';
+import { createTypedHandler, validateRequestMiddleware } from '@src/http-api/middlewares/validateRequestMiddleware';
 
 import loginHandler from './handlers/auth/loginHandler';
 import logoutHandler from './handlers/auth/logoutHandler';
 import renewAccessTokenHandler from './handlers/auth/renewAccessTokenHandler';
-import getLaunchpadTokenResultsHandler from './handlers/launchpad/getLaunchpadTokenResultsHandler';
+import getLaunchpadTokenResultsHandler, {
+    getLaunchpadTokenResultsRequestSchema,
+} from './handlers/launchpad/getLaunchpadTokenResultsHandler';
 import meHandler from './handlers/users/meHandler';
 import verifyJwtTokenMiddleware from './middlewares/verifyJwtTokenMiddleware';
 
@@ -48,11 +55,33 @@ export default function configureExpressApp(requestHandlers: RequestHandler[] = 
 
     app.get('/user', verifyJwtTokenMiddleware, meHandler);
 
-    app.get('/launchpad-token-results', verifyJwtTokenMiddleware, getLaunchpadTokenResultsHandler);
+    app.get(
+        '/launchpad-token-results',
+        verifyJwtTokenMiddleware,
+        validateRequestMiddleware(getLaunchpadTokenResultsRequestSchema),
+        createTypedHandler(getLaunchpadTokenResultsHandler),
+    );
 
-    app.get('/backtest-runs', verifyJwtTokenMiddleware, getBacktestRuns);
+    app.get(
+        '/backtest-runs',
+        verifyJwtTokenMiddleware,
+        validateRequestMiddleware(getBacktestRunsRequestSchema),
+        createTypedHandler(getBacktestRuns),
+    );
 
-    app.delete('/backtest-strategy-result/:id', verifyJwtTokenMiddleware, deleteStrategyResultByIdHandler);
+    app.get(
+        '/backtests/:id',
+        verifyJwtTokenMiddleware,
+        validateRequestMiddleware(getBacktestRequestSchema),
+        createTypedHandler(getBacktestHandler),
+    );
+
+    app.delete(
+        '/backtest-strategy-result/:id',
+        verifyJwtTokenMiddleware,
+        validateRequestMiddleware(deleteStrategyResultByIdRequestSchema),
+        createTypedHandler(deleteStrategyResultByIdHandler),
+    );
 
     return app;
 }

@@ -163,7 +163,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{kxypto_api_base_path}}/launchpad-token-results?limit=100",
+							"raw": "{{kxypto_api_base_path}}/launchpad-token-results?limit=10",
 							"host": [
 								"{{kxypto_api_base_path}}"
 							],
@@ -171,10 +171,6 @@
 								"launchpad-token-results"
 							],
 							"query": [
-								{
-									"key": "limit",
-									"value": "100"
-								},
 								{
 									"key": "cursor",
 									"value": "eyJsYXN0UHJldmlvdXNJZCI6IjMwNzEyIiwibGFzdERhdGUiOiIyMDI1LTA3LTA5IDE1OjI1OjUwIn0",
@@ -239,7 +235,57 @@
 									"key": "includeTrades",
 									"value": "true",
 									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "10"
 								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "backtests",
+			"item": [
+				{
+					"name": "get backtest runs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{kxypto_api_base_path}}/backtest-runs?limit=100",
+							"host": [
+								"{{kxypto_api_base_path}}"
+							],
+							"path": [
+								"backtest-runs"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "100"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get backtest",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{kxypto_api_base_path}}/backtests/59e39e95-570a-408e-9715-ca61525e5e23",
+							"host": [
+								"{{kxypto_api_base_path}}"
+							],
+							"path": [
+								"backtests",
+								"59e39e95-570a-408e-9715-ca61525e5e23"
 							]
 						}
 					},

@@ -21,7 +21,7 @@ export function packCursorPaginatedResponse<T>(
     return {
         data: anyItems,
         count: paginatedData.count,
-        nextCursor: paginatedData.nextCursor ?? '',
+        nextCursor: paginatedData.nextCursor ?? undefined,
     };
 }
 

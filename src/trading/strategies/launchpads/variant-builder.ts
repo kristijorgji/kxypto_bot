@@ -117,6 +117,10 @@ export function variantFromPredictionSource(s: PredictionSource): string {
     if (isSingleSource(s)) {
         return `${s.algorithm[0]}_${s.model}`;
     } else {
+        if (s.model) {
+            return `${s.algorithm[0]}_${s.model}`;
+        }
+
         let p = '';
         for (let i = 0; i < s.sources.length; i++) {
             const source = s.sources[i];

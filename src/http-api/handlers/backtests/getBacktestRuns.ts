@@ -1,42 +1,20 @@
-import { Response as ExpressResponse, Request } from 'express';
-import { z } from 'zod';
+import { Response as ExpressResponse } from 'express';
 
 import { db } from '@src/db/knex';
 import { getBacktestRuns } from '@src/db/repositories/backtests';
 import { Tables } from '@src/db/tables';
 import { Backtest, BacktestRun } from '@src/db/types';
 import fetchCursorPaginatedData from '@src/db/utils/fetchCursorPaginatedData';
+import { InferReq, RequestSchemaObject } from '@src/http-api/middlewares/validateRequestMiddleware';
 import { CursorPaginatedResponse } from '@src/http-api/types';
+import { Pagination, paginationSchema } from '@src/http-api/validation/common';
 
-const querySchema = z.object({
-    limit: z.coerce
-        .number()
-        .int()
-        .min(1, { message: 'Limit must be at least 1' })
-        .max(1000, { message: 'Limit cannot exceed 1000' })
-        .default(100),
-    cursor: z.string().optional(),
-});
-type QueryParams = z.infer<typeof querySchema>;
+export const getBacktestRunsRequestSchema = {
+    query: paginationSchema,
+} satisfies RequestSchemaObject;
 
-export default async (req: Request, res: ExpressResponse) => {
-    let query: QueryParams;
-    try {
-        query = querySchema.parse(req.query);
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            res.status(400).json({
-                message: 'Query params validation failed',
-                errors: error.errors.map(err => ({
-                    path: err.path.join('.'),
-                    message: err.message,
-                })),
-            });
-            return;
-        }
-
-        throw error;
-    }
+export default async (req: InferReq<typeof getBacktestRunsRequestSchema>, res: ExpressResponse) => {
+    const query: Pagination = req.validated.query;
 
     const paginatedData = await fetchCursorPaginatedData(
         getBacktestRuns,

@@ -339,6 +339,7 @@ async function getBacktestStrategyMintResults(
         .select({
             id: scopedColumn(Tables.BacktestStrategyMintResults, 'id'),
             strategy_result_id: 'strategy_result_id',
+            index: 'index',
             mint: 'mint',
             net_pnl: scopedColumn(Tables.BacktestStrategyMintResults, 'net_pnl_sol'),
             holdings_value: scopedColumn(Tables.BacktestStrategyMintResults, 'holdings_value_sol'),

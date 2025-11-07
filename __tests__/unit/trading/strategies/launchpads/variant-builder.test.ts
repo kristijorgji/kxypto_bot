@@ -179,26 +179,38 @@ describe('variantFromPredictionSource', () => {
     });
 
     it('return proper value for ensemble prediction source', () => {
+        const ensemblePredictionSource = {
+            algorithm: 'ensemble',
+            aggregationMode: 'weighted',
+            sources: [
+                {
+                    algorithm: 'catboost',
+                    model: 'v100',
+                    endpoint: 'http://localhost:3878/buy/cat/v100',
+                    weight: 0.77,
+                },
+                {
+                    algorithm: 'transformers',
+                    model: 'supra_transformers_v7',
+                    endpoint: 'http://localhost:3878/buy/transformers/v7',
+                    weight: 0.23,
+                },
+            ],
+        } satisfies EnsemblePredictionSource;
+
+        expect(variantFromPredictionSource(ensemblePredictionSource)).toBe(
+            'e_ag:weighted_[(c_v100:w0.77)+(t_supra_transformers_v7:w0.23)]',
+        );
+
+        /**
+         * Uses the provided model name instead of generating one automatically.
+         */
         expect(
             variantFromPredictionSource({
-                algorithm: 'ensemble',
-                aggregationMode: 'weighted',
-                sources: [
-                    {
-                        algorithm: 'catboost',
-                        model: 'v100',
-                        endpoint: 'http://localhost:3878/buy/cat/v100',
-                        weight: 0.77,
-                    },
-                    {
-                        algorithm: 'transformers',
-                        model: 'supra_transformers_v7',
-                        endpoint: 'http://localhost:3878/buy/transformers/v7',
-                        weight: 0.23,
-                    },
-                ],
-            } satisfies EnsemblePredictionSource),
-        ).toBe('e_ag:weighted_[(c_v100:w0.77)+(t_supra_transformers_v7:w0.23)]');
+                ...ensemblePredictionSource,
+                model: 'kristi_super_ensemble',
+            }),
+        ).toBe('e_kristi_super_ensemble');
 
         expect(
             variantFromPredictionSource({

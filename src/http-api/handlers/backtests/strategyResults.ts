@@ -1,28 +1,20 @@
-import { Response as ExpressResponse, Request } from 'express';
+import { Response as ExpressResponse } from 'express';
 import { z } from 'zod';
 
 import { deleteBacktestStrategyById } from '@src/db/repositories/backtests';
+import { InferReq, RequestSchemaObject } from '@src/http-api/middlewares/validateRequestMiddleware';
 
-const deleteUrlParamsSchema = z.object({
-    id: z.coerce.number().int().positive(),
-});
+export const deleteStrategyResultByIdRequestSchema = {
+    urlParams: z.object({
+        id: z.coerce.number().int().positive(),
+    }),
+} satisfies RequestSchemaObject;
 
-export async function deleteStrategyResultByIdHandler(req: Request, res: ExpressResponse): Promise<void> {
-    let urlParams: z.infer<typeof deleteUrlParamsSchema>;
-
-    try {
-        urlParams = deleteUrlParamsSchema.parse(req.params);
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            res.status(400).json({
-                error: error.flatten().fieldErrors,
-            });
-            return;
-        }
-        throw error;
-    }
-
-    await deleteBacktestStrategyById(urlParams.id);
+export async function deleteStrategyResultByIdHandler(
+    req: InferReq<typeof deleteStrategyResultByIdRequestSchema>,
+    res: ExpressResponse,
+): Promise<void> {
+    await deleteBacktestStrategyById(req.validated.urlParams.id);
 
     res.status(200).send();
 }

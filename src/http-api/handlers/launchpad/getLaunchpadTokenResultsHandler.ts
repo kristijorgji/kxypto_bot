@@ -1,11 +1,13 @@
-import { Response as ExpressResponse, Request } from 'express';
+import { Response as ExpressResponse } from 'express';
 import { z } from 'zod';
 
 import { LaunchpadTokenFullResult, getLaunchpadTokenFullResult } from '@src/db/repositories/launchpad_tokens';
 import { blockchainEnum, launchpadPlatformEnum } from '@src/db/types';
 import CompositeCursor from '@src/db/utils/CompositeCursor';
 import { CursorFactory } from '@src/db/utils/CursorFactory';
+import { InferReq, RequestSchemaObject } from '@src/http-api/middlewares/validateRequestMiddleware';
 import { CursorPaginatedResponse } from '@src/http-api/types';
+import { paginationSchema } from '@src/http-api/validation/common';
 import { HandlePumpTokenReport } from '@src/trading/bots/blockchains/solana/types';
 import { exitMonitoringReasonEnum, modeEnum } from '@src/trading/bots/types';
 import { formatDateToMySQLTimestamp } from '@src/utils/time';
@@ -33,14 +35,8 @@ const querySchema = z
             .transform(val => val?.split(',').map(code => code.trim()) || [])
             .pipe(z.array(exitMonitoringReasonEnum)),
         includeTrades: z.coerce.boolean().optional().default(false),
-        limit: z.coerce
-            .number()
-            .int()
-            .min(1, { message: 'Limit must be at least 1' })
-            .max(1000, { message: 'Limit cannot exceed 1000' })
-            .default(100),
-        cursor: z.string().optional(),
     })
+    .extend(paginationSchema.shape)
     .superRefine((data, ctx) => {
         const includesExitCodes = data.exitCodes || [];
         const excludesExitCodes = data.excludeExitCodes || [];
@@ -84,27 +80,13 @@ const querySchema = z
 
         return data;
     });
-type QueryParams = z.infer<typeof querySchema>;
 
-export default async (req: Request, res: ExpressResponse) => {
-    let query: QueryParams;
-    try {
-        query = querySchema.parse(req.query);
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            res.status(400).json({
-                message: 'Query params validation failed',
-                errors: error.errors.map(err => ({
-                    path: err.path.join('.'),
-                    message: err.message,
-                })),
-            });
-            return;
-        }
+export const getLaunchpadTokenResultsRequestSchema = {
+    query: querySchema,
+} satisfies RequestSchemaObject;
 
-        throw error;
-    }
-
+export default async (req: InferReq<typeof getLaunchpadTokenResultsRequestSchema>, res: ExpressResponse) => {
+    const query = req.validated.query;
     const direction: 'asc' | 'desc' = 'desc';
 
     let decodedCursor: CompositeCursor | undefined;

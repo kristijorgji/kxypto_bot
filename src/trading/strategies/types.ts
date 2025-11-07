@@ -61,6 +61,10 @@ export const ensemblePredictionSourceSchema = z
         algorithm: z.literal('ensemble'),
         sources: z.array(ensembleMemberPredictionSourceSchema).min(1),
         aggregationMode: z.enum(['mean', 'median', 'weighted', 'max', 'min', 'stacked', 'custom']),
+        model: z
+            .string()
+            .optional()
+            .describe('Optional custom model name. If not provided, a name will be auto-generated.'),
     })
     .refine(data => data.aggregationMode !== 'weighted' || data.sources.every(s => s.weight !== undefined), {
         message: 'All ensemble members must have a weight when aggregationMode is weighted',

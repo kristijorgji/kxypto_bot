@@ -138,7 +138,13 @@ in order to manage remotely the bot.
 📂 Server entry point:  
 [`src/http-api/server.ts`](src/http-api/server.ts)
 
----
+### Request Validation & Typed Handlers
+
+All API routes use a **Zod-powered validation system** with **fully typed request handlers**.  
+It ensures safe and predictable API inputs without mutating Express internals.
+
+📘 Read how request validation works:  
+[`docs/http-api/request-validation.md`](docs/http-api/request-validation.md)
 
 ## 📡 WebSocket Server
 

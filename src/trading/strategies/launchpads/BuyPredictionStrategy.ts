@@ -30,7 +30,14 @@ import {
     variantFromSellContext,
 } from './variant-builder';
 
+// When to run downside checks:
+// - "always": run downside logic every loop cycle, regardless of buy conditions.
+// - "onBuyThreshold": run downside logic only if the buy threshold is met
+//    (acts as a final confirmation step before buying).
+export const downsideExecutionMode = z.enum(['always', 'onBuyThreshold']);
+
 export const downsideProtectionSchema = z.object({
+    executionMode: downsideExecutionMode,
     source: predictionSourceSchema,
     prediction: strategyPredictionConfigSchema,
     minPredictedConfidence: z.number().positive(),

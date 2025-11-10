@@ -601,6 +601,7 @@ describe('BuySellPredictionStrategy', () => {
                 buy: {
                     minPredictedConfidence: 0.5,
                     downsideProtection: {
+                        executionMode: 'always',
                         source: {
                             algorithm: 'catboost',
                             model: 'v2_50_drop',

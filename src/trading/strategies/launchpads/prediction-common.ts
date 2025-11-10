@@ -12,7 +12,10 @@ import {
     BuySellPredictionStrategyConfig,
     BuySellPredictionStrategyShouldSellResponseReason,
 } from '@src/trading/strategies/launchpads/BuySellPredictionStrategy';
-import DownsidePredictor, { PredictorNotStartReason } from '@src/trading/strategies/predictors/DownsidePredictor';
+import DownsidePredictor, {
+    DownsidePredictorResponse,
+    PredictorNotStartReason,
+} from '@src/trading/strategies/predictors/DownsidePredictor';
 import { deepEqual, isObject } from '@src/utils/data/equals';
 
 import { shouldBuyStateless } from './common';
@@ -435,65 +438,45 @@ export async function shouldBuyWithBuyPrediction(
         return corePredictPromise;
     }
 
-    const [corePredictionRes, downsidePredictorRes] = await Promise.all([
-        corePredictPromise,
-        p.deps.downsidePredictor!.predict(mint, historyRef, context, history),
-    ]);
+    const downsideExecutionMode = p.config.buy.downsideProtection!.executionMode;
 
+    let corePredictionRes: ShouldBuyWithPredictionBaseResponse | undefined;
+    let downsidePredictorRes: DownsidePredictorResponse | undefined;
     let predictedDownsideConfidence: number | null = null;
-    let predictionDownsideErrorData;
-    let responseData: ShouldBuyResponseData = corePredictionRes.data!;
 
-    if ((downsidePredictorRes as ConfidencePredictionResponse).confidence) {
-        predictedDownsideConfidence = (downsidePredictorRes as ConfidencePredictionResponse).confidence;
-
-        const downsideSuccessData: DownsideResponseSuccessData = {
-            predictedConfidence: predictedDownsideConfidence,
-        };
-        if ((downsidePredictorRes as ConfidencePredictionEnsembleResponse).individualResults) {
-            downsideSuccessData.aggregationMode = (
-                downsidePredictorRes as ConfidencePredictionEnsembleResponse
-            ).aggregationMode;
-            downsideSuccessData.individualResults = (
-                downsidePredictorRes as ConfidencePredictionEnsembleResponse
-            ).individualResults;
-        }
-
-        if (corePredictionRes.data) {
-            responseData = {
-                ...corePredictionRes.data,
-                downside: downsideSuccessData,
-            };
-        }
-    } else if ((downsidePredictorRes as MakePredictionRequestErrorResponse).error) {
-        const err = (downsidePredictorRes as MakePredictionRequestErrorResponse).error;
-        predictionDownsideErrorData = {
-            status: err.response.status,
-            body: err.response.data,
-        };
-    } else if ((downsidePredictorRes as MakePredictionRequestEnsembleErrorResponse).ensembleError) {
-        predictionDownsideErrorData = downsidePredictorRes as MakePredictionRequestEnsembleErrorResponse;
-    } else if ((downsidePredictorRes as PredictorNotStartReason).stopReason) {
-        responseData = {
-            ...responseData,
-            downside: {
-                notStartReason: (downsidePredictorRes as PredictorNotStartReason).stopReason,
-            },
-        };
+    if (downsideExecutionMode === 'always') {
+        [corePredictionRes, downsidePredictorRes] = await Promise.all([
+            corePredictPromise,
+            p.deps.downsidePredictor!.predict(mint, historyRef, context, history),
+        ]);
+    } else {
+        corePredictionRes = await corePredictPromise;
     }
 
-    if (predictionDownsideErrorData) {
-        p.deps.logger.error('Error getting downside prediction for mint %s, returning false', mint);
-        p.deps.logger.error('Error reason reason=%o', predictionDownsideErrorData);
-        responseData = {
-            ...responseData,
-            downside: {
-                response: predictionDownsideErrorData,
-            },
-        };
+    let responseData: ShouldBuyResponseData = corePredictionRes.data!;
+
+    if (downsideExecutionMode === 'always') {
+        ({ predictedDownsideConfidence, responseData } = _prepareDownsideResponseData(
+            p.deps.logger,
+            corePredictionRes,
+            downsidePredictorRes!,
+            responseData,
+            mint,
+        ));
     }
 
     if (corePredictionRes.buy) {
+        if (downsideExecutionMode === 'onBuyThreshold') {
+            downsidePredictorRes = await p.deps.downsidePredictor!.predict(mint, historyRef, context, history);
+            ({ predictedDownsideConfidence, responseData } = _prepareDownsideResponseData(
+                p.deps.logger,
+                corePredictionRes,
+                downsidePredictorRes!,
+                responseData,
+                mint,
+            ));
+        }
+
         if (predictedDownsideConfidence !== null) {
             const t = downsidePredictorRes as ConfidencePredictionResponse;
             const downsidePredicted = t.confidence >= p.config.buy.downsideProtection!.minPredictedConfidence;
@@ -616,6 +599,74 @@ async function shouldBuyWithPredictionBase(
             data: responseData,
         };
     }
+}
+
+function _prepareDownsideResponseData(
+    logger: Logger,
+    corePredictionRes: ShouldBuyWithPredictionBaseResponse,
+    downsidePredictorRes: DownsidePredictorResponse,
+    responseData: ShouldBuyResponseData,
+    mint: string,
+): {
+    responseData: ShouldBuyResponseData;
+    predictedDownsideConfidence: number | null;
+} {
+    let predictedDownsideConfidence: number | null = null;
+    let predictionDownsideErrorData;
+
+    if ((downsidePredictorRes as ConfidencePredictionResponse).confidence) {
+        predictedDownsideConfidence = (downsidePredictorRes as ConfidencePredictionResponse).confidence;
+
+        const downsideSuccessData: DownsideResponseSuccessData = {
+            predictedConfidence: predictedDownsideConfidence,
+        };
+        if ((downsidePredictorRes as ConfidencePredictionEnsembleResponse).individualResults) {
+            downsideSuccessData.aggregationMode = (
+                downsidePredictorRes as ConfidencePredictionEnsembleResponse
+            ).aggregationMode;
+            downsideSuccessData.individualResults = (
+                downsidePredictorRes as ConfidencePredictionEnsembleResponse
+            ).individualResults;
+        }
+
+        if (corePredictionRes.data) {
+            responseData = {
+                ...corePredictionRes.data,
+                downside: downsideSuccessData,
+            };
+        }
+    } else if ((downsidePredictorRes as MakePredictionRequestErrorResponse).error) {
+        const err = (downsidePredictorRes as MakePredictionRequestErrorResponse).error;
+        predictionDownsideErrorData = {
+            status: err.response.status,
+            body: err.response.data,
+        };
+    } else if ((downsidePredictorRes as MakePredictionRequestEnsembleErrorResponse).ensembleError) {
+        predictionDownsideErrorData = downsidePredictorRes as MakePredictionRequestEnsembleErrorResponse;
+    } else if ((downsidePredictorRes as PredictorNotStartReason).stopReason) {
+        responseData = {
+            ...responseData,
+            downside: {
+                notStartReason: (downsidePredictorRes as PredictorNotStartReason).stopReason,
+            },
+        };
+    }
+
+    if (predictionDownsideErrorData) {
+        logger.error('Error getting downside prediction for mint %s, returning false', mint);
+        logger.error('Error reason reason=%o', predictionDownsideErrorData);
+        responseData = {
+            ...responseData,
+            downside: {
+                response: predictionDownsideErrorData,
+            },
+        };
+    }
+
+    return {
+        responseData: responseData,
+        predictedDownsideConfidence,
+    };
 }
 
 export type ShouldSellParams = {

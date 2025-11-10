@@ -132,6 +132,7 @@ describe('BuyPredictionStrategy', () => {
                         },
                     },
                     downsideProtection: {
+                        executionMode: 'always',
                         source: {
                             algorithm: 'catboost',
                             model: 'v2_50_drop',

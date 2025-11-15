@@ -3,7 +3,11 @@ import {
     variantFromPredictionSource,
     variantFromSellContext,
 } from '../../../../../src/trading/strategies/launchpads/variant-builder';
-import { EnsemblePredictionSource, SinglePredictionSource } from '../../../../../src/trading/strategies/types';
+import {
+    LocalEnsembleMemberPredictionSource,
+    LocalEnsemblePredictionSource,
+    SinglePredictionSource,
+} from '../../../../../src/trading/strategies/types';
 
 describe('variantConfigFromContext', () => {
     it('returns empty string for empty context', () => {
@@ -178,8 +182,8 @@ describe('variantFromPredictionSource', () => {
         ).toBe('x_supra_v5');
     });
 
-    it('return proper value for ensemble prediction source', () => {
-        const ensemblePredictionSource = {
+    describe('with ensemble prediction source', () => {
+        const ensembleWeightedPredictionSource = {
             algorithm: 'ensemble',
             aggregationMode: 'weighted',
             sources: [
@@ -196,39 +200,83 @@ describe('variantFromPredictionSource', () => {
                     weight: 0.23,
                 },
             ],
-        } satisfies EnsemblePredictionSource;
+        } satisfies LocalEnsemblePredictionSource;
 
-        expect(variantFromPredictionSource(ensemblePredictionSource)).toBe(
-            'e_ag:weighted_[(c_v100:w0.77)+(t_supra_transformers_v7:w0.23)]',
-        );
+        it('returns proper value for weighted ensemble', () => {
+            expect(variantFromPredictionSource(ensembleWeightedPredictionSource)).toBe(
+                'e_ag:weighted_[(c_v100:w0.77)+(t_supra_transformers_v7:w0.23)]',
+            );
+        });
 
-        /**
-         * Uses the provided model name instead of generating one automatically.
-         */
-        expect(
-            variantFromPredictionSource({
-                ...ensemblePredictionSource,
-                model: 'kristi_super_ensemble',
-            }),
-        ).toBe('e_kristi_super_ensemble');
+        it('uses user specified model name', () => {
+            expect(
+                variantFromPredictionSource({
+                    ...ensembleWeightedPredictionSource,
+                    model: 'kristi_super_ensemble',
+                }),
+            ).toBe('e_kristi_super_ensemble');
+        });
 
-        expect(
-            variantFromPredictionSource({
-                algorithm: 'ensemble',
-                aggregationMode: 'min',
-                sources: [
-                    {
-                        algorithm: 'catboost',
-                        model: 'v100',
-                        endpoint: 'http://localhost:3878/buy/cat/v100',
-                    },
-                    {
-                        algorithm: 'transformers',
-                        model: 'supra_transformers_v7',
-                        endpoint: 'http://localhost:3878/buy/transformers/v7',
-                    },
-                ],
-            } satisfies EnsemblePredictionSource),
-        ).toBe('e_ag:min_[(c_v100)+(t_supra_transformers_v7)]');
+        it('works with min aggregation mode', () => {
+            expect(
+                variantFromPredictionSource({
+                    algorithm: 'ensemble',
+                    aggregationMode: 'min',
+                    sources: [
+                        {
+                            algorithm: 'catboost',
+                            model: 'v100',
+                            endpoint: 'http://localhost:3878/buy/cat/v100',
+                        },
+                        {
+                            algorithm: 'transformers',
+                            model: 'supra_transformers_v7',
+                            endpoint: 'http://localhost:3878/buy/transformers/v7',
+                        },
+                    ],
+                } satisfies LocalEnsemblePredictionSource),
+            ).toBe('e_ag:min_[(c_v100)+(t_supra_transformers_v7)]');
+        });
+
+        it('shortens variant for folded ensemble with mean,min,max aggregation modes', () => {
+            const foldedSources: LocalEnsembleMemberPredictionSource[] = [
+                {
+                    algorithm: 'catboost',
+                    model: 'v15_more_data_tuned_fold_0',
+                    endpoint: 'http://localhost:3878/buy/catboost/v15_more_data_tuned_fold_0',
+                    weight: 0.1,
+                },
+                {
+                    algorithm: 'catboost',
+                    model: 'v15_more_data_tuned_fold_1',
+                    endpoint: 'http://localhost:3878/buy/catboost/v15_more_data_tuned_fold_1',
+                    weight: 0.2,
+                },
+                {
+                    algorithm: 'catboost',
+                    model: 'v15_more_data_tuned_fold_2',
+                    endpoint: 'http://localhost:3878/buy/catboost/v15_more_data_tuned_fold_2',
+                    weight: 0.3,
+                },
+            ];
+
+            expect(
+                variantFromPredictionSource({
+                    algorithm: 'ensemble',
+                    aggregationMode: 'min',
+                    sources: foldedSources,
+                } satisfies LocalEnsemblePredictionSource),
+            ).toBe('e_ag:min_catboost_fold_0_3');
+
+            expect(
+                variantFromPredictionSource({
+                    algorithm: 'ensemble',
+                    aggregationMode: 'weighted',
+                    sources: foldedSources,
+                } satisfies LocalEnsemblePredictionSource),
+            ).toBe(
+                'e_ag:weighted_[(c_v15_more_data_tuned_fold_0:w0.1)+(c_v15_more_data_tuned_fold_1:w0.2)+(c_v15_more_data_tuned_fold_2:w0.3)]',
+            );
+        });
     });
 });

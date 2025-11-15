@@ -12,9 +12,9 @@ import BuySellPredictionStrategy from '../../../../../src/trading/strategies/lau
 import LaunchpadBotStrategy from '../../../../../src/trading/strategies/launchpads/LaunchpadBotStrategy';
 import {
     ConfidencePredictionResponse,
+    PredictionConfig,
     PredictionSource,
     SinglePredictionSource,
-    StrategyPredictionConfig,
 } from '../../../../../src/trading/strategies/types';
 import { deepEqual } from '../../../../../src/utils/data/equals';
 import { readLocalFixture } from '../../../../__utils/data';
@@ -75,8 +75,8 @@ export function defineShouldBuyWithPredictionTests({
     getLogs: () => LogEntry[];
     getStrategy: () => LaunchpadBotStrategy;
     formStrategy: (overrides: {
-        source?: PredictionSource;
-        prediction?: Partial<StrategyPredictionConfig>;
+        predictionSource?: PredictionSource;
+        predictionConfig?: Partial<PredictionConfig>;
         buy?: Partial<BuyPredictionStrategyConfig['buy']>;
     }) => void;
     mint: string;
@@ -183,7 +183,7 @@ export function defineShouldBuyWithPredictionTests({
 
         it('should not buy and call prediction endpoint when context limits do not match', async () => {
             formStrategy({
-                prediction: {
+                predictionConfig: {
                     requiredFeaturesLength: 10,
                 },
                 buy: {
@@ -245,7 +245,7 @@ export function defineShouldBuyWithPredictionTests({
 
         it('should use the cache correctly', async () => {
             formStrategy({
-                prediction: {
+                predictionConfig: {
                     cache: {
                         enabled: true,
                     },
@@ -684,8 +684,8 @@ export function defineShouldBuyWithPredictionTests({
     describe('shouldBuy works with ensemble mode', () => {
         it('aggregates the 2 model responses and uses stores in separate cache for each model', async () => {
             formStrategy({
-                source: buyEnsemblePredictionSource,
-                prediction: {
+                predictionSource: buyEnsemblePredictionSource,
+                predictionConfig: {
                     cache: {
                         enabled: true,
                     },

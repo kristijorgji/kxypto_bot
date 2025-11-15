@@ -9,8 +9,9 @@ import { HistoryEntry } from '../../../../../src/trading/bots/launchpads/types';
 import { HistoryRef } from '../../../../../src/trading/bots/types';
 import BuyPredictionStrategy, {
     BuyPredictionStrategyConfig,
+    BuyPredictionStrategyConfigInput,
 } from '../../../../../src/trading/strategies/launchpads/BuyPredictionStrategy';
-import { PredictionSource, StrategyPredictionConfig } from '../../../../../src/trading/strategies/types';
+import { PredictionConfig, PredictionSource } from '../../../../../src/trading/strategies/types';
 import { readFixture } from '../../../../__utils/data';
 
 const mockServer = setupServer();
@@ -23,14 +24,15 @@ describe('BuyPredictionStrategy', () => {
     const redisMockInstance = new redisMock();
     const sourceConfig: PredictionSource = sampleSinglePredictionSource;
     const config = {
-        prediction: {
+        predictionSource: sourceConfig,
+        predictionConfig: {
             requiredFeaturesLength: 10,
             skipAllSameFeatures: true,
-        } satisfies StrategyPredictionConfig,
+        } satisfies PredictionConfig,
         buy: {
             minPredictedConfidence: 0.5,
         },
-    };
+    } satisfies BuyPredictionStrategyConfigInput;
     let strategy: BuyPredictionStrategy;
 
     const historyRef: HistoryRef = {
@@ -50,7 +52,7 @@ describe('BuyPredictionStrategy', () => {
         logs = [];
         logger.clear().add(new ArrayTransport({ array: logs, json: true, format: format.splat() }));
 
-        strategy = new BuyPredictionStrategy(logger, redisMockInstance, sourceConfig, config);
+        strategy = new BuyPredictionStrategy(logger, redisMockInstance, config);
     });
 
     afterEach(() => {
@@ -63,11 +65,12 @@ describe('BuyPredictionStrategy', () => {
     });
 
     describe('constructor', () => {
-        it('should fail to construct if config.prediction has missing values', () => {
+        it('should fail to construct if config.predictionConfig has missing values', () => {
             expect(
                 () =>
-                    new BuyPredictionStrategy(logger, redisMockInstance, sourceConfig, {
-                        prediction: {} as StrategyPredictionConfig,
+                    new BuyPredictionStrategy(logger, redisMockInstance, {
+                        predictionSource: sourceConfig,
+                        predictionConfig: {} as PredictionConfig,
                     }),
             ).toThrow(new Error('requiredFeaturesLength is required;skipAllSameFeatures is required'));
         });
@@ -79,8 +82,8 @@ describe('BuyPredictionStrategy', () => {
         predictionEndpoint: sourceConfig.endpoint,
         getLogs: () => logs,
         getStrategy: () => strategy,
-        formStrategy: ({ source, prediction, buy }) => {
-            let newConfig: Partial<BuyPredictionStrategyConfig> = {
+        formStrategy: ({ predictionSource, predictionConfig, buy }) => {
+            let newConfig: BuyPredictionStrategyConfigInput = {
                 ...config,
             };
 
@@ -91,14 +94,21 @@ describe('BuyPredictionStrategy', () => {
                 } as BuyPredictionStrategyConfig['buy'];
             }
 
-            if (prediction) {
-                newConfig.prediction = {
-                    ...newConfig.prediction,
-                    ...prediction,
-                } as BuyPredictionStrategyConfig['prediction'];
+            if (predictionSource) {
+                newConfig.predictionSource = {
+                    ...newConfig.predictionSource,
+                    ...predictionSource,
+                };
             }
 
-            strategy = new BuyPredictionStrategy(logger, redisMockInstance, source ?? sourceConfig, newConfig);
+            if (predictionConfig) {
+                newConfig.predictionConfig = {
+                    ...newConfig.predictionConfig!,
+                    ...predictionConfig,
+                };
+            }
+
+            strategy = new BuyPredictionStrategy(logger, redisMockInstance, newConfig);
         },
         mint: mint,
         historyRef: historyRef,
@@ -106,14 +116,14 @@ describe('BuyPredictionStrategy', () => {
     });
 
     describe('formVariant', () => {
-        function getVariant(customConfig: Partial<BuyPredictionStrategyConfig> = {}, source?: PredictionSource) {
-            return new BuyPredictionStrategy(logger, redisMockInstance, source ?? sourceConfig, customConfig).config
-                .variant;
+        function getVariant(customConfig: BuyPredictionStrategyConfigInput) {
+            return new BuyPredictionStrategy(logger, redisMockInstance, customConfig).config.variant;
         }
 
         it('should full variant key with all values', () => {
             const key = getVariant({
-                prediction: {
+                predictionSource: sourceConfig,
+                predictionConfig: {
                     skipAllSameFeatures: false,
                     requiredFeaturesLength: 3,
                     upToFeaturesLength: 5,
@@ -163,7 +173,8 @@ describe('BuyPredictionStrategy', () => {
 
         it('should exclude undefined values and use model defaults', () => {
             const key = getVariant({
-                prediction: {
+                predictionSource: sourceConfig,
+                predictionConfig: {
                     requiredFeaturesLength: 10,
                     upToFeaturesLength: undefined,
                     skipAllSameFeatures: true,
@@ -179,7 +190,9 @@ describe('BuyPredictionStrategy', () => {
         });
 
         it('should form proper variant when using ensemble prediction source', () => {
-            const key = getVariant({}, buyEnsemblePredictionSource);
+            const key = getVariant({
+                predictionSource: buyEnsemblePredictionSource,
+            });
             expect(key).toBe(
                 'e_ag:weighted_[(c_v100:w0.77)+(t_supra_transformers_v7:w0.23)]_p(skf:true_rql:10)_buy(mpc:0.5)_sell(tslp:15_tpp:15)',
             );
@@ -187,13 +200,13 @@ describe('BuyPredictionStrategy', () => {
     });
 
     describe('formBaseCacheKey', () => {
-        const sourceConfig: PredictionSource = {
-            endpoint: process.env.BUY_PREDICTION_ENDPOINT as string,
-            algorithm: 'transformers',
-            model: 'm1',
-        };
-        const defaultConfig: Partial<BuyPredictionStrategyConfig> = {
-            prediction: {
+        const defaultConfig: BuyPredictionStrategyConfigInput = {
+            predictionSource: {
+                endpoint: process.env.BUY_PREDICTION_ENDPOINT as string,
+                algorithm: 'transformers',
+                model: 'm1',
+            },
+            predictionConfig: {
                 skipAllSameFeatures: false,
                 requiredFeaturesLength: 3,
                 upToFeaturesLength: 5,
@@ -203,9 +216,11 @@ describe('BuyPredictionStrategy', () => {
             },
         };
 
-        function getKeyFromConfig(customConfig: Partial<BuyPredictionStrategyConfig> = {}, source?: PredictionSource) {
+        function getKeyFromConfig(
+            customConfig?: Partial<Pick<BuyPredictionStrategyConfigInput, 'predictionSource' | 'predictionConfig'>>,
+        ) {
             let strategy: BuyPredictionStrategy;
-            strategy = new BuyPredictionStrategy(logger, redisMockInstance, source ?? sourceConfig, {
+            strategy = new BuyPredictionStrategy(logger, redisMockInstance, {
                 ...defaultConfig,
                 ...customConfig,
             });
@@ -220,7 +235,7 @@ describe('BuyPredictionStrategy', () => {
 
         it('should handle boolean true correctly', () => {
             const key = getKeyFromConfig({
-                prediction: { requiredFeaturesLength: 3, upToFeaturesLength: 5, skipAllSameFeatures: true },
+                predictionConfig: { requiredFeaturesLength: 3, upToFeaturesLength: 5, skipAllSameFeatures: true },
             });
             expect(key).toContain('_skf:true');
             expect(key).toBe('bp.t_m1_skf:true');
@@ -228,17 +243,18 @@ describe('BuyPredictionStrategy', () => {
 
         it('should handle boolean false correctly', () => {
             const key = getKeyFromConfig({
-                prediction: { requiredFeaturesLength: 3, upToFeaturesLength: 5, skipAllSameFeatures: false },
+                predictionConfig: { requiredFeaturesLength: 3, upToFeaturesLength: 5, skipAllSameFeatures: false },
             });
             expect(key).toContain('_skf:false');
             expect(key).toBe('bp.t_m1_skf:false');
         });
 
         it('should generate multiple cache keys when using client-side ensemble mode', () => {
-            expect(getKeyFromConfig({}, buyEnsemblePredictionSource)).toEqual([
-                'bp.c_v100_skf:false',
-                'bp.t_supra_transformers_v7_skf:false',
-            ]);
+            expect(
+                getKeyFromConfig({
+                    predictionSource: buyEnsemblePredictionSource,
+                }),
+            ).toEqual(['bp.c_v100_skf:false', 'bp.t_supra_transformers_v7_skf:false']);
         });
     });
 });

@@ -14,9 +14,9 @@ import {
     PredictionStrategyShouldBuyResponseReason,
     isSingleSource,
     marketContextIntervalConfigSchema,
+    predictionConfigSchema,
     predictionSourceSchema,
     strategyConfigSchema,
-    strategyPredictionConfigSchema,
     strategySellConfigSchema,
 } from '../types';
 import { shouldExitLaunchpadToken } from './common';
@@ -39,7 +39,7 @@ export const downsideExecutionMode = z.enum(['always', 'onBuyThreshold']);
 export const downsideProtectionSchema = z.object({
     executionMode: downsideExecutionMode,
     source: predictionSourceSchema,
-    prediction: strategyPredictionConfigSchema,
+    prediction: predictionConfigSchema,
     minPredictedConfidence: z.number().positive(),
 });
 
@@ -54,12 +54,16 @@ export const buyConfigSchema = z.object({
 
 export const buyPredictionStrategyConfigSchema = strategyConfigSchema.merge(
     z.object({
-        prediction: strategyPredictionConfigSchema,
+        predictionSource: predictionSourceSchema,
+        predictionConfig: predictionConfigSchema,
         buy: buyConfigSchema,
         sell: strategySellConfigSchema,
     }),
 );
 export type BuyPredictionStrategyConfig = z.infer<typeof buyPredictionStrategyConfigSchema>;
+
+export type BuyPredictionStrategyConfigInput = Partial<BuyPredictionStrategyConfig> &
+    Pick<BuyPredictionStrategyConfig, 'predictionSource'>;
 
 export type BuyPredictionStrategyShouldBuyResponseReason =
     | PredictionStrategyShouldBuyResponseReason
@@ -78,11 +82,11 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
         - Use trailing stop loss to lock in profits while allowing for continued growth.
     `;
 
-    static readonly defaultConfig: BuyPredictionStrategyConfig = {
+    static readonly defaultConfig: Omit<BuyPredictionStrategyConfig, 'predictionSource'> = {
         maxWaitMs: 5 * 60 * 1e3,
         buySlippageDecimal: 0.25,
         sellSlippageDecimal: 0.25,
-        prediction: {
+        predictionConfig: {
             requiredFeaturesLength: 10,
             skipAllSameFeatures: true,
             cache: {
@@ -98,7 +102,7 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
         },
     };
 
-    readonly config: BuyPredictionStrategyConfig = deepClone(BuyPredictionStrategy.defaultConfig);
+    readonly config!: BuyPredictionStrategyConfig;
 
     private readonly client: RateLimitedAxiosInstance;
 
@@ -111,24 +115,25 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
     constructor(
         readonly logger: Logger,
         private readonly cache: Redis,
-        private readonly source: PredictionSource,
-        config?: Partial<BuyPredictionStrategyConfig>,
+        config: BuyPredictionStrategyConfigInput,
     ) {
         super(logger);
         const that = this;
-        if (config) {
-            this.config = {
-                ...this.config,
-                ...config,
-            };
-        }
-        validatePredictionConfig(this.config.prediction);
+
+        this.config = {
+            ...deepClone(BuyPredictionStrategy.defaultConfig),
+            ...config,
+        };
+
+        validatePredictionConfig(this.config.predictionConfig);
 
         if ((this.config?.variant ?? '') === '') {
-            this.config.variant = BuyPredictionStrategy.formVariant(source, this.config);
+            this.config.variant = BuyPredictionStrategy.formVariant(this.config.predictionSource, this.config);
         }
 
-        const sourcesCount = isSingleSource(source) ? 1 : source.sources.length;
+        const sourcesCount = isSingleSource(this.config.predictionSource)
+            ? 1
+            : this.config.predictionSource.sources.length;
         this.client = axiosRateLimit(
             axios.create({
                 validateStatus: () => true,
@@ -136,10 +141,12 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
             { maxRequests: 16000 * sourcesCount, perMilliseconds: 1000 },
         );
 
-        if (isSingleSource(source)) {
-            this.cacheBaseKey = formBaseCacheKey('buy', this.config.prediction, source);
+        if (isSingleSource(this.config.predictionSource)) {
+            this.cacheBaseKey = formBaseCacheKey('buy', this.config.predictionConfig, this.config.predictionSource);
         } else {
-            this.cacheBaseKey = source.sources.map(el => formBaseCacheKey('buy', this.config.prediction, el));
+            this.cacheBaseKey = this.config.predictionSource.sources.map(el =>
+                formBaseCacheKey('buy', this.config.predictionConfig, el),
+            );
         }
 
         this.shouldBuyCommonParams = {
@@ -156,9 +163,9 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
                       )
                     : undefined,
             },
-            source: this.source,
+            source: this.config.predictionSource,
             config: {
-                prediction: this.config.prediction,
+                prediction: this.config.predictionConfig,
                 buy: this.config.buy,
             },
             cacheBaseKey: this.cacheBaseKey,
@@ -198,7 +205,7 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
     }
 
     public static formVariant(source: PredictionSource, config: BuyPredictionStrategyConfig): string {
-        let r = `${variantFromPredictionSource(source)}_p(${variantFromPredictionConfig(config.prediction)})`;
+        let r = `${variantFromPredictionSource(source)}_p(${variantFromPredictionConfig(config.predictionConfig)})`;
         r += `_${variantFromBuyConfig(config.buy)}_sell(${variantFromSellContext(config.sell)})`;
 
         return r;

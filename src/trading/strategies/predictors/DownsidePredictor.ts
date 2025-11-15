@@ -13,10 +13,10 @@ import {
     makePredictionRequest,
 } from '@src/trading/strategies/launchpads/prediction-common';
 import {
+    PredictionConfig,
     PredictionRequest,
     PredictionSource,
     Predictor,
-    StrategyPredictionConfig,
     isSingleSource,
 } from '@src/trading/strategies/types';
 
@@ -38,7 +38,7 @@ export default class DownsidePredictor implements Predictor<DownsidePredictorRes
         private readonly cache: Redis,
         private readonly source: PredictionSource,
         private readonly config: {
-            prediction: StrategyPredictionConfig;
+            prediction: PredictionConfig;
         },
     ) {
         this.client = axiosRateLimit(

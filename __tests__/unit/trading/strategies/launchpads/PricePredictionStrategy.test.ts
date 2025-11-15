@@ -12,9 +12,9 @@ import PricePredictionStrategy, {
     PricePredictionStrategyConfig,
 } from '../../../../../src/trading/strategies/launchpads/PricePredictionStrategy';
 import {
+    PredictionConfig,
     PredictionRequest,
     SinglePredictionSource,
-    StrategyPredictionConfig,
 } from '../../../../../src/trading/strategies/types';
 import { deepEqual } from '../../../../../src/utils/data/equals';
 import { readFixture, readLocalFixture } from '../../../../__utils/data';
@@ -32,7 +32,7 @@ describe('PricePredictionStrategy', () => {
         prediction: {
             requiredFeaturesLength: 10,
             skipAllSameFeatures: true,
-        } satisfies StrategyPredictionConfig,
+        } satisfies PredictionConfig,
         buy: {
             minPredictedPriceIncreasePercentage: 15,
         },
@@ -79,7 +79,7 @@ describe('PricePredictionStrategy', () => {
             expect(
                 () =>
                     new PricePredictionStrategy(logger, redisMockInstance, sourceConfig, {
-                        prediction: {} as StrategyPredictionConfig,
+                        prediction: {} as PredictionConfig,
                     }),
             ).toThrow(new Error('requiredFeaturesLength is required;skipAllSameFeatures is required'));
         });

@@ -23,8 +23,8 @@ import {
     PredictionSource,
     PredictionStrategyShouldSellResponseReason,
     isSingleSource,
+    predictionConfigSchema,
     strategyConfigSchema,
-    strategyPredictionConfigSchema,
     strategySellConfigSchema,
 } from '../types';
 import { shouldExitLaunchpadToken } from './common';
@@ -47,8 +47,8 @@ import {
 export const buySellPredictionStrategyConfigSchema = strategyConfigSchema.merge(
     z.object({
         prediction: z.object({
-            buy: strategyPredictionConfigSchema,
-            sell: strategyPredictionConfigSchema,
+            buy: predictionConfigSchema,
+            sell: predictionConfigSchema,
         }),
         buy: buyConfigSchema,
         sell: strategySellConfigSchema.merge(

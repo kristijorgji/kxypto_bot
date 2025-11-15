@@ -1,6 +1,6 @@
-import { StrategyPredictionConfig } from '../types';
+import { PredictionConfig } from '../types';
 
-export function validatePredictionConfig(config: Partial<StrategyPredictionConfig>): void {
+export function validatePredictionConfig(config: Partial<PredictionConfig>): void {
     const messages: string[] = [];
 
     if (config.requiredFeaturesLength === undefined) {

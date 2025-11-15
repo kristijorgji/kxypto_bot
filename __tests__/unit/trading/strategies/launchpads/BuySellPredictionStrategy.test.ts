@@ -128,7 +128,7 @@ describe('BuySellPredictionStrategy', () => {
         predictionEndpoint: buySourceConfig.endpoint,
         getLogs: () => logs,
         getStrategy: () => strategy,
-        formStrategy: ({ source, prediction, buy }) => {
+        formStrategy: ({ predictionSource, predictionConfig, buy }) => {
             let newConfig: Partial<BuySellPredictionStrategyConfig> = {
                 ...config,
             };
@@ -140,17 +140,17 @@ describe('BuySellPredictionStrategy', () => {
                 } as BuySellPredictionStrategyConfig['buy'];
             }
 
-            if (prediction) {
+            if (predictionConfig) {
                 newConfig.prediction!.buy = {
                     ...newConfig.prediction!.buy,
-                    ...prediction,
+                    ...predictionConfig,
                 } as BuySellPredictionStrategyConfig['prediction']['buy'];
             }
 
             strategy = new BuySellPredictionStrategy(
                 logger,
                 redisMockInstance,
-                source ?? buySourceConfig,
+                predictionSource ?? buySourceConfig,
                 sellSourceConfig,
                 newConfig,
             );

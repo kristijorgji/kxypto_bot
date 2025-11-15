@@ -21,7 +21,7 @@ export function strategyFromConfig(sc: StrategyFileConfig, defaultStrategyLogger
         case 'RiseStrategy':
             return new RiseStrategy(strategyLogger, sc.config);
         case 'BuyPredictionStrategy':
-            return new BuyPredictionStrategy(strategyLogger, redis, sc.source, sc.config);
+            return new BuyPredictionStrategy(strategyLogger, redis, sc.config);
         case 'BuySellPredictionStrategy':
             return new BuySellPredictionStrategy(strategyLogger, redis, sc.buySource, sc.sellSource, sc.config);
         case 'PricePredictionStrategy':

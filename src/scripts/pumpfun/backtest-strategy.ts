@@ -17,7 +17,7 @@ import { PredictionSource } from '@src/trading/strategies/types';
 
 import runAndSelectBestStrategy from '../../trading/backtesting/runAndSelectBestStrategy';
 import BuyPredictionStrategy, {
-    BuyPredictionStrategyConfig,
+    BuyPredictionStrategyConfigInput,
 } from '../../trading/strategies/launchpads/BuyPredictionStrategy';
 import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
 
@@ -126,8 +126,9 @@ function getStrategies(): LaunchpadBotStrategy[] {
         model: 'b.v1',
     };
 
-    const commonConfig: Partial<BuyPredictionStrategyConfig> = {
-        prediction: {
+    const commonConfig: BuyPredictionStrategyConfigInput = {
+        predictionSource: source,
+        predictionConfig: {
             requiredFeaturesLength: 10,
             upToFeaturesLength: 500,
             skipAllSameFeatures: true,
@@ -142,19 +143,19 @@ function getStrategies(): LaunchpadBotStrategy[] {
     };
 
     return [
-        new BuyPredictionStrategy(silentLogger, redis, source, {
+        new BuyPredictionStrategy(silentLogger, redis, {
             ...commonConfig,
             buy: {
                 minPredictedConfidence: 0.1,
             },
         }),
-        new BuyPredictionStrategy(silentLogger, redis, source, {
+        new BuyPredictionStrategy(silentLogger, redis, {
             ...commonConfig,
             buy: {
                 minPredictedConfidence: 0.3,
             },
         }),
-        new BuyPredictionStrategy(silentLogger, redis, source, {
+        new BuyPredictionStrategy(silentLogger, redis, {
             ...commonConfig,
             buy: {
                 minPredictedConfidence: 0.5,

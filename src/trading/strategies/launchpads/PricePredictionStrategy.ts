@@ -13,8 +13,8 @@ import {
     PredictionStrategyShouldBuyResponseReason,
     SinglePredictionSource,
     marketContextIntervalConfigSchema,
+    predictionConfigSchema,
     strategyConfigSchema,
-    strategyPredictionConfigSchema,
     strategySellConfigSchema,
 } from '../types';
 import { shouldExitLaunchpadToken } from './common';
@@ -30,7 +30,7 @@ import {
 
 export const pricePredictionStrategyConfigSchema = strategyConfigSchema.merge(
     z.object({
-        prediction: strategyPredictionConfigSchema,
+        prediction: predictionConfigSchema,
         buy: z.object({
             minPredictedPriceIncreasePercentage: z.number().positive(),
             minConsecutivePredictionConfirmations: z.number().positive().optional(),

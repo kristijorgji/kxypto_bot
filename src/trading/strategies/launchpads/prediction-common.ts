@@ -12,6 +12,7 @@ import {
     BuySellPredictionStrategyConfig,
     BuySellPredictionStrategyShouldSellResponseReason,
 } from '@src/trading/strategies/launchpads/BuySellPredictionStrategy';
+import { buildEnsemblePredictionModel } from '@src/trading/strategies/launchpads/variant-builder';
 import DownsidePredictor, {
     DownsidePredictorResponse,
     PredictorNotStartReason,
@@ -25,12 +26,14 @@ import {
     ConfidencePredictionEnsembleLocalResponse,
     ConfidencePredictionEnsembleResponse,
     ConfidencePredictionResponse,
-    EnsemblePredictionSource,
     IntervalConfig,
+    LocalEnsemblePredictionSource,
+    PredictionConfig,
     PredictionRequest,
     PredictionSource,
+    RemoteEnsembleMemberPredictionSource,
+    RemoteEnsemblePredictionSource,
     SinglePredictionSource,
-    StrategyPredictionConfig,
     isMultiSourceEnsemble,
 } from '../types';
 
@@ -38,10 +41,53 @@ const CacheDefaultTtlSeconds = 3600 * 24 * 30;
 
 export type FormPredictionRequestFailReason = 'noVariationInFeatures';
 
+/**
+ * Converts a remote ensemble definition into a single prediction source request.
+ *
+ * The remote endpoint is expected to support the following query parameters:
+ *   - `model_types`:    the list of model types used by the ensemble
+ *   - `model_names`:    the list of model identifiers/names
+ *   - `weights`:        optional array of numeric weights (only for weighted mode)
+ *
+ * This function builds a `SinglePredictionSource` that points to the remote
+ * aggregation endpoint and encodes the ensemble members + aggregation mode
+ * in the query string.
+ *
+ * @param endpoint         The remote aggregation endpoint URL.
+ * @param members          The ensemble members without local endpoint fields.
+ * @param aggregationMode  The aggregation strategy used by the remote ensemble.
+ * @returns                A `SinglePredictionSource` targeting the remote endpoint.
+ */
+export function buildRemoteEnsembleSingleSource(
+    endpoint: string,
+    members: RemoteEnsembleMemberPredictionSource[],
+    aggregationMode: AggregationMode,
+): RemoteEnsemblePredictionSource {
+    const queryParams = new URLSearchParams();
+
+    for (const member of members) {
+        queryParams.append('model_types', member.algorithm);
+        queryParams.append('model_names', member.model);
+        if (aggregationMode === 'weighted') {
+            queryParams.append('weights', member.weight!.toString());
+        }
+    }
+
+    queryParams.append('aggregation_mode', aggregationMode);
+
+    return {
+        algorithm: 'ensemble',
+        endpoint: `${endpoint}?${queryParams}`,
+        sources: members,
+        aggregationMode: aggregationMode,
+        model: buildEnsemblePredictionModel(aggregationMode, members),
+    };
+}
+
 export function formPredictionRequest(
     logger: Logger,
     config: {
-        prediction: StrategyPredictionConfig;
+        prediction: PredictionConfig;
     },
     mint: string,
     history: HistoryEntry[],
@@ -118,7 +164,7 @@ export async function makePredictionRequest(
     cache: Redis,
     source: PredictionSource,
     config: {
-        prediction: StrategyPredictionConfig;
+        prediction: PredictionConfig;
     },
     cacheBaseKey: string | string[],
     mint: string,
@@ -156,7 +202,7 @@ async function makeSinglePredictionRequest(
     cache: Redis,
     source: SinglePredictionSource,
     config: {
-        prediction: StrategyPredictionConfig;
+        prediction: PredictionConfig;
     },
     cacheBaseKey: string,
     mint: string,
@@ -218,9 +264,9 @@ async function makeSinglePredictionRequest(
 async function makeEnsemblePredictionRequest(
     client: AxiosInstance,
     cache: Redis,
-    source: EnsemblePredictionSource,
+    source: LocalEnsemblePredictionSource,
     config: {
-        prediction: StrategyPredictionConfig;
+        prediction: PredictionConfig;
     },
     cacheBaseKey: string[],
     mint: string,
@@ -331,7 +377,7 @@ export type ShouldBuyParams = {
     };
     source: PredictionSource;
     config: {
-        prediction: StrategyPredictionConfig;
+        prediction: PredictionConfig;
         buy: BuyPredictionStrategyConfig['buy'];
     };
     /**
@@ -352,7 +398,7 @@ export async function shouldBuyCommon(
     context: MarketContext,
     history: HistoryEntry[],
     config: {
-        prediction: StrategyPredictionConfig;
+        prediction: PredictionConfig;
         buy: {
             context?: Partial<Record<keyof MarketContext, IntervalConfig>>;
         };
@@ -673,7 +719,7 @@ export type ShouldSellParams = {
     deps: PredictStrategyDependencies;
     source: PredictionSource;
     config: {
-        prediction: StrategyPredictionConfig;
+        prediction: PredictionConfig;
         sell: BuySellPredictionStrategyConfig['sell'];
     };
     cacheBaseKey: string | string[];
@@ -808,8 +854,8 @@ const predictionTypeAbbreviation: Record<PredictionType, string> = {
 
 export function formBaseCacheKey(
     predictionType: 'price' | 'buy' | 'sell',
-    prediction: StrategyPredictionConfig,
-    source: SinglePredictionSource,
+    prediction: PredictionConfig,
+    source: Omit<SinglePredictionSource, 'endpoint'>,
 ): string {
     const pc = prediction.skipAllSameFeatures !== undefined ? `skf:${prediction.skipAllSameFeatures}` : '';
     return `${predictionTypeAbbreviation[predictionType]}p.${source.algorithm[0]}_${source.model}${pc.length === 0 ? '' : `_${pc}`}`;

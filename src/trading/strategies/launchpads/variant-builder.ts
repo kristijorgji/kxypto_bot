@@ -5,10 +5,13 @@ import {
 
 import { MarketContext } from '../../bots/launchpads/types';
 import {
+    AggregationMode,
     IntervalConfig,
+    LocalEnsembleMemberPredictionSource,
+    PredictionConfig,
     PredictionSource,
+    RemoteEnsembleMemberPredictionSource,
     SinglePredictionSource,
-    StrategyPredictionConfig,
     StrategySellConfig,
     isSingleSource,
 } from '../types';
@@ -117,32 +120,60 @@ export function variantFromPredictionSource(s: PredictionSource): string {
     if (isSingleSource(s)) {
         return `${s.algorithm[0]}_${s.model}`;
     } else {
+        // use user specified model
         if (s.model) {
             return `${s.algorithm[0]}_${s.model}`;
         }
 
-        let p = '';
-        for (let i = 0; i < s.sources.length; i++) {
-            const source = s.sources[i];
-            p += `(${variantFromSinglePredictionSource(source)}`;
-            if (s.aggregationMode === 'weighted') {
-                p += `:w${source.weight!}`;
-            }
-            p += ')';
-            if (i < s.sources.length - 1) {
-                p += '+';
-            }
-        }
-
-        return `${s.algorithm[0]}_ag:${s.aggregationMode}_[${p}]`;
+        return buildEnsemblePredictionModel(s.aggregationMode, s.sources);
     }
 }
 
-function variantFromSinglePredictionSource(s: SinglePredictionSource): string {
+export function buildEnsemblePredictionModel(
+    aggregationMode: AggregationMode,
+    sources: LocalEnsembleMemberPredictionSource[] | RemoteEnsembleMemberPredictionSource[],
+): string {
+    let p = '';
+
+    // detect if it is fold pattern so we can use shorter generated variant
+    let sameAlgorithm = true;
+    let foldPattern = true;
+
+    for (let i = 0; i < sources.length; i++) {
+        const source = sources[i];
+
+        if (i > 0 && source.algorithm !== sources[i - 1].algorithm) {
+            sameAlgorithm = false;
+        }
+
+        if (!source.model.includes('fold_')) {
+            foldPattern = false;
+        }
+
+        p += `(${variantFromSinglePredictionSource(source)}`;
+        if (aggregationMode === 'weighted') {
+            p += `:w${source.weight!}`;
+        }
+        p += ')';
+        if (i < sources.length - 1) {
+            p += '+';
+        }
+    }
+
+    const prefix = `e_ag:${aggregationMode}`;
+
+    if (foldPattern && sameAlgorithm && ['mean', 'min', 'max'].includes(aggregationMode)) {
+        return `${prefix}_${sources[0].algorithm}_fold_0_${sources.length}`;
+    }
+
+    return `${prefix}_[${p}]`;
+}
+
+function variantFromSinglePredictionSource(s: Omit<SinglePredictionSource, 'endpoint'>): string {
     return `${s.algorithm[0]}_${s.model}`;
 }
 
-export function variantFromPredictionConfig(c: StrategyPredictionConfig): string {
+export function variantFromPredictionConfig(c: PredictionConfig): string {
     const parts: Record<string, string | undefined | boolean | number> = {
         skf: c.skipAllSameFeatures,
         rql: c.requiredFeaturesLength,

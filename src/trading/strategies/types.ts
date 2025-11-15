@@ -51,16 +51,19 @@ export const singlePredictionSourceSchema = z.object({
 
 export type SinglePredictionSource = z.infer<typeof singlePredictionSourceSchema>;
 
-const ensembleMemberPredictionSourceSchema = singlePredictionSourceSchema.extend({
+const ensembleAggregationMode = z.enum(['mean', 'median', 'weighted', 'max', 'min', 'stacked', 'custom']);
+export type AggregationMode = z.infer<typeof ensembleAggregationMode>;
+
+const localEnsembleMemberPredictionSourceSchema = singlePredictionSourceSchema.extend({
     weight: z.number().min(0).optional(),
 });
-export type EnsembleMemberPredictionSource = z.infer<typeof ensembleMemberPredictionSourceSchema>;
+export type LocalEnsembleMemberPredictionSource = z.infer<typeof localEnsembleMemberPredictionSourceSchema>;
 
-export const ensemblePredictionSourceSchema = z
+export const localEnsemblePredictionSourceSchema = z
     .object({
         algorithm: z.literal('ensemble'),
-        sources: z.array(ensembleMemberPredictionSourceSchema).min(1),
-        aggregationMode: z.enum(['mean', 'median', 'weighted', 'max', 'min', 'stacked', 'custom']),
+        sources: z.array(localEnsembleMemberPredictionSourceSchema).min(1),
+        aggregationMode: ensembleAggregationMode,
         model: z
             .string()
             .optional()
@@ -70,11 +73,28 @@ export const ensemblePredictionSourceSchema = z
         message: 'All ensemble members must have a weight when aggregationMode is weighted',
     });
 
-export type AggregationMode = z.infer<typeof ensemblePredictionSourceSchema>['aggregationMode'];
+export type LocalEnsemblePredictionSource = z.infer<typeof localEnsemblePredictionSourceSchema>;
 
-export type EnsemblePredictionSource = z.infer<typeof ensemblePredictionSourceSchema>;
+export const remoteEnsembleMemberPredictionSourceSchema = localEnsembleMemberPredictionSourceSchema.omit({
+    endpoint: true,
+});
+export type RemoteEnsembleMemberPredictionSource = z.infer<typeof remoteEnsembleMemberPredictionSourceSchema>;
 
-export const predictionSourceSchema = z.union([singlePredictionSourceSchema, ensemblePredictionSourceSchema]);
+export const remoteEnsemblePredictionSource = z.object({
+    algorithm: z.literal('ensemble'),
+    endpoint: z.string().url(),
+    sources: z.array(remoteEnsembleMemberPredictionSourceSchema).min(1),
+    aggregationMode: ensembleAggregationMode,
+    model: z.string(),
+});
+
+export type RemoteEnsemblePredictionSource = z.infer<typeof remoteEnsemblePredictionSource>;
+
+export const predictionSourceSchema = z.union([
+    singlePredictionSourceSchema,
+    localEnsemblePredictionSourceSchema,
+    remoteEnsemblePredictionSource,
+]);
 
 export type PredictionSource = z.infer<typeof predictionSourceSchema>;
 
@@ -84,7 +104,7 @@ export type PredictionSource = z.infer<typeof predictionSourceSchema>;
 
 export function isMultiSourceEnsemble(
     source: PredictionSource,
-): source is z.infer<typeof ensemblePredictionSourceSchema> {
+): source is z.infer<typeof localEnsemblePredictionSourceSchema> {
     return 'sources' in source && source.sources.length > 1;
 }
 
@@ -92,7 +112,7 @@ export function isSingleSource(source: PredictionSource): source is z.infer<type
     return !('sources' in source) || source.sources.length <= 1;
 }
 
-export const strategyPredictionConfigSchema = z.object({
+export const predictionConfigSchema = z.object({
     /**
      * The number of most recent features that must be present for a prediction to proceed.
      */
@@ -119,7 +139,7 @@ export const strategyPredictionConfigSchema = z.object({
         })
         .optional(),
 });
-export type StrategyPredictionConfig = z.infer<typeof strategyPredictionConfigSchema>;
+export type PredictionConfig = z.infer<typeof predictionConfigSchema>;
 
 export type PredictionRequest = {
     mint: string;

@@ -10,17 +10,72 @@ import { PredictionRequestFactory } from '../../../../../src/testdata/factories/
 import { HistoryEntry } from '../../../../../src/trading/bots/launchpads/types';
 import { HistoryRef } from '../../../../../src/trading/bots/types';
 import {
+    buildRemoteEnsembleSingleSource,
     formBaseCacheKey,
     makePredictionRequest,
     shouldBuyCommon,
 } from '../../../../../src/trading/strategies/launchpads/prediction-common';
 import {
     ConfidencePredictionResponse,
+    PredictionConfig,
     PredictionRequest,
     PredictionSource,
-    StrategyPredictionConfig,
+    RemoteEnsembleMemberPredictionSource,
+    RemoteEnsemblePredictionSource,
 } from '../../../../../src/trading/strategies/types';
 import { readFixture, readLocalFixture } from '../../../../__utils/data';
+
+describe('buildRemoteEnsembleSingleSource', () => {
+    const baseEndpoint = 'http://127.0.0.1:8000/a/b/predict/buy/ensemble';
+
+    it('builds correct URL with model types, names, weights and model name', async () => {
+        const members: RemoteEnsembleMemberPredictionSource[] = [
+            {
+                algorithm: 'tabm',
+                model: 'v2_fold_0',
+                weight: 1,
+            },
+            {
+                algorithm: 'tabm',
+                model: 'v2_fold_1',
+                weight: 2,
+            },
+            {
+                algorithm: 'tabm',
+                model: 'v2_fold_2',
+                weight: 3,
+            },
+            {
+                algorithm: 'tabm',
+                model: 'v2_fold_3',
+                weight: 4,
+            },
+            {
+                algorithm: 'tabm',
+                model: 'v2_fold_4',
+                weight: 5.57,
+            },
+        ];
+
+        expect(buildRemoteEnsembleSingleSource(baseEndpoint, members, 'weighted')).toEqual({
+            algorithm: 'ensemble',
+            endpoint:
+                'http://127.0.0.1:8000/a/b/predict/buy/ensemble?model_types=tabm&model_names=v2_fold_0&weights=1&model_types=tabm&model_names=v2_fold_1&weights=2&model_types=tabm&model_names=v2_fold_2&weights=3&model_types=tabm&model_names=v2_fold_3&weights=4&model_types=tabm&model_names=v2_fold_4&weights=5.57&aggregation_mode=weighted',
+            sources: members,
+            aggregationMode: 'weighted',
+            model: 'e_ag:weighted_[(t_v2_fold_0:w1)+(t_v2_fold_1:w2)+(t_v2_fold_2:w3)+(t_v2_fold_3:w4)+(t_v2_fold_4:w5.57)]',
+        } satisfies RemoteEnsemblePredictionSource);
+
+        expect(buildRemoteEnsembleSingleSource(baseEndpoint, members, 'mean')).toEqual({
+            algorithm: 'ensemble',
+            endpoint:
+                'http://127.0.0.1:8000/a/b/predict/buy/ensemble?model_types=tabm&model_names=v2_fold_0&model_types=tabm&model_names=v2_fold_1&model_types=tabm&model_names=v2_fold_2&model_types=tabm&model_names=v2_fold_3&model_types=tabm&model_names=v2_fold_4&aggregation_mode=mean',
+            sources: members,
+            aggregationMode: 'mean',
+            model: 'e_ag:mean_tabm_fold_0_5',
+        } satisfies RemoteEnsemblePredictionSource);
+    });
+});
 
 describe('makePredictionRequest', () => {
     const mockServer = setupServer();
@@ -48,7 +103,7 @@ describe('makePredictionRequest', () => {
         mockServer.close();
     });
 
-    const predictionConfig: StrategyPredictionConfig = {
+    const predictionConfig: PredictionConfig = {
         skipAllSameFeatures: true,
         requiredFeaturesLength: 10,
         upToFeaturesLength: 700,
@@ -88,7 +143,7 @@ describe('makePredictionRequest', () => {
                 }),
             );
 
-            const makeRequest = async (predictionConfig: StrategyPredictionConfig) =>
+            const makeRequest = async (predictionConfig: PredictionConfig) =>
                 await makePredictionRequest(
                     axiosClient,
                     redisMockInstance,
@@ -170,7 +225,7 @@ describe('makePredictionRequest', () => {
                 }),
             );
 
-            const makeRequest = async (predictionConfig: StrategyPredictionConfig) =>
+            const makeRequest = async (predictionConfig: PredictionConfig) =>
                 await makePredictionRequest(
                     axiosClient,
                     redisMockInstance,
@@ -338,7 +393,7 @@ describe(shouldBuyCommon.name, () => {
         prediction: {
             requiredFeaturesLength: 10,
             skipAllSameFeatures: true,
-        } satisfies StrategyPredictionConfig,
+        } satisfies PredictionConfig,
         buy: {},
     };
 
@@ -452,43 +507,43 @@ describe('formBaseCacheKey', () => {
     };
 
     it('should generate a correct cache key for "buy" type without skipAllSameFeatures', () => {
-        expect(formBaseCacheKey('buy', {} as StrategyPredictionConfig, commonSource)).toBe('bp.t_transformers_v1');
+        expect(formBaseCacheKey('buy', {} as PredictionConfig, commonSource)).toBe('bp.t_transformers_v1');
     });
 
     it('should generate a correct cache key for "sell" type without skipAllSameFeatures', () => {
-        expect(formBaseCacheKey('sell', {} as StrategyPredictionConfig, commonSource)).toBe('sp.t_transformers_v1');
+        expect(formBaseCacheKey('sell', {} as PredictionConfig, commonSource)).toBe('sp.t_transformers_v1');
     });
 
     it('should generate a correct cache key for "price" type without skipAllSameFeatures', () => {
-        expect(formBaseCacheKey('price', {} as StrategyPredictionConfig, commonSource)).toBe('pp.t_transformers_v1');
+        expect(formBaseCacheKey('price', {} as PredictionConfig, commonSource)).toBe('pp.t_transformers_v1');
     });
 
     it('should include "skf:true" when skipAllSameFeatures is true', () => {
-        expect(formBaseCacheKey('buy', { skipAllSameFeatures: true } as StrategyPredictionConfig, commonSource)).toBe(
+        expect(formBaseCacheKey('buy', { skipAllSameFeatures: true } as PredictionConfig, commonSource)).toBe(
             'bp.t_transformers_v1_skf:true',
         );
     });
 
     it('should include "skf:false" when skipAllSameFeatures is false', () => {
-        expect(formBaseCacheKey('buy', { skipAllSameFeatures: false } as StrategyPredictionConfig, commonSource)).toBe(
+        expect(formBaseCacheKey('buy', { skipAllSameFeatures: false } as PredictionConfig, commonSource)).toBe(
             'bp.t_transformers_v1_skf:false',
         );
     });
 
     it('should use the correct model name from source', () => {
         const customSource: PredictionSource = { ...commonSource, model: 'catboost_v2' };
-        expect(formBaseCacheKey('buy', {} as StrategyPredictionConfig, customSource)).toBe('bp.t_catboost_v2');
+        expect(formBaseCacheKey('buy', {} as PredictionConfig, customSource)).toBe('bp.t_catboost_v2');
     });
 
     it('should use the correct model name and algorithm and include skf when both are present', () => {
         const customSource: PredictionSource = { ...commonSource, algorithm: 'original', model: 'neural_net_prod' };
-        expect(formBaseCacheKey('sell', { skipAllSameFeatures: true } as StrategyPredictionConfig, customSource)).toBe(
+        expect(formBaseCacheKey('sell', { skipAllSameFeatures: true } as PredictionConfig, customSource)).toBe(
             'sp.o_neural_net_prod_skf:true',
         );
     });
 
     it('should not add underscore if pc is empty (skipAllSameFeatures undefined)', () => {
-        expect(formBaseCacheKey('price', {} as StrategyPredictionConfig, commonSource)).toBe('pp.t_transformers_v1');
+        expect(formBaseCacheKey('price', {} as PredictionConfig, commonSource)).toBe('pp.t_transformers_v1');
     });
 
     it('should not add underscore if pc is empty (skipAllSameFeatures is null)', () => {
@@ -498,7 +553,7 @@ describe('formBaseCacheKey', () => {
                 {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     skipAllSameFeatures: null as any,
-                } as StrategyPredictionConfig,
+                } as PredictionConfig,
                 commonSource,
             ),
         ).toBe('bp.t_transformers_v1_skf:null');

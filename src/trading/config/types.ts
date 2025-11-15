@@ -6,6 +6,7 @@ import { pricePredictionStrategyConfigSchema } from '@src/trading/strategies/lau
 import { riseStrategyConfigSchema } from '@src/trading/strategies/launchpads/RiseStrategy';
 import { stupidSniperStrategyConfigSchema } from '@src/trading/strategies/launchpads/StupidSniperStrategy';
 import { predictionSourceSchema } from '@src/trading/strategies/types';
+import { partialExcept } from '@src/utils/zod/partialExcept';
 
 export const loggerTypeSchema = z.enum(['silent', 'normal']);
 
@@ -21,8 +22,7 @@ const riseStrategySchema = z.object({
 
 const buyPredictionStrategySchema = z.object({
     type: z.literal('BuyPredictionStrategy'),
-    source: predictionSourceSchema,
-    config: buyPredictionStrategyConfigSchema.partial(),
+    config: partialExcept(buyPredictionStrategyConfigSchema, ['predictionSource']),
 });
 
 const buySellPredictionStrategySchema = z.object({

@@ -1,4 +1,4 @@
-import { EnsemblePredictionSource, SinglePredictionSource } from '../../../../../src/trading/strategies/types';
+import { LocalEnsemblePredictionSource, SinglePredictionSource } from '../../../../../src/trading/strategies/types';
 
 export const sampleSinglePredictionSource: SinglePredictionSource = {
     algorithm: 'transformers',
@@ -6,7 +6,7 @@ export const sampleSinglePredictionSource: SinglePredictionSource = {
     endpoint: 'http://localhost/predict/buy/transformers/test_rsi7',
 };
 
-export const buyEnsemblePredictionSource: EnsemblePredictionSource = {
+export const buyEnsemblePredictionSource: LocalEnsemblePredictionSource = {
     algorithm: 'ensemble',
     aggregationMode: 'weighted',
     sources: [
@@ -25,7 +25,7 @@ export const buyEnsemblePredictionSource: EnsemblePredictionSource = {
     ],
 };
 
-export const sellEnsemblePredictionSource: EnsemblePredictionSource = {
+export const sellEnsemblePredictionSource: LocalEnsemblePredictionSource = {
     algorithm: 'ensemble',
     aggregationMode: 'weighted',
     sources: [

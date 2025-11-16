@@ -211,22 +211,36 @@ fi
 
 echo "--- Step 4: Packaging MERGED data into a ZIP archive ---"
 zip_name="training-$(date +"%d_%B_%Y_%H_%M").zip"
-ABSOLUTE_ZIP_PATH="$(pwd)/${zip_name}"
+ABSOLUTE_ZIP_PATH="${PROJECT_ROOT}/${zip_name}"
 
-sleepSeconds=10
-echo "Sleeping $sleepSeconds seconds to wait for the file system to actualize"
-echo "Zipping the merged data from '$FULL_BACKTEST_DIR_ARG' into '${ABSOLUTE_ZIP_PATH}'..."
+sleepSeconds=5
+echo "Sleeping ${sleepSeconds} seconds to wait for the file system to actualize..."
+sleep "${sleepSeconds}"
 
-# Change to the target directory ($FULL_BACKTEST_DIR_ARG) for zipping its *contents*
-# The 'cd' command is run in a subshell, so it doesn't affect the main script's CWD.
-# The 'zip' command then zips the current directory ('.') into the specified ABSOLUTE_ZIP_PATH.
-# '>/dev/null 2>&1' is added to silence the 'cd' command's potential output or errors,
-# and to ensure only the 'zip' command's success/failure determines the 'if' condition.
-if (cd "$FULL_BACKTEST_DIR_ARG" >/dev/null 2>&1 && zip -r "${ABSOLUTE_ZIP_PATH}" .); then
+echo "Zipping the merged data from '$FULL_TRAINING_DIR_ARG' into '${ABSOLUTE_ZIP_PATH}'..."
+
+cd "$FULL_TRAINING_DIR_ARG" || { echo "❌ Error: Could not access training directory."; exit 1; }
+
+if zip -r "${ABSOLUTE_ZIP_PATH}" .; then
   echo "✅ Zip file '${ABSOLUTE_ZIP_PATH}' created successfully."
 else
   echo "❌ Error: Failed to create zip archive '${ABSOLUTE_ZIP_PATH}'."
   exit 1
+fi
+
+echo "--- Step 5: Verifying ZIP integrity ---"
+
+FOLDER_COUNT=$(find "$FULL_TRAINING_DIR_ARG" -type f -name '*.json' | wc -l | tr -d ' ')
+ZIP_COUNT=$(zipinfo -1 "${ABSOLUTE_ZIP_PATH}" | grep '\.json$' | wc -l | tr -d ' ')
+
+echo "Folder file count: $FOLDER_COUNT"
+echo "Zip file count:    $ZIP_COUNT"
+
+if [ "$FOLDER_COUNT" -ne "$ZIP_COUNT" ]; then
+  echo "❌ Error: File count mismatch! ZIP may be incomplete."
+  exit 1
+else
+  echo "✅ ZIP integrity verified: all files included."
 fi
 
 # --- Final Cleanup Step (with safety and user control) ---

@@ -13,6 +13,7 @@ import { HistoryEntry } from '../../../../../src/trading/bots/launchpads/types';
 import { HistoryRef, ShouldSellResponse } from '../../../../../src/trading/bots/types';
 import BuySellPredictionStrategy, {
     BuySellPredictionStrategyConfig,
+    BuySellPredictionStrategyConfigInput,
 } from '../../../../../src/trading/strategies/launchpads/BuySellPredictionStrategy';
 import { PredictionSource } from '../../../../../src/trading/strategies/types';
 import { deepEqual } from '../../../../../src/utils/data/equals';
@@ -33,15 +34,21 @@ describe('BuySellPredictionStrategy', () => {
         model: 'v2_30p',
         endpoint: 'http://localhost/predict/sell',
     };
-    const config: Partial<BuySellPredictionStrategyConfig> = {
+    const config: BuySellPredictionStrategyConfigInput = {
         prediction: {
             buy: {
-                requiredFeaturesLength: 10,
-                skipAllSameFeatures: true,
+                source: buySourceConfig,
+                config: {
+                    requiredFeaturesLength: 10,
+                    skipAllSameFeatures: true,
+                },
             },
             sell: {
-                requiredFeaturesLength: 10,
-                skipAllSameFeatures: true,
+                source: sellSourceConfig,
+                config: {
+                    requiredFeaturesLength: 10,
+                    skipAllSameFeatures: true,
+                },
             },
         },
         buy: {
@@ -71,7 +78,7 @@ describe('BuySellPredictionStrategy', () => {
         logs = [];
         logger.clear().add(new ArrayTransport({ array: logs, json: true, format: format.splat() }));
 
-        strategy = new BuySellPredictionStrategy(logger, redisMockInstance, buySourceConfig, sellSourceConfig, config);
+        strategy = new BuySellPredictionStrategy(logger, redisMockInstance, config);
     });
 
     afterEach(() => {
@@ -87,37 +94,47 @@ describe('BuySellPredictionStrategy', () => {
         it('should fail to construct if config.prediction has missing values', () => {
             expect(
                 () =>
-                    new BuySellPredictionStrategy(logger, redisMockInstance, buySourceConfig, sellSourceConfig, {
-                        prediction: {},
-                    } as unknown as BuySellPredictionStrategyConfig),
-            ).toThrow(
-                new Error(
-                    // eslint-disable-next-line quotes
-                    "config.prediction.buy: Cannot read properties of undefined (reading 'requiredFeaturesLength')",
-                ),
-            );
-
-            expect(
-                () =>
-                    new BuySellPredictionStrategy(logger, redisMockInstance, buySourceConfig, sellSourceConfig, {
+                    new BuySellPredictionStrategy(logger, redisMockInstance, {
                         prediction: {
                             buy: {},
                         },
                     } as unknown as BuySellPredictionStrategyConfig),
             ).toThrow(
-                new Error('config.prediction.buy: requiredFeaturesLength is required;skipAllSameFeatures is required'),
+                new Error(
+                    // eslint-disable-next-line quotes
+                    "config.prediction.buy.config: Cannot read properties of undefined (reading 'requiredFeaturesLength')",
+                ),
             );
 
             expect(
                 () =>
-                    new BuySellPredictionStrategy(logger, redisMockInstance, buySourceConfig, sellSourceConfig, {
+                    new BuySellPredictionStrategy(logger, redisMockInstance, {
                         prediction: {
-                            ...config.prediction!,
-                            sell: {},
+                            buy: {
+                                config: {},
+                            },
                         },
                     } as unknown as BuySellPredictionStrategyConfig),
             ).toThrow(
-                new Error('config.prediction.sell: requiredFeaturesLength is required;skipAllSameFeatures is required'),
+                new Error(
+                    'config.prediction.buy.config: requiredFeaturesLength is required;skipAllSameFeatures is required',
+                ),
+            );
+
+            expect(
+                () =>
+                    new BuySellPredictionStrategy(logger, redisMockInstance, {
+                        prediction: {
+                            ...config.prediction,
+                            sell: {
+                                config: {},
+                            },
+                        },
+                    } as unknown as BuySellPredictionStrategyConfig),
+            ).toThrow(
+                new Error(
+                    'config.prediction.sell.config: requiredFeaturesLength is required;skipAllSameFeatures is required',
+                ),
             );
         });
     });
@@ -129,7 +146,7 @@ describe('BuySellPredictionStrategy', () => {
         getLogs: () => logs,
         getStrategy: () => strategy,
         formStrategy: ({ predictionSource, predictionConfig, buy }) => {
-            let newConfig: Partial<BuySellPredictionStrategyConfig> = {
+            let newConfig: BuySellPredictionStrategyConfigInput = {
                 ...config,
             };
 
@@ -140,20 +157,24 @@ describe('BuySellPredictionStrategy', () => {
                 } as BuySellPredictionStrategyConfig['buy'];
             }
 
-            if (predictionConfig) {
-                newConfig.prediction!.buy = {
-                    ...newConfig.prediction!.buy,
-                    ...predictionConfig,
-                } as BuySellPredictionStrategyConfig['prediction']['buy'];
+            if (predictionSource) {
+                newConfig.prediction.buy = {
+                    ...newConfig.prediction.buy,
+                    source: predictionSource,
+                };
             }
 
-            strategy = new BuySellPredictionStrategy(
-                logger,
-                redisMockInstance,
-                predictionSource ?? buySourceConfig,
-                sellSourceConfig,
-                newConfig,
-            );
+            if (predictionConfig) {
+                newConfig.prediction.buy = {
+                    ...newConfig.prediction.buy,
+                    config: {
+                        ...newConfig.prediction.buy.config,
+                        ...predictionConfig,
+                    },
+                };
+            }
+
+            strategy = new BuySellPredictionStrategy(logger, redisMockInstance, newConfig);
         },
         mint: mint,
         historyRef: historyRef,
@@ -206,7 +227,7 @@ describe('BuySellPredictionStrategy', () => {
          *  ensure that we don't sell if confidence is above minPredictedConfidence and haven't reached the specified consecutivePredictionConfirmations
          */
         it('should not sell when predicted confidence increases with the expected threshold but consecutivePredictionConfirmations is less than required consecutive confirmations', async () => {
-            strategy = new BuySellPredictionStrategy(logger, redisMockInstance, buySourceConfig, sellSourceConfig, {
+            strategy = new BuySellPredictionStrategy(logger, redisMockInstance, {
                 ...config,
                 sell: {
                     ...config.sell!,
@@ -337,14 +358,17 @@ describe('BuySellPredictionStrategy', () => {
         });
 
         it('should use the cache correctly', async () => {
-            strategy = new BuySellPredictionStrategy(logger, redisMockInstance, buySourceConfig, sellSourceConfig, {
+            strategy = new BuySellPredictionStrategy(logger, redisMockInstance, {
                 ...config,
                 prediction: {
-                    ...config.prediction!,
+                    ...config.prediction,
                     sell: {
-                        ...config.prediction!.sell,
-                        cache: {
-                            enabled: true,
+                        ...config.prediction.sell,
+                        config: {
+                            ...config.prediction.sell.config,
+                            cache: {
+                                enabled: true,
+                            },
                         },
                     },
                 },
@@ -448,24 +472,21 @@ describe('BuySellPredictionStrategy', () => {
 
     describe('shouldSell works with ensemble mode', () => {
         it('aggregates the 2 model responses and uses stores in separate cache for each model', async () => {
-            strategy = new BuySellPredictionStrategy(
-                logger,
-                redisMockInstance,
-                buySourceConfig,
-                sellEnsemblePredictionSource,
-                {
-                    ...config,
-                    prediction: {
-                        ...config.prediction!,
-                        sell: {
-                            ...config.prediction!.sell,
+            strategy = new BuySellPredictionStrategy(logger, redisMockInstance, {
+                ...config,
+                prediction: {
+                    ...config.prediction,
+                    sell: {
+                        source: sellEnsemblePredictionSource,
+                        config: {
+                            ...config.prediction.sell.config,
                             cache: {
                                 enabled: true,
                             },
                         },
                     },
                 },
-            );
+            });
             mockServer.use(
                 formMswPredictionRequestHandler({
                     endpoint: sellEnsemblePredictionSource.sources[0].endpoint,
@@ -525,32 +546,28 @@ describe('BuySellPredictionStrategy', () => {
     });
 
     describe('formVariant', () => {
-        function getVariant(
-            customConfig: Partial<BuySellPredictionStrategyConfig> = {},
-            buySource?: PredictionSource,
-            sellSource?: PredictionSource,
-        ) {
-            return new BuySellPredictionStrategy(
-                logger,
-                redisMockInstance,
-                buySource ?? buySourceConfig,
-                sellSource ?? sellSourceConfig,
-                customConfig,
-            ).config.variant;
+        function getVariant(customConfig: BuySellPredictionStrategyConfigInput) {
+            return new BuySellPredictionStrategy(logger, redisMockInstance, customConfig).config.variant;
         }
 
         it('should full variant key with all values', () => {
             const key = getVariant({
                 prediction: {
                     buy: {
-                        skipAllSameFeatures: false,
-                        requiredFeaturesLength: 3,
-                        upToFeaturesLength: 5,
+                        source: buySourceConfig,
+                        config: {
+                            skipAllSameFeatures: false,
+                            requiredFeaturesLength: 3,
+                            upToFeaturesLength: 5,
+                        },
                     },
                     sell: {
-                        skipAllSameFeatures: false,
-                        requiredFeaturesLength: 10,
-                        upToFeaturesLength: 7,
+                        source: sellSourceConfig,
+                        config: {
+                            skipAllSameFeatures: false,
+                            requiredFeaturesLength: 10,
+                            upToFeaturesLength: 7,
+                        },
                     },
                 },
                 buy: {
@@ -588,14 +605,20 @@ describe('BuySellPredictionStrategy', () => {
             const key = getVariant({
                 prediction: {
                     buy: {
-                        requiredFeaturesLength: 10,
-                        upToFeaturesLength: undefined,
-                        skipAllSameFeatures: true,
+                        source: buySourceConfig,
+                        config: {
+                            requiredFeaturesLength: 10,
+                            upToFeaturesLength: undefined,
+                            skipAllSameFeatures: true,
+                        },
                     },
                     sell: {
-                        requiredFeaturesLength: 2,
-                        upToFeaturesLength: undefined,
-                        skipAllSameFeatures: false,
+                        source: sellSourceConfig,
+                        config: {
+                            requiredFeaturesLength: 2,
+                            upToFeaturesLength: undefined,
+                            skipAllSameFeatures: false,
+                        },
                     },
                 },
                 buy: {
@@ -626,7 +649,20 @@ describe('BuySellPredictionStrategy', () => {
         });
 
         it('should create proper variant with ensemble both in buy and sell sources', () => {
-            expect(getVariant({}, buyEnsemblePredictionSource, sellEnsemblePredictionSource)).toBe(
+            expect(
+                getVariant({
+                    prediction: {
+                        buy: {
+                            source: buyEnsemblePredictionSource,
+                            config: config.prediction.buy.config,
+                        },
+                        sell: {
+                            source: sellEnsemblePredictionSource,
+                            config: config.prediction.sell.config,
+                        },
+                    },
+                }),
+            ).toBe(
                 'bp(e_ag:weighted_[(c_v100:w0.77)+(t_supra_transformers_v7:w0.23)]_bp(skf:true_rql:10))_sp(e_ag:weighted_[(c_7:w0.4)+(t_supra_transformers_v7:w0.6)]_sp(skf:true_rql:10))_buy(mpc:0.5)_sell(mpc:0.5_l(tslp:15_tpp:15))',
             );
         });

@@ -24,6 +24,7 @@ import {
     PredictionStrategyShouldSellResponseReason,
     isSingleSource,
     predictionConfigSchema,
+    predictionSourceSchema,
     strategyConfigSchema,
     strategySellConfigSchema,
 } from '../types';
@@ -44,11 +45,16 @@ import {
     variantFromSellContext,
 } from './variant-builder';
 
+const predictionProviderSchema = z.object({
+    source: predictionSourceSchema,
+    config: predictionConfigSchema,
+});
+
 export const buySellPredictionStrategyConfigSchema = strategyConfigSchema.merge(
     z.object({
         prediction: z.object({
-            buy: predictionConfigSchema,
-            sell: predictionConfigSchema,
+            buy: predictionProviderSchema,
+            sell: predictionProviderSchema,
         }),
         buy: buyConfigSchema,
         sell: strategySellConfigSchema.merge(
@@ -60,6 +66,9 @@ export const buySellPredictionStrategyConfigSchema = strategyConfigSchema.merge(
     }),
 );
 export type BuySellPredictionStrategyConfig = z.infer<typeof buySellPredictionStrategyConfigSchema>;
+
+export type BuySellPredictionStrategyConfigInput = Partial<BuySellPredictionStrategyConfig> &
+    Pick<BuySellPredictionStrategyConfig, 'prediction'>;
 
 export type BuySellPredictionStrategyShouldSellResponseReason = PredictionStrategyShouldSellResponseReason | SellReason;
 
@@ -76,26 +85,10 @@ export default class BuySellPredictionStrategy extends LimitsBasedStrategy {
         - Use trailing stop loss to lock in profits while allowing for continued growth.
     `;
 
-    static readonly defaultConfig: BuySellPredictionStrategyConfig = {
+    static readonly defaultConfig: Omit<BuySellPredictionStrategyConfig, 'prediction'> = {
         maxWaitMs: 5 * 60 * 1e3,
         buySlippageDecimal: 0.25,
         sellSlippageDecimal: 0.25,
-        prediction: {
-            buy: {
-                requiredFeaturesLength: 10,
-                skipAllSameFeatures: true,
-                cache: {
-                    enabled: false,
-                },
-            },
-            sell: {
-                requiredFeaturesLength: 10,
-                skipAllSameFeatures: true,
-                cache: {
-                    enabled: false,
-                },
-            },
-        },
         buy: {
             minPredictedConfidence: 0.5,
         },
@@ -106,7 +99,7 @@ export default class BuySellPredictionStrategy extends LimitsBasedStrategy {
         },
     };
 
-    readonly config: BuySellPredictionStrategyConfig = deepClone(BuySellPredictionStrategy.defaultConfig);
+    readonly config!: BuySellPredictionStrategyConfig;
 
     private readonly buyClient: RateLimitedAxiosInstance;
     private readonly sellClient: RateLimitedAxiosInstance;
@@ -123,35 +116,36 @@ export default class BuySellPredictionStrategy extends LimitsBasedStrategy {
     constructor(
         readonly logger: Logger,
         private readonly cache: Redis,
-        private readonly buySource: PredictionSource,
-        private readonly sellSource: PredictionSource,
-        config?: Partial<BuySellPredictionStrategyConfig>,
+        config: BuySellPredictionStrategyConfigInput,
     ) {
         super(logger);
         const that = this;
-        if (config) {
-            this.config = {
-                ...this.config,
-                ...config,
-            };
+
+        this.config = {
+            ...deepClone(BuySellPredictionStrategy.defaultConfig),
+            ...config,
+        };
+
+        try {
+            validatePredictionConfig(this.config.prediction.buy.config);
+        } catch (e) {
+            throw new Error(`config.prediction.buy.config: ${(e as Error).message}`);
         }
         try {
-            validatePredictionConfig(this.config.prediction.buy);
+            validatePredictionConfig(this.config.prediction.sell.config);
         } catch (e) {
-            throw new Error(`config.prediction.buy: ${(e as Error).message}`);
+            throw new Error(`config.prediction.sell.config: ${(e as Error).message}`);
         }
-        try {
-            validatePredictionConfig(this.config.prediction.sell);
-        } catch (e) {
-            throw new Error(`config.prediction.sell: ${(e as Error).message}`);
-        }
+
+        const buySource = this.config.prediction.buy.source;
+        const sellSource = this.config.prediction.sell.source;
 
         if ((this.config?.variant ?? '') === '') {
             this.config.variant = BuySellPredictionStrategy.formVariant(buySource, sellSource, this.config);
         }
 
-        const buySourcesCount = isSingleSource(this.buySource) ? 1 : this.buySource.sources.length;
-        const sellSourcesCount = isSingleSource(this.sellSource) ? 1 : this.sellSource.sources.length;
+        const buySourcesCount = isSingleSource(buySource) ? 1 : buySource.sources.length;
+        const sellSourcesCount = isSingleSource(sellSource) ? 1 : sellSource.sources.length;
 
         this.buyClient = axiosRateLimit(
             axios.create({
@@ -166,18 +160,18 @@ export default class BuySellPredictionStrategy extends LimitsBasedStrategy {
             { maxRequests: 16000 * sellSourcesCount, perMilliseconds: 1000 },
         );
 
-        if (isSingleSource(this.buySource)) {
-            this.buyCacheBaseKey = formBaseCacheKey('buy', this.config.prediction.buy, this.buySource);
+        if (isSingleSource(buySource)) {
+            this.buyCacheBaseKey = formBaseCacheKey('buy', this.config.prediction.buy.config, buySource);
         } else {
-            this.buyCacheBaseKey = this.buySource.sources.map(el =>
-                formBaseCacheKey('buy', this.config.prediction.buy, el),
+            this.buyCacheBaseKey = buySource.sources.map(el =>
+                formBaseCacheKey('buy', this.config.prediction.buy.config, el),
             );
         }
-        if (isSingleSource(this.sellSource)) {
-            this.sellCacheBaseKey = formBaseCacheKey('sell', this.config.prediction.sell, this.sellSource);
+        if (isSingleSource(sellSource)) {
+            this.sellCacheBaseKey = formBaseCacheKey('sell', this.config.prediction.sell.config, sellSource);
         } else {
-            this.sellCacheBaseKey = this.sellSource.sources.map(el =>
-                formBaseCacheKey('sell', this.config.prediction.sell, el),
+            this.sellCacheBaseKey = sellSource.sources.map(el =>
+                formBaseCacheKey('sell', this.config.prediction.sell.config, el),
             );
         }
 
@@ -195,9 +189,9 @@ export default class BuySellPredictionStrategy extends LimitsBasedStrategy {
                       )
                     : undefined,
             },
-            source: this.buySource,
+            source: buySource,
             config: {
-                prediction: this.config.prediction.buy,
+                prediction: this.config.prediction.buy.config,
                 buy: this.config.buy,
             },
             cacheBaseKey: this.buyCacheBaseKey,
@@ -217,9 +211,9 @@ export default class BuySellPredictionStrategy extends LimitsBasedStrategy {
                 client: this.sellClient,
                 cache: this.cache,
             },
-            source: this.sellSource,
+            source: sellSource,
             config: {
-                prediction: this.config.prediction.sell,
+                prediction: this.config.prediction.sell.config,
                 sell: this.config.sell,
             },
             cacheBaseKey: this.sellCacheBaseKey,
@@ -278,8 +272,8 @@ export default class BuySellPredictionStrategy extends LimitsBasedStrategy {
         sellSource: PredictionSource,
         config: BuySellPredictionStrategyConfig,
     ): string {
-        let r = `bp(${variantFromPredictionSource(buySource)}_bp(${variantFromPredictionConfig(config.prediction.buy)}))`;
-        r += `_sp(${variantFromPredictionSource(sellSource)}_sp(${variantFromPredictionConfig(config.prediction.sell)}))`;
+        let r = `bp(${variantFromPredictionSource(buySource)}_bp(${variantFromPredictionConfig(config.prediction.buy.config)}))`;
+        r += `_sp(${variantFromPredictionSource(sellSource)}_sp(${variantFromPredictionConfig(config.prediction.sell.config)}))`;
         r += `_${variantFromBuyConfig(config.buy)}`;
         r += `_sell(mpc:${config.sell.minPredictedConfidence}`;
         if (

@@ -14,12 +14,13 @@ import {
     SinglePredictionSource,
     marketContextIntervalConfigSchema,
     predictionConfigSchema,
+    singlePredictionSourceSchema,
     strategyConfigSchema,
     strategySellConfigSchema,
 } from '../types';
 import { shouldExitLaunchpadToken } from './common';
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
-import { formBaseCacheKey, shouldBuyCommon } from './prediction-common';
+import { ShouldBuyCommonConfig, formBaseCacheKey, shouldBuyCommon } from './prediction-common';
 import { validatePredictionConfig } from './validators';
 import {
     variantFromBuyContext,
@@ -30,7 +31,8 @@ import {
 
 export const pricePredictionStrategyConfigSchema = strategyConfigSchema.merge(
     z.object({
-        prediction: predictionConfigSchema,
+        predictionSource: singlePredictionSourceSchema,
+        predictionConfig: predictionConfigSchema,
         buy: z.object({
             minPredictedPriceIncreasePercentage: z.number().positive(),
             minConsecutivePredictionConfirmations: z.number().positive().optional(),
@@ -40,6 +42,9 @@ export const pricePredictionStrategyConfigSchema = strategyConfigSchema.merge(
     }),
 );
 export type PricePredictionStrategyConfig = z.infer<typeof pricePredictionStrategyConfigSchema>;
+
+export type PricePredictionStrategyConfigInput = Partial<PricePredictionStrategyConfig> &
+    Pick<PricePredictionStrategyConfig, 'predictionSource'>;
 
 type PredictPricesResponse = {
     predicted_prices: number[];
@@ -63,11 +68,11 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
         - Use trailing stop loss to lock in profits while allowing for continued growth.
     `;
 
-    static readonly defaultConfig: PricePredictionStrategyConfig = {
+    static readonly defaultConfig: Omit<PricePredictionStrategyConfig, 'predictionSource'> = {
         maxWaitMs: 5 * 60 * 1e3,
         buySlippageDecimal: 0.25,
         sellSlippageDecimal: 0.25,
-        prediction: {
+        predictionConfig: {
             requiredFeaturesLength: 10,
             skipAllSameFeatures: true,
             cache: {
@@ -84,7 +89,7 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
         },
     };
 
-    readonly config: PricePredictionStrategyConfig = deepClone(PricePredictionStrategy.defaultConfig);
+    readonly config: PricePredictionStrategyConfig;
 
     private readonly client: RateLimitedAxiosInstance;
 
@@ -92,23 +97,24 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
 
     private consecutivePredictionConfirmations: number = 0;
 
+    private readonly shouldBuyCommonConfig: ShouldBuyCommonConfig;
+
     constructor(
         readonly logger: Logger,
         private readonly cache: Redis,
-        private readonly source: SinglePredictionSource,
-        config?: Partial<PricePredictionStrategyConfig>,
+        config: PricePredictionStrategyConfigInput,
     ) {
         super(logger);
-        if (config) {
-            this.config = {
-                ...this.config,
-                ...config,
-            };
-        }
-        validatePredictionConfig(this.config.prediction);
+
+        this.config = {
+            ...deepClone(PricePredictionStrategy.defaultConfig),
+            ...config,
+        };
+
+        validatePredictionConfig(this.config.predictionConfig);
 
         if ((this.config?.variant ?? '') === '') {
-            this.config.variant = PricePredictionStrategy.formVariant(source, this.config);
+            this.config.variant = PricePredictionStrategy.formVariant(this.config.predictionSource, this.config);
         }
 
         this.client = axiosRateLimit(
@@ -118,7 +124,12 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
             { maxRequests: 16000, perMilliseconds: 1000 },
         );
 
-        this.cacheBaseKey = formBaseCacheKey('price', this.config.prediction, this.source);
+        this.cacheBaseKey = formBaseCacheKey('price', this.config.predictionConfig, this.config.predictionSource);
+
+        this.shouldBuyCommonConfig = {
+            prediction: this.config.predictionConfig,
+            buy: this.config.buy,
+        };
     }
 
     shouldExit(
@@ -137,7 +148,7 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
         context: MarketContext,
         history: HistoryEntry[],
     ): Promise<ShouldBuyResponse<PricePredictionStrategyShouldBuyResponseReason>> {
-        const r = await shouldBuyCommon(this.logger, mint, historyRef, context, history, this.config);
+        const r = await shouldBuyCommon(this.logger, mint, historyRef, context, history, this.shouldBuyCommonConfig);
         if ((r as ShouldBuyResponse)?.reason) {
             return r as ShouldBuyResponse<PricePredictionStrategyShouldBuyResponseReason>;
         }
@@ -148,7 +159,7 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
 
         let cacheKey: string | undefined;
         let cached;
-        if (this.config.prediction.cache?.enabled) {
+        if (this.config.predictionConfig.cache?.enabled) {
             cacheKey = `${this.cacheBaseKey}_${mint}_${historyRef.index}:${predictionRequest.features.length}`;
             cached = await this.cache.get(cacheKey);
         }
@@ -156,15 +167,18 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
         if (cached) {
             prediction = JSON.parse(cached);
         } else {
-            predictionResponse = await this.client.post<PredictPricesResponse>(this.source.endpoint, predictionRequest);
+            predictionResponse = await this.client.post<PredictPricesResponse>(
+                this.config.predictionSource.endpoint,
+                predictionRequest,
+            );
             if (predictionResponse.status === 200) {
                 prediction = predictionResponse.data as PredictPricesResponse;
-                if (this.config.prediction.cache?.enabled) {
+                if (this.config.predictionConfig.cache?.enabled) {
                     this.cache.set(
                         cacheKey!,
                         JSON.stringify(prediction),
                         'EX',
-                        this.config.prediction.cache.ttlSeconds ?? CacheDefaultTtlSeconds,
+                        this.config.predictionConfig.cache.ttlSeconds ?? CacheDefaultTtlSeconds,
                     );
                 }
             } else {
@@ -224,7 +238,7 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
     }
 
     public static formVariant(source: SinglePredictionSource, config: PricePredictionStrategyConfig): string {
-        let r = `${variantFromPredictionSource(source)}_p(${variantFromPredictionConfig(config.prediction)})`;
+        let r = `${variantFromPredictionSource(source)}_p(${variantFromPredictionConfig(config.predictionConfig)})`;
 
         r += `_buy(mppip:${config.buy.minPredictedPriceIncreasePercentage}`;
         if (

@@ -27,15 +27,13 @@ const buyPredictionStrategySchema = z.object({
 
 const buySellPredictionStrategySchema = z.object({
     type: z.literal('BuySellPredictionStrategy'),
-    buySource: predictionSourceSchema,
-    sellSource: predictionSourceSchema,
-    config: buySellPredictionStrategyConfigSchema.partial(),
+    config: partialExcept(buySellPredictionStrategyConfigSchema, ['prediction']),
 });
 
 const pricePredictionStrategySchema = z.object({
     type: z.literal('PricePredictionStrategy'),
     source: predictionSourceSchema,
-    config: pricePredictionStrategyConfigSchema.partial(),
+    config: partialExcept(pricePredictionStrategyConfigSchema, ['predictionSource']),
 });
 
 const baseStrategySchema = z.object({

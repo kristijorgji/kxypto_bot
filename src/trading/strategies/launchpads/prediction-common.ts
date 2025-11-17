@@ -391,18 +391,20 @@ export type ShouldBuyParams = {
     setConsecutivePredictionConfirmations: (value: number) => number;
 };
 
+export type ShouldBuyCommonConfig = {
+    prediction: PredictionConfig;
+    buy: {
+        context?: Partial<Record<keyof MarketContext, IntervalConfig>>;
+    };
+};
+
 export async function shouldBuyCommon(
     logger: Logger,
     mint: string,
     _historyRef: HistoryRef,
     context: MarketContext,
     history: HistoryEntry[],
-    config: {
-        prediction: PredictionConfig;
-        buy: {
-            context?: Partial<Record<keyof MarketContext, IntervalConfig>>;
-        };
-    },
+    config: ShouldBuyCommonConfig,
 ): Promise<
     ShouldBuyResponse<'requiredFeaturesLength' | 'shouldBuyStateless' | 'noVariationInFeatures'> | PredictionRequest
 > {

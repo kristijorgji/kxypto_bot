@@ -64,6 +64,17 @@ export interface ProtoBacktestStrategyFullResult {
   created_at: Date | undefined;
 }
 
+export interface ProtoBacktestStrategyResultStatusResponseMessage {
+  strategyResultId: number;
+  mintIndex: number;
+  pnl: number;
+  roi: number;
+  holdings: number;
+  winsCount: number;
+  lossesCount: number;
+  winRate: number;
+}
+
 function createBaseProtoBacktestRun(): ProtoBacktestRun {
   return {
     id: 0,
@@ -953,6 +964,187 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
     message.max_drawdown_percentage = object.max_drawdown_percentage ?? 0;
     message.execution_time_seconds = object.execution_time_seconds ?? 0;
     message.created_at = object.created_at ?? undefined;
+    return message;
+  },
+};
+
+function createBaseProtoBacktestStrategyResultStatusResponseMessage(): ProtoBacktestStrategyResultStatusResponseMessage {
+  return { strategyResultId: 0, mintIndex: 0, pnl: 0, roi: 0, holdings: 0, winsCount: 0, lossesCount: 0, winRate: 0 };
+}
+
+export const ProtoBacktestStrategyResultStatusResponseMessage: MessageFns<
+  ProtoBacktestStrategyResultStatusResponseMessage
+> = {
+  encode(
+    message: ProtoBacktestStrategyResultStatusResponseMessage,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
+    if (message.strategyResultId !== 0) {
+      writer.uint32(8).uint64(message.strategyResultId);
+    }
+    if (message.mintIndex !== 0) {
+      writer.uint32(16).uint64(message.mintIndex);
+    }
+    if (message.pnl !== 0) {
+      writer.uint32(25).double(message.pnl);
+    }
+    if (message.roi !== 0) {
+      writer.uint32(33).double(message.roi);
+    }
+    if (message.holdings !== 0) {
+      writer.uint32(41).double(message.holdings);
+    }
+    if (message.winsCount !== 0) {
+      writer.uint32(48).uint64(message.winsCount);
+    }
+    if (message.lossesCount !== 0) {
+      writer.uint32(56).uint64(message.lossesCount);
+    }
+    if (message.winRate !== 0) {
+      writer.uint32(65).double(message.winRate);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ProtoBacktestStrategyResultStatusResponseMessage {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProtoBacktestStrategyResultStatusResponseMessage();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.strategyResultId = longToNumber(reader.uint64());
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.mintIndex = longToNumber(reader.uint64());
+          continue;
+        }
+        case 3: {
+          if (tag !== 25) {
+            break;
+          }
+
+          message.pnl = reader.double();
+          continue;
+        }
+        case 4: {
+          if (tag !== 33) {
+            break;
+          }
+
+          message.roi = reader.double();
+          continue;
+        }
+        case 5: {
+          if (tag !== 41) {
+            break;
+          }
+
+          message.holdings = reader.double();
+          continue;
+        }
+        case 6: {
+          if (tag !== 48) {
+            break;
+          }
+
+          message.winsCount = longToNumber(reader.uint64());
+          continue;
+        }
+        case 7: {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.lossesCount = longToNumber(reader.uint64());
+          continue;
+        }
+        case 8: {
+          if (tag !== 65) {
+            break;
+          }
+
+          message.winRate = reader.double();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ProtoBacktestStrategyResultStatusResponseMessage {
+    return {
+      strategyResultId: isSet(object.strategyResultId) ? globalThis.Number(object.strategyResultId) : 0,
+      mintIndex: isSet(object.mintIndex) ? globalThis.Number(object.mintIndex) : 0,
+      pnl: isSet(object.pnl) ? globalThis.Number(object.pnl) : 0,
+      roi: isSet(object.roi) ? globalThis.Number(object.roi) : 0,
+      holdings: isSet(object.holdings) ? globalThis.Number(object.holdings) : 0,
+      winsCount: isSet(object.winsCount) ? globalThis.Number(object.winsCount) : 0,
+      lossesCount: isSet(object.lossesCount) ? globalThis.Number(object.lossesCount) : 0,
+      winRate: isSet(object.winRate) ? globalThis.Number(object.winRate) : 0,
+    };
+  },
+
+  toJSON(message: ProtoBacktestStrategyResultStatusResponseMessage): unknown {
+    const obj: any = {};
+    if (message.strategyResultId !== 0) {
+      obj.strategyResultId = Math.round(message.strategyResultId);
+    }
+    if (message.mintIndex !== 0) {
+      obj.mintIndex = Math.round(message.mintIndex);
+    }
+    if (message.pnl !== 0) {
+      obj.pnl = message.pnl;
+    }
+    if (message.roi !== 0) {
+      obj.roi = message.roi;
+    }
+    if (message.holdings !== 0) {
+      obj.holdings = message.holdings;
+    }
+    if (message.winsCount !== 0) {
+      obj.winsCount = Math.round(message.winsCount);
+    }
+    if (message.lossesCount !== 0) {
+      obj.lossesCount = Math.round(message.lossesCount);
+    }
+    if (message.winRate !== 0) {
+      obj.winRate = message.winRate;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ProtoBacktestStrategyResultStatusResponseMessage>, I>>(
+    base?: I,
+  ): ProtoBacktestStrategyResultStatusResponseMessage {
+    return ProtoBacktestStrategyResultStatusResponseMessage.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ProtoBacktestStrategyResultStatusResponseMessage>, I>>(
+    object: I,
+  ): ProtoBacktestStrategyResultStatusResponseMessage {
+    const message = createBaseProtoBacktestStrategyResultStatusResponseMessage();
+    message.strategyResultId = object.strategyResultId ?? 0;
+    message.mintIndex = object.mintIndex ?? 0;
+    message.pnl = object.pnl ?? 0;
+    message.roi = object.roi ?? 0;
+    message.holdings = object.holdings ?? 0;
+    message.winsCount = object.winsCount ?? 0;
+    message.lossesCount = object.lossesCount ?? 0;
+    message.winRate = object.winRate ?? 0;
     return message;
   },
 };

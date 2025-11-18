@@ -3,7 +3,6 @@ syntax = "proto3";
 package backtests;
 
 import "google/protobuf/struct.proto";
-import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
 
 message BacktestRun {
@@ -57,4 +56,20 @@ message BacktestStrategyFullResult {
   double max_drawdown_percentage = 22;
   double execution_time_seconds = 23;
   google.protobuf.Timestamp created_at = 24;
+}
+
+// =====================================================
+// =================== RPC Messages ====================
+// =====================================================
+
+
+message BacktestStrategyResultStatusResponseMessage {
+  uint64 strategyResultId = 1;
+  uint64 mintIndex = 2;
+  double pnl = 3;
+  double roi = 4;
+  double holdings = 5;
+  uint64 winsCount = 6;
+  uint64 lossesCount = 7;
+  double winRate = 8;
 }

@@ -266,7 +266,7 @@ describe('variantFromPredictionSource', () => {
                     aggregationMode: 'min',
                     sources: foldedSources,
                 } satisfies LocalEnsemblePredictionSource),
-            ).toBe('e_ag:min_catboost_fold_0_3');
+            ).toBe('e_ag:min_catboost_v15_more_data_tuned_fold_0_2');
 
             expect(
                 variantFromPredictionSource({

@@ -1,12 +1,15 @@
 import { Logger } from 'winston';
 import { RawData } from 'ws';
+import { z } from 'zod';
 
+import PubSub from '@src/pubsub/PubSub';
 import { BACKTESTS_RUNS_CHANNEL, handleBacktestRunsSubscription } from '@src/ws-api/handlers/backtests/runsHandler';
 import {
     BACKTESTS_STRATEGY_RESULTS_CHANNEL,
     handleBacktestsStrategyResultsFetchMore,
     handleBacktestsStrategyResultsSubscription,
 } from '@src/ws-api/handlers/backtests/strategyResultsHandler';
+import { handleRpcEvent } from '@src/ws-api/handlers/rpc/handleRpcEvent';
 
 import {
     BACKTESTS_MINT_RESULTS_CHANNEL,
@@ -22,27 +25,51 @@ import {
     UnsubscribeMessage,
     WsConnection,
     WsMessage,
+    baseMessageSchema,
+    rpcMessageSchema,
 } from './types';
+
+const inputSchema = z.union([baseMessageSchema.passthrough(), rpcMessageSchema(z.unknown()).passthrough()]);
 
 export async function handleMessage(
     logger: Logger,
     ws: WsConnection,
     rawData: Buffer | string | RawData,
+    deps: {
+        pubsub: PubSub;
+        pendingDistributedRpc: Record<string, (data: unknown) => void>;
+    },
 ): Promise<void> {
     let msg: WsMessage;
+
+    let msgAsObject: unknown;
     try {
-        if (typeof rawData === 'string') {
-            msg = JSON.parse(rawData);
-        } else {
-            msg = JSON.parse(rawData.toString());
-        }
-    } catch (_) {
+        msgAsObject = JSON.parse(typeof rawData === 'string' ? rawData : rawData.toString());
+    } catch {
         ws.send(JSON.stringify({ error: 'Invalid JSON' }));
         return;
     }
 
+    const parsed = inputSchema.safeParse(msgAsObject);
+    if (!parsed.success) {
+        ws.send(
+            JSON.stringify({
+                event: 'error',
+                error: 'Invalid message format',
+                message: 'The incoming WebSocket message does not match the expected schema.',
+                issues: parsed.error.issues.map(issue => ({
+                    path: issue.path.join('.'),
+                    message: issue.message,
+                    code: issue.code,
+                })),
+            }),
+        );
+        return;
+    }
+    msg = parsed.data as WsMessage;
+
     if (!msg.id) {
-        ws.send(JSON.stringify({ error: 'Missing subscription ID (id)' }));
+        ws.send(JSON.stringify({ error: 'Missing identifier(id) used for subscription|fetch|rpc' }));
         return;
     }
 
@@ -54,6 +81,10 @@ export async function handleMessage(
         return handleFetchEvent(logger, ws, msg);
     } else if (msg.event === 'unsubscribe') {
         return handleUnsubscribeEvent(logger, ws, msg);
+    } else if (msg.event === 'rpc') {
+        return handleRpcEvent(logger, ws, msg, deps);
+    } else {
+        logger.warn('Unknown event type in message: %o', msg);
     }
 }
 

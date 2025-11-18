@@ -19,7 +19,7 @@ export async function up(knex: Knex): Promise<void> {
                     'system = automated/scheduled system run, no user involved',
                 ].join('\n'),
             );
-        table.enum('status', ['pending', 'running', 'completed', 'failed']).notNullable().index();
+        table.enum('status', ['pending', 'running', 'completed', 'failed', 'aborted']).notNullable().index();
         table
             .uuid('user_id')
             .nullable()

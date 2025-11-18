@@ -9,7 +9,7 @@ import { forceGetPumpCoinInitialData } from '../../../../src/blockchains/solana/
 import { solToLamports } from '../../../../src/blockchains/utils/amount';
 import { pumpfunRepository } from '../../../../src/db/repositories/PumpfunRepository';
 import ArrayTransport from '../../../../src/logger/transports/ArrayTransport';
-import { runStrategy } from '../../../../src/trading/backtesting/utils';
+import { createInitialStrategyResultLiveState, runStrategy } from '../../../../src/trading/backtesting/utils';
 import PumpfunBacktester from '../../../../src/trading/bots/blockchains/solana/PumpfunBacktester';
 import { BacktestStrategyRunConfig } from '../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry } from '../../../../src/trading/bots/launchpads/types';
@@ -66,6 +66,15 @@ describe('runStrategy', () => {
         sellUnclosedPositionsAtEnd: false,
     };
 
+    let paused = false;
+    let aborted = false;
+
+    let runStrategyState = {
+        pausedRef: () => paused,
+        abortedRef: () => aborted,
+        ls: createInitialStrategyResultLiveState(),
+    };
+
     beforeAll(() => {
         jest.useFakeTimers();
         jest.setSystemTime(new Date('2021-03-19T10:00:00Z'));
@@ -81,6 +90,8 @@ describe('runStrategy', () => {
                 mint: args[2],
             });
         });
+
+        runStrategyState.ls = createInitialStrategyResultLiveState();
     });
 
     afterAll(() => {
@@ -119,6 +130,7 @@ describe('runStrategy', () => {
 
         const actual = await runStrategy(
             runStrategyDeps,
+            runStrategyState,
             runConfig,
             Object.keys(histories).map(key => ({
                 fullPath: `tmp_test/${key}.json`,
@@ -147,6 +159,7 @@ describe('runStrategy', () => {
 
         const actual = await runStrategy(
             runStrategyDeps,
+            runStrategyState,
             {
                 ...runConfig,
                 strategy: new StupidSniperStrategy(logger, {
@@ -209,6 +222,7 @@ describe('runStrategy', () => {
 
         const actual = await runStrategy(
             runStrategyDeps,
+            runStrategyState,
             {
                 ...runConfig,
                 strategy: new StupidSniperStrategy(logger, {
@@ -247,6 +261,7 @@ describe('runStrategy', () => {
 
         const actual = await runStrategy(
             runStrategyDeps,
+            runStrategyState,
             {
                 ...runConfig,
                 strategy: new RiseStrategy(logger, {
@@ -293,6 +308,7 @@ describe('runStrategy', () => {
 
         const actual = await runStrategy(
             runStrategyDeps,
+            runStrategyState,
             {
                 ...runConfig,
                 strategy: new StupidSniperStrategy(logger, {

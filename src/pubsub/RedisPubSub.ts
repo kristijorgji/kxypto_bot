@@ -89,9 +89,6 @@ export default class RedisPubSub implements PubSub {
             }
         });
 
-        process.once('SIGINT', () => this.close());
-        process.once('SIGTERM', () => this.close());
-
         // Keep track of whether the pub is shared
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (isPubShared) (this.pub as any).isShared = true;

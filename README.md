@@ -27,6 +27,13 @@ strategies.
 3. [🖥️ CLI](#-cli)
 4. [🌐 Server](#-server)
 5. [📡 WebSocket Server](#-websocket-server)
+   - [🔄 Internal IPC System (Redis PubSub)](#-internal-ipc-system-redis-pubsub)
+     - [Why We Need IPC](#why-we-need-ipc)
+     - [🚀 IPC Features](#-ipc-features)
+     - [Architecture Overview](#architecture-overview)
+   - [Features](#features)
+   - [File Structure](#file-structure)
+   - [Generating TypeScript Types](#generating-typescript-types)
 6. [📜 Example Scripts](#-example-scripts)
 7. [⚙️ Standalone Scripts](#-standalone-scripts)
 8. [🧪 Scratch Code](#-scratch-code-scratch)
@@ -148,23 +155,79 @@ It ensures safe and predictable API inputs without mutating Express internals.
 
 ## 📡 WebSocket Server
 
-We maintain a dedicated server at [server.ts](src/ws-api/server.ts) to handle WebSocket connections. This server is
-responsible for:
+We maintain a dedicated server at `src/ws-api/server.ts` to handle all WebSocket connections.  
+This server acts as the real-time gateway of the application and is responsible for:
 
-* Fetching initial trade/backtest data (snapshots)
-* Broadcasting real-time updates to clients
-* Handling subscriptions with filters and pagination
+- Fetching initial trade/backtest data (snapshots)
+- Broadcasting real-time updates to clients
+- Handling subscriptions with filters and pagination
+- **Routing distributed RPC responses from background processes**
 
-### Features
+### 🔄 Internal IPC System (Redis PubSub)
 
-* **Protobuf encoding**: We use Protocol Buffers to minimize payload size and ensure strict type safety.
-* **Typed messages**: All message types are defined in `.proto` files and compiled to TypeScript.
-* **Efficient updates**: Supports incremental updates (`added`, `updated`, `deleted`) with optional diffing for updates.
+The WebSocket server includes a lightweight **distributed RPC mechanism** powered by Redis PubSub.  
+This enables **internal Node processes** (like backtest runners) to communicate with the WebSocket server.
+
+This IPC layer solves the problem of worker processes needing to send real-time results back to WebSocket clients.
+
+#### Why We Need IPC
+
+Long-running tasks (backtests, strategy engines, analytics workers) run in **separate processes**.  
+They cannot directly reply to WebSocket clients.
+
+Instead:
+
+1. WebSocket client sends an RPC request  
+2. WS server forwards the request using Redis PubSub  
+3. Worker receives the request and computes the result  
+4. Worker publishes a corresponding `rpc_response`  
+5. WS server resolves the pending RPC and responds to the WebSocket client  
+
+This keeps the WebSocket layer clean, scalable, and decoupled from heavy tasks.
+
+### 🚀 IPC Features
+
+- **Distributed RPC via Redis PubSub**
+- **Correlation ID matching**
+- **Plugin-based initialization (extensible IPC architecture)**
+- **Fault-tolerant — no shared memory between processes**
+- **Usable by any internal service (backtest, live trading, pricing, etc.)**
+
+### Architecture Overview
+
+```
+Frontend  →  WebSocket Server  →  Redis PubSub  →  Worker Process
+    ↑                 ↓                                 ↑
+    └──────── rpc_response ←────────────────────────────┘
+```
+
+---
+
+#### Features
+
+- **Protobuf Encoding**  
+  Efficient, typed binary messages.
+
+- **Strict Typed Messages**  
+  Defined in `.proto` files and compiled to TypeScript.
+
+- **Incremental Updates**  
+  Handles `added`, `updated`, `deleted` events.
+
+- **IPC-Driven RPC**  
+  Distributed services can reply to WebSocket clients through Redis.
 
 ### File Structure
 
-* `src/protos/`: Contains `.proto` definitions and auto-generated TypeScript types.
-* `src/ws-api/server.ts`: WebSocket server implementation.
+```
+src/
+  protos/                    # Proto message definitions
+  ws-api/
+    server.ts                # WebSocket server entry
+    configureWsApp.ts        # Plugin-based WS initialization
+    ipc/                     # Redis-based IPC logic
+    handlers/                # RPC + channel event handlers
+```
 
 ### Generating TypeScript Types
 

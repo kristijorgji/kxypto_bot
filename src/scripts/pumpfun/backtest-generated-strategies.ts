@@ -7,16 +7,21 @@ import { ActionSource } from '@src/core/types';
 import { getFiles } from '@src/data/getFiles';
 import { db } from '@src/db/knex';
 import {
-    completeBacktestStrategyResult,
     createBacktestRun,
     initBacktestStrategyResult,
-    markBacktestRunCompleted,
     storeBacktest,
+    updateBacktestRunStatus,
+    updateBacktestStrategyResult,
 } from '@src/db/repositories/backtests';
 import { ProcessingStatus } from '@src/db/types';
 import { logger } from '@src/logger';
 import { formPumpfunBacktestStatsDir } from '@src/trading/backtesting/data/pumpfun/utils';
-import { logStrategyResult, runStrategy } from '@src/trading/backtesting/utils';
+import {
+    StrategyResultLiveState,
+    createInitialStrategyResultLiveState,
+    logStrategyResult,
+    runStrategy,
+} from '@src/trading/backtesting/utils';
 import {
     BacktestRunConfig,
     BacktestStrategyRunConfig,
@@ -148,6 +153,8 @@ async function findBestStrategy() {
         started_at: new Date(),
     });
 
+    let currentStrategyLiveState: StrategyResultLiveState | undefined;
+
     for (const config of riseStrategyConfigGenerator.formConfigs(s)) {
         const backtestStrategyRunConfig: BacktestStrategyRunConfig = {
             ...runConfig,
@@ -173,11 +180,17 @@ async function findBestStrategy() {
             ProcessingStatus.Running,
         );
         const strategyStartTime = process.hrtime();
+        currentStrategyLiveState = createInitialStrategyResultLiveState();
         const sr = await runStrategy(
             {
                 backtester: backtester,
                 pumpfun: pumpfun,
                 logger: logger,
+            },
+            {
+                ls: currentStrategyLiveState,
+                pausedRef: () => false,
+                abortedRef: () => false,
             },
             backtestStrategyRunConfig,
             files,
@@ -199,7 +212,12 @@ async function findBestStrategy() {
             },
             sr,
         );
-        await completeBacktestStrategyResult(runningPartialStrategyResult.id, sr, executionTimeInS);
+        await updateBacktestStrategyResult(
+            runningPartialStrategyResult.id,
+            ProcessingStatus.Completed,
+            sr,
+            executionTimeInS,
+        );
 
         tested++;
     }
@@ -209,7 +227,7 @@ async function findBestStrategy() {
     const diff = process.hrtime(start);
     const timeInNs = diff[0] * 1e9 + diff[1];
 
-    await markBacktestRunCompleted(backtestRun.id);
+    await updateBacktestRunStatus(backtestRun.id, ProcessingStatus.Completed);
 
     logger.info('Finished testing %d strategies in %s seconds\n', tested, timeInNs / 1e9);
     logger.info(

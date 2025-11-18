@@ -125,7 +125,7 @@ export function variantFromPredictionSource(s: PredictionSource): string {
             return `${s.algorithm[0]}_${s.model}`;
         }
 
-        return buildEnsemblePredictionModel(s.aggregationMode, s.sources);
+        return `e_${buildEnsemblePredictionModel(s.aggregationMode, s.sources)}`;
     }
 }
 
@@ -160,10 +160,11 @@ export function buildEnsemblePredictionModel(
         }
     }
 
-    const prefix = `e_ag:${aggregationMode}`;
+    const prefix = `ag:${aggregationMode}`;
 
     if (foldPattern && sameAlgorithm && ['mean', 'min', 'max'].includes(aggregationMode)) {
-        return `${prefix}_${sources[0].algorithm}_fold_0_${sources.length}`;
+        const onlyModel = sources[0].model.replace(/_fold_\d+/g, '');
+        return `${prefix}_${sources[0].algorithm}_${onlyModel}_fold_0_${sources.length - 1}`;
     }
 
     return `${prefix}_[${p}]`;

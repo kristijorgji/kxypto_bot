@@ -1,9 +1,10 @@
 // ignore __tests__/__mocks__/ws.ts for this test, use real implementation
 jest.unmock('ws');
+import http from 'http';
 import { randomInt } from 'node:crypto';
 
 import { v4 as uuidv4 } from 'uuid';
-import { WebSocket } from 'ws';
+import { WebSocket, WebSocketServer } from 'ws';
 
 import {
     BacktestStrategyFullResult,
@@ -13,7 +14,7 @@ import { CursorPaginatedResponse } from '../../../src/http-api/types';
 import { ProtoBacktestStrategyFullResult } from '../../../src/protos/generated/backtests';
 import { ProtoBacktestStrategyFullResultFactory } from '../../../src/testdata/factories/proto/backtests';
 import { make } from '../../../src/testdata/utils';
-import { WS_CLOSE_CODES, server, wss } from '../../../src/ws-api/configureWsApp';
+import { WS_CLOSE_CODES, configureWsApp } from '../../../src/ws-api/configureWsApp';
 import { BACKTESTS_STRATEGY_RESULTS_CHANNEL } from '../../../src/ws-api/handlers/backtests/strategyResultsHandler';
 import { DataSubscriptionResponse, SubscribeMessage, WsUserPayload } from '../../../src/ws-api/types';
 
@@ -40,7 +41,11 @@ describe('ws-api', () => {
     const TEST_PORT = parseInt(process.env.APP_WS_PORT as string);
     const WS_URL = `ws://localhost:${TEST_PORT}/ws?debug=json`;
 
+    let server: http.Server;
+    let wss: WebSocketServer;
+
     beforeAll(async () => {
+        ({ server, wss } = await configureWsApp([]));
         await new Promise<void>(resolve => server.listen(TEST_PORT, resolve));
     });
 
@@ -197,6 +202,46 @@ describe('ws-api', () => {
 
                 expect(verifyWsJwt).toHaveBeenCalledWith('MULTI_TOKEN_ABC');
             });
+        });
+    });
+
+    it('should fail when using invalid payload', async () => {
+        expect.assertions(3);
+        await connectWithValidAuth({
+            onOpen: ws => {
+                return new Promise<void>((resolve, reject) => {
+                    ws.once('message', (data: Buffer) => {
+                        const jsonData = JSON.parse(data.toString());
+
+                        try {
+                            expect(jsonData).toEqual({
+                                event: 'error',
+                                error: 'Invalid message format',
+                                message: 'The incoming WebSocket message does not match the expected schema.',
+                                issues: [
+                                    {
+                                        code: 'invalid_union',
+                                        message: 'Invalid input',
+                                        path: '',
+                                    },
+                                ],
+                            });
+                            resolve();
+                        } catch (error) {
+                            reject(error);
+                        }
+                    });
+
+                    ws.send(
+                        JSON.stringify({
+                            data: 'sigmaBalls',
+                        }),
+                        err => {
+                            err && reject(err);
+                        },
+                    );
+                });
+            },
         });
     });
 

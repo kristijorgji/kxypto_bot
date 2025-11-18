@@ -1,25 +1,34 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from 'winston';
 
+import { lamportsToSol } from '@src/blockchains/utils/amount';
 import { ActorContext } from '@src/core/types';
 import { getFiles } from '@src/data/getFiles';
 import {
-    completeBacktestStrategyResult,
     createBacktestRun,
     formDraftMintResultFromBacktestMintResult,
     getBacktestStrategyResults,
     initBacktestStrategyResult,
-    markBacktestRunCompleted,
     storeBacktest,
+    updateBacktestRunStatus,
+    updateBacktestStrategyResult,
 } from '@src/db/repositories/backtests';
 import { Backtest, BacktestStrategyResult, ProcessingStatus } from '@src/db/types';
 import { ProtoBacktestMintFullResult } from '@src/protos/generated/backtests';
 import BacktestPubSub from '@src/pubsub/BacktestPubSub';
+import PubSub from '@src/pubsub/PubSub';
+import { sleep } from '@src/utils/functions';
 import { formatElapsedTime } from '@src/utils/time';
+import {
+    BACKTEST_COMMAND_CHANNEL,
+    BACKTEST_STATUS_RESPONSE_CHANNEL,
+    BacktestCommandMessage,
+    BacktestStrategyResultStatusResponseMessage,
+} from '@src/ws-api/ipc/types';
 import { UpdateItem } from '@src/ws-api/types';
 
 import { BacktestConfig } from './types';
-import { logStrategyResult, runStrategy } from './utils';
+import { StrategyResultLiveState, createInitialStrategyResultLiveState, logStrategyResult, runStrategy } from './utils';
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
 import {
@@ -31,9 +40,11 @@ import {
 export default async function runAndSelectBestStrategy(
     {
         logger,
+        pubsub,
         backtestPubSub,
     }: {
         logger: Logger;
+        pubsub: PubSub;
         backtestPubSub: BacktestPubSub;
     },
     actorContext: ActorContext,
@@ -97,7 +108,85 @@ export default async function runAndSelectBestStrategy(
 
     let tested = 0;
 
+    let paused = false;
+    let aborted = false;
+    let currentStrategyResultId: number | null = null;
+    let currentStrategyLiveState: StrategyResultLiveState | undefined;
+
+    await pubsub.subscribe(BACKTEST_COMMAND_CHANNEL, raw => {
+        const command = JSON.parse(raw) as BacktestCommandMessage;
+
+        switch (command.type) {
+            case 'STRATEGY_RESULT_STATUS_REQUEST':
+                if (
+                    !currentStrategyResultId ||
+                    !currentStrategyLiveState ||
+                    command.strategyResultId !== currentStrategyResultId
+                ) {
+                    return;
+                }
+                pubsub.publish(
+                    BACKTEST_STATUS_RESPONSE_CHANNEL,
+                    JSON.stringify({
+                        correlationId: command.correlationId,
+                        strategyResultId: currentStrategyResultId,
+                        mintIndex: currentStrategyLiveState.currentIndex,
+                        pnl: lamportsToSol(currentStrategyLiveState.totalProfitLossLamports),
+                        roi: currentStrategyLiveState.roi,
+                        holdings: lamportsToSol(currentStrategyLiveState.holdingsValueInLamports),
+                        winsCount: currentStrategyLiveState.winsCount,
+                        lossesCount: currentStrategyLiveState.lossesCount,
+                        winRate: currentStrategyLiveState.winRatePercentage,
+                    } satisfies BacktestStrategyResultStatusResponseMessage),
+                );
+                break;
+            case 'BACKTEST_RUN_PAUSE':
+                if (command.backtestRunId !== backtestRun.id) {
+                    return;
+                }
+                logger.info(
+                    'Pause backtest run requested at strategy [%d], strategyResultId %s',
+                    tested,
+                    currentStrategyResultId,
+                );
+                paused = true;
+                break;
+            case 'BACKTEST_RUN_RESUME':
+                if (command.backtestRunId !== backtestRun.id) {
+                    return;
+                }
+                logger.info(
+                    'Resume backtest run requested at strategy [%d], strategyResultId %s',
+                    tested,
+                    currentStrategyResultId,
+                );
+                paused = false;
+                break;
+            case 'BACKTEST_RUN_ABORT':
+                if (command.backtestRunId !== backtestRun.id) {
+                    return;
+                }
+                logger.info(
+                    'Abort backtest run requested at strategy [%d], strategyResultId %s',
+                    tested,
+                    currentStrategyResultId,
+                );
+                aborted = true;
+                break;
+        }
+    });
+
     for (const strategy of config.strategies) {
+        // eslint-disable-next-line no-unmodified-loop-condition
+        while (paused) {
+            await sleep(150);
+        }
+
+        if (aborted) {
+            logger.info('[%d] Aborting backtest run', tested);
+            break;
+        }
+
         const backtestStrategyRunConfig: BacktestStrategyRunConfig = {
             ...runConfig,
             strategy: strategy,
@@ -127,11 +216,19 @@ export default async function runAndSelectBestStrategy(
         } satisfies UpdateItem<BacktestStrategyResult>);
 
         const strategyStartTime = process.hrtime();
+
+        currentStrategyResultId = runningPartialStrategyResult.id;
+        currentStrategyLiveState = createInitialStrategyResultLiveState();
         const sr = await runStrategy(
             {
                 backtester: backtester,
                 pumpfun: pumpfun,
                 logger: logger,
+            },
+            {
+                pausedRef: () => paused,
+                abortedRef: () => aborted,
+                ls: currentStrategyLiveState,
             },
             backtestStrategyRunConfig,
             files,
@@ -161,7 +258,12 @@ export default async function runAndSelectBestStrategy(
         );
         const backtestStrategyResult: BacktestStrategyResult = {
             ...runningPartialStrategyResult,
-            ...(await completeBacktestStrategyResult(runningPartialStrategyResult.id, sr, executionTimeInS)),
+            ...(await updateBacktestStrategyResult(
+                runningPartialStrategyResult.id,
+                !aborted ? ProcessingStatus.Completed : ProcessingStatus.Aborted,
+                sr,
+                executionTimeInS,
+            )),
         };
         backtestPubSub.publishBacktestStrategyResult(backtestId, strategy.identifier, {
             id: backtestStrategyResult.id.toString(),
@@ -191,7 +293,10 @@ export default async function runAndSelectBestStrategy(
         action: 'updated',
         data: {
             ...backtestRun,
-            ...(await markBacktestRunCompleted(backtestRun.id)),
+            ...(await updateBacktestRunStatus(
+                backtestRun.id,
+                !aborted ? ProcessingStatus.Completed : ProcessingStatus.Aborted,
+            )),
         },
         version: 2,
     });

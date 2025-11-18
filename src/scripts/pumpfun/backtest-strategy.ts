@@ -57,6 +57,7 @@ async function start(args: { backtestId?: string; config?: string }) {
 
     const runnerDeps = {
         logger: logger,
+        pubsub: pubsub,
         backtestPubSub: new BacktestPubSub(pubsub),
     };
 

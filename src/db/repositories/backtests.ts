@@ -98,9 +98,12 @@ export function getBacktestRuns(p: CompositeCursorPaginationParams, _: {}): Prom
 
 type PartialBacktestRunUpdateResponse = Pick<ProtoBacktestRun, 'status' | 'finished_at'>;
 
-export async function markBacktestRunCompleted(id: number): Promise<PartialBacktestRunUpdateResponse> {
+export async function updateBacktestRunStatus(
+    id: number,
+    status: ProcessingStatus.Completed | ProcessingStatus.Aborted,
+): Promise<PartialBacktestRunUpdateResponse> {
     const update: PartialBacktestRunUpdateResponse = {
-        status: ProcessingStatus.Completed,
+        status: status,
         finished_at: new Date(),
     } satisfies Pick<BacktestRun, 'status' | 'finished_at'>;
 
@@ -164,14 +167,15 @@ type PartialBacktestStrategyResultUpdateResponse = Omit<
     | 'updated_at'
 >;
 
-export async function completeBacktestStrategyResult(
+export async function updateBacktestStrategyResult(
     strategyResultId: number,
+    status: ProcessingStatus.Completed | ProcessingStatus.Aborted,
     sr: StrategyBacktestResult,
     executionTimeSeconds: number,
 ): Promise<PartialBacktestStrategyResultUpdateResponse> {
     return await db.transaction<PartialBacktestStrategyResultUpdateResponse>(async trx => {
         const update: PartialBacktestStrategyResultUpdateResponse = {
-            status: ProcessingStatus.Completed,
+            status: status,
             pnl_sol: sr.totalPnlInSol,
             holdings_value_sol: sr.totalHoldingsValueInSol,
             roi: sr.totalRoi,

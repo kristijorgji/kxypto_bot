@@ -37,7 +37,7 @@ import {
     isMultiSourceEnsemble,
 } from '../types';
 
-const CacheDefaultTtlSeconds = 3600 * 24 * 30;
+const CacheDefaultTtlSeconds = 3600 * 24 * 14;
 
 export type FormPredictionRequestFailReason = 'noVariationInFeatures';
 

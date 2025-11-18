@@ -1,2 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type FirstArg<T> = T extends (arg1: infer U, ...args: any[]) => any ? U : never;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;

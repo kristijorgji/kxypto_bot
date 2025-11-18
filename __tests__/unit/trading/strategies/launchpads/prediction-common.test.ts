@@ -63,7 +63,7 @@ describe('buildRemoteEnsembleSingleSource', () => {
                 'http://127.0.0.1:8000/a/b/predict/buy/ensemble?model_types=tabm&model_names=v2_fold_0&weights=1&model_types=tabm&model_names=v2_fold_1&weights=2&model_types=tabm&model_names=v2_fold_2&weights=3&model_types=tabm&model_names=v2_fold_3&weights=4&model_types=tabm&model_names=v2_fold_4&weights=5.57&aggregation_mode=weighted',
             sources: members,
             aggregationMode: 'weighted',
-            model: 'e_ag:weighted_[(t_v2_fold_0:w1)+(t_v2_fold_1:w2)+(t_v2_fold_2:w3)+(t_v2_fold_3:w4)+(t_v2_fold_4:w5.57)]',
+            model: 'ag:weighted_[(t_v2_fold_0:w1)+(t_v2_fold_1:w2)+(t_v2_fold_2:w3)+(t_v2_fold_3:w4)+(t_v2_fold_4:w5.57)]',
         } satisfies RemoteEnsemblePredictionSource);
 
         expect(buildRemoteEnsembleSingleSource(baseEndpoint, members, 'mean')).toEqual({
@@ -72,7 +72,7 @@ describe('buildRemoteEnsembleSingleSource', () => {
                 'http://127.0.0.1:8000/a/b/predict/buy/ensemble?model_types=tabm&model_names=v2_fold_0&model_types=tabm&model_names=v2_fold_1&model_types=tabm&model_names=v2_fold_2&model_types=tabm&model_names=v2_fold_3&model_types=tabm&model_names=v2_fold_4&aggregation_mode=mean',
             sources: members,
             aggregationMode: 'mean',
-            model: 'e_ag:mean_tabm_fold_0_5',
+            model: 'ag:mean_tabm_v2_fold_0_4',
         } satisfies RemoteEnsemblePredictionSource);
     });
 });

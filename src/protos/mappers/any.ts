@@ -1,5 +1,6 @@
 import { ProtoAny } from '@src/protos/generated/google/protobuf/any';
 import { MessageFns } from '@src/protos/generated/ws';
+import { AnyMapperTypeResolutionError } from '@src/protos/mappers/errors';
 import { DEFAULT_ANY_REGISTRY } from '@src/protos/utils/anyRegistry';
 import { AnyRegistryManager } from '@src/protos/utils/AnyRegistryManager';
 
@@ -14,7 +15,7 @@ export function packAny<T>(
 ): ProtoAny {
     const resolvedTypeUrl = typeUrl ?? registry.getTypeUrl(protoClass);
     if (!resolvedTypeUrl) {
-        throw new Error('Cannot determine typeUrl. Pass typeUrl explicitly or register the protoClass.');
+        throw new AnyMapperTypeResolutionError();
     }
 
     return {

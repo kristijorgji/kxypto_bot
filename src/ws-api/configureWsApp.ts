@@ -3,10 +3,18 @@ import http, { IncomingMessage } from 'http';
 import { WebSocketServer } from 'ws';
 
 import { logger } from '@src/logger';
+import { createPubSub } from '@src/pubsub';
+import { UnionToIntersection } from '@src/utils/types';
 
 import { verifyWsJwt } from './middlewares/verifyWsJwt';
 import { closeSubscription, handleMessage } from './router';
-import { SubscriptionContext, WsConnection, WsUserPayload } from './types';
+import { SharedPluginDeps, SubscriptionContext, WsConnection, WsPlugin, WsUserPayload } from './types';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ExtractPluginDeps<T> = T extends WsPlugin<infer D, any> ? D : {};
+
+// Merge deps from all plugins
+export type MergePluginDeps<TPlugins extends WsPlugin[]> = UnionToIntersection<ExtractPluginDeps<TPlugins[number]>>;
 
 export const WS_CLOSE_CODES = {
     NORMAL: 1000,
@@ -14,44 +22,90 @@ export const WS_CLOSE_CODES = {
     INTERNAL_ERROR: 4500,
 } as const;
 
-const server = http.createServer();
-const wss = new WebSocketServer({ server, path: '/ws' });
+const globalPendingDistributedRpc: Record<string, (data: unknown) => void> = {};
 
-wss.on('connection', (wsRaw, req) => {
-    const ws = wsRaw as WsConnection;
-    const url = new URL(req.url || '', `https://${req.headers.host}`);
-    ws.debugMode = url.searchParams.get('debug') === 'json';
-
-    const auth = extractWebSocketAuthToken(req);
-    if (!auth) {
-        ws.close(WS_CLOSE_CODES.INVALID_JWT, 'Unauthorized');
-        return;
-    }
-
-    try {
-        const userPayload: WsUserPayload = verifyWsJwt(auth.token);
-        ws.user = userPayload;
-        logger.debug('Client authorized %o', userPayload);
-    } catch (err) {
-        logger.error(err);
-        ws.close(WS_CLOSE_CODES.INVALID_JWT, (err as Error).message);
-        return;
-    }
-
-    ws.subscriptions = new Map<string, SubscriptionContext>();
-
-    ws.on('message', data => handleMessage(logger, ws, data));
-
-    ws.on('close', async () => {
-        for (const sub of ws.subscriptions.values()) {
-            await closeSubscription(sub);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function configureWsApp<TPlugins extends WsPlugin<any, SharedPluginDeps>[]>(
+    plugins: TPlugins,
+): Promise<{
+    server: http.Server;
+    wss: WebSocketServer;
+    deps: SharedPluginDeps & MergePluginDeps<TPlugins>;
+}> {
+    // --- Ensure unique plugin names ---
+    const names = new Set<string>();
+    for (const plugin of plugins) {
+        if (names.has(plugin.name)) {
+            throw new Error(`Duplicate plugin name detected: "${plugin.name}"`);
         }
-        ws.subscriptions.clear();
-        logger.debug('Client disconnected');
-    });
-});
+        names.add(plugin.name);
+    }
 
-export { server, wss };
+    const sharedDeps: SharedPluginDeps = {
+        logger: logger,
+        pubsub: createPubSub(),
+        pendingDistributedRpc: globalPendingDistributedRpc,
+    };
+
+    const mergedDeps = {
+        ...sharedDeps,
+    } as SharedPluginDeps & MergePluginDeps<TPlugins>;
+    // ----- PLUGINS SETUP PHASE -----
+    for (const plugin of plugins) {
+        const pluginDeps = await plugin.setup(sharedDeps);
+        Object.assign(mergedDeps, pluginDeps);
+    }
+
+    const server = http.createServer();
+    const wss = new WebSocketServer({ server, path: '/ws' });
+
+    // ----- PLUGINS START PHASE -----
+    for (const plugin of plugins) {
+        if (plugin.start) {
+            await plugin.start(mergedDeps);
+        }
+    }
+
+    wss.on('connection', (wsRaw, req) => {
+        const ws = wsRaw as WsConnection;
+        const url = new URL(req.url || '', `https://${req.headers.host}`);
+        ws.debugMode = url.searchParams.get('debug') === 'json';
+
+        const auth = extractWebSocketAuthToken(req);
+        if (!auth) {
+            ws.close(WS_CLOSE_CODES.INVALID_JWT, 'Unauthorized');
+            return;
+        }
+
+        try {
+            const userPayload: WsUserPayload = verifyWsJwt(auth.token);
+            ws.user = userPayload;
+            logger.debug('Client authorized %o', userPayload);
+        } catch (err) {
+            logger.error(err);
+            ws.close(WS_CLOSE_CODES.INVALID_JWT, (err as Error).message);
+            return;
+        }
+
+        ws.subscriptions = new Map<string, SubscriptionContext>();
+
+        ws.on('message', data => handleMessage(logger, ws, data, mergedDeps));
+
+        ws.on('close', async () => {
+            for (const sub of ws.subscriptions.values()) {
+                await closeSubscription(sub);
+            }
+            ws.subscriptions.clear();
+            logger.debug('Client disconnected');
+        });
+    });
+
+    return {
+        server,
+        wss: wss,
+        deps: mergedDeps,
+    };
+}
 
 /**
  * Extract authentication token for this WebSocket connection.

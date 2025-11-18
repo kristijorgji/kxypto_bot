@@ -1,8 +1,43 @@
+import { Logger } from 'winston';
 import { WebSocket } from 'ws';
+import z from 'zod';
 
 import { CursorPaginatedResponse } from '@src/http-api/types';
-import { ProtoFetchStatus } from '@src/protos/generated/ws';
+import { MessageFns, ProtoFetchStatus } from '@src/protos/generated/ws';
+import PubSub from '@src/pubsub/PubSub';
 import { Pagination, PlainFilters } from '@src/types/data';
+
+export type SharedPluginDeps = {
+    logger: Logger;
+    pubsub: PubSub;
+    pendingDistributedRpc: Record<string, (data: unknown) => void>;
+};
+
+export interface WsPlugin<
+    TPluginDeps extends Record<string, unknown> = {},
+    TSharedDeps extends Record<string, unknown> = {},
+> {
+    name: string;
+
+    /**
+     * SETUP PHASE
+     * - shared deps provided
+     * - plugin returns its own deps
+     * - NO side effects (no subscriptions)
+     */
+    setup(shared: TSharedDeps): Promise<TPluginDeps> | TPluginDeps;
+
+    /**
+     * START PHASE
+     * - receives final merged deps
+     * - plugins can do all side effects:
+     *   * PubSub subscribe
+     *   * WS event handlers
+     *   * timers
+     *   * distributed RPC listeners
+     */
+    start?(deps: TSharedDeps & TPluginDeps & unknown): void | Promise<void>;
+}
 
 /**
  * Represents a single active subscription for a WebSocket client.
@@ -105,30 +140,32 @@ export type RequestDataParams<TFilters = PlainFilters> = {
 /**
  * Possible client event types
  */
-export type InputEventType = 'subscribe' | 'fetch' | 'fetchMore' | 'unsubscribe';
+export const inputEventTypeSchema = z.enum(['subscribe', 'fetch', 'fetchMore', 'unsubscribe', 'rpc']);
+export type InputEventType = z.infer<typeof inputEventTypeSchema>;
 
 /**
  * Base structure for all incoming WebSocket messages from the client.
  */
-export interface BaseMessage {
+export const baseMessageSchema = z.object({
     /**
      * Unique subscription ID generated and provided by the client.
      * Used to identify the subscription for fetchMore, unsubscribe, or updates.
      */
-    id: string;
+    id: z.string(),
 
     /**
      * The logical channel this message relates to.
      * Examples: "backtestsMintResults", "trades".
      */
-    channel: string;
+    channel: z.string(),
 
     /**
      * Type of action the client wants to perform.
      * Typical values: "subscribe", "unsubscribe", "fetchMore", etc.
      */
-    event: InputEventType;
-}
+    event: inputEventTypeSchema,
+});
+export type BaseMessage = z.infer<typeof baseMessageSchema>;
 
 /**
  * Subscribe message sent by client
@@ -178,11 +215,6 @@ export type UnsubscribeMessage = Omit<BaseMessage, 'id' | 'channel'> & {
     id?: string;
     channel?: string;
 };
-
-/**
- * Union of all client message types
- */
-export type WsMessage = SubscribeMessage | FetchRequestMessage | FetchMoreMessage | UnsubscribeMessage;
 
 /**
  * Server response event types
@@ -313,4 +345,161 @@ export interface DataUpdateResponse<T> extends BaseResponse {
     updates: UpdatesPayload<T>;
 }
 
-export type WsServerResponse<T> = DataSubscriptionResponse<T> | DataUpdateResponse<T> | DataFetchMoreResponse<T>;
+/**
+ * Zod schema factory for an RPC message.
+ * @param dataSchema Zod schema describing the type of the `data` field.
+ *
+ * Represents a one-shot Remote Procedure Call (RPC) request sent from the client
+ * to the server over WebSocket.
+ *
+ * RPC messages do NOT use channels and are not tied to subscriptions.
+ * Each RPC call:
+ * - is initiated by the client
+ * - expects exactly one matching "rpc_response" from the server
+ * - is correlated using the `id` field
+ *
+ * @template T The shape of the request payload being sent.
+ */
+export const rpcMessageSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
+    z.object({
+        /**
+         * Unique correlation ID assigned by the client.
+         * The server must echo this same ID back in the corresponding rpc_response.
+         */
+        id: z.string(),
+
+        /**
+         * Event type indicating this is an RPC request.
+         * Always the literal value "rpc".
+         */
+        event: z.literal('rpc'),
+
+        /**
+         * Logical operation name being requested.
+         * Example: "get_strategy_status", "estimate_profit", "cancel_order", etc.
+         */
+        method: z.string(),
+
+        /**
+         * Request payload associated with the RPC method.
+         * The server interprets this based on the `method` field.
+         */
+        data: dataSchema,
+    });
+
+export type RpcMessage<TSchema extends z.ZodTypeAny = z.ZodUnknown> = InferRpcMessage<TSchema>;
+export type InferRpcMessage<TSchema extends z.ZodTypeAny> = z.infer<ReturnType<typeof rpcMessageSchema<TSchema>>>;
+
+/**
+ * Base structure for all RPC responses sent by the server.
+ *
+ * Unlike channel-based responses, RPC responses:
+ * - do NOT include a channel
+ * - must echo the original RPC request ID
+ * - always use the event type "rpc_response"
+ */
+export interface BaseRpcResponse {
+    /**
+     * Correlation ID matching the RPC request's `id`.
+     * Used to resolve the correct pending RPC promise on the client.
+     */
+    id: string;
+
+    /**
+     * Literal event type identifying this as an RPC response.
+     */
+    event: 'rpc_response';
+}
+
+export interface RpcSuccessPayload<T> {
+    status: 'ok';
+    method: string;
+    data: T;
+}
+export interface RpcErrorPayload<TError = unknown> {
+    status: 'error';
+    method: string;
+    errorCode: string;
+    errorMessage?: string;
+    details?: TError; // optional field
+}
+
+export type RpcPayload<T = unknown, TError = unknown> = RpcSuccessPayload<T> | RpcErrorPayload<TError>;
+
+/**
+ * Represents a typed RPC response payload sent by the server.
+ *
+ * @template T The shape of the response data returned by the RPC handler.
+ */
+export interface RpcResponse<T = unknown> extends BaseRpcResponse {
+    payload: RpcPayload<T>;
+}
+
+/**
+ * Union of all client message types
+ */
+export type WsMessage = SubscribeMessage | FetchRequestMessage | FetchMoreMessage | UnsubscribeMessage | RpcMessage;
+
+export type WsServerResponse<T> =
+    | DataSubscriptionResponse<T>
+    | DataUpdateResponse<T>
+    | DataFetchMoreResponse<T>
+    | RpcResponse<T>;
+
+/**
+ * Context available to all RPC handlers.
+ */
+export interface RpcContext {
+    ws: WsConnection;
+    logger: Logger;
+    services?: unknown;
+    pubsub: PubSub;
+    /**
+     * Map of correlationId → resolver for distributed RPC results
+     */
+    pendingDistributedRpc: Record<string, (data: unknown) => void>;
+}
+
+/**
+ * Generic RPC handler definition.
+ */
+export interface RpcHandler<TInput, TOutput> {
+    /**
+     * Zod schema describing and validating the expected request input.
+     *
+     * - The router runs `schema.parse()` before calling `run()`.
+     * - If parsing fails, the router automatically returns a typed RPC error.
+     * - The parsed result is passed as the `data` argument to `run()`.
+     */
+    schema: z.ZodType<TInput>;
+
+    /**
+     * The protobuf message class used to encode the *successful* RPC result (`TOutput`)
+     * into its binary representation.
+     *
+     * This class is expected to be the generated protobufjs static module corresponding
+     * to the "data" portion of the RPC response. For example:
+     *
+     *   GetBacktestResultStatusResponse.encode(result).finish()
+     *
+     */
+    successDataProtoClass: MessageFns<Omit<TOutput, 'correlationId'>>;
+
+    /**
+     * The RPC method implementation.
+     *
+     * Called only after `schema` has validated the input.
+     *
+     * Must return a plain JSON object whose shape matches `TOutput`.
+     * The returned object will be:
+     *   - encoded using `successDataProtoClass`
+     *   - wrapped in a standard RpcSuccessPayload
+     *
+     * Any thrown error (sync or async) is caught by the router and transformed
+     * into a structured RpcErrorPayload, including optional `details`.
+     *
+     * @param data - The validated and parsed input, guaranteed to match TInput.
+     * @param ctx  - Contextual information injected per request (auth, db, services, etc.).
+     */
+    run(data: TInput, ctx: RpcContext): Promise<TOutput> | TOutput;
+}

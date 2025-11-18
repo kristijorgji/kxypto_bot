@@ -6,6 +6,7 @@ import { forceGetPumpCoinInitialData } from '@src/blockchains/solana/dex/pumpfun
 import { lamportsToSol, solToLamports } from '@src/blockchains/utils/amount';
 import { pumpfunRepository } from '@src/db/repositories/PumpfunRepository';
 import { FileInfo } from '@src/utils/files';
+import { sleep } from '@src/utils/functions';
 import { formatElapsedTime } from '@src/utils/time';
 
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
@@ -21,6 +22,46 @@ import {
     StrategyMintBacktestResult,
 } from '../bots/blockchains/solana/types';
 
+export type StrategyResultLiveState = {
+    currentIndex: number;
+    balanceLamports: number;
+    totalProfitLossLamports: number;
+    totalTradesCount: number;
+    totalBuyTradesCount: number;
+    totalSellTradesCount: number;
+    winRatePercentage: number;
+    roi: number;
+    holdingsValueInLamports: number;
+    winsCount: number;
+    lossesCount: number;
+    highestPeakLamports: number;
+    lowestTroughLamports: number;
+    currentPeakLamports: number;
+    currentTroughLamports: number;
+    maxDrawdownPercentage: number;
+};
+
+export function createInitialStrategyResultLiveState(): StrategyResultLiveState {
+    return {
+        currentIndex: 0,
+        balanceLamports: 0,
+        totalProfitLossLamports: 0,
+        totalTradesCount: 0,
+        totalBuyTradesCount: 0,
+        totalSellTradesCount: 0,
+        winRatePercentage: 0,
+        roi: 0,
+        holdingsValueInLamports: 0,
+        winsCount: 0,
+        lossesCount: 0,
+        highestPeakLamports: 0,
+        lowestTroughLamports: 0,
+        currentPeakLamports: 0,
+        currentTroughLamports: 0,
+        maxDrawdownPercentage: 0,
+    };
+}
+
 const cache: Record<string, HandlePumpTokenBotReport> = {};
 
 export async function runStrategy(
@@ -33,6 +74,15 @@ export async function runStrategy(
         pumpfun: Pumpfun;
         logger: Logger;
     },
+    {
+        ls,
+        pausedRef,
+        abortedRef,
+    }: {
+        ls: StrategyResultLiveState;
+        pausedRef: () => boolean;
+        abortedRef: () => boolean;
+    },
     runConfig: BacktestStrategyRunConfig,
     files: FileInfo[],
     config?: {
@@ -42,22 +92,14 @@ export async function runStrategy(
 ): Promise<StrategyBacktestResult> {
     const verbose = config?.verbose ?? false;
 
-    let processed = 0;
-    const maxToProcess: number | null = null;
-
     const buyAmountLamports = solToLamports(runConfig.buyAmountSol);
-    let balanceLamports = runConfig.initialBalanceLamports;
-    let highestPeakLamports = runConfig.initialBalanceLamports;
-    let lowestTroughLamports = runConfig.initialBalanceLamports;
-    let currentPeakLamports = runConfig.initialBalanceLamports;
-    let currentTroughLamports = runConfig.initialBalanceLamports;
-    let maxDrawdownPercentage = 0;
-    let totalProfitLossLamports = 0;
-    let totalHoldingsValueInLamports = 0;
-    let totalTradesCount = 0;
-    let totalBuyTradesCount = 0;
-    let totalSellTradesCount = 0;
-    let winsCount = 0;
+
+    ls.balanceLamports = runConfig.initialBalanceLamports;
+    ls.highestPeakLamports = runConfig.initialBalanceLamports;
+    ls.lowestTroughLamports = runConfig.initialBalanceLamports;
+    ls.currentPeakLamports = runConfig.initialBalanceLamports;
+    ls.currentTroughLamports = runConfig.initialBalanceLamports;
+    ls.maxDrawdownPercentage = 0;
     let biggestWin: {
         mint: string;
         amountLamports: number;
@@ -65,7 +107,6 @@ export async function runStrategy(
         mint: '',
         amountLamports: -1,
     };
-    let lossesCount = 0;
     let biggestLoss: {
         mint: string;
         amountLamports: number;
@@ -76,6 +117,19 @@ export async function runStrategy(
     const mintResults: Record<string, StrategyMintBacktestResult> = {};
 
     for (let i = 0; i < files.length; i++) {
+        ls.currentIndex = i;
+
+        while (pausedRef()) {
+            await sleep(150);
+        }
+
+        if (abortedRef()) {
+            if (verbose) {
+                logger.info('[%d] Aborting runStrategy', i);
+            }
+            break;
+        }
+
         const file = files[i];
 
         let content: HandlePumpTokenBotReport;
@@ -91,7 +145,7 @@ export async function runStrategy(
             const r = await backtester.run(
                 {
                     ...runConfig,
-                    initialBalanceLamports: balanceLamports,
+                    initialBalanceLamports: ls.balanceLamports,
                 },
                 initialCoinData,
                 content.history,
@@ -113,7 +167,7 @@ export async function runStrategy(
             if (verbose) {
                 logger.info(
                     '[%d] Results for mint: %s, %s, %s',
-                    processed,
+                    i,
                     initialCoinData.mint,
                     initialCoinData.name,
                     initialCoinData.symbol,
@@ -124,16 +178,16 @@ export async function runStrategy(
                 const pr = r as BacktestTradeResponse;
 
                 if (pr.tradeHistory.length > 0) {
-                    totalProfitLossLamports += pr.profitLossLamports;
-                    totalHoldingsValueInLamports += pr.holdings.lamportsValue;
+                    ls.totalProfitLossLamports += pr.profitLossLamports;
+                    ls.holdingsValueInLamports += pr.holdings.lamportsValue;
 
-                    totalTradesCount += pr.tradeHistory.length;
+                    ls.totalTradesCount += pr.tradeHistory.length;
                     const buysTrades = pr.tradeHistory.filter(e => e.transactionType === 'buy').length;
-                    totalBuyTradesCount += buysTrades;
-                    totalSellTradesCount += pr.tradeHistory.length - buysTrades;
+                    ls.totalBuyTradesCount += buysTrades;
+                    ls.totalSellTradesCount += pr.tradeHistory.length - buysTrades;
 
                     if (pr.profitLossLamports >= 0) {
-                        winsCount++;
+                        ls.winsCount++;
                         if (biggestWin.amountLamports < pr.profitLossLamports) {
                             biggestWin = {
                                 mint: content.mint,
@@ -141,7 +195,7 @@ export async function runStrategy(
                             };
                         }
                     } else {
-                        lossesCount++;
+                        ls.lossesCount++;
                         if (biggestLoss.amountLamports > pr.profitLossLamports) {
                             biggestLoss = {
                                 mint: content.mint,
@@ -154,29 +208,29 @@ export async function runStrategy(
                         const isSingleFullTrade = runConfig.onlyOneFullTrade && pr.tradeHistory.length === 2;
                         logger.info(
                             '[%d] Final balance: %s SOL and holdings %s',
-                            processed,
+                            i,
                             lamportsToSol(pr.finalBalanceLamports),
                             pr.holdings.amountRaw,
                         );
-                        logger.info('[%d] Profit/Loss: %s SOL', processed, lamportsToSol(pr.profitLossLamports));
+                        logger.info('[%d] Profit/Loss: %s SOL', i, lamportsToSol(pr.profitLossLamports));
                         logger.info(
                             '[%d] Holdings amount: %s, value: %s SOL',
-                            processed,
+                            i,
                             pr.holdings.amountRaw,
                             lamportsToSol(pr.holdings.lamportsValue),
                         );
-                        logger.info('[%d] Trades count %d', processed, pr.tradeHistory.length);
-                        logger.info('[%d] ROI %s%%', processed, pr.roi);
+                        logger.info('[%d] Trades count %d', i, pr.tradeHistory.length);
+                        logger.info('[%d] ROI %s%%', i, pr.roi);
                         logger.info(
                             '[%d] Max Drawdown: %s%%%s',
-                            processed,
+                            i,
                             pr.maxDrawdownPercentage,
                             isSingleFullTrade ? '' : '\n',
                         );
                         if (isSingleFullTrade) {
                             logger.info(
                                 '[%d] Trades=%o\n',
-                                processed,
+                                i,
                                 pr.tradeHistory.map(e => {
                                     const { historyRef, ...filteredMetadata } = e.metadata!;
 
@@ -202,45 +256,48 @@ export async function runStrategy(
                     if (verbose) {
                         logger.info(
                             '[%d] Completed full simulation — no trades executed across %d history entries\n',
-                            processed,
+                            i,
                             content.history.length,
                         );
                     }
                 }
 
-                balanceLamports += pr.profitLossLamports;
+                ls.roi = (ls.totalProfitLossLamports / runConfig.initialBalanceLamports) * 100;
+                ls.winRatePercentage =
+                    ls.totalTradesCount === 0 ? 0 : (ls.winsCount / (ls.winsCount + ls.lossesCount)) * 100;
+                ls.balanceLamports += pr.profitLossLamports;
 
-                if (balanceLamports > currentPeakLamports) {
-                    currentPeakLamports = balanceLamports;
-                    currentTroughLamports = balanceLamports; // reset trough on new peak
+                if (ls.balanceLamports > ls.currentPeakLamports) {
+                    ls.currentPeakLamports = ls.balanceLamports;
+                    ls.currentTroughLamports = ls.balanceLamports; // reset trough on new peak
 
                     // update all-time peak
-                    highestPeakLamports = Math.max(highestPeakLamports, currentPeakLamports);
-                } else if (balanceLamports < currentTroughLamports) {
-                    currentTroughLamports = balanceLamports;
+                    ls.highestPeakLamports = Math.max(ls.highestPeakLamports, ls.currentPeakLamports);
+                } else if (ls.balanceLamports < ls.currentTroughLamports) {
+                    ls.currentTroughLamports = ls.balanceLamports;
 
                     // update all-time trough
-                    lowestTroughLamports = Math.min(lowestTroughLamports, currentTroughLamports);
+                    ls.lowestTroughLamports = Math.min(ls.lowestTroughLamports, ls.currentTroughLamports);
 
                     const drawdownPercentage =
-                        ((currentPeakLamports - currentTroughLamports) / currentPeakLamports) * 100;
-                    maxDrawdownPercentage = Math.max(maxDrawdownPercentage, drawdownPercentage);
+                        ((ls.currentPeakLamports - ls.currentTroughLamports) / ls.currentPeakLamports) * 100;
+                    ls.maxDrawdownPercentage = Math.max(ls.maxDrawdownPercentage, drawdownPercentage);
                 }
 
-                if (balanceLamports <= 0) {
+                if (ls.balanceLamports <= 0) {
                     logger.info(
                         '[%d] Stopping because reached <=0 balance: %s SOL',
-                        processed,
-                        lamportsToSol(balanceLamports),
+                        i,
+                        lamportsToSol(ls.balanceLamports),
                     );
                     break;
                 }
 
-                if (balanceLamports <= buyAmountLamports) {
+                if (ls.balanceLamports <= buyAmountLamports) {
                     logger.info(
                         '[%d] Stopping because reached balance (%s SOL) <= buyAmount (%s SOL)',
-                        processed,
-                        lamportsToSol(balanceLamports),
+                        i,
+                        lamportsToSol(ls.balanceLamports),
                         runConfig.buyAmountSol,
                     );
                     break;
@@ -248,45 +305,33 @@ export async function runStrategy(
             } else {
                 const pr = r as BacktestExitResponse;
                 if (verbose) {
-                    logger.info(
-                        '[%d] Exited monitoring with code: %s, reason: %s\n',
-                        processed,
-                        pr.exitCode,
-                        pr.exitReason,
-                    );
+                    logger.info('[%d] Exited monitoring with code: %s, reason: %s\n', i, pr.exitCode, pr.exitReason);
                 }
             }
         } catch (e) {
-            logger.error('[%d] Error handling mint %s', processed, initialCoinData.mint);
+            logger.error('[%d] Error handling mint %s', i, initialCoinData.mint);
             logger.info(e);
-        }
-
-        processed++;
-
-        if (processed === maxToProcess) {
-            logger.info('[%d] Processed maxToProcess=%d files and will stop', processed, maxToProcess);
-            break;
         }
     }
 
     return {
-        totalPnlInSol: lamportsToSol(totalProfitLossLamports),
-        finalBalanceLamports: balanceLamports,
-        totalHoldingsValueInSol: lamportsToSol(totalHoldingsValueInLamports),
-        totalRoi: (totalProfitLossLamports / runConfig.initialBalanceLamports) * 100,
-        totalTradesCount: totalTradesCount,
-        totalBuyTradesCount: totalBuyTradesCount,
-        totalSellTradesCount: totalSellTradesCount,
-        winRatePercentage: totalTradesCount === 0 ? 0 : (winsCount / (winsCount + lossesCount)) * 100,
-        winsCount: winsCount,
+        totalPnlInSol: lamportsToSol(ls.totalProfitLossLamports),
+        finalBalanceLamports: ls.balanceLamports,
+        totalHoldingsValueInSol: lamportsToSol(ls.holdingsValueInLamports),
+        totalRoi: ls.roi,
+        totalTradesCount: ls.totalTradesCount,
+        totalBuyTradesCount: ls.totalBuyTradesCount,
+        totalSellTradesCount: ls.totalSellTradesCount,
+        winRatePercentage: ls.winRatePercentage,
+        winsCount: ls.winsCount,
         biggestWinPercentage:
-            winsCount === 0 ? 0 : (lamportsToSol(biggestWin.amountLamports) / runConfig.buyAmountSol) * 100,
-        lossesCount: lossesCount,
+            ls.winsCount === 0 ? 0 : (lamportsToSol(biggestWin.amountLamports) / runConfig.buyAmountSol) * 100,
+        lossesCount: ls.lossesCount,
         biggestLossPercentage:
-            lossesCount === 0 ? 0 : (lamportsToSol(biggestLoss.amountLamports) / runConfig.buyAmountSol) * 100,
-        highestPeakLamports: highestPeakLamports,
-        lowestTroughLamports: lowestTroughLamports,
-        maxDrawdownPercentage: maxDrawdownPercentage,
+            ls.lossesCount === 0 ? 0 : (lamportsToSol(biggestLoss.amountLamports) / runConfig.buyAmountSol) * 100,
+        highestPeakLamports: ls.highestPeakLamports,
+        lowestTroughLamports: ls.lowestTroughLamports,
+        maxDrawdownPercentage: ls.maxDrawdownPercentage,
         mintResults: mintResults,
     };
 }

@@ -7,6 +7,7 @@
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 import { ProtoAny } from "./google/protobuf/any";
+import { ProtoStruct } from "./google/protobuf/struct";
 
 export const protobufPackage = "ws";
 
@@ -69,6 +70,39 @@ export function protoFetchStatusToJSON(object: ProtoFetchStatus): string {
     case ProtoFetchStatus.FETCH_STATUS_TIMEOUT:
       return "FETCH_STATUS_TIMEOUT";
     case ProtoFetchStatus.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
+export enum ProtoRpcStatus {
+  OK = 0,
+  ERROR = 1,
+  UNRECOGNIZED = -1,
+}
+
+export function protoRpcStatusFromJSON(object: any): ProtoRpcStatus {
+  switch (object) {
+    case 0:
+    case "OK":
+      return ProtoRpcStatus.OK;
+    case 1:
+    case "ERROR":
+      return ProtoRpcStatus.ERROR;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return ProtoRpcStatus.UNRECOGNIZED;
+  }
+}
+
+export function protoRpcStatusToJSON(object: ProtoRpcStatus): string {
+  switch (object) {
+    case ProtoRpcStatus.OK:
+      return "OK";
+    case ProtoRpcStatus.ERROR:
+      return "ERROR";
+    case ProtoRpcStatus.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
   }
@@ -211,6 +245,23 @@ export interface ProtoUpdatesPayload {
 export interface ProtoUpdatesPayload_AppliedFiltersEntry {
   key: string;
   value: ProtoFilterValue | undefined;
+}
+
+export interface ProtoRpcPayload {
+  method: string;
+  status: ProtoRpcStatus;
+  success?: ProtoRpcSuccessPayload | undefined;
+  error?: ProtoRpcErrorPayload | undefined;
+}
+
+export interface ProtoRpcSuccessPayload {
+  data: ProtoAny | undefined;
+}
+
+export interface ProtoRpcErrorPayload {
+  errorCode: string;
+  errorMessage?: string | undefined;
+  details: { [key: string]: any } | undefined;
 }
 
 function createBaseProtoCursorPaginatedResponse(): ProtoCursorPaginatedResponse {
@@ -1432,6 +1483,268 @@ export const ProtoUpdatesPayload_AppliedFiltersEntry: MessageFns<ProtoUpdatesPay
     message.value = (object.value !== undefined && object.value !== null)
       ? ProtoFilterValue.fromPartial(object.value)
       : undefined;
+    return message;
+  },
+};
+
+function createBaseProtoRpcPayload(): ProtoRpcPayload {
+  return { method: "", status: 0, success: undefined, error: undefined };
+}
+
+export const ProtoRpcPayload: MessageFns<ProtoRpcPayload> = {
+  encode(message: ProtoRpcPayload, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.method !== "") {
+      writer.uint32(10).string(message.method);
+    }
+    if (message.status !== 0) {
+      writer.uint32(16).int32(message.status);
+    }
+    if (message.success !== undefined) {
+      ProtoRpcSuccessPayload.encode(message.success, writer.uint32(26).fork()).join();
+    }
+    if (message.error !== undefined) {
+      ProtoRpcErrorPayload.encode(message.error, writer.uint32(34).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ProtoRpcPayload {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProtoRpcPayload();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.method = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.status = reader.int32() as any;
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.success = ProtoRpcSuccessPayload.decode(reader, reader.uint32());
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.error = ProtoRpcErrorPayload.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ProtoRpcPayload {
+    return {
+      method: isSet(object.method) ? globalThis.String(object.method) : "",
+      status: isSet(object.status) ? protoRpcStatusFromJSON(object.status) : 0,
+      success: isSet(object.success) ? ProtoRpcSuccessPayload.fromJSON(object.success) : undefined,
+      error: isSet(object.error) ? ProtoRpcErrorPayload.fromJSON(object.error) : undefined,
+    };
+  },
+
+  toJSON(message: ProtoRpcPayload): unknown {
+    const obj: any = {};
+    if (message.method !== "") {
+      obj.method = message.method;
+    }
+    if (message.status !== 0) {
+      obj.status = protoRpcStatusToJSON(message.status);
+    }
+    if (message.success !== undefined) {
+      obj.success = ProtoRpcSuccessPayload.toJSON(message.success);
+    }
+    if (message.error !== undefined) {
+      obj.error = ProtoRpcErrorPayload.toJSON(message.error);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ProtoRpcPayload>, I>>(base?: I): ProtoRpcPayload {
+    return ProtoRpcPayload.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ProtoRpcPayload>, I>>(object: I): ProtoRpcPayload {
+    const message = createBaseProtoRpcPayload();
+    message.method = object.method ?? "";
+    message.status = object.status ?? 0;
+    message.success = (object.success !== undefined && object.success !== null)
+      ? ProtoRpcSuccessPayload.fromPartial(object.success)
+      : undefined;
+    message.error = (object.error !== undefined && object.error !== null)
+      ? ProtoRpcErrorPayload.fromPartial(object.error)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseProtoRpcSuccessPayload(): ProtoRpcSuccessPayload {
+  return { data: undefined };
+}
+
+export const ProtoRpcSuccessPayload: MessageFns<ProtoRpcSuccessPayload> = {
+  encode(message: ProtoRpcSuccessPayload, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.data !== undefined) {
+      ProtoAny.encode(message.data, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ProtoRpcSuccessPayload {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProtoRpcSuccessPayload();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.data = ProtoAny.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ProtoRpcSuccessPayload {
+    return { data: isSet(object.data) ? ProtoAny.fromJSON(object.data) : undefined };
+  },
+
+  toJSON(message: ProtoRpcSuccessPayload): unknown {
+    const obj: any = {};
+    if (message.data !== undefined) {
+      obj.data = ProtoAny.toJSON(message.data);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ProtoRpcSuccessPayload>, I>>(base?: I): ProtoRpcSuccessPayload {
+    return ProtoRpcSuccessPayload.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ProtoRpcSuccessPayload>, I>>(object: I): ProtoRpcSuccessPayload {
+    const message = createBaseProtoRpcSuccessPayload();
+    message.data = (object.data !== undefined && object.data !== null) ? ProtoAny.fromPartial(object.data) : undefined;
+    return message;
+  },
+};
+
+function createBaseProtoRpcErrorPayload(): ProtoRpcErrorPayload {
+  return { errorCode: "", errorMessage: undefined, details: undefined };
+}
+
+export const ProtoRpcErrorPayload: MessageFns<ProtoRpcErrorPayload> = {
+  encode(message: ProtoRpcErrorPayload, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.errorCode !== "") {
+      writer.uint32(10).string(message.errorCode);
+    }
+    if (message.errorMessage !== undefined) {
+      writer.uint32(18).string(message.errorMessage);
+    }
+    if (message.details !== undefined) {
+      ProtoStruct.encode(ProtoStruct.wrap(message.details), writer.uint32(26).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ProtoRpcErrorPayload {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProtoRpcErrorPayload();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.errorCode = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.errorMessage = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.details = ProtoStruct.unwrap(ProtoStruct.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ProtoRpcErrorPayload {
+    return {
+      errorCode: isSet(object.errorCode) ? globalThis.String(object.errorCode) : "",
+      errorMessage: isSet(object.errorMessage) ? globalThis.String(object.errorMessage) : undefined,
+      details: isObject(object.details) ? object.details : undefined,
+    };
+  },
+
+  toJSON(message: ProtoRpcErrorPayload): unknown {
+    const obj: any = {};
+    if (message.errorCode !== "") {
+      obj.errorCode = message.errorCode;
+    }
+    if (message.errorMessage !== undefined) {
+      obj.errorMessage = message.errorMessage;
+    }
+    if (message.details !== undefined) {
+      obj.details = message.details;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ProtoRpcErrorPayload>, I>>(base?: I): ProtoRpcErrorPayload {
+    return ProtoRpcErrorPayload.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ProtoRpcErrorPayload>, I>>(object: I): ProtoRpcErrorPayload {
+    const message = createBaseProtoRpcErrorPayload();
+    message.errorCode = object.errorCode ?? "";
+    message.errorMessage = object.errorMessage ?? undefined;
+    message.details = object.details ?? undefined;
     return message;
   },
 };

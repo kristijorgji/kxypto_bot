@@ -15,7 +15,7 @@ export async function up(knex: Knex): Promise<void> {
             .inTable(Tables.BacktestRuns)
             .onDelete('CASCADE')
             .index();
-        table.enum('status', ['pending', 'running', 'completed', 'failed']).notNullable().index();
+        table.enum('status', ['pending', 'running', 'completed', 'failed', 'aborted']).notNullable().index();
         table.string('strategy').notNullable();
         table.string('strategy_id').notNullable();
         table.string('config_variant', 300).notNullable();

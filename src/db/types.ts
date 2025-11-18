@@ -51,10 +51,20 @@ export type Backtest = {
     created_at?: Date;
 };
 
+/**
+ * Represents the lifecycle status of a strategy backtest.
+ *
+ * - **Pending**: The database record was created, but execution has not started yet.
+ * - **Running**: The backtest is currently processing data or executing strategy logic.
+ * - **Completed**: Execution finished successfully without interruption.
+ * - **Aborted**: Execution was intentionally stopped by the user (e.g., via an ABORT command).
+ * - **Failed**: Execution terminated unexpectedly due to an error.
+ */
 export enum ProcessingStatus {
     Pending = 'pending',
     Running = 'running',
     Completed = 'completed',
+    Aborted = 'aborted',
     Failed = 'failed',
 }
 

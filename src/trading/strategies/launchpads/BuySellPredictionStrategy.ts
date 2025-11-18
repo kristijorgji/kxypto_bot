@@ -72,7 +72,7 @@ export type BuySellPredictionStrategyConfigInput = Partial<BuySellPredictionStra
 
 export type BuySellPredictionStrategyShouldSellResponseReason = PredictionStrategyShouldSellResponseReason | SellReason;
 
-const CacheDefaultTtlSeconds = 3600 * 24 * 30;
+const CacheDefaultTtlSeconds = 3600 * 24 * 14;
 
 export default class BuySellPredictionStrategy extends LimitsBasedStrategy {
     readonly name = 'BuySellPredictionStrategy';

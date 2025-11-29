@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 
-import { organizePumpfunFiles } from '@src/trading/backtesting/data/pumpfun/utils';
+import { organizePumpfunFiles } from '@src/trading/backtesting/data/pumpfun/organizePumpfunFiles';
 
 const organizeStatsProgram = new Command();
 organizeStatsProgram

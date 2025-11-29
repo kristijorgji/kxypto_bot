@@ -1,7 +1,8 @@
 import fs from 'fs';
 
 import { logger } from '@src/logger';
-import { formPumpfunBacktestStatsDir, organizePumpfunFiles } from '@src/trading/backtesting/data/pumpfun/utils';
+import { organizePumpfunFiles } from '@src/trading/backtesting/data/pumpfun/organizePumpfunFiles';
+import { formPumpfunBacktestStatsDir } from '@src/trading/backtesting/data/pumpfun/utils';
 import { HandlePumpTokenReport } from '@src/trading/bots/blockchains/solana/types';
 import { insertKeysAfter } from '@src/utils/data/records';
 import { walkDirFilesSyncRecursive } from '@src/utils/files';

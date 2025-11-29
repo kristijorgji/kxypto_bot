@@ -68,8 +68,11 @@ message BacktestStrategyResultStatusResponseMessage {
   uint64 mintIndex = 2;
   double pnl = 3;
   double roi = 4;
-  double holdings = 5;
-  uint64 winsCount = 6;
-  uint64 lossesCount = 7;
-  double winRate = 8;
+  double holdingsValue = 5;
+  double winRate = 6;
+  uint64 winsCount = 7;
+  uint64 lossesCount = 8;
+  uint64 totalTradesCount = 9;
+  uint64 buyTradesCount = 10;
+  uint64 sellTradesCount = 11;
 }

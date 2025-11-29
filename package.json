@@ -34,6 +34,7 @@
     "run:script": "ts-node -r tsconfig-paths/register -r dotenv/config",
     "pumpfun-bot": "yarn run:script src/scripts/pumpfun/bot.ts",
     "pumpfun-organize": "yarn run:script src/scripts/pumpfun/organize-stats.ts",
+    "pumpfun-filter-mint-results": "yarn run:script src/scripts/pumpfun/filter-mint-results.ts",
     "pumpfun-migrate-stats": "yarn run:script src/scripts/pumpfun/migrate-stats.ts",
     "pumpfun-migrate-stats-to-db": "yarn run:script src/scripts/pumpfun/migrate-stats-to-db.ts",
     "pumpfun-backtest": "yarn run:script src/scripts/pumpfun/backtest-strategy.ts",

@@ -69,10 +69,13 @@ export interface ProtoBacktestStrategyResultStatusResponseMessage {
   mintIndex: number;
   pnl: number;
   roi: number;
-  holdings: number;
+  holdingsValue: number;
+  winRate: number;
   winsCount: number;
   lossesCount: number;
-  winRate: number;
+  totalTradesCount: number;
+  buyTradesCount: number;
+  sellTradesCount: number;
 }
 
 function createBaseProtoBacktestRun(): ProtoBacktestRun {
@@ -969,7 +972,19 @@ export const ProtoBacktestStrategyFullResult: MessageFns<ProtoBacktestStrategyFu
 };
 
 function createBaseProtoBacktestStrategyResultStatusResponseMessage(): ProtoBacktestStrategyResultStatusResponseMessage {
-  return { strategyResultId: 0, mintIndex: 0, pnl: 0, roi: 0, holdings: 0, winsCount: 0, lossesCount: 0, winRate: 0 };
+  return {
+    strategyResultId: 0,
+    mintIndex: 0,
+    pnl: 0,
+    roi: 0,
+    holdingsValue: 0,
+    winRate: 0,
+    winsCount: 0,
+    lossesCount: 0,
+    totalTradesCount: 0,
+    buyTradesCount: 0,
+    sellTradesCount: 0,
+  };
 }
 
 export const ProtoBacktestStrategyResultStatusResponseMessage: MessageFns<
@@ -991,17 +1006,26 @@ export const ProtoBacktestStrategyResultStatusResponseMessage: MessageFns<
     if (message.roi !== 0) {
       writer.uint32(33).double(message.roi);
     }
-    if (message.holdings !== 0) {
-      writer.uint32(41).double(message.holdings);
-    }
-    if (message.winsCount !== 0) {
-      writer.uint32(48).uint64(message.winsCount);
-    }
-    if (message.lossesCount !== 0) {
-      writer.uint32(56).uint64(message.lossesCount);
+    if (message.holdingsValue !== 0) {
+      writer.uint32(41).double(message.holdingsValue);
     }
     if (message.winRate !== 0) {
-      writer.uint32(65).double(message.winRate);
+      writer.uint32(49).double(message.winRate);
+    }
+    if (message.winsCount !== 0) {
+      writer.uint32(56).uint64(message.winsCount);
+    }
+    if (message.lossesCount !== 0) {
+      writer.uint32(64).uint64(message.lossesCount);
+    }
+    if (message.totalTradesCount !== 0) {
+      writer.uint32(72).uint64(message.totalTradesCount);
+    }
+    if (message.buyTradesCount !== 0) {
+      writer.uint32(80).uint64(message.buyTradesCount);
+    }
+    if (message.sellTradesCount !== 0) {
+      writer.uint32(88).uint64(message.sellTradesCount);
     }
     return writer;
   },
@@ -1050,15 +1074,15 @@ export const ProtoBacktestStrategyResultStatusResponseMessage: MessageFns<
             break;
           }
 
-          message.holdings = reader.double();
+          message.holdingsValue = reader.double();
           continue;
         }
         case 6: {
-          if (tag !== 48) {
+          if (tag !== 49) {
             break;
           }
 
-          message.winsCount = longToNumber(reader.uint64());
+          message.winRate = reader.double();
           continue;
         }
         case 7: {
@@ -1066,15 +1090,39 @@ export const ProtoBacktestStrategyResultStatusResponseMessage: MessageFns<
             break;
           }
 
-          message.lossesCount = longToNumber(reader.uint64());
+          message.winsCount = longToNumber(reader.uint64());
           continue;
         }
         case 8: {
-          if (tag !== 65) {
+          if (tag !== 64) {
             break;
           }
 
-          message.winRate = reader.double();
+          message.lossesCount = longToNumber(reader.uint64());
+          continue;
+        }
+        case 9: {
+          if (tag !== 72) {
+            break;
+          }
+
+          message.totalTradesCount = longToNumber(reader.uint64());
+          continue;
+        }
+        case 10: {
+          if (tag !== 80) {
+            break;
+          }
+
+          message.buyTradesCount = longToNumber(reader.uint64());
+          continue;
+        }
+        case 11: {
+          if (tag !== 88) {
+            break;
+          }
+
+          message.sellTradesCount = longToNumber(reader.uint64());
           continue;
         }
       }
@@ -1092,10 +1140,13 @@ export const ProtoBacktestStrategyResultStatusResponseMessage: MessageFns<
       mintIndex: isSet(object.mintIndex) ? globalThis.Number(object.mintIndex) : 0,
       pnl: isSet(object.pnl) ? globalThis.Number(object.pnl) : 0,
       roi: isSet(object.roi) ? globalThis.Number(object.roi) : 0,
-      holdings: isSet(object.holdings) ? globalThis.Number(object.holdings) : 0,
+      holdingsValue: isSet(object.holdingsValue) ? globalThis.Number(object.holdingsValue) : 0,
+      winRate: isSet(object.winRate) ? globalThis.Number(object.winRate) : 0,
       winsCount: isSet(object.winsCount) ? globalThis.Number(object.winsCount) : 0,
       lossesCount: isSet(object.lossesCount) ? globalThis.Number(object.lossesCount) : 0,
-      winRate: isSet(object.winRate) ? globalThis.Number(object.winRate) : 0,
+      totalTradesCount: isSet(object.totalTradesCount) ? globalThis.Number(object.totalTradesCount) : 0,
+      buyTradesCount: isSet(object.buyTradesCount) ? globalThis.Number(object.buyTradesCount) : 0,
+      sellTradesCount: isSet(object.sellTradesCount) ? globalThis.Number(object.sellTradesCount) : 0,
     };
   },
 
@@ -1113,8 +1164,11 @@ export const ProtoBacktestStrategyResultStatusResponseMessage: MessageFns<
     if (message.roi !== 0) {
       obj.roi = message.roi;
     }
-    if (message.holdings !== 0) {
-      obj.holdings = message.holdings;
+    if (message.holdingsValue !== 0) {
+      obj.holdingsValue = message.holdingsValue;
+    }
+    if (message.winRate !== 0) {
+      obj.winRate = message.winRate;
     }
     if (message.winsCount !== 0) {
       obj.winsCount = Math.round(message.winsCount);
@@ -1122,8 +1176,14 @@ export const ProtoBacktestStrategyResultStatusResponseMessage: MessageFns<
     if (message.lossesCount !== 0) {
       obj.lossesCount = Math.round(message.lossesCount);
     }
-    if (message.winRate !== 0) {
-      obj.winRate = message.winRate;
+    if (message.totalTradesCount !== 0) {
+      obj.totalTradesCount = Math.round(message.totalTradesCount);
+    }
+    if (message.buyTradesCount !== 0) {
+      obj.buyTradesCount = Math.round(message.buyTradesCount);
+    }
+    if (message.sellTradesCount !== 0) {
+      obj.sellTradesCount = Math.round(message.sellTradesCount);
     }
     return obj;
   },
@@ -1141,10 +1201,13 @@ export const ProtoBacktestStrategyResultStatusResponseMessage: MessageFns<
     message.mintIndex = object.mintIndex ?? 0;
     message.pnl = object.pnl ?? 0;
     message.roi = object.roi ?? 0;
-    message.holdings = object.holdings ?? 0;
+    message.holdingsValue = object.holdingsValue ?? 0;
+    message.winRate = object.winRate ?? 0;
     message.winsCount = object.winsCount ?? 0;
     message.lossesCount = object.lossesCount ?? 0;
-    message.winRate = object.winRate ?? 0;
+    message.totalTradesCount = object.totalTradesCount ?? 0;
+    message.buyTradesCount = object.buyTradesCount ?? 0;
+    message.sellTradesCount = object.sellTradesCount ?? 0;
     return message;
   },
 };

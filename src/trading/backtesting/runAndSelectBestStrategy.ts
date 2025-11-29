@@ -133,10 +133,13 @@ export default async function runAndSelectBestStrategy(
                         mintIndex: currentStrategyLiveState.currentIndex,
                         pnl: lamportsToSol(currentStrategyLiveState.totalProfitLossLamports),
                         roi: currentStrategyLiveState.roi,
-                        holdings: lamportsToSol(currentStrategyLiveState.holdingsValueInLamports),
+                        holdingsValue: lamportsToSol(currentStrategyLiveState.holdingsValueInLamports),
+                        winRate: currentStrategyLiveState.winRatePercentage,
                         winsCount: currentStrategyLiveState.winsCount,
                         lossesCount: currentStrategyLiveState.lossesCount,
-                        winRate: currentStrategyLiveState.winRatePercentage,
+                        totalTradesCount: currentStrategyLiveState.totalTradesCount,
+                        buyTradesCount: currentStrategyLiveState.totalBuyTradesCount,
+                        sellTradesCount: currentStrategyLiveState.totalSellTradesCount,
                     } satisfies BacktestStrategyResultStatusResponseMessage),
                 );
                 break;

@@ -11,8 +11,8 @@ import {
 } from '@src/protos/generated/backtests';
 import { normalizeOptionalFields, normalizeOptionalFieldsInArray } from '@src/protos/mappers/normalizeOptionalFields';
 import {
-    BacktestExitResponse,
-    BacktestTradeResponse,
+    BacktestMintExitResponse,
+    BacktestMintTradeResponse,
     StrategyBacktestResult,
     StrategyMintBacktestResult,
 } from '@src/trading/bots/blockchains/solana/types';
@@ -414,9 +414,9 @@ export function formDraftMintResultFromBacktestMintResult(
     strategyResultId: number,
     bmr: StrategyMintBacktestResult,
 ): Omit<BacktestStrategyMintResult, 'id' | 'updated_at'> {
-    const tradeResponse: BacktestTradeResponse | null = (
-        (bmr.backtestResponse as BacktestTradeResponse)?.profitLossLamports ? bmr.backtestResponse : null
-    ) as BacktestTradeResponse | null;
+    const tradeResponse: BacktestMintTradeResponse | null = (
+        (bmr.backtestResponse as BacktestMintTradeResponse)?.profitLossLamports ? bmr.backtestResponse : null
+    ) as BacktestMintTradeResponse | null;
 
     let totalTradesCount = 0;
     let buyTradesCount = 0;
@@ -444,8 +444,8 @@ export function formDraftMintResultFromBacktestMintResult(
         buy_trades_count: buyTradesCount,
         sell_trades_count: sellTradesCount,
         roi: tradeResponse?.roi ?? null,
-        exit_code: (bmr.backtestResponse as BacktestExitResponse)?.exitCode ?? null,
-        exit_reason: (bmr.backtestResponse as BacktestExitResponse)?.exitReason ?? null,
+        exit_code: (bmr.backtestResponse as BacktestMintExitResponse)?.exitCode ?? null,
+        exit_reason: (bmr.backtestResponse as BacktestMintExitResponse)?.exitReason ?? null,
         payload: bmr.backtestResponse,
         created_at: new Date(bmr.createdAt),
     } satisfies Omit<BacktestStrategyMintResult, 'id' | 'updated_at'>;

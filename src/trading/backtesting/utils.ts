@@ -12,10 +12,10 @@ import { formatElapsedTime } from '@src/utils/time';
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
 import {
-    BacktestExitResponse,
-    BacktestResponse,
+    BacktestMintExitResponse,
+    BacktestMintResponse,
+    BacktestMintTradeResponse,
     BacktestStrategyRunConfig,
-    BacktestTradeResponse,
     HandlePumpTokenBotReport,
     PumpfunSellPositionMetadata,
     StrategyBacktestResult,
@@ -174,8 +174,8 @@ export async function runStrategy(
                 );
             }
 
-            if ((r as BacktestTradeResponse).tradeHistory) {
-                const pr = r as BacktestTradeResponse;
+            if ((r as BacktestMintTradeResponse).tradeHistory) {
+                const pr = r as BacktestMintTradeResponse;
 
                 if (pr.tradeHistory.length > 0) {
                     ls.totalProfitLossLamports += pr.profitLossLamports;
@@ -303,7 +303,7 @@ export async function runStrategy(
                     break;
                 }
             } else {
-                const pr = r as BacktestExitResponse;
+                const pr = r as BacktestMintExitResponse;
                 if (verbose) {
                     logger.info('[%d] Exited monitoring with code: %s, reason: %s\n', i, pr.exitCode, pr.exitReason);
                 }
@@ -361,9 +361,9 @@ export function logStrategyResult(
     logger.info('Total sell trades count %d', sr.totalSellTradesCount);
     const sellReasons: Record<string, number> = {};
     for (const mint in sr.mintResults) {
-        const backtestResponse: BacktestResponse = sr.mintResults[mint].backtestResponse;
-        if ((backtestResponse as BacktestTradeResponse).tradeHistory) {
-            for (const tradeTransaction of (backtestResponse as BacktestTradeResponse).tradeHistory) {
+        const backtestResponse: BacktestMintResponse = sr.mintResults[mint].backtestResponse;
+        if ((backtestResponse as BacktestMintTradeResponse).tradeHistory) {
+            for (const tradeTransaction of (backtestResponse as BacktestMintTradeResponse).tradeHistory) {
                 if (tradeTransaction.transactionType !== 'sell') {
                     continue;
                 }

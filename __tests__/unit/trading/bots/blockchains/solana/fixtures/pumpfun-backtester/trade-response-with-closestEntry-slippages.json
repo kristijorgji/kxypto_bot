@@ -7,6 +7,38 @@
   "maxDrawdownPercentage": 0,
   "profitLossLamports": 258407093.86281586,
   "roi": 25.840709386281585,
+  "events": [
+    {
+      "action": "startBuy",
+      "historyRef": {
+        "index": 0,
+        "timestamp": 7
+      },
+      "reason": "shouldBuyStateless"
+    },
+    {
+      "action": "buyCompleted",
+      "historyRef": {
+        "index": 2,
+        "timestamp": 20
+      }
+    },
+    {
+      "action": "startSell",
+      "historyRef": {
+        "index": 2,
+        "timestamp": 20
+      },
+      "reason": "TAKE_PROFIT"
+    },
+    {
+      "action": "sellCompleted",
+      "historyRef": {
+        "index": 3,
+        "timestamp": 22
+      }
+    }
+  ],
   "tradeHistory": [
     {
       "amountRaw": 144404.3321299639,

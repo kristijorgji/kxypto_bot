@@ -46,6 +46,7 @@ export type Token<T = Record<string, unknown>> = {
 
 export type Backtest = {
     id: string;
+    chain: Blockchain;
     name?: string | null;
     config: BacktestRunConfig;
     created_at?: Date;

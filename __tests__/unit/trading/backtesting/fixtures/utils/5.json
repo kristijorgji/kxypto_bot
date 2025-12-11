@@ -128,6 +128,38 @@
               }
             }
           ],
+          "events": [
+            {
+              "action": "startBuy",
+              "historyRef": {
+                "index": 0,
+                "timestamp": 1
+              },
+              "reason": "always"
+            },
+            {
+              "action": "buyCompleted",
+              "historyRef": {
+                "index": 1,
+                "timestamp": 2
+              }
+            },
+            {
+              "action": "startSell",
+              "historyRef": {
+                "index": 1,
+                "timestamp": 2
+              },
+              "reason": "STOP_LOSS"
+            },
+            {
+              "action": "sellCompleted",
+              "historyRef": {
+                "index": 1,
+                "timestamp": 2
+              }
+            }
+          ],
           "finalBalanceLamports": 473145000,
           "profitLossLamports": -526855000,
           "holdings": {
@@ -135,7 +167,7 @@
             "lamportsValue": 0
           },
           "roi": -52.6855,
-          "maxDrawdownPercentage": 0
+          "maxDrawdownPercentage": 52.6855
         }
       }
     }

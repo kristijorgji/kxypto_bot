@@ -69,6 +69,7 @@ export default async function runAndSelectBestStrategy(
         logger.info('Storing backtest with id %s', backtestId);
         backtest = {
             id: backtestId,
+            chain: 'solana',
             config: runConfig,
         };
         await storeBacktest(backtest);

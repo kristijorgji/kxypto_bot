@@ -24,6 +24,7 @@
         "mintFilePath": "tmp_test/nta.json",
         "backtestResponse": {
           "tradeHistory": [],
+          "events": [],
           "finalBalanceLamports": 1000000000,
           "profitLossLamports": 0,
           "holdings": {

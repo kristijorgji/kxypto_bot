@@ -4,9 +4,56 @@
     "amountRaw": 4000000,
     "lamportsValue": 400000000
   },
-  "maxDrawdownPercentage": 0,
+  "maxDrawdownPercentage": 5.247869286001,
   "profitLossLamports": -185687256.31768942,
   "roi": -18.56872563176894,
+  "events": [
+    {
+      "action": "startBuy",
+      "historyRef": {
+        "index": 0,
+        "timestamp": 7
+      },
+      "reason": "shouldBuyStateless"
+    },
+    {
+      "action": "buyCompleted",
+      "historyRef": {
+        "index": 1,
+        "timestamp": 8
+      }
+    },
+    {
+      "action": "startSell",
+      "historyRef": {
+        "index": 1,
+        "timestamp": 8
+      },
+      "reason": "TAKE_PROFIT"
+    },
+    {
+      "action": "sellCompleted",
+      "historyRef": {
+        "index": 2,
+        "timestamp": 9
+      }
+    },
+    {
+      "action": "startBuy",
+      "historyRef": {
+        "index": 2,
+        "timestamp": 9
+      },
+      "reason": "shouldBuyStateless"
+    },
+    {
+      "action": "buyCompleted",
+      "historyRef": {
+        "index": 3,
+        "timestamp": 10
+      }
+    }
+  ],
   "tradeHistory": [
     {
       "amountRaw": 144404.3321299639,

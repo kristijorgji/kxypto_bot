@@ -8,6 +8,7 @@ import { strategyFileConfigSchema } from '@src/trading/config/types';
 import LaunchpadBotStrategy from '../../../strategies/launchpads/LaunchpadBotStrategy';
 import { HistoryEntry } from '../../launchpads/types';
 import {
+    BotEvent,
     BotManagerConfig,
     BotMonitorConfig,
     BotStrategy,
@@ -157,13 +158,15 @@ export const pumpfunBotFileConfigSchema = z.object({
 });
 export type PumpfunBotFileConfig = z.infer<typeof pumpfunBotFileConfigSchema>;
 
-export type BacktestExitResponse = {
+export type BacktestMintExitResponse = {
+    historyRef: HistoryRef;
     exitCode: ExitMonitoringReason;
     exitReason: string;
 };
 
-export type BacktestTradeResponse = {
+export type BacktestMintTradeResponse = {
     tradeHistory: TradeTransaction[];
+    events: BotEvent[];
     finalBalanceLamports: number;
     profitLossLamports: number;
     holdings: {
@@ -174,7 +177,7 @@ export type BacktestTradeResponse = {
     roi: number;
 };
 
-export type BacktestResponse = BacktestExitResponse | BacktestTradeResponse;
+export type BacktestMintResponse = BacktestMintExitResponse | BacktestMintTradeResponse;
 
 export const backtestStrategyRunConfigSchema = z.object({
     /**
@@ -271,7 +274,7 @@ export type StrategyMintBacktestResult = {
     mint: string;
     mintFileStorageType: FileStorageType;
     mintFilePath: string;
-    backtestResponse: BacktestResponse;
+    backtestResponse: BacktestMintResponse;
     createdAt: Date;
 };
 

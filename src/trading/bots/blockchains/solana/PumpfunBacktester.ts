@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import { Logger } from 'winston';
 
 import { PUMPFUN_TOKEN_DECIMALS } from '@src/blockchains/solana/dex/pumpfun/constants';
@@ -18,7 +19,7 @@ import { lamportsToSol, solToLamports } from '@src/blockchains/utils/amount';
 
 import { formSolBoughtOrSold, formTokenBoughtOrSold } from './PumpfunBot';
 import {
-    BacktestResponse,
+    BacktestMintResponse,
     BacktestStrategyRunConfig,
     HandlePumpTokenBotReport,
     PumpfunBuyPositionMetadata,
@@ -26,7 +27,7 @@ import {
     TradeTransaction,
 } from './types';
 import { HistoryEntry } from '../../launchpads/types';
-import { SellReason, ShouldBuyResponse, ShouldSellResponse } from '../../types';
+import { BotEvent, SellReason, ShouldBuyResponse, ShouldSellResponse } from '../../types';
 
 const BacktestWallet = '_backtest_';
 
@@ -50,14 +51,17 @@ export default class PumpfunBacktester {
         tokenInfo: PumpfunInitialCoinData,
         history: HistoryEntry[],
         monitorConfig: HandlePumpTokenBotReport['monitor'],
-    ): Promise<BacktestResponse> {
+    ): Promise<BacktestMintResponse> {
         const historySoFar: HistoryEntry[] = [];
         let balanceLamports = initialBalanceLamports;
         let holdingsRaw = 0;
+        let soldOnce = false;
         const tradeHistory: TradeTransaction[] = [];
+        const events: BotEvent[] = [];
         let peakBalanceLamports = initialBalanceLamports; // Tracks the highest balanceLamports achieved
         let maxDrawdownPercentage = 0; // Tracks max drawdown from peak
         const buyAmountLamports = solToLamports(buyAmountSol);
+        const jitoTipLamports = getJitoTipLamports(jitoConfig);
 
         let shouldSellRes: ShouldSellResponse | undefined;
 
@@ -72,11 +76,13 @@ export default class PumpfunBacktester {
         let stepSize = 1;
 
         for (let i = 0; i < history.length; i += stepSize) {
-            const marketContext = history[i];
+            let marketContext = history[i];
             if (marketContext.price === null) {
                 this.logger.warn(`Skipping entry: marketContext.price = null at index ${i}`);
                 continue;
             }
+
+            let sellShouldCallContinue = false;
 
             historySoFar.push(marketContext);
             const { price, marketCap } = marketContext;
@@ -91,134 +97,175 @@ export default class PumpfunBacktester {
                 stepSize = monitorConfig.buyTimeframeMs / monitorConfig.sellTimeframeMs;
             }
 
-            const buyPriorityFeeInSol =
-                strategy.config.buyPriorityFeeInSol ??
-                strategy.config.priorityFeeInSol ??
-                (randomization.priorityFees
-                    ? lamportsToSol(simulateSolanaPriorityFeeInLamports())
-                    : PumpfunBacktester.DefaultStaticPriorityFeeInSol);
+            /**
+             * Check if we should buy when we have no active position
+             */
+            if (!strategy.buyPosition) {
+                const buyPriorityFeeInSol =
+                    strategy.config.buyPriorityFeeInSol ??
+                    strategy.config.priorityFeeInSol ??
+                    (randomization.priorityFees
+                        ? lamportsToSol(simulateSolanaPriorityFeeInLamports())
+                        : PumpfunBacktester.DefaultStaticPriorityFeeInSol);
 
-            const simulatedBuyLatencyMs = simulatePumpBuyLatencyMs(
-                buyPriorityFeeInSol,
-                jitoConfig,
-                randomization.execution,
-            );
-
-            const { buyPrice, buyInLamports } = ((): {
-                buyPrice: number;
-                buyInLamports: number;
-            } => {
-                if (randomization.slippages === 'randomized' || randomization.slippages === 'off') {
-                    const slippageModifier =
-                        randomization.slippages === 'randomized'
-                            ? simulatePriceWithHigherSlippage(1, strategy.config.buySlippageDecimal)
-                            : 1 + strategy.config.buySlippageDecimal;
-                    return {
-                        buyPrice: price * slippageModifier,
-                        buyInLamports: buyAmountLamports * slippageModifier,
-                    };
-                } else if (randomization.slippages === 'closestEntry') {
-                    /**
-                     * it will use either the previous or next history entry's price closest to the 25% of the simulation
-                     * buy time (because usually within 25% of time request reaches the server,
-                     * the rest of the buy function is validating, storing and fetching from the blockchain)
-                     */
-                    const buyPrice =
-                        history[
-                            getClosestEntryIndex(
-                                history,
-                                i,
-                                marketContext.timestamp + 0.25 * simulatedBuyLatencyMs,
-                                stepSize,
-                            )
-                        ].price;
-                    const buyPriceDiffPercentageDecimal = (buyPrice - price) / price;
-                    return {
-                        buyPrice: buyPrice,
-                        buyInLamports: buyAmountLamports * (1 + buyPriceDiffPercentageDecimal),
-                    };
-                } else {
-                    throw new Error(`Unknown randomization.slippages mode ${randomization.slippages} was provided`);
-                }
-            })();
-            // We create the associated pumpfun token account and pay its fee the first time we trade this token
-            const pumpCreateAccountFeeLamports =
-                tradeHistory.length === 0 ? PumpfunBacktester.PumpfunAccountCreationFeeLamports : 0;
-            const jitoTipLamports = getJitoTipLamports(jitoConfig);
-            const minBalanceToBuyLamports =
-                buyInLamports + solToLamports(buyPriorityFeeInSol) + pumpCreateAccountFeeLamports + jitoTipLamports;
-
-            // no more money for further purchases, and also we have no position
-            if (balanceLamports <= minBalanceToBuyLamports && !strategy.buyPosition) {
-                break;
-            }
-
-            let shouldBuyRes: ShouldBuyResponse | undefined;
-            if (balanceLamports >= minBalanceToBuyLamports && !strategy.buyPosition) {
-                shouldBuyRes = await strategy.shouldBuy(
-                    tokenInfo.mint,
-                    {
-                        timestamp: marketContext.timestamp,
-                        index: i,
-                    },
-                    marketContext,
-                    historySoFar,
-                );
-            }
-            if (shouldBuyRes?.buy === true) {
-                const txDetails = simulateSolTransactionDetails(
-                    -buyInLamports - pumpCreateAccountFeeLamports - jitoTipLamports,
-                    solToLamports(buyPriorityFeeInSol),
+                const simulatedBuyLatencyMs = simulatePumpBuyLatencyMs(
+                    buyPriorityFeeInSol,
+                    jitoConfig,
+                    randomization.execution,
                 );
 
-                holdingsRaw += calculateRawTokenHoldings(buyAmountSol, price);
-                balanceLamports += txDetails.netTransferredLamports;
+                const { buyPrice, buyInLamports } = ((): {
+                    buyPrice: number;
+                    buyInLamports: number;
+                } => {
+                    if (randomization.slippages === 'randomized' || randomization.slippages === 'off') {
+                        const slippageModifier =
+                            randomization.slippages === 'randomized'
+                                ? simulatePriceWithHigherSlippage(1, strategy.config.buySlippageDecimal)
+                                : 1 + strategy.config.buySlippageDecimal;
+                        return {
+                            buyPrice: price * slippageModifier,
+                            buyInLamports: buyAmountLamports * slippageModifier,
+                        };
+                    } else if (randomization.slippages === 'closestEntry') {
+                        /**
+                         * it will use either the previous or next history entry's price closest to the 25% of the simulation
+                         * buy time (because usually within 25% of time request reaches the server,
+                         * the rest of the buy function is validating, storing and fetching from the blockchain)
+                         */
+                        const buyPrice =
+                            history[
+                                getClosestEntryIndex(
+                                    history,
+                                    i,
+                                    marketContext.timestamp + 0.25 * simulatedBuyLatencyMs,
+                                    stepSize,
+                                )
+                            ].price;
+                        const buyPriceDiffPercentageDecimal = (buyPrice - price) / price;
+                        return {
+                            buyPrice: buyPrice,
+                            buyInLamports: buyAmountLamports * (1 + buyPriceDiffPercentageDecimal),
+                        };
+                    } else {
+                        throw new Error(`Unknown randomization.slippages mode ${randomization.slippages} was provided`);
+                    }
+                })();
+                // We create the associated pumpfun token account and pay its fee the first time we trade this token
+                const pumpCreateAccountFeeLamports =
+                    tradeHistory.length === 0 ? PumpfunBacktester.PumpfunAccountCreationFeeLamports : 0;
+                const minBalanceToBuyLamports =
+                    buyInLamports + solToLamports(buyPriorityFeeInSol) + pumpCreateAccountFeeLamports + jitoTipLamports;
 
-                const buyPosition: TradeTransaction<PumpfunBuyPositionMetadata> = {
-                    timestamp: Date.now(),
-                    transactionType: 'buy',
-                    subCategory: tradeHistory.find(e => e.transactionType === 'buy') ? 'accumulation' : 'newPosition',
-                    transactionHash: _generateFakeBacktestTransactionHash(),
-                    walletAddress: BacktestWallet,
-                    bought: formTokenBoughtOrSold(tokenInfo, holdingsRaw),
-                    sold: formSolBoughtOrSold(txDetails.grossTransferredLamports),
-                    amountRaw: holdingsRaw,
-                    grossTransferredLamports: txDetails.grossTransferredLamports,
-                    netTransferredLamports: txDetails.netTransferredLamports,
-                    price: {
-                        inLamports: solToLamports(price),
-                        inSol: price,
-                    },
-                    marketCap: marketCap,
-                    metadata: {
+                // no more money for further purchases, and also we have no position
+                if (balanceLamports <= minBalanceToBuyLamports && !strategy.buyPosition) {
+                    events.push({
                         historyRef: {
                             timestamp: marketContext.timestamp,
                             index: i,
                         },
-                        historyEntry: marketContext,
-                        pumpInSol: lamportsToSol(buyInLamports),
-                        pumpMaxSolCost: lamportsToSol(buyInLamports),
-                        pumpTokenOut: holdingsRaw,
-                        pumpBuyPriceInSol: buyPrice,
-                        buyRes: {
-                            reason: shouldBuyRes.reason,
-                            ...(shouldBuyRes.data ? { data: shouldBuyRes.data } : {}),
-                        },
-                    },
-                };
-                tradeHistory.push(buyPosition);
-                strategy.afterBuy(price, {
-                    marketContext: marketContext,
-                    transaction: buyPosition,
-                });
+                        action: 'strategyExit',
+                        reason: 'no_funds_to_buy',
+                    });
+                    break;
+                }
 
-                if (i < history.length - 1) {
-                    // Simulate time passing by going to the next market context
-                    i = getNextEntryIndex(history, i, marketContext.timestamp + simulatedBuyLatencyMs, stepSize) - 1;
-                    continue;
+                let shouldBuyRes: ShouldBuyResponse | undefined;
+                if (balanceLamports >= minBalanceToBuyLamports && !strategy.buyPosition) {
+                    shouldBuyRes = await strategy.shouldBuy(
+                        tokenInfo.mint,
+                        {
+                            timestamp: marketContext.timestamp,
+                            index: i,
+                        },
+                        marketContext,
+                        historySoFar,
+                    );
+                }
+                if (shouldBuyRes?.buy === true) {
+                    events.push({
+                        historyRef: {
+                            timestamp: marketContext.timestamp,
+                            index: i,
+                        },
+                        action: 'startBuy',
+                        reason: shouldBuyRes.reason,
+                    });
+
+                    const txDetails = simulateSolTransactionDetails(
+                        -buyInLamports - pumpCreateAccountFeeLamports - jitoTipLamports,
+                        solToLamports(buyPriorityFeeInSol),
+                    );
+
+                    holdingsRaw += calculateRawTokenHoldings(buyAmountSol, price);
+                    balanceLamports += txDetails.netTransferredLamports;
+
+                    const buyPosition: TradeTransaction<PumpfunBuyPositionMetadata> = {
+                        timestamp: Date.now(),
+                        transactionType: 'buy',
+                        subCategory: tradeHistory.find(e => e.transactionType === 'buy')
+                            ? 'accumulation'
+                            : 'newPosition',
+                        transactionHash: _generateFakeBacktestTransactionHash(),
+                        walletAddress: BacktestWallet,
+                        bought: formTokenBoughtOrSold(tokenInfo, holdingsRaw),
+                        sold: formSolBoughtOrSold(txDetails.grossTransferredLamports),
+                        amountRaw: holdingsRaw,
+                        grossTransferredLamports: txDetails.grossTransferredLamports,
+                        netTransferredLamports: txDetails.netTransferredLamports,
+                        price: {
+                            inLamports: solToLamports(price),
+                            inSol: price,
+                        },
+                        marketCap: marketCap,
+                        metadata: {
+                            historyRef: {
+                                timestamp: marketContext.timestamp,
+                                index: i,
+                            },
+                            historyEntry: marketContext,
+                            pumpInSol: lamportsToSol(buyInLamports),
+                            pumpMaxSolCost: lamportsToSol(buyInLamports),
+                            pumpTokenOut: holdingsRaw,
+                            pumpBuyPriceInSol: buyPrice,
+                            buyRes: {
+                                reason: shouldBuyRes.reason,
+                                ...(shouldBuyRes.data ? { data: shouldBuyRes.data } : {}),
+                            },
+                        },
+                    };
+                    tradeHistory.push(buyPosition);
+                    strategy.afterBuy(price, {
+                        marketContext: marketContext,
+                        transaction: buyPosition,
+                    });
+
+                    let shouldCallContinue = false;
+                    if (i < history.length - 1) {
+                        // Simulate time passing by going to the next market context
+                        i = getNextEntryIndex(history, i, marketContext.timestamp + simulatedBuyLatencyMs, stepSize);
+                        marketContext = history[i];
+                        shouldCallContinue = true;
+                    }
+
+                    events.push({
+                        historyRef: {
+                            timestamp: marketContext.timestamp,
+                            index: i,
+                        },
+                        action: 'buyCompleted',
+                    });
+
+                    if (shouldCallContinue) {
+                        i -= stepSize;
+                        continue;
+                    }
                 }
             }
 
+            /**
+             * Check if strategy wants to exit if we are not holding any unsold position
+             */
             if (!strategy.buyPosition) {
                 const shouldExitRes = strategy.shouldExit(marketContext, historySoFar, {
                     elapsedMonitoringMs: marketContext.timestamp - history[0].timestamp,
@@ -231,6 +278,10 @@ export default class PumpfunBacktester {
                         };
                     } else {
                         return {
+                            historyRef: {
+                                timestamp: marketContext.timestamp,
+                                index: i,
+                            },
                             exitCode: shouldExitRes.exitCode,
                             exitReason: shouldExitRes.message,
                         };
@@ -238,6 +289,10 @@ export default class PumpfunBacktester {
                 }
             }
 
+            /**
+             * Check if sell criteria are met for the held position
+             * strategy.shouldSell has priority over strategy.shouldExit in case it requires sell
+             */
             if (strategy.buyPosition) {
                 const strategyShouldSellRes = await strategy.shouldSell(
                     tokenInfo.mint,
@@ -276,7 +331,19 @@ export default class PumpfunBacktester {
                 }
             }
 
+            /**
+             * Execute sell simulation when we have a position, holdings and a reason to sell
+             */
             if (shouldSellRes?.sell && strategy.buyPosition && holdingsRaw > 0) {
+                events.push({
+                    historyRef: {
+                        timestamp: marketContext.timestamp,
+                        index: i,
+                    },
+                    action: 'startSell',
+                    reason: shouldSellRes.reason,
+                });
+
                 const sellPriorityFeeInSol =
                     strategy.config.sellPriorityFeeInSol ??
                     strategy.config.priorityFeeInSol ??
@@ -373,15 +440,23 @@ export default class PumpfunBacktester {
 
                 shouldSellRes = undefined;
                 strategy.afterSell();
-                if (onlyOneFullTrade) {
-                    break;
-                }
 
+                sellShouldCallContinue = false;
                 if (i < history.length - 1) {
                     // Simulate time passing by going to the next market context
-                    i = getNextEntryIndex(history, i, marketContext.timestamp + simulatedSellLatencyMs, stepSize) - 1;
-                    continue;
+                    i = getNextEntryIndex(history, i, marketContext.timestamp + simulatedSellLatencyMs, stepSize);
+                    marketContext = history[i];
+                    sellShouldCallContinue = true;
                 }
+
+                events.push({
+                    historyRef: {
+                        timestamp: marketContext.timestamp,
+                        index: i,
+                    },
+                    action: 'sellCompleted',
+                });
+                soldOnce = true;
             }
 
             // Track peak balanceLamports for drawdownPercentage calculation
@@ -392,12 +467,21 @@ export default class PumpfunBacktester {
 
             const drawdownPercentage = ((peakBalanceLamports - currentBalanceLamports) / peakBalanceLamports) * 100;
             maxDrawdownPercentage = Math.max(maxDrawdownPercentage, drawdownPercentage);
+
+            if (soldOnce && onlyOneFullTrade) {
+                break;
+            }
+
+            if (sellShouldCallContinue) {
+                i -= stepSize;
+            }
         }
 
         const profitLossLamports = balanceLamports - initialBalanceLamports;
 
         return {
             tradeHistory: tradeHistory,
+            events: events,
             finalBalanceLamports: balanceLamports,
             profitLossLamports: profitLossLamports,
             holdings: {
@@ -441,7 +525,7 @@ export function getClosestEntryIndex(
 }
 
 function _generateFakeBacktestTransactionHash() {
-    return `_backtest_${Date.now()}`;
+    return `_backtest_${uuidv4()}`;
 }
 
 export function getJitoTipLamports(jitoConfig?: JitoConfig): number {

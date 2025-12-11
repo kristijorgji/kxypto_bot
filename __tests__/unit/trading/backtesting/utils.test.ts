@@ -33,6 +33,10 @@ jest.mock('fs', () => {
 });
 const mockedFs = fs as jest.Mocked<typeof fs>;
 
+jest.mock('uuid', () => ({
+    v4: () => Date.now(),
+}));
+
 describe('runStrategy', () => {
     let logs: LogEntry[] = [];
     const logger = createLogger();
@@ -117,7 +121,7 @@ describe('runStrategy', () => {
                 timestamp: 1,
                 price: 2.2,
             }),
-            // it will sell here
+            // it will sell here at loss because new price after slippage is lower than buy price
             formHistoryEntry({
                 timestamp: 2,
                 price: 2.421,

@@ -10,8 +10,9 @@ import PumpfunBacktester, {
     getNextEntryIndex,
 } from '../../../../../../src/trading/bots/blockchains/solana/PumpfunBacktester';
 import {
+    BacktestMintExitResponse,
+    BacktestMintTradeResponse,
     BacktestStrategyRunConfig,
-    BacktestTradeResponse,
     HandlePumpTokenBotReport,
 } from '../../../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry } from '../../../../../../src/trading/bots/launchpads/types';
@@ -21,6 +22,10 @@ import { readFixture, readLocalFixture } from '../../../../../__utils/data';
 import { dummyPumpfunTokenInfo } from '../../../../../data/vars/blockchains/solana/pumpfun';
 
 const originalDateNow = Date.now;
+
+jest.mock('uuid', () => ({
+    v4: () => Date.now(),
+}));
 
 describe(PumpfunBacktester.name, () => {
     const silentLogger = createLogger({
@@ -116,7 +121,7 @@ describe(PumpfunBacktester.name, () => {
                 readFixture<{ history: HistoryEntry[] }>('backtest/pumpfun/5xNMMoEQcQiJQURE6DEwvHVt1jJsMTLrFmBHZoqpump')
                     .history,
                 monitorConfig,
-            )) as BacktestTradeResponse;
+            )) as BacktestMintTradeResponse;
 
             expect(r.tradeHistory.length).toEqual(2);
             expect(r.tradeHistory[0]).toEqual(
@@ -178,7 +183,7 @@ describe(PumpfunBacktester.name, () => {
                 readFixture<{ history: HistoryEntry[] }>('backtest/pumpfun/5xNMMoEQcQiJQURE6DEwvHVt1jJsMTLrFmBHZoqpump')
                     .history,
                 monitorConfig,
-            )) as BacktestTradeResponse;
+            )) as BacktestMintTradeResponse;
 
             expect(r.tradeHistory.length).toEqual(0);
             expect(r.finalBalanceLamports).toEqual(1);
@@ -223,7 +228,7 @@ describe(PumpfunBacktester.name, () => {
                     ),
                 ],
                 monitorConfig,
-            )) as BacktestTradeResponse;
+            )) as BacktestMintTradeResponse;
 
             expect(r.tradeHistory.length).toEqual(2);
             expect(r.tradeHistory[0].transactionType).toEqual('buy');
@@ -251,7 +256,7 @@ describe(PumpfunBacktester.name, () => {
                 tokenInfo,
                 historyWhereShouldHaveHoldings,
                 monitorConfig,
-            )) as BacktestTradeResponse;
+            )) as BacktestMintTradeResponse;
 
             expect(r.tradeHistory.length).toEqual(1);
             expect(r.finalBalanceLamports).toBeLessThan(runConfig.initialBalanceLamports);
@@ -270,7 +275,7 @@ describe(PumpfunBacktester.name, () => {
                 tokenInfo,
                 historyWhereShouldHaveHoldings,
                 monitorConfig,
-            )) as BacktestTradeResponse;
+            )) as BacktestMintTradeResponse;
 
             expect(r.tradeHistory.length).toEqual(2);
             expect(r.tradeHistory[0].transactionType).toEqual('buy');
@@ -319,7 +324,7 @@ describe(PumpfunBacktester.name, () => {
                 tokenInfo,
                 historyWhereShouldHaveHoldings,
                 monitorConfig,
-            )) as BacktestTradeResponse;
+            )) as BacktestMintTradeResponse;
 
             expect(r.tradeHistory.length).toEqual(2);
             expect(r.tradeHistory[1].metadata).toMatchObject({
@@ -369,7 +374,7 @@ describe(PumpfunBacktester.name, () => {
                     }),
                 ],
                 monitorConfig,
-            )) as BacktestTradeResponse;
+            )) as BacktestMintTradeResponse;
 
             expect(r.tradeHistory.length).toEqual(2);
             expect(r.tradeHistory[0].transactionType).toEqual('buy');
@@ -419,29 +424,35 @@ describe(PumpfunBacktester.name, () => {
             tokenInfo,
             [
                 formHistoryEntry({
-                    // it will buy here as we set all conditions to match the strategy buy config
+                    // it will start buy here as we set all conditions to match the strategy buy config
                     timestamp: 7,
                     price: 2.77,
                     marketCap: 150,
                 }),
                 formHistoryEntry({
-                    // it will sell at huge loss here
+                    // buy will be completed here
                     timestamp: 8,
+                    price: 3,
+                    marketCap: 155,
+                }),
+                formHistoryEntry({
+                    // it will start sell at huge loss here
+                    timestamp: 9,
                     price: 0.2,
                     marketCap: 1.5,
                 }),
                 formHistoryEntry({
-                    // buy conditions meet here, but it must not buy as has no balance
-                    timestamp: 9,
+                    // sell completes, buy conditions meet here, but it must not buy as has no balance
+                    timestamp: 10,
                     price: 2.75,
                     marketCap: 145,
                 }),
             ],
             monitorConfig,
-        )) as BacktestTradeResponse;
+        )) as BacktestMintTradeResponse;
 
         expect(r).toEqual(
-            readLocalFixture<BacktestTradeResponse>('pumpfun-backtester/stops-after-buy-due-to-no-funds-response'),
+            readLocalFixture<BacktestMintTradeResponse>('pumpfun-backtester/stops-after-buy-due-to-no-funds-response'),
         );
     });
 
@@ -471,13 +482,13 @@ describe(PumpfunBacktester.name, () => {
             tokenInfo,
             [
                 formHistoryEntry({
-                    // it will buy here as we set all conditions to match the strategy buy config
+                    // it will start buy here as we set all conditions to match the strategy buy config
                     timestamp: 7,
                     price: 2.77,
                     marketCap: 150,
                 }),
                 formHistoryEntry({
-                    // it will sell at profit here
+                    // buy-completes, it will start sell at profit here
                     timestamp: 8,
                     price: 7,
                     marketCap: 1.5,
@@ -489,17 +500,17 @@ describe(PumpfunBacktester.name, () => {
                     marketCap: 145,
                 }),
                 formHistoryEntry({
-                    // it will do nothing here
+                    // sell completed, it will do nothing here because no sell criteria is met
                     timestamp: 10,
                     price: 0.1,
                     marketCap: 145,
                 }),
             ],
             monitorConfig,
-        )) as BacktestTradeResponse;
+        )) as BacktestMintTradeResponse;
 
         expect(r).toEqual(
-            readLocalFixture<BacktestTradeResponse>('pumpfun-backtester/multiple-buys-using-jito-response'),
+            readLocalFixture<BacktestMintTradeResponse>('pumpfun-backtester/multiple-buys-using-jito-response'),
         );
     });
 
@@ -521,7 +532,12 @@ describe(PumpfunBacktester.name, () => {
             ];
 
             for (let i = 0; i < 100; i++) {
-                const r = (await backtester.run(runConfig, tokenInfo, history, monitorConfig)) as BacktestTradeResponse;
+                const r = (await backtester.run(
+                    runConfig,
+                    tokenInfo,
+                    history,
+                    monitorConfig,
+                )) as BacktestMintTradeResponse;
 
                 expect(r.tradeHistory.length).toEqual(2);
 
@@ -582,7 +598,7 @@ describe(PumpfunBacktester.name, () => {
 
             const history: HistoryEntry[] = [
                 formHistoryEntry({
-                    // it will buy here as we set all conditions to match the strategy buy config
+                    // it will start buy here as we set all conditions to match the strategy buy config
                     timestamp: 7,
                     price: 2.77,
                     marketCap: 150,
@@ -595,13 +611,13 @@ describe(PumpfunBacktester.name, () => {
                     marketCap: 151,
                 }),
                 formHistoryEntry({
-                    // it will start to sell here but use the time price for the next timestamp as it is closer to the next timestamp calculated by using the simulated sell time
+                    // buy completed here, it will start to sell here but use the time price for the next timestamp as it is closer to the next timestamp calculated by using the simulated sell time
                     timestamp: 20,
                     price: 5,
                     marketCap: 160,
                 }),
                 formHistoryEntry({
-                    // it will do nothing here but just use this price for selling
+                    // sell completed, it will do nothing
                     timestamp: 22,
                     price: 5.1,
                     marketCap: 161,
@@ -623,7 +639,7 @@ describe(PumpfunBacktester.name, () => {
                     monitorConfig,
                 ),
             ).toEqual(
-                readLocalFixture<BacktestTradeResponse>(
+                readLocalFixture<BacktestMintTradeResponse>(
                     'pumpfun-backtester/trade-response-with-closestEntry-slippages',
                 ),
             );
@@ -658,7 +674,12 @@ describe(PumpfunBacktester.name, () => {
             let foundSecondSellPossibility = false;
 
             for (let i = 0; i < 100; i++) {
-                const r = (await backtester.run(runConfig, tokenInfo, history, monitorConfig)) as BacktestTradeResponse;
+                const r = (await backtester.run(
+                    runConfig,
+                    tokenInfo,
+                    history,
+                    monitorConfig,
+                )) as BacktestMintTradeResponse;
 
                 expect(r.tradeHistory.length).toEqual(2);
 
@@ -729,10 +750,14 @@ describe(PumpfunBacktester.name, () => {
         ];
 
         expect(await backtester.run(runConfig, tokenInfo, history, monitorConfig)).toEqual({
+            historyRef: {
+                index: 2,
+                timestamp: 1,
+            },
             exitCode: 'DUMPED',
             exitReason:
                 'Stopped monitoring token because it was probably dumped lower_mc_than_initial and current market cap is less than the initial one',
-        });
+        } satisfies BacktestMintExitResponse);
     });
 
     describe('should change stepSize accordingly when it finds buy event in history', () => {
@@ -777,7 +802,7 @@ describe(PumpfunBacktester.name, () => {
                 tokenInfo,
                 history,
                 monitorConfig,
-            )) as BacktestTradeResponse;
+            )) as BacktestMintTradeResponse;
 
             expect(r.tradeHistory.length).toEqual(2);
             expect(r.tradeHistory[0].transactionType).toEqual('buy');

@@ -165,6 +165,12 @@ export type BotAction =
     | 'sellError'
     | 'strategyExit';
 
+export type BotEvent = {
+    historyRef: HistoryRef;
+    action: BotAction;
+    reason?: string;
+};
+
 export type BotStrategy = {
     id: string;
     name: string;

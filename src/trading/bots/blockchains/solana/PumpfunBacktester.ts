@@ -164,7 +164,7 @@ export default class PumpfunBacktester {
                             timestamp: marketContext.timestamp,
                             index: i,
                         },
-                        action: 'strategyExit',
+                        action: 'botExit',
                         reason: 'no_funds_to_buy',
                     });
                     break;

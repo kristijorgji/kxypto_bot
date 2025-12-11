@@ -101,7 +101,7 @@
           "topHolderCirculatingPercentage": 12
         },
         "historyRef": {
-          "index": 3,
+          "index": 2,
           "timestamp": 1616175609000
         },
         "pumpMinLamportsOutput": 710000000,
@@ -142,6 +142,38 @@
       "transactionHash": "4qADGbGKY7C26ZEb7CKMEbkCvSbo3Ybf9R6Lqqx1HyBYjyt5AK8WEQmy76EcAM9NDBKur8Vqk3ZH5XES28U1DxBB",
       "transactionType": "sell",
       "walletAddress": "mocked-address"
+    }
+  ],
+  "events": [
+    {
+      "action": "startBuy",
+      "historyRef": {
+        "index": 0,
+        "timestamp": 1616175603000
+      },
+      "reason": "shouldBuyStateless"
+    },
+    {
+      "action": "buyCompleted",
+      "historyRef": {
+        "index": 1,
+        "timestamp": 1616175605000
+      }
+    },
+    {
+      "action": "startSell",
+      "historyRef": {
+        "index": 2,
+        "timestamp": 1616175609000
+      },
+      "reason": "DUMPED"
+    },
+    {
+      "action": "sellCompleted",
+      "historyRef": {
+        "index": 3,
+        "timestamp": 1616175611000
+      }
     }
   ],
   "history": [

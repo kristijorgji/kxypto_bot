@@ -1,4 +1,8 @@
 {
+  "historyRef": {
+    "index": 5,
+    "timestamp": 1616175613000
+  },
   "exitCode": "NO_PUMP",
   "exitReason": "Stopped monitoring token. We waited 11 seconds and did not pump",
   "history": [

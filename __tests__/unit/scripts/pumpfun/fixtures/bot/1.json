@@ -3,15 +3,15 @@
     "fs.writeFileSync": [
       [
         "./data/pumpfun-stats/tmp/m_1.json",
-        "{\n  \"$schema\": {\n    \"version\": 1.1\n  },\n  \"simulation\": true,\n  \"rpcProvider\": {\n    \"domain\": \"cunat-mainnet-testing.test\"\n  },\n  \"strategy\": {\n    \"id\": \"RiseStrategy_5cb9dcf7\",\n    \"name\": \"RiseStrategy\",\n    \"configVariant\": \"hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17\"\n  },\n  \"mint\": \"m_1\",\n  \"name\": \"token_1\",\n  \"url\": \"https://pump.fun/coin/m_1\",\n  \"bullXUrl\": \"https://neo.bullx.io/terminal?chainId=1399811149&address=m_1\",\n  \"creator\": \"creator_1\",\n  \"startedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"endedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"elapsedSeconds\": 0,\n  \"monitor\": {\n    \"buyTimeframeMs\": 2500,\n    \"sellTimeframeMs\": 250\n  },\n  \"netPnl\": {\n    \"inSol\": 0.534,\n    \"inLamports\": 534000000.00000006\n  },\n  \"transactions\": [\n    {\n      \"transactionType\": \"buy\",\n      \"netTransferredLamports\": -400000000\n    },\n    {\n      \"transactionType\": \"sell\",\n      \"netTransferredLamports\": 934000000\n    }\n  ],\n  \"history\": []\n}"
+        "{\n  \"$schema\": {\n    \"version\": 1.1\n  },\n  \"simulation\": true,\n  \"rpcProvider\": {\n    \"domain\": \"cunat-mainnet-testing.test\"\n  },\n  \"strategy\": {\n    \"id\": \"RiseStrategy_5cb9dcf7\",\n    \"name\": \"RiseStrategy\",\n    \"configVariant\": \"hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17\"\n  },\n  \"mint\": \"m_1\",\n  \"name\": \"token_1\",\n  \"url\": \"https://pump.fun/coin/m_1\",\n  \"bullXUrl\": \"https://neo.bullx.io/terminal?chainId=1399811149&address=m_1\",\n  \"creator\": \"creator_1\",\n  \"startedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"endedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"elapsedSeconds\": 0,\n  \"monitor\": {\n    \"buyTimeframeMs\": 2500,\n    \"sellTimeframeMs\": 250\n  },\n  \"netPnl\": {\n    \"inSol\": 0.534,\n    \"inLamports\": 534000000.00000006\n  },\n  \"events\": [],\n  \"transactions\": [\n    {\n      \"transactionType\": \"buy\",\n      \"netTransferredLamports\": -400000000\n    },\n    {\n      \"transactionType\": \"sell\",\n      \"netTransferredLamports\": 934000000\n    }\n  ],\n  \"history\": []\n}"
       ],
       [
         "./data/pumpfun-stats/tmp/m_2.json",
-        "{\n  \"$schema\": {\n    \"version\": 1.1\n  },\n  \"simulation\": true,\n  \"rpcProvider\": {\n    \"domain\": \"cunat-mainnet-testing.test\"\n  },\n  \"strategy\": {\n    \"id\": \"RiseStrategy_5cb9dcf7\",\n    \"name\": \"RiseStrategy\",\n    \"configVariant\": \"hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17\"\n  },\n  \"mint\": \"m_2\",\n  \"name\": \"token_2\",\n  \"url\": \"https://pump.fun/coin/m_2\",\n  \"bullXUrl\": \"https://neo.bullx.io/terminal?chainId=1399811149&address=m_2\",\n  \"creator\": \"creator_2\",\n  \"startedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"endedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"elapsedSeconds\": 0,\n  \"monitor\": {\n    \"buyTimeframeMs\": 2500,\n    \"sellTimeframeMs\": 250\n  },\n  \"netPnl\": {\n    \"inSol\": 0.772,\n    \"inLamports\": 772000000\n  },\n  \"transactions\": [\n    {\n      \"transactionType\": \"buy\",\n      \"netTransferredLamports\": -400000000\n    },\n    {\n      \"transactionType\": \"sell\",\n      \"netTransferredLamports\": 1172000000.0000002\n    }\n  ],\n  \"history\": []\n}"
+        "{\n  \"$schema\": {\n    \"version\": 1.1\n  },\n  \"simulation\": true,\n  \"rpcProvider\": {\n    \"domain\": \"cunat-mainnet-testing.test\"\n  },\n  \"strategy\": {\n    \"id\": \"RiseStrategy_5cb9dcf7\",\n    \"name\": \"RiseStrategy\",\n    \"configVariant\": \"hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17\"\n  },\n  \"mint\": \"m_2\",\n  \"name\": \"token_2\",\n  \"url\": \"https://pump.fun/coin/m_2\",\n  \"bullXUrl\": \"https://neo.bullx.io/terminal?chainId=1399811149&address=m_2\",\n  \"creator\": \"creator_2\",\n  \"startedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"endedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"elapsedSeconds\": 0,\n  \"monitor\": {\n    \"buyTimeframeMs\": 2500,\n    \"sellTimeframeMs\": 250\n  },\n  \"netPnl\": {\n    \"inSol\": 0.772,\n    \"inLamports\": 772000000\n  },\n  \"events\": [],\n  \"transactions\": [\n    {\n      \"transactionType\": \"buy\",\n      \"netTransferredLamports\": -400000000\n    },\n    {\n      \"transactionType\": \"sell\",\n      \"netTransferredLamports\": 1172000000.0000002\n    }\n  ],\n  \"history\": []\n}"
       ],
       [
         "./data/pumpfun-stats/tmp/m_3.json",
-        "{\n  \"$schema\": {\n    \"version\": 1.1\n  },\n  \"simulation\": true,\n  \"rpcProvider\": {\n    \"domain\": \"cunat-mainnet-testing.test\"\n  },\n  \"strategy\": {\n    \"id\": \"RiseStrategy_5cb9dcf7\",\n    \"name\": \"RiseStrategy\",\n    \"configVariant\": \"hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17\"\n  },\n  \"mint\": \"m_3\",\n  \"name\": \"token_3\",\n  \"url\": \"https://pump.fun/coin/m_3\",\n  \"bullXUrl\": \"https://neo.bullx.io/terminal?chainId=1399811149&address=m_3\",\n  \"creator\": \"creator_3\",\n  \"startedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"endedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"elapsedSeconds\": 0,\n  \"monitor\": {\n    \"buyTimeframeMs\": 2500,\n    \"sellTimeframeMs\": 250\n  },\n  \"exitCode\": \"DUMPED\",\n  \"exitReason\": \"Stopped monitoring token because it was probably dumped and current market cap is less than the initial one\",\n  \"history\": []\n}"
+        "{\n  \"$schema\": {\n    \"version\": 1.1\n  },\n  \"simulation\": true,\n  \"rpcProvider\": {\n    \"domain\": \"cunat-mainnet-testing.test\"\n  },\n  \"strategy\": {\n    \"id\": \"RiseStrategy_5cb9dcf7\",\n    \"name\": \"RiseStrategy\",\n    \"configVariant\": \"hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17\"\n  },\n  \"mint\": \"m_3\",\n  \"name\": \"token_3\",\n  \"url\": \"https://pump.fun/coin/m_3\",\n  \"bullXUrl\": \"https://neo.bullx.io/terminal?chainId=1399811149&address=m_3\",\n  \"creator\": \"creator_3\",\n  \"startedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"endedAt\": \"2021-03-19T10:00:00.000Z\",\n  \"elapsedSeconds\": 0,\n  \"monitor\": {\n    \"buyTimeframeMs\": 2500,\n    \"sellTimeframeMs\": 250\n  },\n  \"historyRef\": {\n    \"index\": 4,\n    \"timestamp\": 11\n  },\n  \"exitCode\": \"DUMPED\",\n  \"exitReason\": \"Stopped monitoring token because it was probably dumped and current market cap is less than the initial one\",\n  \"history\": []\n}"
       ]
     ],
     "isTokenCreatorSafe": [
@@ -46,6 +46,7 @@
           "creator": "creator_1",
           "elapsedSeconds": 0,
           "endedAt": "2021-03-19T10:00:00.000Z",
+          "events": [],
           "history": [],
           "mint": "m_1",
           "monitor": {
@@ -99,6 +100,7 @@
           "creator": "creator_2",
           "elapsedSeconds": 0,
           "endedAt": "2021-03-19T10:00:00.000Z",
+          "events": [],
           "history": [],
           "mint": "m_2",
           "monitor": {
@@ -152,6 +154,10 @@
           "creator": "creator_3",
           "elapsedSeconds": 0,
           "endedAt": "2021-03-19T10:00:00.000Z",
+          "historyRef": {
+            "index": 4,
+            "timestamp": 11
+          },
           "exitCode": "DUMPED",
           "exitReason": "Stopped monitoring token because it was probably dumped and current market cap is less than the initial one",
           "history": [],

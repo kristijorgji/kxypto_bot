@@ -226,23 +226,23 @@ describe(PumpfunBot.name, () => {
 
         const mockReturnedMarketContexts: MarketContext[] = [
             formMarketContext({
-                // it will buy here
+                // it will start buy here
                 price: 3.1e-8,
             }),
             formMarketContext({
-                // it will do nothing here
+                // buy completes, it will do nothing here
                 price: 3.12e-8,
             }),
             formMarketContext({
-                // it will do nothing here
+                // it will do nothing here - sell criteria not met
                 price: 3.13e-8,
             }),
             formMarketContext({
-                // it will do nothing here
+                // it will do nothing here - sell criteria not met
                 price: 3.14e-8,
             }),
             formMarketContext({
-                // it will sell here
+                // it will start sell here
                 price: 3.41e-8,
             }),
             // fill at least maxWaitMonitorAfterResultSeconds + 1 values just so it does nothing but checks for the maxWaitMonitorAfterResultMs
@@ -430,7 +430,7 @@ describe(PumpfunBot.name, () => {
         expect((actual as BotTradeResponse).transactions[1].metadata).toEqual(
             expect.objectContaining({
                 historyRef: expect.objectContaining({
-                    index: 19,
+                    index: 18,
                 }),
                 reason: 'AUTO_SELL_TIMEOUT',
             }),
@@ -487,7 +487,7 @@ describe(PumpfunBot.name, () => {
 
     function mockStrategyShouldExitMarketContexts(): void {
         const firstMarketContext: MarketContext = {
-            // it will buy here
+            // it will start buy here
             price: 4.1e-7,
             marketCap: 60,
             holdersCount: 70,
@@ -502,14 +502,14 @@ describe(PumpfunBot.name, () => {
             firstMarketContext,
             formMarketContext(
                 {
-                    // it will do nothing here
+                    // buy completes, it will do nothing here
                     price: 4.2e-7,
                 },
                 firstMarketContext,
             ),
             formMarketContext(
                 {
-                    // it will exit as dumped by the strategy and require sell here
+                    // it will exit as dumped by the strategy and require sell here, start sell
                     price: 3.14e-8,
                     marketCap: 33.4,
                     holdersCount: 1,
@@ -587,30 +587,40 @@ describe(PumpfunBot.name, () => {
                 reason: 'TRAILING_STOP_LOSS',
             },
         };
+        t.events[2].reason = 'TRAILING_STOP_LOSS';
         expect(actual).toEqual(t);
     });
 
-    it('should not exit when the strategy.shouldExit wants only to exit and not sell, and we have an active buy position. Waits until sell', async () => {
+    it('strategy.shouldExit should not return true after maxWaitMs passes and we have active position, sell after with strategy.shouldSell', async () => {
         const mockReturnedMarketContexts: MarketContext[] = [
-            // buys here
+            // start buy here
             formMarketContext({
                 price: 3.2e-7,
             }),
-            // does nothing here
+            // buy completes, does nothing here because inProgress is toggled after sell check is ignored
             formMarketContext({
                 price: 3.21e-7,
+            }),
+            // time will pass to reach maxWait of strategy, strategy won't sell because we have a position
+            // we won't sell via shouldSell as well because no limit matches
+            ...Array(5)
+                .fill(0)
+                .map((_, i) =>
+                    formMarketContext({
+                        price: (3.22 + i / 1000) * 1e-7,
+                    }),
+                ),
+            formMarketContext({
+                // will start sell as take_profit is reached, i=7
+                price: 3.53e-7,
             }),
             ...Array(5)
                 .fill(0)
                 .map((_, i) =>
                     formMarketContext({
-                        price: (3.22 + i / 1000) * 1e-8,
+                        price: (3.54 + i / 1000) * 1e-7,
                     }),
                 ),
-            formMarketContext({
-                // will sell here after maxWait is elapsed
-                price: 3.52e-7,
-            }),
         ];
         mockReturnedMarketContexts.forEach(mr => (marketContextProvider.get as jest.Mock).mockResolvedValueOnce(mr));
 
@@ -632,8 +642,12 @@ describe(PumpfunBot.name, () => {
         (pumpfun.sell as jest.Mock).mockResolvedValue(dummyPumpfunSellResponse);
         (closePosition as jest.Mock).mockResolvedValue(undefined);
 
+        const expected = readLocalFixture<FullTestExpectation>('pumpfun-bot/trade-response-2');
+
         const actual = await pumpfunBot.run('a', initialCoinData, strategy);
-        expect(actual).toEqual(readLocalFixture<BotTradeResponse>('pumpfun-bot/trade-response-2'));
+        expect(actual).toEqual(expected.result);
+
+        expect(logs).toEqual(expected.logs);
     });
 
     it('should stop when stopBot is called', cb => {

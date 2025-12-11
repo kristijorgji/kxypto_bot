@@ -163,7 +163,8 @@ export type BotAction =
     | 'startSell'
     | 'sellCompleted'
     | 'sellError'
-    | 'strategyExit';
+    | 'strategyExit'
+    | 'botExit';
 
 export type BotEvent = {
     historyRef: HistoryRef;

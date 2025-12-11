@@ -28,7 +28,15 @@ import Wallet from '../../../../blockchains/solana/Wallet';
 import LaunchpadBotStrategy from '../../../strategies/launchpads/LaunchpadBotStrategy';
 import { generateTradeId } from '../../../utils/generateTradeId';
 import { HistoryEntry } from '../../launchpads/types';
-import { BotConfig, BoughtSold, HistoryRef, SellReason, ShouldBuyResponse, ShouldSellResponse } from '../../types';
+import {
+    BotConfig,
+    BotEvent,
+    BoughtSold,
+    HistoryRef,
+    SellReason,
+    ShouldBuyResponse,
+    ShouldSellResponse,
+} from '../../types';
 
 export const ErrorMessage = {
     unknownBuyError: 'unknown_buying_error',
@@ -112,6 +120,8 @@ export default class PumpfunBot {
             throw new Error('Bot is already running!');
         }
         this.isRunning = true;
+
+        const events: BotEvent[] = [];
 
         const jitoConfig: JitoConfig = {
             jitoEnabled: true,
@@ -216,6 +226,7 @@ export default class PumpfunBot {
                     if (lastHistoryEntry.bondingCurveProgress === 100) {
                         this.logger.warn('Token is migrated, bondingCurveProgress=100. Will stop monitoring further');
                         return {
+                            historyRef: historyRef,
                             exitCode: 'NO_PUMP',
                             exitReason: 'Token is migrated',
                             history: history,
@@ -319,6 +330,10 @@ export default class PumpfunBot {
                         };
 
                         result = {
+                            historyRef: {
+                                index: lastHistoryIndex,
+                                timestamp: history[lastHistoryIndex].timestamp,
+                            },
                             exitCode: shouldExitRes.exitCode,
                             exitReason: shouldExitRes.message,
                             history: history,
@@ -369,12 +384,21 @@ export default class PumpfunBot {
 
             if (!actionInProgress && !strategy.buyPosition && shouldBuyRes?.buy) {
                 logger.info('We will start the buy buyInProgress=true');
+
                 buyInProgress = true;
                 const lastHistoryIndex = history.length - 1;
                 history[lastHistoryIndex]._metadata = {
                     ...(history[lastHistoryIndex]._metadata ?? {}),
                     action: 'startBuy',
                 };
+                events.push({
+                    historyRef: {
+                        index: lastHistoryIndex,
+                        timestamp: history[lastHistoryIndex].timestamp,
+                    },
+                    action: 'startBuy',
+                    reason: shouldBuyRes.reason,
+                });
 
                 const dataAtBuyTime = {
                     historyRef: {
@@ -487,15 +511,31 @@ export default class PumpfunBot {
                             ...(history[lastHistoryIndex]._metadata ?? {}),
                             action: 'buyCompleted',
                         };
+                        events.push({
+                            historyRef: {
+                                index: lastHistoryIndex,
+                                timestamp: history[lastHistoryIndex].timestamp,
+                            },
+                            action: 'buyCompleted',
+                        });
                         shouldBuyRes = undefined;
                         buyInProgress = false;
                     })
                     .catch(async e => {
                         // TODO handle properly and double check if it really failed or was block height transaction timeout
                         logger.error('Error while buying, e=%o', e);
-                        history[history.length - 1]._metadata = {
+
+                        const lastHistoryIndex = history.length - 1;
+                        history[lastHistoryIndex]._metadata = {
                             action: 'buyError',
                         };
+                        events.push({
+                            historyRef: {
+                                index: lastHistoryIndex,
+                                timestamp: history[lastHistoryIndex].timestamp,
+                            },
+                            action: 'buyError',
+                        });
 
                         fatalError = new Error(ErrorMessage.unknownBuyError);
 
@@ -549,11 +589,25 @@ export default class PumpfunBot {
                 );
                 sellTriesCount++;
                 sellInProgress = true;
-                history[history.length - 1]._metadata = {
+                const lastHistoryIndex = history.length - 1;
+                history[lastHistoryIndex]._metadata = {
                     action: 'startSell',
                 };
+                events.push({
+                    historyRef: {
+                        index: lastHistoryIndex,
+                        timestamp: history[lastHistoryIndex].timestamp,
+                    },
+                    action: 'startSell',
+                    reason: shouldSellRes.reason,
+                });
 
                 const dataAtSellTime = {
+                    historyRef: {
+                        index: historyIndex,
+                        timestamp: history[lastHistoryIndex].timestamp,
+                    },
+                    historyEntry: history[lastHistoryIndex],
                     buyPosition: strategy.buyPosition,
                     sellReason: shouldSellRes.reason as SellReason,
                     priceInSol: priceInSol,
@@ -606,11 +660,8 @@ export default class PumpfunBot {
                             },
                             marketCap: dataAtSellTime.marketCapInSol,
                             metadata: {
-                                historyRef: {
-                                    timestamp: lastHistoryEntry.timestamp,
-                                    index: historyIndex,
-                                },
-                                historyEntry: lastHistoryEntry,
+                                historyRef: dataAtSellTime.historyRef,
+                                historyEntry: dataAtSellTime.historyEntry,
                                 reason: dataAtSellTime.sellReason,
                                 pumpMinLamportsOutput: sellRes.minLamportsOutput,
                                 sellPriceInSol: sellRes.actualSellPriceSol,
@@ -643,6 +694,7 @@ export default class PumpfunBot {
                                 inSol: lamportsToSol(pnlLamports),
                             },
                             transactions: [dataAtSellTime.buyPosition.transaction, sellPosition],
+                            events: events,
                             history: history,
                         };
                         this.botEventBus.botTradeResponse(this.identifier, result);
@@ -653,14 +705,30 @@ export default class PumpfunBot {
                             ...(history[lastHistoryIndex]._metadata ?? {}),
                             action: 'sellCompleted',
                         };
+                        events.push({
+                            historyRef: {
+                                index: lastHistoryIndex,
+                                timestamp: history[lastHistoryIndex].timestamp,
+                            },
+                            action: 'sellCompleted',
+                        });
                     })
                     .catch(async e => {
                         // TODO handle errors, some error might be false negative example block height timeout, sell might be successful but we get error
                         logger.error('Error while selling');
                         logger.error((e as Error).message ? (e as Error).message : e);
-                        history[history.length - 1]._metadata = {
+
+                        const lastHistoryIndex = history.length - 1;
+                        history[lastHistoryIndex]._metadata = {
                             action: 'sellError',
                         };
+                        events.push({
+                            historyRef: {
+                                index: lastHistoryIndex,
+                                timestamp: history[lastHistoryIndex].timestamp,
+                            },
+                            action: 'sellError',
+                        });
 
                         if ((e as SolPumpfunTransactionDetails).error?.type === 'pump_sell_not_enough_tokens') {
                             fatalError = new Error(ErrorMessage.notEnoughTokensToSell);
@@ -691,6 +759,10 @@ export default class PumpfunBot {
 
         logger.info('Bot stopped - will return the current result');
         result = result ?? {
+            historyRef: {
+                index: historyIndex,
+                timestamp: history[Math.min(historyIndex, history.length - 1)].timestamp,
+            },
             exitCode: 'STOPPED',
             exitReason: 'The bot was requested to stop',
             history: history,

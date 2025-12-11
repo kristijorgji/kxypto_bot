@@ -5,6 +5,53 @@
         "inLamports": 1079990000,
         "inSol": 1.07999
       },
+      "events": [
+        {
+          "action": "startBuy",
+          "historyRef": {
+            "index": 0,
+            "timestamp": 1616175603000
+          },
+          "reason": "shouldBuyStateless"
+        },
+        {
+          "action": "buyCompleted",
+          "historyRef": {
+            "index": 1,
+            "timestamp": 1616175605000
+          }
+        },
+        {
+          "action": "startSell",
+          "historyRef": {
+            "index": 2,
+            "timestamp": 1616175609000
+          },
+          "reason": "TAKE_PROFIT"
+        },
+        {
+          "action": "sellError",
+          "historyRef": {
+            "index": 3,
+            "timestamp": 1616175611000
+          }
+        },
+        {
+          "action": "startSell",
+          "historyRef": {
+            "index": 6,
+            "timestamp": 1616175617000
+          },
+          "reason": "TAKE_PROFIT"
+        },
+        {
+          "action": "sellCompleted",
+          "historyRef": {
+            "index": 7,
+            "timestamp": 1616175619000
+          }
+        }
+      ],
       "transactions": [
         {
           "amountRaw": 10499526567337,
@@ -103,7 +150,7 @@
               "topHolderCirculatingPercentage": 12
             },
             "historyRef": {
-              "index": 7,
+              "index": 6,
               "timestamp": 1616175617000
             },
             "pumpMinLamportsOutput": 710000000,

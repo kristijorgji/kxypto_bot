@@ -288,6 +288,7 @@ describe('bot', () => {
                             inSol: netPnlInSol,
                             inLamports: solToLamports(netPnlInSol),
                         },
+                        events: [],
                         transactions: [buyTransaction, sellTransaction],
                         history: [],
                     };
@@ -297,6 +298,10 @@ describe('bot', () => {
                 }
 
                 return {
+                    historyRef: {
+                        index: 4,
+                        timestamp: 11,
+                    },
                     exitCode: 'DUMPED',
                     exitReason:
                         'Stopped monitoring token because it was probably dumped and current market cap is less than the initial one',
@@ -382,11 +387,16 @@ describe('bot', () => {
                         inLamports: solToLamports(0.1),
                     },
                     transactions: [],
+                    events: [],
                     history: [],
                 } satisfies BotTradeResponse);
             }
 
             return {
+                historyRef: {
+                    index: 0,
+                    timestamp: 0,
+                },
                 exitCode: 'DUMPED',
                 exitReason:
                     'Stopped monitoring token because it was probably dumped and current market cap is less than the initial one',
@@ -429,6 +439,10 @@ describe('bot', () => {
             }
 
             return {
+                historyRef: {
+                    index: 0,
+                    timestamp: 0,
+                },
                 exitCode: 'DUMPED',
                 exitReason:
                     'Stopped monitoring token because it was probably dumped and current market cap is less than the initial one',
@@ -468,6 +482,10 @@ describe('bot', () => {
                 throw new Error(ErrorMessage.insufficientFundsToBuy);
             } else {
                 return {
+                    historyRef: {
+                        index: 0,
+                        timestamp: 0,
+                    },
                     exitCode: 'STOPPED',
                     exitReason: 'The bot was requested to stop',
                     history: [],
@@ -514,6 +532,10 @@ describe('bot', () => {
             }
 
             return {
+                historyRef: {
+                    index: 0,
+                    timestamp: 0,
+                },
                 exitCode: 'DUMPED',
                 exitReason:
                     'Stopped monitoring token because it was probably dumped and current market cap is less than the initial one',

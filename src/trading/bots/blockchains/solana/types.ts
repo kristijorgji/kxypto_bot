@@ -98,10 +98,12 @@ export type TradeTransaction<T = Record<string, unknown>> = {
 export type BotTradeResponse = {
     netPnl: SolanaValue;
     transactions: TradeTransaction[];
+    events: BotEvent[];
     history: HistoryEntry[];
 };
 
 export type BotExitResponse = {
+    historyRef: HistoryRef;
     exitCode: ExitMonitoringReason;
     exitReason: string;
     history: HistoryEntry[];

@@ -1,4 +1,8 @@
 {
+  "historyRef": {
+    "index": 0,
+    "timestamp": 1616175603000
+  },
   "exitCode": "STOPPED",
   "exitReason": "The bot was requested to stop",
   "history": [

@@ -9,6 +9,7 @@ import {
     deleteStrategyResultByIdHandler,
     deleteStrategyResultByIdRequestSchema,
 } from '@src/http-api/handlers/backtests/strategyResults';
+import { getOtherUserHandler, getOtherUserRequestSchema } from '@src/http-api/handlers/users/getOtherUserHandler';
 import { createTypedHandler, validateRequestMiddleware } from '@src/http-api/middlewares/validateRequestMiddleware';
 
 import loginHandler from './handlers/auth/loginHandler';
@@ -54,6 +55,13 @@ export default function configureExpressApp(requestHandlers: RequestHandler[] = 
     app.post('/logout', logoutHandler);
 
     app.get('/user', verifyJwtTokenMiddleware, meHandler);
+
+    app.get(
+        '/users/:id',
+        verifyJwtTokenMiddleware,
+        validateRequestMiddleware(getOtherUserRequestSchema),
+        createTypedHandler(getOtherUserHandler),
+    );
 
     app.get(
         '/launchpad-token-results',

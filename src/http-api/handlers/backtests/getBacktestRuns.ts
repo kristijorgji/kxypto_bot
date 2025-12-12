@@ -2,11 +2,12 @@ import { Response as ExpressResponse } from 'express';
 
 import { db } from '@src/db/knex';
 import { getBacktestRuns } from '@src/db/repositories/backtests';
+import { getOtherUsersByIds } from '@src/db/repositories/users';
 import { Tables } from '@src/db/tables';
 import { Backtest, BacktestRun } from '@src/db/types';
 import fetchCursorPaginatedData from '@src/db/utils/fetchCursorPaginatedData';
 import { InferReq, RequestSchemaObject } from '@src/http-api/middlewares/validateRequestMiddleware';
-import { CursorPaginatedResponse } from '@src/http-api/types';
+import { CursorPaginatedResponse, OtherUser } from '@src/http-api/types';
 import { Pagination, paginationSchema } from '@src/http-api/validation/common';
 
 export const getBacktestRunsRequestSchema = {
@@ -30,7 +31,7 @@ export default async (req: InferReq<typeof getBacktestRunsRequestSchema>, res: E
     const backtests = await db(Tables.Backtests).whereIn('id', backtestIds).select('*');
 
     const userIds = [...new Set(paginatedData.data.map(r => r.user_id).filter(id => id !== null))];
-    const users = await db(Tables.Users).whereIn('id', userIds).select(['id', 'name', 'username']);
+    const users = await getOtherUsersByIds(userIds);
 
     res.json({
         runs: paginatedData,
@@ -39,13 +40,6 @@ export default async (req: InferReq<typeof getBacktestRunsRequestSchema>, res: E
     } satisfies {
         runs: CursorPaginatedResponse<BacktestRun>;
         backtests: Record<string, Backtest>;
-        users: Record<
-            string,
-            {
-                id: string;
-                name: string;
-                username: string;
-            }
-        >;
+        users: Record<string, OtherUser>;
     });
 };

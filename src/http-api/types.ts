@@ -9,3 +9,18 @@ export type CursorPaginatedResponse<T> = {
     count: number;
     nextCursor?: string | null;
 };
+
+export type MeUser = {
+    id: string;
+    name: string;
+    email: string;
+    config: {
+        permissions: string[];
+    };
+};
+
+export type OtherUser = {
+    id: string;
+    name: string;
+    username: string;
+};

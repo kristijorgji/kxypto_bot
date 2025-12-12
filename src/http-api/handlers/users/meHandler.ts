@@ -1,19 +1,11 @@
 import { Response as ExpressResponse, Request } from 'express';
 
-import { db } from '@src/db/knex';
-import { Tables } from '@src/db/tables';
-import { User } from '@src/db/types';
+import { getUserById } from '@src/db/repositories/users';
 
-import { ExtendedRequest } from '../../types';
+import { ExtendedRequest, MeUser } from '../../types';
 
 export default async (req: Request, res: ExpressResponse) => {
-    const user = await db
-        .table(Tables.Users)
-        .select()
-        .where({
-            id: (req as ExtendedRequest).jwtPayload!.userId,
-        })
-        .first<User>();
+    const user = await getUserById((req as ExtendedRequest).jwtPayload!.userId);
 
     if (!user) {
         res.status(404).send();
@@ -27,5 +19,5 @@ export default async (req: Request, res: ExpressResponse) => {
         config: {
             permissions: [],
         },
-    });
+    } satisfies MeUser);
 };

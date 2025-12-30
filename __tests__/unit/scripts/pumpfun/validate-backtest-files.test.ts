@@ -120,9 +120,7 @@ const fileToContent: Record<string, object | string> = {
                 topTenHoldingPercentageCirculating: null,
                 topHolderCirculatingPercentage: null,
             },
-            ...Array(5)
-                .fill(0)
-                .map((_, index) => formHistoryEntry({ timestamp: 7 + index + 1 })),
+            ...Array.from({ length: 5 }, (_, index) => formHistoryEntry({ timestamp: 7 + index + 1 })),
             // matches upToIndex and should be excluded
             {
                 ...formHistoryEntry({
@@ -175,5 +173,47 @@ describe('validateBacktestFiles', () => {
 
         const r = await validateBacktestFiles(config);
         expect(r).toEqual(readLocalFixture('validate-backtest-files/exp-result-1'));
+    });
+
+    it('should validate properly history length', async () => {
+        const tcFileToContent: typeof fileToContent = {
+            'data/min-req-history.json': {
+                history: [formHistoryEntry(), formHistoryEntry()],
+            },
+            'data/shorter-history.json': {
+                history: [formHistoryEntry()],
+            },
+            'data/more-than-min-history.json': {
+                history: [formHistoryEntry(), formHistoryEntry(), formHistoryEntry()],
+            },
+        };
+
+        mockFsReadFileSync(mockedFs, realFs, tcFileToContent);
+        mockGetFiles(getFiles as jest.Mock, tcFileToContent);
+
+        const r = await validateBacktestFiles({
+            ...config,
+            rules: { ...config.rules, minHistoryLength: 2 },
+        });
+        expect(r).toEqual({
+            processed: 3,
+            validFilesCount: 2,
+            invalidFiles: {
+                'data/shorter-history.json': {
+                    historyLength: 1,
+                },
+            },
+            invalidFilesCount: 1,
+            invalidReasonCounts: {
+                context: 0,
+                historyLength: 1,
+                nonJson: 0,
+                withoutHistory: 0,
+            },
+        } satisfies Awaited<ReturnType<typeof validateBacktestFiles>>);
+
+        expect((moveFile as jest.Mock).mock.calls).toEqual([
+            ['data/shorter-history.json', './data/invalid/history_length_less_than_2/shorter-history.json'],
+        ]);
     });
 });

@@ -42,7 +42,7 @@
     },
     {
       "level": "info",
-      "message": "botManager - onStopBot asking pumpfunQueuedListener to stop with reason min_wallet_balance"
+      "message": "botManager - onStopBot asking pumpfunQueuedListener to force stop with reason min_wallet_balance"
     },
     {
       "level": "info",

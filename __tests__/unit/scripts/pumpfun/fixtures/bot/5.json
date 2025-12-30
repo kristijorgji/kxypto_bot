@@ -38,7 +38,7 @@
     },
     {
       "level": "info",
-      "message": "botManager - onStopBot asking pumpfunQueuedListener to stop with reason insufficient_funds"
+      "message": "botManager - onStopBot asking pumpfunQueuedListener to force stop with reason insufficient_funds"
     },
     {
       "level": "info",
@@ -54,7 +54,7 @@
     },
     {
       "level": "info",
-      "message": "botManager - onStopBot asking pumpfunQueuedListener to stop with reason insufficient_funds"
+      "message": "botManager - onStopBot asking pumpfunQueuedListener to force stop with reason insufficient_funds"
     },
     {
       "level": "info",

@@ -12,7 +12,8 @@
         "topHolderCirculatingPercentage": {}
       }
     },
-    "noHistory": true
+    "noHistory": true,
+    "minHistoryLength": 40
   },
   "extractTo": "data/invalid-pumpfun-stats",
   "reportPath": "data/validate-backtest-files-report.json"

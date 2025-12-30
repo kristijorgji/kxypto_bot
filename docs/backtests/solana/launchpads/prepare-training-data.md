@@ -20,7 +20,7 @@ files:
 
 ```sh
 path=data/pumpfun-stats/tmp
-find $path -type f | awk -F. '/\./ {ext[$NF]++} END {for (e in ext) print e, ext[e]}' | sort
+find "$path" -type f | awk -F. '/\./ {ext[$NF]++} END {for (e in ext) print e, ext[e]}' | sort
 ````
 
 ### Preparing The Data

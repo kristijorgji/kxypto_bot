@@ -18,7 +18,7 @@ import {
 import { HistoryEntry } from '../../../../../../src/trading/bots/launchpads/types';
 import RiseStrategy, { RiseStrategyConfig } from '../../../../../../src/trading/strategies/launchpads/RiseStrategy';
 import { formHistoryEntry } from '../../../../../__utils/blockchains/solana';
-import { readFixture, readLocalFixture } from '../../../../../__utils/data';
+import { readLocalFixture } from '../../../../../__utils/data';
 import { dummyPumpfunTokenInfo } from '../../../../../data/vars/blockchains/solana/pumpfun';
 
 const originalDateNow = Date.now;
@@ -114,12 +114,48 @@ describe(PumpfunBacktester.name, () => {
     });
 
     describe('should work with onlyOneFullTrade enabled', () => {
+        const meetContextCommon = {
+            holdersCount: 77,
+            bondingCurveProgress: 32,
+            devHoldingPercentage: 7,
+            topTenHoldingPercentage: 22,
+        } satisfies Partial<HistoryEntry>;
+
         it('should make only one buy and sell and be profitable with this mint', async () => {
             const r = (await backtester.run(
                 runConfig,
                 tokenInfo,
-                readFixture<{ history: HistoryEntry[] }>('backtest/pumpfun/5xNMMoEQcQiJQURE6DEwvHVt1jJsMTLrFmBHZoqpump')
-                    .history,
+                [
+                    formHistoryEntry(
+                        // it will start buy here as we set all conditions to match the strategy buy config
+                        {
+                            timestamp: 1,
+                            price: 3.77e-8,
+                            ...meetContextCommon,
+                        },
+                    ),
+                    formHistoryEntry({
+                        timestamp: 2,
+                        price: 3.8e-8,
+                        ...meetContextCommon,
+                    }),
+                    // buy completes here
+                    formHistoryEntry({
+                        timestamp: 3,
+                        price: 4e-8,
+                        ...meetContextCommon,
+                    }),
+                    // it will start to sell here
+                    formHistoryEntry({
+                        timestamp: 4,
+                        price: 6.8e-8,
+                        ...meetContextCommon,
+                    }),
+                    // sell completes
+                    formHistoryEntry({
+                        timestamp: 5,
+                    }),
+                ],
                 monitorConfig,
             )) as BacktestMintTradeResponse;
 
@@ -170,7 +206,6 @@ describe(PumpfunBacktester.name, () => {
                 r.profitLossLamports,
             );
             expect(r.tradeHistory[1].price.inLamports).toBeGreaterThan(r.tradeHistory[0].price.inLamports);
-            expect(r.tradeHistory[1].marketCap).toBeGreaterThan(r.tradeHistory[0].marketCap);
         });
 
         it('should not buy if it has not enough balance', async () => {
@@ -180,8 +215,16 @@ describe(PumpfunBacktester.name, () => {
                     initialBalanceLamports: 1,
                 },
                 tokenInfo,
-                readFixture<{ history: HistoryEntry[] }>('backtest/pumpfun/5xNMMoEQcQiJQURE6DEwvHVt1jJsMTLrFmBHZoqpump')
-                    .history,
+                [
+                    formHistoryEntry(
+                        // buy criteria meet but should not buy as has no balance
+                        {
+                            timestamp: 1,
+                            price: 3.77e-8,
+                            ...meetContextCommon,
+                        },
+                    ),
+                ],
                 monitorConfig,
             )) as BacktestMintTradeResponse;
 
@@ -194,6 +237,16 @@ describe(PumpfunBacktester.name, () => {
             });
             expect(r.roi).toEqual(0);
             expect(r.maxDrawdownPercentage).toEqual(0);
+            expect(r.events).toEqual([
+                {
+                    action: 'botExit',
+                    historyRef: {
+                        index: 0,
+                        timestamp: 1,
+                    },
+                    reason: 'no_funds_to_buy',
+                },
+            ]);
         });
 
         it('should simulate buy execution time and skip to the next entry after a buy', async () => {

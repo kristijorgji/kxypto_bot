@@ -69,6 +69,7 @@
   "invalidReasonCounts": {
     "nonJson": 1,
     "context": 1,
-    "withoutHistory": 1
+    "withoutHistory": 1,
+    "historyLength": 0
   }
 }

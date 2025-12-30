@@ -27,6 +27,7 @@ const configSchema = z.object({
                 .optional(),
         }),
         noHistory: z.boolean(),
+        minHistoryLength: z.number().positive().optional(),
     }),
     extractTo: z.string().optional(),
     reportPath: z.string().optional(),
@@ -46,6 +47,7 @@ type InvalidFiles = Record<
     {
         nonJson?: boolean;
         withoutHistory?: boolean;
+        historyLength?: number;
         context?: Partial<
             Record<
                 keyof MarketContext,
@@ -57,7 +59,7 @@ type InvalidFiles = Record<
     }
 >;
 
-type InvalidReasonCounts = Record<'context' | 'nonJson' | 'withoutHistory', number>;
+type InvalidReasonCounts = Record<'context' | 'nonJson' | 'withoutHistory' | 'historyLength', number>;
 
 export const validateBacktestFilesProgram = new Command();
 validateBacktestFilesProgram
@@ -165,9 +167,24 @@ export async function validateBacktestFiles(config: ValidateBacktestFilesConfig)
         }
 
         const pc = content as HandlePumpTokenBotReport;
+        const historyLength = pc.history.length;
+
+        if (config.rules.minHistoryLength && historyLength < config.rules.minHistoryLength) {
+            processed++;
+            if (config.extractTo) {
+                await moveFile(
+                    file.fullPath,
+                    `${config.extractTo}/history_length_less_than_${config.rules.minHistoryLength}/${file.name}`,
+                );
+            }
+            invalidFiles[file.fullPath] = {
+                historyLength: historyLength,
+            };
+            continue;
+        }
 
         let i = 0;
-        for (; i < pc.history.length; i++) {
+        for (; i < historyLength; i++) {
             const historyEntry = pc.history[i];
 
             for (const mKey of marketContextKeys) {
@@ -230,6 +247,7 @@ export async function validateBacktestFiles(config: ValidateBacktestFilesConfig)
         nonJson: 0,
         context: 0,
         withoutHistory: 0,
+        historyLength: 0,
     };
     let invalidFilesCount = 0;
     for (const [_, value] of Object.entries(invalidFiles)) {
@@ -239,6 +257,9 @@ export async function validateBacktestFiles(config: ValidateBacktestFilesConfig)
         }
         if (value.withoutHistory === true) {
             invalidReasonCounts.withoutHistory++;
+        }
+        if (value.historyLength) {
+            invalidReasonCounts.historyLength++;
         }
         if (value.context) {
             invalidReasonCounts.context++;

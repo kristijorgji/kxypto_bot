@@ -238,7 +238,7 @@ export async function start(
     );
 
     botEventBus.onStopBot(async ({ reason }) => {
-        logger.info('botManager - onStopBot asking pumpfunQueuedListener to stop with reason %s', reason);
+        logger.info('botManager - onStopBot asking pumpfunQueuedListener to force stop with reason %s', reason);
         await pumpfunListener.stopListening(true);
     });
 

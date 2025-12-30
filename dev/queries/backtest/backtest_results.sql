@@ -1,4 +1,5 @@
 select backtests.name                as backtest,
+       backtest_run_id,
        backtest_strategy_results.id  as id,
        config_variant                as v,
        FORMAT(pnl_sol, 5)            as pnl,

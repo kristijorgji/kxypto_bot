@@ -100,6 +100,19 @@ export async function moveFile(source: string, destination: string): Promise<voi
     await fs.promises.rename(source, destination);
 }
 
+export async function copyFile(source: string, destination: string): Promise<void> {
+    // Resolve absolute paths to prevent "same file" data loss
+    const srcPath = path.resolve(source);
+    const destPath = path.resolve(destination);
+
+    if (srcPath === destPath) return;
+
+    const destDir = path.dirname(destPath);
+    fs.mkdirSync(destDir, { recursive: true });
+
+    await fs.promises.copyFile(srcPath, destPath);
+}
+
 export function comparePaths(path1: string, path2: string): boolean {
     // Normalize and resolve both paths
     let normalizedPath1 = path.resolve(path1).replace(/\\/g, '/'); // Convert Windows backslashes to forward slashes

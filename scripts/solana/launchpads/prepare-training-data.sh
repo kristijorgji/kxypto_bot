@@ -15,6 +15,7 @@
 #     --training-dir=<training-directory> \
 #     --backtest-dir=<backtest-directory> \
 #     --training-percentage=<number 0-100> \
+#     --split-mode=<random|chronological>
 #     [--keep-source] [--dry-run]
 #
 # Arguments:
@@ -23,6 +24,7 @@
 #   --training-dir        Required. The destination folder where all training data (new + old) will reside.
 #   --backtest-dir        Required. The destination folder where all backtest data (new + old) will reside.
 #   --training-percentage Required. Percentage of files to go to training set (0-100).
+#   --split-mode          Required. random | chronological
 #   --keep-source         Optional. If provided, the original source folder (--source-dir) will NOT be deleted.
 #   --dry-run             Optional. If provided, script simulates operations without changes.
 #
@@ -53,11 +55,18 @@ INVALID_FILES_DIR_ARG=""
 TRAINING_DIR_ARG=""
 BACKTEST_DIR_ARG=""
 TRAINING_PERCENTAGE_ARG=""
+SPLIT_MODE_ARG=""
 CLEANUP_SOURCE=true
 DRY_RUN=false
 
 print_usage() {
-  echo "Usage: $0 --source-dir=<path> --invalid-files-dir=<path> --training-dir=<path> --backtest-dir=<path> --training-percentage=<number 0-100> [--keep-source] [--dry-run]"
+  echo "Usage: $0 --source-dir=<path> --invalid-files-dir=<path> --training-dir=<path> --backtest-dir=<path> --training-percentage=<0-100> --split-mode=<random|chronological> [--keep-source] [--dry-run]"
+  echo ""
+  echo "Arguments:"
+  echo "  --split-mode             'random' for shuffled data, 'chronological' for time-based split ascending"
+  echo "  --training-percentage    Integer between 0 and 100 (e.g., 80 for an 80/20 split)"
+  echo "  --keep-source            (Optional) If set, copies files instead of moving them"
+  echo "  --dry-run                (Optional) Simulates the process without modifying files"
 }
 
 # --- Parse arguments ---
@@ -68,6 +77,7 @@ while [ "$#" -gt 0 ]; do
     --training-dir=*) TRAINING_DIR_ARG="${1#*=}" ;;
     --backtest-dir=*) BACKTEST_DIR_ARG="${1#*=}" ;;
     --training-percentage=*) TRAINING_PERCENTAGE_ARG="${1#*=}" ;;
+    --split-mode=*) SPLIT_MODE_ARG="${1#*=}" ;;
     --keep-source) CLEANUP_SOURCE=false ;;
     --dry-run) DRY_RUN=true ;;
     *)
@@ -80,8 +90,8 @@ while [ "$#" -gt 0 ]; do
 done
 
 # --- Validate required arguments ---
-if [ -z "$SOURCE_DIR_ARG" ] || [ -z "$INVALID_FILES_DIR_ARG" ] || [ -z "$TRAINING_DIR_ARG" ] || [ -z "$BACKTEST_DIR_ARG" ] || [ -z "$TRAINING_PERCENTAGE_ARG" ]; then
-  echo "Error: --source-dir, --invalid-files-dir, --training-dir, --backtest-dir, and --training-percentage are required."
+if [ -z "$SOURCE_DIR_ARG" ] || [ -z "$INVALID_FILES_DIR_ARG" ] || [ -z "$TRAINING_DIR_ARG" ] || [ -z "$BACKTEST_DIR_ARG" ] || [ -z "$TRAINING_PERCENTAGE_ARG" ] || [ -z "$SPLIT_MODE_ARG" ]; then
+  echo "Error: --source-dir, --invalid-files-dir, --training-dir, --backtest-dir, --training-percentage, and --split-mode are required."
   print_usage
   exit 1
 fi
@@ -89,6 +99,12 @@ fi
 # --- Validate training percentage is a number between 0 and 100 ---
 if ! echo "$TRAINING_PERCENTAGE_ARG" | grep -Eq '^[0-9]+$' || [ "$TRAINING_PERCENTAGE_ARG" -lt 0 ] || [ "$TRAINING_PERCENTAGE_ARG" -gt 100 ]; then
   echo "Error: --training-percentage must be an integer between 0 and 100."
+  exit 1
+fi
+
+# --- Validate split mode is either random or chronological ---
+if [[ "$SPLIT_MODE_ARG" != "random" && "$SPLIT_MODE_ARG" != "chronological" ]]; then
+  echo "Error: --split-mode must be either 'random' or 'chronological' (received: '$SPLIT_MODE_ARG')."
   exit 1
 fi
 
@@ -193,6 +209,7 @@ echo "--- Step 3: Merging cleaned data into the destination folders for training
     --training-dir="$FULL_TRAINING_DIR_ARG"
     --backtest-dir="$FULL_BACKTEST_DIR_ARG"
     --training-percentage="$TRAINING_PERCENTAGE_ARG"
+    --mode="$SPLIT_MODE_ARG"
   )
 
   if [ "$DRY_RUN" = true ]; then
@@ -209,8 +226,12 @@ if [ "$DRY_RUN" = true ]; then
   exit 0
 fi
 
-echo "--- Step 4: Packaging MERGED data into a ZIP archive ---"
-zip_name="training-$(date +"%d_%B_%Y_%H_%M").zip"
+FOLDER_JSON_COUNT=$(find "$FULL_TRAINING_DIR_ARG" -type f -name '*.json' | wc -l | tr -d ' ')
+
+echo "--- Step 4: Packaging ${FOLDER_JSON_COUNT} MERGED data into a ZIP archive ---"
+
+zip_name="training-$(date +"%d_%B_%Y_%H_%M")_${FOLDER_JSON_COUNT}f.zip"
+
 ABSOLUTE_ZIP_PATH="${PROJECT_ROOT}/${zip_name}"
 
 sleepSeconds=5
@@ -230,13 +251,12 @@ fi
 
 echo "--- Step 5: Verifying ZIP integrity ---"
 
-FOLDER_COUNT=$(find "$FULL_TRAINING_DIR_ARG" -type f -name '*.json' | wc -l | tr -d ' ')
 ZIP_COUNT=$(zipinfo -1 "${ABSOLUTE_ZIP_PATH}" | grep '\.json$' | wc -l | tr -d ' ')
 
-echo "Folder file count: $FOLDER_COUNT"
+echo "Folder file count: $FOLDER_JSON_COUNT"
 echo "Zip file count:    $ZIP_COUNT"
 
-if [ "$FOLDER_COUNT" -ne "$ZIP_COUNT" ]; then
+if [ "$FOLDER_JSON_COUNT" -ne "$ZIP_COUNT" ]; then
   echo "❌ Error: File count mismatch! ZIP may be incomplete."
   exit 1
 else

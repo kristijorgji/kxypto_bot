@@ -11,11 +11,12 @@ import {
 import { HandlePumpTokenReport } from '@src/trading/bots/blockchains/solana/types';
 import { checkInterval } from '@src/trading/strategies/launchpads/common';
 import { intervalConfigSchema } from '@src/trading/strategies/types';
-import { moveFile, walkDirFilesSyncRecursive } from '@src/utils/files';
+import { copyFile, moveFile, walkDirFilesSyncRecursive } from '@src/utils/files';
 import { reviveDates } from '@src/utils/json';
 
 const configSchema = z.object({
     paths: z.array(z.string()),
+    mode: z.enum(['move', 'copy']),
     outputPath: z.string(),
     filters: z.object({
         minSchemaVersion: z.number().optional(),
@@ -65,6 +66,8 @@ async function filterMintResults(config: FilterMintResultsConfig & { dryRun: boo
 }> {
     logger.info('Running filterMintResults script with config=%o', config);
 
+    const fileAction: (src: string, dest: string) => Promise<void> = config.mode === 'copy' ? copyFile : moveFile;
+
     let processed = -1;
     const excluded: Record<string, string> = {};
     const valid: Record<string, string> = {};
@@ -111,27 +114,30 @@ async function filterMintResults(config: FilterMintResultsConfig & { dryRun: boo
             valid[file.fullPath] = drpr.destFullPath;
 
             logger.debug(
-                '[%d]%sMoving file from %s to %s',
+                '[%d]%s%s file from %s to %s',
                 processed,
                 config.dryRun ? '[dryRun] ' : '',
+                config.mode === 'copy' ? 'Copying' : 'Moving',
                 file.fullPath,
                 drpr.destFullPath,
             );
             if (!config.dryRun) {
-                await moveFile(file.fullPath, drpr.destFullPath);
+                await fileAction(file.fullPath, drpr.destFullPath);
             }
         }
     }
 
-    logger.info('%d files were processed', processed);
-    logger.info('%d files were excluded', Object.keys(excluded).length);
-    logger.info('%d files met the criteria', Object.keys(valid).length);
-    logger.info('Moved eligible files=%o', valid);
-
     const result = {
+        excludedCount: Object.keys(excluded).length,
         excluded: excluded,
+        validCount: Object.keys(valid).length,
         valid: valid,
     };
+
+    logger.info('%d files were processed', processed);
+    logger.info('%d files were excluded', result.excludedCount);
+    logger.info('%d files met the criteria', result.validCount);
+    logger.info(`${config.mode === 'copy' ? 'Copied' : 'Moved'} eligible files=%o`, valid);
 
     if (config.reportPath) {
         logger.info('Writing results at %s', config.reportPath);

@@ -47,6 +47,7 @@ This comprehensive script automates several essential steps:
   --training-dir=data/training_data/solana/pumpfun \
   --backtest-dir=data/pumpfun-stats/backtest \
   --training-percentage=50 \
+  --split-mode=chronological \
   --keep-source \ # (Optional) Prevent deletion of the original source folder
   --dry-run # (Optional) Run the script in simulation mode without making any changes
 ```

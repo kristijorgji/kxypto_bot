@@ -4,6 +4,7 @@
         "/Users/kristi.jorgji/Desktop/test/kristi/crypto_bot/data/training_data"
     ],
     "outputPath": "/Users/kristi.jorgji/Desktop/test/kristi/crypto_bot/data/pumpfun-stats/k-filtered",
+    "mode": "move",
     "filters": {
         "minSchemaVersion": 1.4,
         "startedAtUnixSeconds": {

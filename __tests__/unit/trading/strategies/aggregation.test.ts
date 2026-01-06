@@ -3,6 +3,7 @@ import { calculateMedian, calculateWeightedAverage } from '@src/utils/math';
 import { aggregateValue } from '../../../../src/trading/strategies/aggregation';
 
 jest.mock('@src/utils/math', () => ({
+    ...jest.requireActual('@src/utils/math'),
     calculateMedian: jest.fn(),
     calculateWeightedAverage: jest.fn(),
 }));
@@ -42,6 +43,30 @@ describe('aggregateValue', () => {
     it('should compute min correctly', () => {
         const result = aggregateValue('min', values);
         expect(result).toBe(1);
+    });
+
+    it('should call calculateWeightedAverage with generated exponential weights for recency_weighted mode', () => {
+        (calculateWeightedAverage as jest.Mock).mockReturnValue(4.2);
+
+        const result = aggregateValue('recency_weighted', values);
+
+        // Capture the weights passed to the mock
+        const calledWeights = (calculateWeightedAverage as jest.Mock).mock.calls[0][1];
+
+        // 1. Verify it called the utility
+        expect(calculateWeightedAverage).toHaveBeenCalledWith(values, expect.any(Array));
+
+        // 2. Verify weights are normalized (sum to approximately 1)
+        const sum = (calledWeights as number[]).reduce((a, b) => a + b, 0);
+        expect(sum).toBeCloseTo(1, 5);
+
+        // 3. Verify the "recency" property: weights should be strictly increasing
+        // because alpha (0.5) is positive and values are ordered
+        for (let i = 1; i < calledWeights.length; i++) {
+            expect(calledWeights[i]).toBeGreaterThan(calledWeights[i - 1]);
+        }
+
+        expect(result).toBe(4.2);
     });
 
     it('should throw an error for unsupported mode', () => {

@@ -66,6 +66,8 @@ export async function handleRpcEvent(
             },
             handler.successDataProtoClass,
         );
+
+        logger.debug('Finished handling RPC method %s, id %s', msg.method, msg.id);
     } catch (err) {
         if (err instanceof MapperError) {
             throw err;

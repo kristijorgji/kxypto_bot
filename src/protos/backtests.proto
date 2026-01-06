@@ -76,3 +76,8 @@ message BacktestStrategyResultStatusResponseMessage {
   uint64 buyTradesCount = 10;
   uint64 sellTradesCount = 11;
 }
+
+message DeleteBacktestStrategyResultsResponseMessage {
+  repeated uint64 deletedStrategyResultIds = 1;
+  uint64 deletedMintResultsCount = 2;
+}

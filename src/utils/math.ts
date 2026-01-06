@@ -41,3 +41,19 @@ export function calculateWeightedAverage(values: number[], weights: number[]): n
 
     return weightedSum / totalWeight;
 }
+
+export function getRecencyWeights(n: number, alpha: number = 0.5): number[] {
+    if (n === 0) return [];
+
+    // Create indices 1 to n
+    const indices = Array.from({ length: n }, (_, i) => i + 1);
+
+    // Calculate raw exponential values
+    // Subtracting alpha * n (the max) prevents Infinity with large alpha or n
+    const raws = indices.map(i => Math.exp(alpha * (i - n)));
+
+    const sum = raws.reduce((acc, v) => acc + v, 0);
+
+    // Normalize so they sum to 1
+    return raws.map(v => v / sum);
+}

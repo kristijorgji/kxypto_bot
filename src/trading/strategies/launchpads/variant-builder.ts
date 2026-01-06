@@ -162,7 +162,7 @@ export function buildEnsemblePredictionModel(
 
     const prefix = `ag:${aggregationMode}`;
 
-    if (foldPattern && sameAlgorithm && ['mean', 'min', 'max'].includes(aggregationMode)) {
+    if (foldPattern && sameAlgorithm && ['mean', 'min', 'max', 'recency_weighted'].includes(aggregationMode)) {
         const onlyModel = sources[0].model.replace(/_fold_\d+/g, '');
         return `${prefix}_${sources[0].algorithm}_${onlyModel}_fold_0_${sources.length - 1}`;
     }

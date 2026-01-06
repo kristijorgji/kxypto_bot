@@ -51,7 +51,16 @@ export const singlePredictionSourceSchema = z.object({
 
 export type SinglePredictionSource = z.infer<typeof singlePredictionSourceSchema>;
 
-const ensembleAggregationMode = z.enum(['mean', 'median', 'weighted', 'max', 'min', 'stacked', 'custom']);
+const ensembleAggregationMode = z.enum([
+    'mean',
+    'median',
+    'weighted',
+    'max',
+    'min',
+    'stacked',
+    'recency_weighted',
+    'custom',
+]);
 export type AggregationMode = z.infer<typeof ensembleAggregationMode>;
 
 const localEnsembleMemberPredictionSourceSchema = singlePredictionSourceSchema.extend({

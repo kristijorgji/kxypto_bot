@@ -1,4 +1,4 @@
-import { calculateMedian, calculateWeightedAverage } from '../../../src/utils/math';
+import { calculateMedian, calculateWeightedAverage, getRecencyWeights } from '../../../src/utils/math';
 
 describe('calculateMedian', () => {
     test('should return the middle element for an array with an odd number of elements', () => {
@@ -84,5 +84,64 @@ describe('calculateWeightedAverage', () => {
         const values = [1.5, 2.5, 3.5];
         const weights = [1, 2, 3];
         expect(calculateWeightedAverage(values, weights)).toBe(2.8333333333333335); // (1.5*1 + 2.5*2 + 3.5*3) / (1+2+3)
+    });
+});
+
+describe('getRecencyWeights', () => {
+    test('should return an empty array if n is 0', () => {
+        expect(getRecencyWeights(0)).toEqual([]);
+    });
+
+    test('should produce weights that sum to 1', () => {
+        const weights = getRecencyWeights(5, 0.5);
+        const sum = weights.reduce((acc, w) => acc + w, 0);
+        expect(sum).toBeCloseTo(1, 10);
+    });
+
+    test('should produce strictly increasing weights for positive alpha', () => {
+        const weights = getRecencyWeights(4, 0.5);
+        // Each subsequent weight should be larger than the previous one
+        for (let i = 1; i < weights.length; i++) {
+            expect(weights[i]).toBeGreaterThan(weights[i - 1]);
+        }
+    });
+
+    test('should calculate exact weights for a known small case', () => {
+        // n=2, alpha=1.0
+        // i=1: exp(1*(1-2)) = exp(-1) ≈ 0.367879
+        // i=2: exp(1*(2-2)) = exp(0)  = 1
+        // sum ≈ 1.367879
+        // w1 = 0.367879 / 1.367879 ≈ 0.2689
+        // w2 = 1 / 1.367879 ≈ 0.7311
+        const weights = getRecencyWeights(2, 1.0);
+        expect(weights[0]).toBeCloseTo(0.2689, 4);
+        expect(weights[1]).toBeCloseTo(0.7311, 4);
+    });
+
+    test('should be numerically stable for large alpha or n (overflow protection)', () => {
+        // We use alpha=10 and n=100.
+        // This is stable because we subtract the max index before exp().
+        const weights = getRecencyWeights(100, 10.0);
+
+        // 1. The sum must still be 1
+        const sum = weights.reduce((acc, w) => acc + w, 0);
+        expect(sum).toBeCloseTo(1, 10);
+
+        // 2. The last weight should be the largest (near 1, but not exactly 1)
+        expect(weights[weights.length - 1]).toBeGreaterThan(0.99);
+
+        // 3. It should not contain NaN or Infinity
+        weights.forEach(w => {
+            expect(Number.isFinite(w)).toBe(true);
+            expect(isNaN(w)).toBe(false);
+        });
+    });
+
+    test('should return equal weights if alpha is 0', () => {
+        const n = 4;
+        const weights = getRecencyWeights(n, 0);
+        weights.forEach(w => {
+            expect(w).toBeCloseTo(1 / n, 10);
+        });
     });
 });

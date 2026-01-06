@@ -8,6 +8,7 @@ import {
     ProtoBacktestMintFullResult,
     ProtoBacktestRun,
     ProtoBacktestStrategyFullResult,
+    ProtoDeleteBacktestStrategyResultsResponseMessage,
 } from '@src/protos/generated/backtests';
 import { normalizeOptionalFields, normalizeOptionalFieldsInArray } from '@src/protos/mappers/normalizeOptionalFields';
 import {
@@ -307,6 +308,30 @@ export async function deleteBacktestStrategyById(
         const deletedStrategy = await trx(Tables.BacktestStrategyResults).where({ id }).del();
 
         return { deletedStrategy, deletedMints };
+    });
+}
+
+export async function deleteBacktestStrategyResultsById(
+    backtestId: string,
+): Promise<ProtoDeleteBacktestStrategyResultsResponseMessage> {
+    return await db.transaction(async trx => {
+        const strategyResults = await trx(Tables.BacktestStrategyResults)
+            .where({ backtest_id: backtestId })
+            .select('id');
+
+        const idsToDelete: number[] = strategyResults.map(row => row.id);
+
+        if (idsToDelete.length === 0) {
+            return { deletedStrategyResultIds: [], deletedMintResultsCount: 0 };
+        }
+
+        const deletedMintResultsCount = await trx(Tables.BacktestStrategyMintResults)
+            .whereIn('strategy_result_id', idsToDelete)
+            .del();
+
+        await trx(Tables.BacktestStrategyResults).whereIn('id', idsToDelete).del();
+
+        return { deletedStrategyResultIds: idsToDelete, deletedMintResultsCount: deletedMintResultsCount };
     });
 }
 

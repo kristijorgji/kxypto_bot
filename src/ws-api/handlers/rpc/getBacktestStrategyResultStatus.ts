@@ -54,7 +54,7 @@ export const getBacktestStrategyResultStatus: RpcHandler<
             setTimeout(() => {
                 if (pendingDistributedRpc[correlationId]) {
                     delete pendingDistributedRpc[correlationId];
-                    reject(new Error('Backtest status worker timeout'));
+                    reject(new Error('Backtest strategy result status worker timeout'));
                 }
             }, 10_000);
         });

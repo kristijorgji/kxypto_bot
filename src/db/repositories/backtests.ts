@@ -5,9 +5,11 @@ import fetchCursorPaginatedData from '@src/db/utils/fetchCursorPaginatedData';
 import { applyCompositeCursorFilter, scopedColumn } from '@src/db/utils/queries';
 import { CursorPaginatedResponse } from '@src/http-api/types';
 import {
+    ProtoAbortBacktestRunResponseMessage,
     ProtoBacktestMintFullResult,
     ProtoBacktestRun,
     ProtoBacktestStrategyFullResult,
+    ProtoDeleteBacktestRunResponseMessage,
     ProtoDeleteBacktestStrategyResultsResponseMessage,
 } from '@src/protos/generated/backtests';
 import { normalizeOptionalFields, normalizeOptionalFieldsInArray } from '@src/protos/mappers/normalizeOptionalFields';
@@ -17,6 +19,7 @@ import {
     StrategyBacktestResult,
     StrategyMintBacktestResult,
 } from '@src/trading/bots/blockchains/solana/types';
+import { addSecondsToDate } from '@src/utils/time';
 import { RequestDataParams } from '@src/ws-api/types';
 
 import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadBotStrategy';
@@ -332,6 +335,71 @@ export async function deleteBacktestStrategyResultsById(
         await trx(Tables.BacktestStrategyResults).whereIn('id', idsToDelete).del();
 
         return { deletedStrategyResultIds: idsToDelete, deletedMintResultsCount: deletedMintResultsCount };
+    });
+}
+
+export async function deleteBacktestRunById(backtestRunId: number): Promise<ProtoDeleteBacktestRunResponseMessage> {
+    return await db.transaction(async trx => {
+        const strategyResults = await trx(Tables.BacktestStrategyResults)
+            .where({ backtest_run_id: backtestRunId })
+            .select('id');
+
+        const srIdsToDelete: number[] = strategyResults.map(row => row.id);
+
+        const deletedMintResultsCount = await trx(Tables.BacktestStrategyMintResults)
+            .whereIn('strategy_result_id', srIdsToDelete)
+            .del();
+
+        await trx(Tables.BacktestStrategyResults).whereIn('id', srIdsToDelete).del();
+
+        await trx(Tables.BacktestRuns).where('id', backtestRunId).del();
+
+        return {
+            backtestRunId: backtestRunId,
+            deletedStrategyResultIds: srIdsToDelete,
+            deletedMintResultsCount: deletedMintResultsCount,
+        };
+    });
+}
+
+export async function abortBacktestRunById(backtestRunId: number): Promise<ProtoAbortBacktestRunResponseMessage> {
+    return await db.transaction(async trx => {
+        const brStrategyResults: Pick<
+            BacktestStrategyResult,
+            'id' | 'status' | 'execution_time_seconds' | 'created_at'
+        >[] = await trx(Tables.BacktestStrategyResults)
+            .where({ backtest_run_id: backtestRunId })
+            .orderBy('created_at', 'DESC')
+            .select(['id', 'status', 'execution_time_seconds', 'created_at']);
+
+        const srtIdsToAbort: number[] = [];
+        let mostRecentNonRunningSr = undefined;
+        for (const sr of brStrategyResults) {
+            if (sr.status === ProcessingStatus.Running) {
+                srtIdsToAbort.push(sr.id);
+            } else if (!mostRecentNonRunningSr) {
+                mostRecentNonRunningSr = sr;
+            }
+        }
+
+        await trx(Tables.BacktestStrategyResults).whereIn('id', srtIdsToAbort).update({
+            status: ProcessingStatus.Aborted,
+        });
+
+        const finishedAt: Date = mostRecentNonRunningSr
+            ? addSecondsToDate(mostRecentNonRunningSr.created_at, mostRecentNonRunningSr.execution_time_seconds)
+            : new Date();
+
+        await trx(Tables.BacktestRuns).where('id', backtestRunId).update({
+            status: ProcessingStatus.Aborted,
+            finished_at: finishedAt,
+        });
+
+        return {
+            backtestRunId: backtestRunId,
+            finishedAt: finishedAt,
+            abortedStrategyResultIds: srtIdsToAbort,
+        };
     });
 }
 

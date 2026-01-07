@@ -1,10 +1,14 @@
-import { ProtoBacktestStrategyResultStatusResponseMessage } from '@src/protos/generated/backtests';
+import {
+    ProtoAbortBacktestRunResponseMessage,
+    ProtoBacktestStrategyResultStatusResponseMessage,
+} from '@src/protos/generated/backtests';
 
-export const BACKTEST_COMMAND_CHANNEL = 'backtest.command';
-export const BACKTEST_STATUS_RESPONSE_CHANNEL = 'backtest.status.response';
+export const BACKTEST_COMMAND_REQUEST_CHANNEL = 'backtest.command.request';
+export const BACKTEST_COMMAND_RESPONSE_CHANNEL = 'backtest.command.response';
 
-type BaseIpcMessage = {
+export type BaseIpcMessage = {
     correlationId: string;
+    type: string;
 };
 
 export type BacktestStrategyResultStatusRequestMessage = BaseIpcMessage & {
@@ -33,7 +37,9 @@ export type BacktestCommandMessage =
     | BacktestRunResumeRequestMessage
     | BacktestRunAbortRequestMessage;
 
-type BaseIcpResponse = BaseIpcMessage;
+export type BaseIcpResponse = Omit<BaseIpcMessage, 'type'>;
 
 export type BacktestStrategyResultStatusResponseMessage = BaseIcpResponse &
     ProtoBacktestStrategyResultStatusResponseMessage;
+
+export type AbortBacktestRunResponseMessage = BaseIcpResponse & ProtoAbortBacktestRunResponseMessage;

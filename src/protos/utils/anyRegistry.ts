@@ -1,8 +1,10 @@
 import {
+    ProtoAbortBacktestRunResponseMessage,
     ProtoBacktestMintFullResult,
     ProtoBacktestRun,
     ProtoBacktestStrategyFullResult,
     ProtoBacktestStrategyResultStatusResponseMessage,
+    ProtoDeleteBacktestRunResponseMessage,
     ProtoDeleteBacktestStrategyResultsResponseMessage,
 } from '@src/protos/generated/backtests';
 import { AnyRegistryManager } from '@src/protos/utils/AnyRegistryManager';
@@ -21,4 +23,6 @@ export const DEFAULT_ANY_REGISTRY = new AnyRegistryManager({
         ProtoBacktestStrategyResultStatusResponseMessage,
     'type.googleapis.com/ws.ProtoDeleteBacktestStrategyResultsResponseMessage':
         ProtoDeleteBacktestStrategyResultsResponseMessage,
+    'type.googleapis.com/ws.ProtoAbortBacktestRunResponseMessage': ProtoAbortBacktestRunResponseMessage,
+    'type.googleapis.com/ws.ProtoDeleteBacktestRunResponseMessage': ProtoDeleteBacktestRunResponseMessage,
 });

@@ -1,3 +1,4 @@
+import { cancelBacktestRun, deleteBacktestRun } from '@src/ws-api/handlers/rpc/backtestRuns';
 import { deleteBacktestStrategyResults } from '@src/ws-api/handlers/rpc/deleteBacktestStrategyResults';
 import { getBacktestStrategyResultStatus } from '@src/ws-api/handlers/rpc/getBacktestStrategyResultStatus';
 import { RpcHandler } from '@src/ws-api/types';
@@ -17,5 +18,7 @@ import { RpcHandler } from '@src/ws-api/types';
 export const rpcRegistry: Record<string, RpcHandler<unknown, unknown>> = {
     get_backtest_strategy_result_status: getBacktestStrategyResultStatus,
     delete_backtest_strategy_results: deleteBacktestStrategyResults,
+    cancel_backtest_run: cancelBacktestRun,
+    delete_backtest_run: deleteBacktestRun,
     // add more RPC endpoints here...
 } as const;

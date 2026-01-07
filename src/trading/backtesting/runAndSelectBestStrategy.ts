@@ -20,9 +20,11 @@ import PubSub from '@src/pubsub/PubSub';
 import { sleep } from '@src/utils/functions';
 import { formatElapsedTime } from '@src/utils/time';
 import {
-    BACKTEST_COMMAND_CHANNEL,
-    BACKTEST_STATUS_RESPONSE_CHANNEL,
+    AbortBacktestRunResponseMessage,
+    BACKTEST_COMMAND_REQUEST_CHANNEL,
+    BACKTEST_COMMAND_RESPONSE_CHANNEL,
     BacktestCommandMessage,
+    BacktestRunAbortRequestMessage,
     BacktestStrategyResultStatusResponseMessage,
 } from '@src/ws-api/ipc/types';
 import { UpdateItem } from '@src/ws-api/types';
@@ -111,10 +113,15 @@ export default async function runAndSelectBestStrategy(
 
     let paused = false;
     let aborted = false;
+    let abortRequestContext:
+        | (BacktestRunAbortRequestMessage & {
+              lastStrategyResultId: number | null;
+          })
+        | undefined;
     let currentStrategyResultId: number | null = null;
     let currentStrategyLiveState: StrategyResultLiveState | undefined;
 
-    await pubsub.subscribe(BACKTEST_COMMAND_CHANNEL, raw => {
+    await pubsub.subscribe(BACKTEST_COMMAND_REQUEST_CHANNEL, async raw => {
         const command = JSON.parse(raw) as BacktestCommandMessage;
 
         switch (command.type) {
@@ -126,8 +133,8 @@ export default async function runAndSelectBestStrategy(
                 ) {
                     return;
                 }
-                pubsub.publish(
-                    BACKTEST_STATUS_RESPONSE_CHANNEL,
+                await pubsub.publish(
+                    BACKTEST_COMMAND_RESPONSE_CHANNEL,
                     JSON.stringify({
                         correlationId: command.correlationId,
                         strategyResultId: currentStrategyResultId,
@@ -175,6 +182,10 @@ export default async function runAndSelectBestStrategy(
                     tested,
                     currentStrategyResultId,
                 );
+                abortRequestContext = {
+                    ...command,
+                    lastStrategyResultId: currentStrategyResultId,
+                };
                 aborted = true;
                 break;
         }
@@ -304,6 +315,19 @@ export default async function runAndSelectBestStrategy(
         },
         version: 2,
     });
+
+    if (abortRequestContext) {
+        await pubsub.publish(
+            BACKTEST_COMMAND_RESPONSE_CHANNEL,
+            JSON.stringify({
+                correlationId: abortRequestContext.correlationId,
+                backtestRunId: abortRequestContext.backtestRunId,
+                finishedAt: new Date(),
+                abortedStrategyResultIds:
+                    abortRequestContext.lastStrategyResultId === null ? [] : [abortRequestContext.lastStrategyResultId],
+            } satisfies AbortBacktestRunResponseMessage),
+        );
+    }
 
     logger.info('Finished testing %d strategies in %s', tested, formatElapsedTime(timeInNs / 1e9));
     logger.info(

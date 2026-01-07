@@ -73,7 +73,7 @@ export async function handleRpcEvent(
             throw err;
         }
 
-        logger.error('RPC error:', err, msg.method, msg.id);
+        logger.error('RPC error for method %s, id %s: %o', msg.method, msg.id, err);
 
         sendRpcResponse(
             ws,

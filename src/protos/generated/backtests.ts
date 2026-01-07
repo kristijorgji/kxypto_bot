@@ -83,6 +83,18 @@ export interface ProtoDeleteBacktestStrategyResultsResponseMessage {
   deletedMintResultsCount: number;
 }
 
+export interface ProtoAbortBacktestRunResponseMessage {
+  backtestRunId: number;
+  finishedAt: Date | undefined;
+  abortedStrategyResultIds: number[];
+}
+
+export interface ProtoDeleteBacktestRunResponseMessage {
+  backtestRunId: number;
+  deletedStrategyResultIds: number[];
+  deletedMintResultsCount: number;
+}
+
 function createBaseProtoBacktestRun(): ProtoBacktestRun {
   return {
     id: 0,
@@ -1312,6 +1324,228 @@ export const ProtoDeleteBacktestStrategyResultsResponseMessage: MessageFns<
     object: I,
   ): ProtoDeleteBacktestStrategyResultsResponseMessage {
     const message = createBaseProtoDeleteBacktestStrategyResultsResponseMessage();
+    message.deletedStrategyResultIds = object.deletedStrategyResultIds?.map((e) => e) || [];
+    message.deletedMintResultsCount = object.deletedMintResultsCount ?? 0;
+    return message;
+  },
+};
+
+function createBaseProtoAbortBacktestRunResponseMessage(): ProtoAbortBacktestRunResponseMessage {
+  return { backtestRunId: 0, finishedAt: undefined, abortedStrategyResultIds: [] };
+}
+
+export const ProtoAbortBacktestRunResponseMessage: MessageFns<ProtoAbortBacktestRunResponseMessage> = {
+  encode(message: ProtoAbortBacktestRunResponseMessage, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.backtestRunId !== 0) {
+      writer.uint32(8).uint64(message.backtestRunId);
+    }
+    if (message.finishedAt !== undefined) {
+      ProtoTimestamp.encode(toTimestamp(message.finishedAt), writer.uint32(18).fork()).join();
+    }
+    writer.uint32(26).fork();
+    for (const v of message.abortedStrategyResultIds) {
+      writer.uint64(v);
+    }
+    writer.join();
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ProtoAbortBacktestRunResponseMessage {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProtoAbortBacktestRunResponseMessage();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.backtestRunId = longToNumber(reader.uint64());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.finishedAt = fromTimestamp(ProtoTimestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 3: {
+          if (tag === 24) {
+            message.abortedStrategyResultIds.push(longToNumber(reader.uint64()));
+
+            continue;
+          }
+
+          if (tag === 26) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.abortedStrategyResultIds.push(longToNumber(reader.uint64()));
+            }
+
+            continue;
+          }
+
+          break;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ProtoAbortBacktestRunResponseMessage {
+    return {
+      backtestRunId: isSet(object.backtestRunId) ? globalThis.Number(object.backtestRunId) : 0,
+      finishedAt: isSet(object.finishedAt) ? fromJsonTimestamp(object.finishedAt) : undefined,
+      abortedStrategyResultIds: globalThis.Array.isArray(object?.abortedStrategyResultIds)
+        ? object.abortedStrategyResultIds.map((e: any) => globalThis.Number(e))
+        : [],
+    };
+  },
+
+  toJSON(message: ProtoAbortBacktestRunResponseMessage): unknown {
+    const obj: any = {};
+    if (message.backtestRunId !== 0) {
+      obj.backtestRunId = Math.round(message.backtestRunId);
+    }
+    if (message.finishedAt !== undefined) {
+      obj.finishedAt = message.finishedAt.toISOString();
+    }
+    if (message.abortedStrategyResultIds?.length) {
+      obj.abortedStrategyResultIds = message.abortedStrategyResultIds.map((e) => Math.round(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ProtoAbortBacktestRunResponseMessage>, I>>(
+    base?: I,
+  ): ProtoAbortBacktestRunResponseMessage {
+    return ProtoAbortBacktestRunResponseMessage.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ProtoAbortBacktestRunResponseMessage>, I>>(
+    object: I,
+  ): ProtoAbortBacktestRunResponseMessage {
+    const message = createBaseProtoAbortBacktestRunResponseMessage();
+    message.backtestRunId = object.backtestRunId ?? 0;
+    message.finishedAt = object.finishedAt ?? undefined;
+    message.abortedStrategyResultIds = object.abortedStrategyResultIds?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseProtoDeleteBacktestRunResponseMessage(): ProtoDeleteBacktestRunResponseMessage {
+  return { backtestRunId: 0, deletedStrategyResultIds: [], deletedMintResultsCount: 0 };
+}
+
+export const ProtoDeleteBacktestRunResponseMessage: MessageFns<ProtoDeleteBacktestRunResponseMessage> = {
+  encode(message: ProtoDeleteBacktestRunResponseMessage, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.backtestRunId !== 0) {
+      writer.uint32(8).uint64(message.backtestRunId);
+    }
+    writer.uint32(18).fork();
+    for (const v of message.deletedStrategyResultIds) {
+      writer.uint64(v);
+    }
+    writer.join();
+    if (message.deletedMintResultsCount !== 0) {
+      writer.uint32(24).uint64(message.deletedMintResultsCount);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ProtoDeleteBacktestRunResponseMessage {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProtoDeleteBacktestRunResponseMessage();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.backtestRunId = longToNumber(reader.uint64());
+          continue;
+        }
+        case 2: {
+          if (tag === 16) {
+            message.deletedStrategyResultIds.push(longToNumber(reader.uint64()));
+
+            continue;
+          }
+
+          if (tag === 18) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.deletedStrategyResultIds.push(longToNumber(reader.uint64()));
+            }
+
+            continue;
+          }
+
+          break;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.deletedMintResultsCount = longToNumber(reader.uint64());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ProtoDeleteBacktestRunResponseMessage {
+    return {
+      backtestRunId: isSet(object.backtestRunId) ? globalThis.Number(object.backtestRunId) : 0,
+      deletedStrategyResultIds: globalThis.Array.isArray(object?.deletedStrategyResultIds)
+        ? object.deletedStrategyResultIds.map((e: any) => globalThis.Number(e))
+        : [],
+      deletedMintResultsCount: isSet(object.deletedMintResultsCount)
+        ? globalThis.Number(object.deletedMintResultsCount)
+        : 0,
+    };
+  },
+
+  toJSON(message: ProtoDeleteBacktestRunResponseMessage): unknown {
+    const obj: any = {};
+    if (message.backtestRunId !== 0) {
+      obj.backtestRunId = Math.round(message.backtestRunId);
+    }
+    if (message.deletedStrategyResultIds?.length) {
+      obj.deletedStrategyResultIds = message.deletedStrategyResultIds.map((e) => Math.round(e));
+    }
+    if (message.deletedMintResultsCount !== 0) {
+      obj.deletedMintResultsCount = Math.round(message.deletedMintResultsCount);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ProtoDeleteBacktestRunResponseMessage>, I>>(
+    base?: I,
+  ): ProtoDeleteBacktestRunResponseMessage {
+    return ProtoDeleteBacktestRunResponseMessage.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ProtoDeleteBacktestRunResponseMessage>, I>>(
+    object: I,
+  ): ProtoDeleteBacktestRunResponseMessage {
+    const message = createBaseProtoDeleteBacktestRunResponseMessage();
+    message.backtestRunId = object.backtestRunId ?? 0;
     message.deletedStrategyResultIds = object.deletedStrategyResultIds?.map((e) => e) || [];
     message.deletedMintResultsCount = object.deletedMintResultsCount ?? 0;
     return message;

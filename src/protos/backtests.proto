@@ -81,3 +81,15 @@ message DeleteBacktestStrategyResultsResponseMessage {
   repeated uint64 deletedStrategyResultIds = 1;
   uint64 deletedMintResultsCount = 2;
 }
+
+message AbortBacktestRunResponseMessage {
+  uint64 backtestRunId = 1;
+  google.protobuf.Timestamp finishedAt = 2;
+  repeated uint64 abortedStrategyResultIds = 3;
+}
+
+message DeleteBacktestRunResponseMessage {
+  uint64 backtestRunId = 1;
+  repeated uint64 deletedStrategyResultIds = 2;
+  uint64 deletedMintResultsCount = 3;
+}

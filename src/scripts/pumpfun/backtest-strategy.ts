@@ -23,6 +23,12 @@ import LaunchpadBotStrategy from '../../trading/strategies/launchpads/LaunchpadB
 
 const pubsub = createPubSub();
 
+async function cleanup(): Promise<void> {
+    await db.destroy();
+    redis.disconnect();
+    await pubsub.close();
+}
+
 program
     .name('backtest-strategy')
     .description('Backtest the provided strategy(ies)')
@@ -33,15 +39,28 @@ program
     )
     .option('--config <string>', 'path to a config file used for this backtest')
     .action(async args => {
+        const abortState = { aborted: false };
+
+        const handleExit = async () => {
+            if (abortState.aborted) return;
+            abortState.aborted = true;
+            logger.debug('[Main] System interrupt received. Waiting for current task to finish...');
+        };
+        process.on('SIGINT', handleExit);
+
         try {
             await start({
                 backtestId: args.backtestId,
                 config: args.config,
+                abortState: abortState,
             });
         } finally {
-            await db.destroy();
-            redis.disconnect();
-            await pubsub.close();
+            process.off('SIGINT', handleExit);
+            await cleanup();
+            if (abortState.aborted) {
+                logger.debug('[Main] Graceful shutdown complete....');
+                process.exit(0);
+            }
         }
     });
 
@@ -50,7 +69,13 @@ program.parse();
 /**
  * It will test the provided strategies against the history pumpfun data and print out the best performing
  */
-async function start(args: { backtestId?: string; config?: string }) {
+async function start(args: {
+    backtestId?: string;
+    config?: string;
+    abortState: {
+        aborted: boolean;
+    };
+}) {
     if (args.backtestId && args.config) {
         throw new Error('Invalid configuration. You can either provide backtestId or config as an argument');
     }
@@ -71,20 +96,35 @@ async function start(args: { backtestId?: string; config?: string }) {
 
     if (args.config) {
         logger.info('Running backtest using config file: %s', args.config);
-        return await runAndSelectBestStrategy(runnerDeps, actorContext, await parseBacktestFileConfig(args.config));
+        return await runAndSelectBestStrategy(
+            runnerDeps,
+            actorContext,
+            await parseBacktestFileConfig(args.config),
+            args.abortState,
+        );
     }
 
     if (args.backtestId) {
-        return await runAndSelectBestStrategy(runnerDeps, actorContext, {
-            backtest: await getBacktestById(args.backtestId),
-            strategies: getStrategies(),
-        });
+        return await runAndSelectBestStrategy(
+            runnerDeps,
+            actorContext,
+            {
+                backtest: await getBacktestById(args.backtestId),
+                strategies: getStrategies(),
+            },
+            args.abortState,
+        );
     }
 
-    await runAndSelectBestStrategy(runnerDeps, actorContext, {
-        runConfig: getBacktestRunConfig(),
-        strategies: getStrategies(),
-    });
+    await runAndSelectBestStrategy(
+        runnerDeps,
+        actorContext,
+        {
+            runConfig: getBacktestRunConfig(),
+            strategies: getStrategies(),
+        },
+        args.abortState,
+    );
 }
 
 function getBacktestRunConfig(): BacktestRunConfig {

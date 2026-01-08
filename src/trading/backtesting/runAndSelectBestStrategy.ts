@@ -51,6 +51,9 @@ export default async function runAndSelectBestStrategy(
     },
     actorContext: ActorContext,
     config: BacktestConfig,
+    abortState: {
+        aborted: boolean;
+    },
 ): Promise<void> {
     const start = process.hrtime();
 
@@ -112,8 +115,8 @@ export default async function runAndSelectBestStrategy(
     let tested = 0;
 
     let paused = false;
-    let aborted = false;
-    let abortRequestContext:
+    let pubsubAborted = false;
+    let pubsubAbortRequestContext:
         | (BacktestRunAbortRequestMessage & {
               lastStrategyResultId: number | null;
           })
@@ -182,11 +185,11 @@ export default async function runAndSelectBestStrategy(
                     tested,
                     currentStrategyResultId,
                 );
-                abortRequestContext = {
+                pubsubAbortRequestContext = {
                     ...command,
                     lastStrategyResultId: currentStrategyResultId,
                 };
-                aborted = true;
+                pubsubAborted = true;
                 break;
         }
     });
@@ -197,7 +200,7 @@ export default async function runAndSelectBestStrategy(
             await sleep(150);
         }
 
-        if (aborted) {
+        if (abortState.aborted || pubsubAborted) {
             logger.info('[%d] Aborting backtest run', tested);
             break;
         }
@@ -242,7 +245,7 @@ export default async function runAndSelectBestStrategy(
             },
             {
                 pausedRef: () => paused,
-                abortedRef: () => aborted,
+                abortedRef: () => abortState.aborted || pubsubAborted,
                 ls: currentStrategyLiveState,
             },
             backtestStrategyRunConfig,
@@ -275,7 +278,7 @@ export default async function runAndSelectBestStrategy(
             ...runningPartialStrategyResult,
             ...(await updateBacktestStrategyResult(
                 runningPartialStrategyResult.id,
-                !aborted ? ProcessingStatus.Completed : ProcessingStatus.Aborted,
+                !(abortState.aborted || pubsubAborted) ? ProcessingStatus.Completed : ProcessingStatus.Aborted,
                 sr,
                 executionTimeInS,
             )),
@@ -310,21 +313,23 @@ export default async function runAndSelectBestStrategy(
             ...backtestRun,
             ...(await updateBacktestRunStatus(
                 backtestRun.id,
-                !aborted ? ProcessingStatus.Completed : ProcessingStatus.Aborted,
+                !(abortState.aborted || pubsubAborted) ? ProcessingStatus.Completed : ProcessingStatus.Aborted,
             )),
         },
         version: 2,
     });
 
-    if (abortRequestContext) {
+    if (pubsubAbortRequestContext) {
         await pubsub.publish(
             BACKTEST_COMMAND_RESPONSE_CHANNEL,
             JSON.stringify({
-                correlationId: abortRequestContext.correlationId,
-                backtestRunId: abortRequestContext.backtestRunId,
+                correlationId: pubsubAbortRequestContext.correlationId,
+                backtestRunId: pubsubAbortRequestContext.backtestRunId,
                 finishedAt: new Date(),
                 abortedStrategyResultIds:
-                    abortRequestContext.lastStrategyResultId === null ? [] : [abortRequestContext.lastStrategyResultId],
+                    pubsubAbortRequestContext.lastStrategyResultId === null
+                        ? []
+                        : [pubsubAbortRequestContext.lastStrategyResultId],
             } satisfies AbortBacktestRunResponseMessage),
         );
     }

@@ -3,10 +3,9 @@ import {
     DownsideProtectionConfig,
 } from '@src/trading/strategies/launchpads/BuyPredictionStrategy';
 
-import { MarketContext } from '../../bots/launchpads/types';
 import {
     AggregationMode,
-    IntervalConfig,
+    LaunchpadStrategyBuyConfig,
     LocalEnsembleMemberPredictionSource,
     PredictionConfig,
     PredictionSource,
@@ -16,8 +15,8 @@ import {
     isSingleSource,
 } from '../types';
 
-export function variantFromBuyContext(context: Partial<Record<keyof MarketContext, IntervalConfig>>): string {
-    const abbreviations: Record<keyof MarketContext, string> = {
+export function variantFromBuyContext(context: LaunchpadStrategyBuyConfig): string {
+    const abbreviations: Record<keyof Required<LaunchpadStrategyBuyConfig>, string> = {
         price: 'p',
         marketCap: 'mc',
         bondingCurveProgress: 'bcp',
@@ -33,13 +32,13 @@ export function variantFromBuyContext(context: Partial<Record<keyof MarketContex
     let first = true;
 
     for (const key in context) {
-        const interval = context[key as keyof MarketContext];
+        const interval = context[key as keyof LaunchpadStrategyBuyConfig];
 
         if (interval === undefined || (interval?.min === undefined && interval?.max === undefined)) {
             continue;
         }
 
-        variantConfig += `${first ? '' : '_'}${abbreviations[key as keyof MarketContext]}:`;
+        variantConfig += `${first ? '' : '_'}${abbreviations[key as keyof LaunchpadStrategyBuyConfig]}:`;
 
         if (interval?.min !== undefined) {
             variantConfig += `l${interval.min}`;

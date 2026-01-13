@@ -26,7 +26,7 @@ import {
     ConfidencePredictionEnsembleLocalResponse,
     ConfidencePredictionEnsembleResponse,
     ConfidencePredictionResponse,
-    IntervalConfig,
+    LaunchpadStrategyBuyConfig,
     LocalEnsemblePredictionSource,
     PredictionConfig,
     PredictionRequest,
@@ -394,7 +394,7 @@ export type ShouldBuyParams = {
 export type ShouldBuyCommonConfig = {
     prediction: PredictionConfig;
     buy: {
-        context?: Partial<Record<keyof MarketContext, IntervalConfig>>;
+        context?: LaunchpadStrategyBuyConfig;
     };
 };
 

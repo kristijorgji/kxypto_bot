@@ -56,3 +56,11 @@ export const marketContextKeys = [
 ] as const;
 
 export type MarketContextKey = (typeof marketContextKeys)[number];
+
+export type DerivedContext = {
+    timeFromStartS: number;
+};
+
+export const derivedContextKeys: (keyof DerivedContext)[] = ['timeFromStartS'];
+
+export type DerivedContextKey = (typeof derivedContextKeys)[number];

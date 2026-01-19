@@ -1,11 +1,38 @@
-import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
-import { ShouldExitMonitoringResponse } from '../../bots/types';
+import { DerivedContext, HistoryEntry, MarketContext } from '../../bots/launchpads/types';
+import { HistoryRef, ShouldExitMonitoringResponse } from '../../bots/types';
 import { IntervalConfig, LaunchpadBuyPosition, LaunchpadStrategyBuyConfig } from '../types';
 
-export function shouldBuyStateless(buyConfig: LaunchpadStrategyBuyConfig, marketContext: MarketContext): boolean {
-    for (const key in marketContext) {
-        if (!checkInterval(buyConfig[key as keyof MarketContext], marketContext[key as keyof MarketContext])) {
-            return false;
+export function getDerivedContext(
+    historyRef: HistoryRef,
+    _marketContext: MarketContext,
+    history: HistoryEntry[],
+): DerivedContext {
+    return {
+        timeFromStartS: Math.floor((historyRef.timestamp - history[0].timestamp) / 1000),
+    };
+}
+
+export function shouldBuyStateless(
+    buyConfig: LaunchpadStrategyBuyConfig,
+    historyRef: HistoryRef,
+    marketContext: MarketContext,
+    history: HistoryEntry[],
+): boolean {
+    const checks = [
+        { config: buyConfig.context, data: marketContext },
+        { config: buyConfig.derivedContext, data: getDerivedContext(historyRef, marketContext, history) },
+    ] as const;
+
+    for (const { config, data } of checks) {
+        if (!config) {
+            continue;
+        }
+
+        for (const key in config) {
+            const k = key as keyof typeof data;
+            if (!checkInterval(config[k], data[k])) {
+                return false;
+            }
         }
     }
 

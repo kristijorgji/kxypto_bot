@@ -11,13 +11,13 @@ import { deepClone } from '@src/utils/data/data';
 
 import { shouldBuyStateless, shouldExitLaunchpadToken } from './common';
 import { HistoryEntry, MarketContext } from '../../bots/launchpads/types';
-import { marketContextIntervalConfigSchema, strategyConfigSchema, strategySellConfigSchema } from '../types';
+import { launchpadStrategyBuyConfigSchema, strategyConfigSchema, strategySellConfigSchema } from '../types';
 import { LimitsBasedStrategy } from './LimitsBasedStrategy';
 import { variantFromBuyContext, variantFromSellContext } from './variant-builder';
 
 export const riseStrategyConfigSchema = strategyConfigSchema.merge(
     z.object({
-        buy: marketContextIntervalConfigSchema,
+        buy: launchpadStrategyBuyConfigSchema,
         sell: strategySellConfigSchema,
     }),
 );
@@ -40,17 +40,19 @@ export default class RiseStrategy extends LimitsBasedStrategy {
         buySlippageDecimal: 0.25,
         sellSlippageDecimal: 0.25,
         buy: {
-            holdersCount: {
-                min: 15,
-            },
-            bondingCurveProgress: {
-                min: 25,
-            },
-            devHoldingPercentage: {
-                max: 10,
-            },
-            topTenHoldingPercentage: {
-                max: 35,
+            context: {
+                holdersCount: {
+                    min: 15,
+                },
+                bondingCurveProgress: {
+                    min: 25,
+                },
+                devHoldingPercentage: {
+                    max: 10,
+                },
+                topTenHoldingPercentage: {
+                    max: 35,
+                },
             },
         },
         sell: {
@@ -90,11 +92,12 @@ export default class RiseStrategy extends LimitsBasedStrategy {
 
     shouldBuy(
         _mint: string,
-        _historyRef: HistoryRef,
+        historyRef: HistoryRef,
         marketContext: MarketContext,
+        history: HistoryEntry[],
     ): Promise<ShouldBuyResponse<RiseStrategyShouldBuyResponseReason>> {
         return Promise.resolve({
-            buy: shouldBuyStateless(this.config.buy, marketContext),
+            buy: shouldBuyStateless(this.config.buy, historyRef, marketContext, history),
             reason: 'shouldBuyStateless',
         });
     }
@@ -110,7 +113,7 @@ export default class RiseStrategy extends LimitsBasedStrategy {
             return shouldSellRes;
         }
 
-        const shouldSell = !shouldBuyStateless(this.config.buy, marketContext);
+        const shouldSell = !shouldBuyStateless(this.config.buy, historyRef, marketContext, history);
         if (!shouldSell) {
             return {
                 sell: false,

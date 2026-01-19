@@ -70,6 +70,8 @@ describe(RiseStrategy.name, () => {
         index: 10,
     };
 
+    const history: HistoryEntry[] = [formHistoryEntry()];
+
     describe('shouldExit', () => {
         it('calls shouldExitLaunchpadToken with correct props', () => {
             const shouldExitResponse: ShouldExitMonitoringResponse = {
@@ -100,8 +102,6 @@ describe(RiseStrategy.name, () => {
     });
 
     describe('shouldSell', () => {
-        const history: HistoryEntry[] = [];
-
         it('should sell when stop loss is triggered', async () => {
             strategy = new RiseStrategy(silentLogger, {
                 sell: {
@@ -259,10 +259,12 @@ describe(RiseStrategy.name, () => {
             strategy = new RiseStrategy(silentLogger, {
                 variant: 'hc_12_bcp_22_dhp_7_tthp_5_tslp_10_tpp_17',
                 buy: {
-                    holdersCount: { min: 12 },
-                    bondingCurveProgress: { min: 22 },
-                    devHoldingPercentage: { max: 7 },
-                    topTenHoldingPercentage: { max: 5 },
+                    context: {
+                        holdersCount: { min: 12 },
+                        bondingCurveProgress: { min: 22 },
+                        devHoldingPercentage: { max: 7 },
+                        topTenHoldingPercentage: { max: 5 },
+                    },
                 },
                 sell: {
                     takeProfitPercentage: 17,
@@ -333,13 +335,15 @@ describe(RiseStrategy.name, () => {
                 buyPriorityFeeInSol: 0.03,
                 sellPriorityFeeInSol: 0.07,
                 buy: {
-                    holdersCount: {
-                        min: 1,
-                        max: 2,
-                    },
-                    marketCap: {
-                        min: 2,
-                        max: 77,
+                    context: {
+                        holdersCount: {
+                            min: 1,
+                            max: 2,
+                        },
+                        marketCap: {
+                            min: 2,
+                            max: 77,
+                        },
                     },
                 },
                 sell: {
@@ -358,8 +362,10 @@ describe(RiseStrategy.name, () => {
         it('should exclude undefined values and use defaults', () => {
             const key = getVariant({
                 buy: {
-                    bondingCurveProgress: {
-                        min: 30,
+                    context: {
+                        bondingCurveProgress: {
+                            min: 30,
+                        },
                     },
                 },
             });

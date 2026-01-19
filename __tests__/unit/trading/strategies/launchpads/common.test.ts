@@ -1,7 +1,7 @@
 import { TradeTransactionFactory } from '../../../../../src/testdata/factories/bot';
 import { HandlePumpTokenBotReport } from '../../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry, MarketContext } from '../../../../../src/trading/bots/launchpads/types';
-import { ShouldExitMonitoringResponse } from '../../../../../src/trading/bots/types';
+import { HistoryRef, ShouldExitMonitoringResponse } from '../../../../../src/trading/bots/types';
 import {
     checkInterval,
     shouldBuyStateless,
@@ -17,23 +17,36 @@ import { formHistoryEntry, formMarketContext } from '../../../../__utils/blockch
 import { localFixturesPath, readLocalFixture } from '../../../../__utils/data';
 
 describe(shouldBuyStateless.name, () => {
+    const historyRef: HistoryRef = {
+        index: 0,
+        timestamp: 1,
+    };
+
+    const history: HistoryEntry[] = [
+        formHistoryEntry({
+            timestamp: 1,
+        }),
+    ];
+
     test('should return true when all values are within range', () => {
         const buyConfig: LaunchpadStrategyBuyConfig = {
-            price: {
-                min: 100,
-                max: 101,
+            context: {
+                price: {
+                    min: 100,
+                    max: 101,
+                },
+                marketCap: {
+                    min: 100,
+                    max: 101,
+                },
+                holdersCount: { min: 100, max: 500 },
+                bondingCurveProgress: { min: 10, max: 90 },
+                devHoldingPercentage: { min: 2, max: 10 },
+                topTenHoldingPercentage: { min: 5, max: 50 },
+                devHoldingPercentageCirculating: { min: 5, max: 20 },
+                topTenHoldingPercentageCirculating: { min: 5, max: 70 },
+                topHolderCirculatingPercentage: { min: 10, max: 12 },
             },
-            marketCap: {
-                min: 100,
-                max: 101,
-            },
-            holdersCount: { min: 100, max: 500 },
-            bondingCurveProgress: { min: 10, max: 90 },
-            devHoldingPercentage: { min: 2, max: 10 },
-            topTenHoldingPercentage: { min: 5, max: 50 },
-            devHoldingPercentageCirculating: { min: 5, max: 20 },
-            topTenHoldingPercentageCirculating: { min: 5, max: 70 },
-            topHolderCirculatingPercentage: { min: 10, max: 12 },
         };
 
         const marketContext: MarketContext = {
@@ -48,50 +61,62 @@ describe(shouldBuyStateless.name, () => {
             topHolderCirculatingPercentage: 12,
         };
 
-        expect(shouldBuyStateless(buyConfig, marketContext)).toBe(true);
+        expect(shouldBuyStateless(buyConfig, historyRef, marketContext, history)).toBe(true);
     });
 
     test('should return false when holdersCount is below the min range', () => {
         const buyConfig: LaunchpadStrategyBuyConfig = {
-            holdersCount: { min: 100, max: 500 },
+            context: {
+                holdersCount: { min: 100, max: 500 },
+            },
         };
 
         expect(
             shouldBuyStateless(
                 buyConfig,
+                historyRef,
                 formMarketContext({
                     holdersCount: 50, // Below min
                 }),
+                history,
             ),
         ).toBe(false);
     });
 
     test('should return false when bondingCurveProgress is above the max range', () => {
         const buyConfig: LaunchpadStrategyBuyConfig = {
-            bondingCurveProgress: { min: 10, max: 90 },
+            context: {
+                bondingCurveProgress: { min: 10, max: 90 },
+            },
         };
 
         expect(
             shouldBuyStateless(
                 buyConfig,
+                historyRef,
                 formMarketContext({
                     bondingCurveProgress: 95, // Above max
                 }),
+                history,
             ),
         ).toBe(false);
     });
 
     test('should return false when devHoldingPercentage is below min', () => {
         const buyConfig: LaunchpadStrategyBuyConfig = {
-            devHoldingPercentage: { min: 5, max: 15 },
+            context: {
+                devHoldingPercentage: { min: 5, max: 15 },
+            },
         };
 
         expect(
             shouldBuyStateless(
                 buyConfig,
+                historyRef,
                 formMarketContext({
                     devHoldingPercentage: 3, // Below min
                 }),
+                history,
             ),
         ).toBe(false);
     });
@@ -99,25 +124,62 @@ describe(shouldBuyStateless.name, () => {
     test('should return true if config is empty (no constraints)', () => {
         const buyConfig: LaunchpadStrategyBuyConfig = {}; // No constraints
 
-        expect(shouldBuyStateless(buyConfig, formMarketContext({}))).toBe(true);
+        expect(shouldBuyStateless(buyConfig, historyRef, formMarketContext({}), history)).toBe(true);
     });
 
     test('should return false if any value is out of range', () => {
         const buyConfig: LaunchpadStrategyBuyConfig = {
-            holdersCount: { min: 100, max: 500 },
-            bondingCurveProgress: { min: 10, max: 90 },
-            devHoldingPercentage: { min: 2, max: 10 },
-            topTenHoldingPercentage: { min: 5, max: 50 },
+            context: {
+                holdersCount: { min: 100, max: 500 },
+                bondingCurveProgress: { min: 10, max: 90 },
+                devHoldingPercentage: { min: 2, max: 10 },
+                topTenHoldingPercentage: { min: 5, max: 50 },
+            },
         };
 
         expect(
             shouldBuyStateless(
                 buyConfig,
+                historyRef,
                 formMarketContext({
                     holdersCount: 600, // Exceeds max
                 }),
+                history,
             ),
         ).toBe(false);
+    });
+
+    test('should check properly derivedContext', () => {
+        const buyConfig: LaunchpadStrategyBuyConfig = {
+            context: {
+                holdersCount: { min: 100, max: 500 },
+            },
+            derivedContext: {
+                timeFromStartS: {
+                    min: 11,
+                    max: 15,
+                },
+            },
+        };
+
+        for (let i = 7; i <= 20; i++) {
+            const actual = shouldBuyStateless(
+                buyConfig,
+                {
+                    index: i,
+                    timestamp: history[0].timestamp + i * 1e3,
+                },
+                formMarketContext({
+                    holdersCount: 300, // within range
+                }),
+                history,
+            );
+            // should buy only when timeFromStartS is between the provided interval
+            const expected = i >= 11 && i <= 15;
+            if (actual !== expected) {
+                throw new Error(`Expected ${expected} but got ${actual} at index ${i}`);
+            }
+        }
     });
 });
 

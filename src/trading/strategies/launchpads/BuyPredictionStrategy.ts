@@ -12,6 +12,7 @@ import { HistoryRef, ShouldBuyResponse, ShouldExitMonitoringResponse } from '../
 import {
     PredictionSource,
     PredictionStrategyShouldBuyResponseReason,
+    derivedContextIntervalConfigSchema,
     isSingleSource,
     marketContextIntervalConfigSchema,
     predictionConfigSchema,
@@ -24,7 +25,7 @@ import { LimitsBasedStrategy } from './LimitsBasedStrategy';
 import { ShouldBuyParams, formBaseCacheKey, shouldBuyWithBuyPrediction } from './prediction-common';
 import { validatePredictionConfig } from './validators';
 import {
-    variantFromBuyConfig,
+    variantFromBuyPredictionBuyConfig,
     variantFromPredictionConfig,
     variantFromPredictionSource,
     variantFromSellContext,
@@ -49,6 +50,7 @@ export const buyConfigSchema = z.object({
     minPredictedConfidence: z.number().positive(),
     minConsecutivePredictionConfirmations: z.number().positive().optional(),
     context: marketContextIntervalConfigSchema.optional(),
+    derivedContext: derivedContextIntervalConfigSchema.optional(),
     downsideProtection: downsideProtectionSchema.optional(),
 });
 
@@ -206,7 +208,7 @@ export default class BuyPredictionStrategy extends LimitsBasedStrategy {
 
     public static formVariant(source: PredictionSource, config: BuyPredictionStrategyConfig): string {
         let r = `${variantFromPredictionSource(source)}_p(${variantFromPredictionConfig(config.predictionConfig)})`;
-        r += `_${variantFromBuyConfig(config.buy)}_sell(${variantFromSellContext(config.sell)})`;
+        r += `_${variantFromBuyPredictionBuyConfig(config.buy)}_sell(${variantFromSellContext(config.sell)})`;
 
         return r;
     }

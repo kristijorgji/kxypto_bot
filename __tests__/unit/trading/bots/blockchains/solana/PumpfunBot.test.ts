@@ -471,8 +471,10 @@ describe(PumpfunBot.name, () => {
         const strategy = new RiseStrategy(logger, {
             maxWaitMs: 10 * 1e3,
             buy: {
-                price: {
-                    min: 10,
+                context: {
+                    price: {
+                        min: 10,
+                    },
                 },
             },
             sell: {
@@ -538,8 +540,10 @@ describe(PumpfunBot.name, () => {
         const strategy = new RiseStrategy(logger, {
             maxWaitMs: 10 * 1e3,
             buy: {
-                marketCap: {
-                    min: 10,
+                context: {
+                    marketCap: {
+                        min: 10,
+                    },
                 },
             },
             sell: {
@@ -563,8 +567,10 @@ describe(PumpfunBot.name, () => {
         const strategy = new RiseStrategy(logger, {
             maxWaitMs: 10 * 1e3,
             buy: {
-                marketCap: {
-                    min: 10,
+                context: {
+                    marketCap: {
+                        min: 10,
+                    },
                 },
             },
             sell: {
@@ -627,8 +633,10 @@ describe(PumpfunBot.name, () => {
         const strategy = new RiseStrategy(logger, {
             maxWaitMs: 3 * 1e3,
             buy: {
-                marketCap: {
-                    min: 1,
+                context: {
+                    marketCap: {
+                        min: 1,
+                    },
                 },
             },
             sell: {
@@ -655,8 +663,10 @@ describe(PumpfunBot.name, () => {
 
         const strategy = new RiseStrategy(logger, {
             buy: {
-                bondingCurveProgress: {
-                    min: 100,
+                context: {
+                    bondingCurveProgress: {
+                        min: 100,
+                    },
                 },
             },
         });
@@ -673,8 +683,10 @@ describe(PumpfunBot.name, () => {
 
         const strategy = new RiseStrategy(logger, {
             buy: {
-                marketCap: {
-                    min: 1,
+                context: {
+                    marketCap: {
+                        min: 1,
+                    },
                 },
             },
         });
@@ -700,8 +712,10 @@ describe(PumpfunBot.name, () => {
 
         const strategy = new RiseStrategy(logger, {
             buy: {
-                marketCap: {
-                    min: 1,
+                context: {
+                    marketCap: {
+                        min: 1,
+                    },
                 },
             },
         });
@@ -818,8 +832,10 @@ describe(PumpfunBot.name, () => {
 
             const strategy = new RiseStrategy(logger, {
                 buy: {
-                    marketCap: {
-                        min: 1,
+                    context: {
+                        marketCap: {
+                            min: 1,
+                        },
                     },
                 },
                 sell: {
@@ -878,8 +894,10 @@ describe(PumpfunBot.name, () => {
 
             const strategy = new RiseStrategy(logger, {
                 buy: {
-                    marketCap: {
-                        min: 1,
+                    context: {
+                        marketCap: {
+                            min: 1,
+                        },
                     },
                 },
                 sell: {
@@ -911,8 +929,10 @@ describe(PumpfunBot.name, () => {
 
         const strategy = new RiseStrategy(logger, {
             buy: {
-                bondingCurveProgress: {
-                    min: 100,
+                context: {
+                    bondingCurveProgress: {
+                        min: 100,
+                    },
                 },
             },
         });

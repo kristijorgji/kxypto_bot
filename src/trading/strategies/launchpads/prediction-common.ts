@@ -393,15 +393,13 @@ export type ShouldBuyParams = {
 
 export type ShouldBuyCommonConfig = {
     prediction: PredictionConfig;
-    buy: {
-        context?: LaunchpadStrategyBuyConfig;
-    };
+    buy: LaunchpadStrategyBuyConfig;
 };
 
 export async function shouldBuyCommon(
     logger: Logger,
     mint: string,
-    _historyRef: HistoryRef,
+    historyRef: HistoryRef,
     context: MarketContext,
     history: HistoryEntry[],
     config: ShouldBuyCommonConfig,
@@ -415,7 +413,7 @@ export async function shouldBuyCommon(
         };
     }
 
-    if (config.buy.context && !shouldBuyStateless(config.buy.context, context)) {
+    if (!shouldBuyStateless(config.buy, historyRef, context, history)) {
         return {
             buy: false,
             reason: 'shouldBuyStateless',

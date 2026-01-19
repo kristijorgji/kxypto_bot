@@ -12,6 +12,7 @@ import {
     PredictionRequest,
     PredictionStrategyShouldBuyResponseReason,
     SinglePredictionSource,
+    derivedContextIntervalConfigSchema,
     marketContextIntervalConfigSchema,
     predictionConfigSchema,
     singlePredictionSourceSchema,
@@ -37,6 +38,7 @@ export const pricePredictionStrategyConfigSchema = strategyConfigSchema.merge(
             minPredictedPriceIncreasePercentage: z.number().positive(),
             minConsecutivePredictionConfirmations: z.number().positive().optional(),
             context: marketContextIntervalConfigSchema.optional(),
+            derivedContext: derivedContextIntervalConfigSchema.optional(),
         }),
         sell: strategySellConfigSchema,
     }),
@@ -248,8 +250,8 @@ export default class PricePredictionStrategy extends LimitsBasedStrategy {
             r += `_mcpc:${config.buy.minConsecutivePredictionConfirmations}`;
         }
 
-        if (config.buy.context) {
-            r += `_c(${variantFromBuyContext(config.buy.context)})`;
+        if (config.buy.context || config.buy.derivedContext) {
+            r += `_c(${variantFromBuyContext(config.buy)})`;
         }
         r += `)_sell(${variantFromSellContext(config.sell)})`;
 

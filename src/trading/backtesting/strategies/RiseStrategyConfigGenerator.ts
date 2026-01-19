@@ -57,10 +57,12 @@ export default class RiseStrategyConfigGenerator {
                             ) {
                                 const config: RiseStrategyConfig = {
                                     buy: {
-                                        holdersCount: { min: holdersCount },
-                                        bondingCurveProgress: { min: bcp },
-                                        devHoldingPercentage: { min: dhp },
-                                        topTenHoldingPercentage: { min: tthp },
+                                        context: {
+                                            holdersCount: { min: holdersCount },
+                                            bondingCurveProgress: { min: bcp },
+                                            devHoldingPercentage: { min: dhp },
+                                            topTenHoldingPercentage: { min: tthp },
+                                        },
                                     },
                                     sell: {
                                         trailingStopLossPercentage: trailingStopLossPercentage,

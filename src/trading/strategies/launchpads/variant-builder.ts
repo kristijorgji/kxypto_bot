@@ -1,3 +1,4 @@
+import { DerivedContext, DerivedContextKey, MarketContext, MarketContextKey } from '@src/trading/bots/launchpads/types';
 import {
     BuyPredictionStrategyConfig,
     DownsideProtectionConfig,
@@ -5,6 +6,7 @@ import {
 
 import {
     AggregationMode,
+    IntervalConfig,
     LaunchpadStrategyBuyConfig,
     LocalEnsembleMemberPredictionSource,
     PredictionConfig,
@@ -15,8 +17,13 @@ import {
     isSingleSource,
 } from '../types';
 
-export function variantFromBuyContext(context: LaunchpadStrategyBuyConfig): string {
-    const abbreviations: Record<keyof Required<LaunchpadStrategyBuyConfig>, string> = {
+type ContextAbbrPair<T> = {
+    config?: Partial<Record<keyof T, IntervalConfig>>;
+    abbreviations: Record<keyof T, string>;
+};
+
+export function variantFromBuyContext(config: LaunchpadStrategyBuyConfig): string {
+    const ctxAbbreviations: Record<MarketContextKey, string> = {
         price: 'p',
         marketCap: 'mc',
         bondingCurveProgress: 'bcp',
@@ -28,26 +35,44 @@ export function variantFromBuyContext(context: LaunchpadStrategyBuyConfig): stri
         topHolderCirculatingPercentage: 'thpc',
     };
 
+    const derivedContextAbbreviations: Record<DerivedContextKey, string> = {
+        timeFromStartS: 'tfss',
+    };
+
+    const checks: (ContextAbbrPair<MarketContext> | ContextAbbrPair<DerivedContext>)[] = [
+        {
+            config: config.context,
+            abbreviations: ctxAbbreviations,
+        },
+        {
+            config: config.derivedContext,
+            abbreviations: derivedContextAbbreviations,
+        },
+    ];
+
     let variantConfig = '';
     let first = true;
 
-    for (const key in context) {
-        const interval = context[key as keyof LaunchpadStrategyBuyConfig];
+    for (const { config, abbreviations } of checks) {
+        for (const key in config) {
+            const k = key as keyof typeof config;
+            const interval = config[k] as IntervalConfig | undefined;
 
-        if (interval === undefined || (interval?.min === undefined && interval?.max === undefined)) {
-            continue;
+            if (interval === undefined || (interval?.min === undefined && interval?.max === undefined)) {
+                continue;
+            }
+
+            variantConfig += `${first ? '' : '_'}${abbreviations[k]}:`;
+
+            if (interval?.min !== undefined) {
+                variantConfig += `l${interval.min}`;
+            }
+            if (interval?.max !== undefined) {
+                variantConfig += `${interval?.min !== undefined ? '-' : ''}h${interval.max}`;
+            }
+
+            first = false;
         }
-
-        variantConfig += `${first ? '' : '_'}${abbreviations[key as keyof LaunchpadStrategyBuyConfig]}:`;
-
-        if (interval?.min !== undefined) {
-            variantConfig += `l${interval.min}`;
-        }
-        if (interval?.max !== undefined) {
-            variantConfig += `${interval?.min !== undefined ? '-' : ''}h${interval.max}`;
-        }
-
-        first = false;
     }
 
     return variantConfig;
@@ -59,15 +84,15 @@ export function variantFromBuyDownside(c: DownsideProtectionConfig): string {
     )})_mpc:${c.minPredictedConfidence})`;
 }
 
-export function variantFromBuyConfig(c: BuyPredictionStrategyConfig['buy']): string {
+export function variantFromBuyPredictionBuyConfig(c: BuyPredictionStrategyConfig['buy']): string {
     let r = `buy(mpc:${c.minPredictedConfidence}`;
 
     if (c.minConsecutivePredictionConfirmations && c.minConsecutivePredictionConfirmations !== 1) {
         r += `_mcpc:${c.minConsecutivePredictionConfirmations}`;
     }
 
-    if (c.context) {
-        r += `_c(${variantFromBuyContext(c.context)})`;
+    if (c.context || c.derivedContext) {
+        r += `_c(${variantFromBuyContext(c)})`;
     }
 
     if (c.downsideProtection) {

@@ -114,6 +114,7 @@ async function findBestStrategy() {
 
     await storeBacktest({
         id: backtestId,
+        chain: 'solana',
         name: `gen_${Date.now()}`,
         config: runConfig,
     });

@@ -113,10 +113,12 @@ async function prepareAndStart(args: { config?: string }) {
             new RiseStrategy(logger, {
                 variant: 'hc_10_bcp_22_dhp_7_tthp_10_tslp_10_tpp_17',
                 buy: {
-                    holdersCount: { min: 10 },
-                    bondingCurveProgress: { min: 22 },
-                    devHoldingPercentage: { max: 7 },
-                    topTenHoldingPercentage: { max: 10 },
+                    context: {
+                        holdersCount: { min: 10 },
+                        bondingCurveProgress: { min: 22 },
+                        devHoldingPercentage: { max: 7 },
+                        topTenHoldingPercentage: { max: 10 },
+                    },
                 },
                 sell: {
                     takeProfitPercentage: 17,

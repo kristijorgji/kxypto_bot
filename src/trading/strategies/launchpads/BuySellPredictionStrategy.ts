@@ -39,7 +39,7 @@ import {
 } from './prediction-common';
 import { validatePredictionConfig } from './validators';
 import {
-    variantFromBuyConfig,
+    variantFromBuyPredictionBuyConfig,
     variantFromPredictionConfig,
     variantFromPredictionSource,
     variantFromSellContext,
@@ -274,7 +274,7 @@ export default class BuySellPredictionStrategy extends LimitsBasedStrategy {
     ): string {
         let r = `bp(${variantFromPredictionSource(buySource)}_bp(${variantFromPredictionConfig(config.prediction.buy.config)}))`;
         r += `_sp(${variantFromPredictionSource(sellSource)}_sp(${variantFromPredictionConfig(config.prediction.sell.config)}))`;
-        r += `_${variantFromBuyConfig(config.buy)}`;
+        r += `_${variantFromBuyPredictionBuyConfig(config.buy)}`;
         r += `_sell(mpc:${config.sell.minPredictedConfidence}`;
         if (
             config.sell.minConsecutivePredictionConfirmations &&

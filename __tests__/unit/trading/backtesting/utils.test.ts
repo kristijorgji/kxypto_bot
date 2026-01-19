@@ -270,8 +270,10 @@ describe('runStrategy', () => {
                 ...runConfig,
                 strategy: new RiseStrategy(logger, {
                     buy: {
-                        price: {
-                            min: 10,
+                        context: {
+                            price: {
+                                min: 10,
+                            },
                         },
                     },
                 }),

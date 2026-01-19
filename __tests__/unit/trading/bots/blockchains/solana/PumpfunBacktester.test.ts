@@ -40,17 +40,19 @@ describe(PumpfunBacktester.name, () => {
         buySlippageDecimal: 0.25,
         sellSlippageDecimal: 0.25,
         buy: {
-            holdersCount: {
-                min: 15,
-            },
-            bondingCurveProgress: {
-                min: 25,
-            },
-            devHoldingPercentage: {
-                max: 10,
-            },
-            topTenHoldingPercentage: {
-                max: 35,
+            context: {
+                holdersCount: {
+                    min: 15,
+                },
+                bondingCurveProgress: {
+                    min: 25,
+                },
+                devHoldingPercentage: {
+                    max: 10,
+                },
+                topTenHoldingPercentage: {
+                    max: 35,
+                },
             },
         },
         sell: {

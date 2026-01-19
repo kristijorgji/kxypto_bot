@@ -3,7 +3,14 @@ import { z } from 'zod';
 import { HistoryRef } from '@src/trading/bots/types';
 
 import { TradeTransaction } from '../bots/blockchains/solana/types';
-import { HistoryEntry, MarketContext, MarketContextKey, marketContextKeys } from '../bots/launchpads/types';
+import {
+    DerivedContextKey,
+    HistoryEntry,
+    MarketContext,
+    MarketContextKey,
+    derivedContextKeys,
+    marketContextKeys,
+} from '../bots/launchpads/types';
 
 export const strategyConfigSchema = z.object({
     variant: z.string().optional(),
@@ -232,7 +239,20 @@ export const marketContextIntervalConfigSchema = z.object(
         z.ZodOptional<typeof intervalConfigSchema>
     >,
 );
-export type LaunchpadStrategyBuyConfig = z.infer<typeof marketContextIntervalConfigSchema>;
+
+export const derivedContextIntervalConfigSchema = z.object(
+    Object.fromEntries(derivedContextKeys.map(key => [key, intervalConfigSchema.optional()])) as Record<
+        DerivedContextKey,
+        z.ZodOptional<typeof intervalConfigSchema>
+    >,
+);
+
+export const launchpadStrategyBuyConfigSchema = z.object({
+    context: marketContextIntervalConfigSchema.optional(),
+    derivedContext: derivedContextIntervalConfigSchema.optional(),
+});
+
+export type LaunchpadStrategyBuyConfig = z.infer<typeof launchpadStrategyBuyConfigSchema>;
 
 export const strategySellConfigSchema = z.object({
     trailingStopLossPercentage: z.number().positive().optional(),

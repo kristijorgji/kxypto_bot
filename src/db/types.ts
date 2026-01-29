@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { ActionSource, FileStorageType } from '../core/types';
-import { BacktestRunConfig } from '../trading/bots/blockchains/solana/types';
+import { BacktestConfig } from '../trading/bots/blockchains/solana/types';
 import { ExitMonitoringReason, SellReason } from '../trading/bots/types';
 
 // example 2023-03-20 12:57:02
@@ -48,7 +48,7 @@ export type Backtest = {
     id: string;
     chain: Blockchain;
     name?: string | null;
-    config: BacktestRunConfig;
+    config: BacktestConfig;
     created_at?: Date;
 };
 
@@ -78,6 +78,8 @@ export type BacktestRun = {
     api_client_id: string | null;
     started_at: Date | null;
     finished_at: Date | null;
+    config: Record<string, unknown>;
+    failure_details: Record<string, unknown> | null;
     created_at: Date;
     updated_at: Date;
 };

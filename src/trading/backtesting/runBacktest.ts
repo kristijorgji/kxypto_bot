@@ -7,14 +7,13 @@ import { getFiles } from '@src/data/getFiles';
 import {
     createBacktestRun,
     formDraftMintResultFromBacktestMintResult,
-    getBacktestStrategyResults,
     initBacktestStrategyResult,
     storeBacktest,
     updateBacktestRunStatus,
     updateBacktestStrategyResult,
 } from '@src/db/repositories/backtests';
 import { Backtest, BacktestStrategyResult, ProcessingStatus } from '@src/db/types';
-import { ProtoBacktestMintFullResult } from '@src/protos/generated/backtests';
+import { ProtoBacktestMintFullResult, ProtoBacktestRun } from '@src/protos/generated/backtests';
 import BacktestPubSub from '@src/pubsub/BacktestPubSub';
 import PubSub from '@src/pubsub/PubSub';
 import { sleep } from '@src/utils/functions';
@@ -29,83 +28,111 @@ import {
 } from '@src/ws-api/ipc/types';
 import { UpdateItem } from '@src/ws-api/types';
 
-import { BacktestConfig } from './types';
+import { RunBacktestFromRunConfigParams, RunBacktestParams } from './types';
 import { StrategyResultLiveState, createInitialStrategyResultLiveState, logStrategyResult, runStrategy } from './utils';
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
 import {
-    BacktestRunConfig,
+    BacktestConfig,
     BacktestStrategyRunConfig,
     StrategyMintBacktestResult,
 } from '../bots/blockchains/solana/types';
 
-export default async function runAndSelectBestStrategy(
+/**
+ * It will run a single Backtest from a
+ *  temporary config          - it will create a run and backtest automatically in database
+ *  an existing backtest      - it will create a run automatically
+ *  an existing run (queued)  - it will use the existing provided run and backtest config, and update states accordingly
+ */
+export default async function runBacktest(
     {
         logger,
         pubsub,
         backtestPubSub,
+        pumpfun,
+        backtester,
     }: {
         logger: Logger;
         pubsub: PubSub;
         backtestPubSub: BacktestPubSub;
+        pumpfun: Pumpfun;
+        backtester: PumpfunBacktester;
     },
     actorContext: ActorContext,
-    config: BacktestConfig,
+    config: RunBacktestParams,
     abortState: {
         aborted: boolean;
     },
 ): Promise<void> {
     const start = process.hrtime();
 
-    const pumpfun = new Pumpfun({
-        rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
-        wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
-    });
-    const backtester = new PumpfunBacktester(logger);
-
+    let backtestRun: ProtoBacktestRun | undefined = undefined;
     const backtestId = (config as { backtest?: Backtest })?.backtest?.id ?? uuidv4();
     let backtest: Backtest;
-    let runConfig: BacktestRunConfig;
-    if ((config as { backtest?: Backtest })?.backtest) {
+    let backtestConfig: BacktestConfig;
+
+    if ((config as RunBacktestFromRunConfigParams).backtestRun) {
+        const pc = config as RunBacktestFromRunConfigParams;
+        backtestRun = pc.backtestRun;
+        backtest = pc.backtest;
+        backtestConfig = pc.backtest.config;
+    } else if ((config as { backtest?: Backtest })?.backtest) {
         backtest = (config as { backtest: Backtest }).backtest;
-        runConfig = backtest.config;
+        backtestConfig = backtest.config;
     } else {
-        runConfig = (config as { runConfig: BacktestRunConfig }).runConfig;
+        backtestConfig = (config as { backtestConfig: BacktestConfig }).backtestConfig;
         logger.info('Storing backtest with id %s', backtestId);
         backtest = {
             id: backtestId,
             chain: 'solana',
-            config: runConfig,
+            config: backtestConfig,
         };
         await storeBacktest(backtest);
     }
 
-    const backtestRun = await createBacktestRun({
-        backtest_id: backtestId,
-        source: actorContext.source,
-        status: ProcessingStatus.Running,
-        user_id: actorContext?.userId ?? null,
-        api_client_id: actorContext?.apiClientId ?? null,
-        started_at: new Date(),
-    });
-    backtestPubSub.publishBacktestRun({
-        id: backtestRun.id.toString(),
-        action: 'added',
-        data: backtestRun,
-        version: 1,
-    });
+    if (!backtestRun) {
+        backtestRun = await createBacktestRun({
+            backtest_id: backtestId,
+            source: actorContext.source,
+            status: ProcessingStatus.Running,
+            user_id: actorContext?.userId ?? null,
+            api_client_id: actorContext?.apiClientId ?? null,
+            started_at: new Date(),
+            config: {},
+        });
+        backtestPubSub.publishBacktestRun({
+            id: backtestRun.id.toString(),
+            action: 'added',
+            data: backtestRun,
+            version: 1,
+        });
+        logger.info('Storing and dispatched backtest run with id %s', backtestRun.id);
+    } else {
+        if (backtestRun.status === ProcessingStatus.Pending) {
+            backtestPubSub.publishBacktestRun({
+                id: backtestRun.id.toString(),
+                action: 'updated',
+                data: {
+                    ...backtestRun,
+                    ...(await updateBacktestRunStatus(backtestRun.id, ProcessingStatus.Running)),
+                },
+                version: 2,
+            });
+        }
+    }
 
-    const files = getFiles(runConfig.data);
+    const files = getFiles(backtestConfig.data);
     const totalFiles = files.length;
-    if (runConfig && runConfig.data.filesCount !== totalFiles) {
+    if (backtestConfig && backtestConfig.data.filesCount !== totalFiles) {
         throw new Error(
-            `Cannot resume the existing backtest: expected ${runConfig.data.filesCount} file(s), but found ${totalFiles} file(s), config.data=${JSON.stringify(runConfig.data)}`,
+            `Cannot resume the existing backtest: expected ${backtestConfig.data.filesCount} file(s), but found ${totalFiles} file(s), config.data=${JSON.stringify(backtestConfig.data)}`,
         );
     }
 
     const strategiesCount = config.strategies.length;
     logger.info(
-        'Started backtest with id %s%s against %d strategies, config=%o\n',
+        '[%s] Started backtest with id %s%s against %d strategies, config=%o\n',
+        backtestRun.id,
         backtestId,
         backtest.name ? `, name ${backtest.name}` : '',
         strategiesCount,
@@ -159,7 +186,8 @@ export default async function runAndSelectBestStrategy(
                     return;
                 }
                 logger.info(
-                    'Pause backtest run requested at strategy [%d], strategyResultId %s',
+                    '[%s] Pause backtest run requested at strategy [%d], strategyResultId %s',
+                    backtestRun.id,
                     tested,
                     currentStrategyResultId,
                 );
@@ -170,7 +198,8 @@ export default async function runAndSelectBestStrategy(
                     return;
                 }
                 logger.info(
-                    'Resume backtest run requested at strategy [%d], strategyResultId %s',
+                    '[%s] Resume backtest run requested at strategy [%d], strategyResultId %s',
+                    backtestRun.id,
                     tested,
                     currentStrategyResultId,
                 );
@@ -181,7 +210,8 @@ export default async function runAndSelectBestStrategy(
                     return;
                 }
                 logger.info(
-                    'Abort backtest run requested at strategy [%d], strategyResultId %s',
+                    '[%s] Abort backtest run requested at strategy [%d], strategyResultId %s',
+                    backtestRun.id,
                     tested,
                     currentStrategyResultId,
                 );
@@ -206,12 +236,13 @@ export default async function runAndSelectBestStrategy(
         }
 
         const backtestStrategyRunConfig: BacktestStrategyRunConfig = {
-            ...runConfig,
+            ...backtestConfig,
             strategy: strategy,
         };
 
         logger.info(
-            '[%d] Will test strategy %s with variant config: %s against %d historical data, config=%o\n%s',
+            '[%s][%d] Will test strategy %s with variant config: %s against %d historical data, config=%o\n%s',
+            backtestRun.id,
             tested,
             backtestStrategyRunConfig.strategy.identifier,
             backtestStrategyRunConfig.strategy.configVariant,
@@ -293,16 +324,6 @@ export default async function runAndSelectBestStrategy(
         tested++;
     }
 
-    const bestStrategyResult = (
-        await getBacktestStrategyResults(backtestId, {
-            orderBy: {
-                columnName: 'pnl_sol',
-                order: 'desc',
-            },
-            limit: 1,
-        })
-    )[0];
-
     const diff = process.hrtime(start);
     const timeInNs = diff[0] * 1e9 + diff[1];
 
@@ -334,13 +355,7 @@ export default async function runAndSelectBestStrategy(
         );
     }
 
-    logger.info('Finished testing %d strategies in %s', tested, formatElapsedTime(timeInNs / 1e9));
-    logger.info(
-        'The best strategy is: %s with variant config: %s, config: %o',
-        bestStrategyResult.strategy_id,
-        bestStrategyResult.config_variant,
-        bestStrategyResult.config,
-    );
+    logger.info('[%s] Finished testing %d strategies in %s', backtestRun.id, tested, formatElapsedTime(timeInNs / 1e9));
 }
 
 function strategyMintBacktestResultToDraftMintResult(

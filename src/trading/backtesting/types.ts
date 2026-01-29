@@ -1,12 +1,13 @@
 import { z } from 'zod';
 
 import { Backtest } from '@src/db/types';
+import { ProtoBacktestRun } from '@src/protos/generated/backtests';
 import { loggerTypeSchema, strategyFileConfigSchema } from '@src/trading/config/types';
 
-import { BacktestRunConfig, backtestRunConfigSchema } from '../bots/blockchains/solana/types';
+import { BacktestConfig, backtestConfigSchema } from '../bots/blockchains/solana/types';
 import LaunchpadBotStrategy from '../strategies/launchpads/LaunchpadBotStrategy';
 
-export const backtestFileConfigSchema = z
+export const backtestRunConfigSchema = z
     .object({
         strategyLogger: loggerTypeSchema.optional(),
         strategies: z.array(strategyFileConfigSchema),
@@ -17,19 +18,29 @@ export const backtestFileConfigSchema = z
                 backtestId: z.string(),
             }),
             z.object({
-                runConfig: backtestRunConfigSchema,
+                config: backtestConfigSchema,
             }),
         ]),
     );
-export type BacktestFileConfig = z.infer<typeof backtestFileConfigSchema>;
+export type BacktestRunConfig = z.infer<typeof backtestRunConfigSchema>;
 
-export type BacktestConfig = (
-    | {
-          backtest: Backtest;
-      }
-    | {
-          runConfig: BacktestRunConfig;
-      }
-) & {
+type RunBacktestCommonParams = {
     strategies: LaunchpadBotStrategy[];
 };
+
+export type RunBacktestFromRunConfigParams = RunBacktestCommonParams & {
+    backtestRun: ProtoBacktestRun;
+    backtest: Backtest;
+};
+
+export type RunBacktestParams =
+    | ((
+          | {
+                backtest: Backtest;
+            }
+          | {
+                backtestConfig: BacktestConfig;
+            }
+      ) &
+          RunBacktestCommonParams)
+    | RunBacktestFromRunConfigParams;

@@ -1,6 +1,7 @@
 import { program } from 'commander';
 import { createLogger } from 'winston';
 
+import Pumpfun from '@src/blockchains/solana/dex/pumpfun/Pumpfun';
 import { solToLamports } from '@src/blockchains/utils/amount';
 import { redis } from '@src/cache/cache';
 import { ActionSource, ActorContext } from '@src/core/types';
@@ -10,12 +11,13 @@ import { getBacktestById } from '@src/db/repositories/backtests';
 import { logger } from '@src/logger';
 import { createPubSub } from '@src/pubsub';
 import BacktestPubSub from '@src/pubsub/BacktestPubSub';
-import { parseBacktestFileConfig } from '@src/trading/backtesting/config-parser';
+import { fileConfigToRunBacktestParams } from '@src/trading/backtesting/config-parser';
 import { formPumpfunBacktestStatsDir } from '@src/trading/backtesting/data/pumpfun/utils';
-import { BacktestRunConfig } from '@src/trading/bots/blockchains/solana/types';
+import PumpfunBacktester from '@src/trading/bots/blockchains/solana/PumpfunBacktester';
+import { BacktestConfig } from '@src/trading/bots/blockchains/solana/types';
 import { PredictionSource } from '@src/trading/strategies/types';
 
-import runAndSelectBestStrategy from '../../trading/backtesting/runAndSelectBestStrategy';
+import runBacktest from '../../trading/backtesting/runBacktest';
 import BuyPredictionStrategy, {
     BuyPredictionStrategyConfigInput,
 } from '../../trading/strategies/launchpads/BuyPredictionStrategy';
@@ -84,6 +86,11 @@ async function start(args: {
         logger: logger,
         pubsub: pubsub,
         backtestPubSub: new BacktestPubSub(pubsub),
+        pumpfun: new Pumpfun({
+            rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
+            wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
+        }),
+        backtester: new PumpfunBacktester(logger),
     };
 
     /**
@@ -96,16 +103,16 @@ async function start(args: {
 
     if (args.config) {
         logger.info('Running backtest using config file: %s', args.config);
-        return await runAndSelectBestStrategy(
+        return await runBacktest(
             runnerDeps,
             actorContext,
-            await parseBacktestFileConfig(args.config),
+            await fileConfigToRunBacktestParams(args.config),
             args.abortState,
         );
     }
 
     if (args.backtestId) {
-        return await runAndSelectBestStrategy(
+        return await runBacktest(
             runnerDeps,
             actorContext,
             {
@@ -116,18 +123,18 @@ async function start(args: {
         );
     }
 
-    await runAndSelectBestStrategy(
+    await runBacktest(
         runnerDeps,
         actorContext,
         {
-            runConfig: getBacktestRunConfig(),
+            backtestConfig: getBacktestConfig(),
             strategies: getStrategies(),
         },
         args.abortState,
     );
 }
 
-function getBacktestRunConfig(): BacktestRunConfig {
+function getBacktestConfig(): BacktestConfig {
     const dataConfig = {
         path: formPumpfunBacktestStatsDir(),
         includeIfPathContains: ['no_trade'],

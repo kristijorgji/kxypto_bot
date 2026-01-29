@@ -36,6 +36,10 @@ export function ProtoBacktestRunFactory(copy?: Partial<ProtoBacktestRun>): Proto
         api_client_id: (copy?.api_client_id ?? faker.datatype.boolean()) ? faker.string.alpha() : undefined,
         started_at: copy?.started_at ?? faker.date.past(),
         finished_at: finishedAt,
+        config: {
+            factoryGenerated: true,
+        },
+        failure_details: undefined,
         created_at: copy?.created_at ?? faker.date.past(),
     };
 }

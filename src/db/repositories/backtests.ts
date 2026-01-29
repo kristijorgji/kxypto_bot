@@ -60,14 +60,15 @@ export async function storeBacktest(backtest: Backtest) {
 }
 
 export async function createBacktestRun(
-    data: Omit<BacktestRun, 'id' | 'finished_at' | 'created_at' | 'updated_at'>,
+    data: Omit<BacktestRun, 'id' | 'finished_at' | 'failure_details' | 'created_at' | 'updated_at'>,
 ): Promise<ProtoBacktestRun> {
     const now = new Date();
 
     const draftInsert: Omit<BacktestRun, 'id'> = {
         ...data,
-        started_at: now,
+        started_at: data.started_at === null ? null : now,
         finished_at: null,
+        failure_details: null,
         created_at: now,
         updated_at: now,
     };
@@ -79,8 +80,23 @@ export async function createBacktestRun(
             id: id,
             ...draftInsert,
         },
-        ['user_id', 'api_client_id', 'finished_at'],
+        ['user_id', 'api_client_id', 'failure_details', 'finished_at'],
     ) as ProtoBacktestRun;
+}
+
+export async function getBacktestRunById(id: number): Promise<ProtoBacktestRun & Pick<BacktestRun, 'config'>> {
+    const r = await db.table(Tables.BacktestRuns).select<BacktestRun>().where('id', id).first();
+    if (!r) {
+        throw new Error(`Backtest run with id ${id} was not found`);
+    }
+
+    return normalizeOptionalFields(r, [
+        'user_id',
+        'api_client_id',
+        'started_at',
+        'failure_details',
+        'finished_at',
+    ]) as ProtoBacktestRun & Pick<BacktestRun, 'config'>;
 }
 
 export function getBacktestRuns(p: CompositeCursorPaginationParams, _: {}): Promise<BacktestRun[]> {
@@ -104,16 +120,40 @@ type PartialBacktestRunUpdateResponse = Pick<ProtoBacktestRun, 'status' | 'finis
 
 export async function updateBacktestRunStatus(
     id: number,
-    status: ProcessingStatus.Completed | ProcessingStatus.Aborted,
+    status: ProcessingStatus.Completed | ProcessingStatus.Aborted | ProcessingStatus.Running,
 ): Promise<PartialBacktestRunUpdateResponse> {
     const update: PartialBacktestRunUpdateResponse = {
         status: status,
-        finished_at: new Date(),
-    } satisfies Pick<BacktestRun, 'status' | 'finished_at'>;
+    } satisfies Pick<BacktestRun, 'status'>;
+
+    if ([ProcessingStatus.Aborted, ProcessingStatus.Completed].includes(status)) {
+        update.finished_at = new Date();
+    }
 
     await db.table(Tables.BacktestRuns).where('id', id).update(update);
 
     return normalizeOptionalFields(update, ['finished_at']);
+}
+
+export async function markBacktestRunAsFailed(
+    id: number,
+    failureDetails: Record<string, unknown>,
+): Promise<Pick<ProtoBacktestRun, 'status' | 'failure_details' | 'finished_at'>> {
+    const update = {
+        status: ProcessingStatus.Failed,
+        failure_details: JSON.stringify(failureDetails) as unknown as Record<string, unknown>,
+        finished_at: new Date(),
+    } satisfies Pick<BacktestRun, 'status' | 'failure_details' | 'finished_at'>;
+
+    await db.table(Tables.BacktestRuns).where('id', id).update(update);
+
+    return normalizeOptionalFields(
+        {
+            ...update,
+            failure_details: failureDetails, // return the original object not the JSON.stringify
+        },
+        ['finished_at', 'failure_details'],
+    );
 }
 
 export async function initBacktestStrategyResult(
@@ -204,32 +244,6 @@ export async function updateBacktestStrategyResult(
 
         return update;
     });
-}
-
-export async function getBacktestStrategyResults(
-    backtestId: string,
-    params?: {
-        orderBy?: {
-            columnName: 'pnl_sol';
-            order: 'asc' | 'desc';
-        };
-        limit?: number;
-    },
-): Promise<BacktestStrategyResult[]> {
-    let query = db
-        .table(Tables.BacktestStrategyResults)
-        .select<BacktestStrategyResult[]>()
-        .where('backtest_id', backtestId);
-
-    if (params?.orderBy) {
-        query = query.orderBy(params.orderBy.columnName, params.orderBy.order);
-    }
-
-    if (params?.limit) {
-        query = query.limit(params.limit);
-    }
-
-    return (await query) as BacktestStrategyResult[];
 }
 
 export type BacktestStrategyFullResult = Omit<ProtoBacktestStrategyFullResult, 'created_at'> & {

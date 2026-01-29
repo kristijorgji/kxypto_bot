@@ -27,20 +27,25 @@ strategies.
 3. [🖥️ CLI](#-cli)
 4. [🌐 Server](#-server)
 5. [📡 WebSocket Server](#-websocket-server)
-   - [🔄 Internal IPC System (Redis PubSub)](#-internal-ipc-system-redis-pubsub)
-     - [Why We Need IPC](#why-we-need-ipc)
-     - [🚀 IPC Features](#-ipc-features)
-     - [Architecture Overview](#architecture-overview)
-   - [Features](#features)
-   - [File Structure](#file-structure)
-   - [Generating TypeScript Types](#generating-typescript-types)
-6. [📜 Example Scripts](#-example-scripts)
-7. [⚙️ Standalone Scripts](#-standalone-scripts)
-8. [🧪 Scratch Code](#-scratch-code-scratch)
-9. [🛠️ Troubleshooting](#-troubleshooting)
-    1. [🔑 Wallet Private Key Recovery From Secret Phrase](#-how-can-i-find-my-wallet-private-key-if-i-have-only-the-recovery-phrase)
-10. [🤝 Contributing](./docs/CONTRIBUTING.md)
-11. [📄 License](#-license)
+    - [🔄 Internal IPC System (Redis PubSub)](#-internal-ipc-system-redis-pubsub)
+        - [Why We Need IPC](#why-we-need-ipc)
+        - [🚀 IPC Features](#-ipc-features)
+        - [Architecture Overview](#architecture-overview)
+    - [Features](#features)
+    - [File Structure](#file-structure)
+    - [Generating TypeScript Types](#generating-typescript-types)
+6. [📦 Queue System (BullMQ)](#-queue-system-bullmq)
+    - [📂 File Structure](#-file-structure)
+    - [🏗️ Worker Architecture](#-worker-architecture)
+    - [📊 Monitoring Dashboard (BullBoard)](#-monitoring-dashboard-bullboard)
+    - [🛠️ Error Handling & Retries](#-error-handling--retries)
+7. [📜 Example Scripts](#-example-scripts)
+8. [⚙️ Standalone Scripts](#-standalone-scripts)
+9. [🧪 Scratch Code](#-scratch-code-scratch)
+10. [🛠️ Troubleshooting](#-troubleshooting)
+     1. [🔑 Wallet Private Key Recovery From Secret Phrase](#-how-can-i-find-my-wallet-private-key-if-i-have-only-the-recovery-phrase)
+11. [🤝 Contributing](./docs/CONTRIBUTING.md)
+12. [📄 License](#-license)
 
 ---
 
@@ -48,16 +53,28 @@ strategies.
 
 Built with a modern toolchain for speed, scalability, and developer experience:
 
+### ⚙️ Backend & Runtime
 - ⚡ [TypeScript](https://www.typescriptlang.org/) — typed superset of JavaScript for safer, scalable code
 - 🧱 [Express](https://expressjs.com/) — robust HTTP server for REST APIs
 - 📡 [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) — real-time streaming server
+- 🧩 [Protocol Buffers](https://developers.google.com/protocol-buffers) — binary serialization for lightweight and typed messages
+
+### 🗄️ Databases & Storage
+- 🗄️ [MySQL](https://www.mysql.com/) — relational database for persistent data storage
+- 🔴 [Redis](https://redis.io/) — in-memory data store for queues, caching, and pub/sub
+
+### 🧵 Background Jobs & Monitoring
+- 🐂 [BullMQ](https://docs.bullmq.io/) — Redis-based job queue for background processing and task scheduling
+- 📊 [Bull Board](https://github.com/felixmosh/bull-board) — web dashboard for monitoring and managing BullMQ queues
+
+### 🧪 Tooling & Developer Experience
+- 🛠️ [Knex](https://knexjs.org/) — SQL query builder for MySQL migrations and seeds
+- 🧪 [Jest](https://jestjs.io/) — testing framework for unit and integration tests
 - 🧹 [ESLint](https://eslint.org/) — code linting
 - 🎨 [Prettier](https://prettier.io/) — code formatting
-- 🧪 [Jest](https://jestjs.io/) — testing framework for unit and integration tests
-- 🛠️ [Knex](https://knexjs.org/) — SQL query builder for MySQL migrations and seeds
-- 🧩 [Protocol Buffers](https://developers.google.com/protocol-buffers) — binary serialization for lightweight and typed
-  messages
 - 🌐 [dotenv](https://www.npmjs.com/package/dotenv) — environment variable management
+- 🔁 [cross-env](https://www.npmjs.com/package/cross-env) — cross-platform environment variable support for npm scripts  
+- 🪵 [Winston](https://github.com/winstonjs/winston) — logging library
 
 ---
 
@@ -241,6 +258,67 @@ For automatic regeneration when `.proto` files change:
 
 ```bash
 yarn proto:watch
+```
+
+---
+
+## 📦 Queue System (BullMQ)
+
+We use **BullMQ** to handle heavy computational tasks (like backtesting strategies) asynchronously. This prevents the
+main API or WebSocket server from blocking while performing millions of calculations.
+
+### 📂 File Structure
+
+The queue logic is decoupled into separate directories to prevent circular dependencies and allow independent scaling:
+
+```text
+src/
+ ├── queues/                # Producer: Defines the queue & job types
+ │    └── backtestRun.queue.ts
+ ├── workers/               # Consumer: Logic for processing jobs
+ │    ├── backtestRun.worker.ts    # Worker configuration (concurrency, etc.)
+ │    └── backtestRun.processor.ts # The actual backtest simulation logic
+ └── worker-main.ts         # Entry point to run all workers at once
+```
+
+### 🏗️ Worker Architecture
+
+The system is split into **Producers** (API/CLI) and **Consumers** (Workers):
+
+* **Producer([queues](src/queues)):** When a backtest is requested, a job is added to the `backtest-run-queue` in Redis.
+* **Worker([workers](src/workers)):** A dedicated background process picks up the job, marks the database status as `PROCESSING`, and executes
+  the simulation.
+* **Sandboxed Processors:** Backtests run in a Sandboxed Thread via useWorkerThreads. This isolates heavy CPU work from
+  the main worker thread, preventing "stalled job" errors where the worker fails to send heartbeats to Redis because the
+  Event Loop is blocked by heavy math.
+
+### 📊 Monitoring Dashboard (BullBoard)
+
+You can monitor all active, completed, and failed jobs through a web-based dashboard.
+
+- **URL:** `http://localhost:{port}/admin/queues` (Default)
+- **Access:** Secured via middleware (e.g., Basic Auth or Admin JWT).
+- **Features:** Real-time progress bars, manual job retries, and detailed error logs.
+- **Actions:** You can manually pause queues, retry failed backtests, or inspect the specific JSON configuration of any
+  job in the queue.
+
+### 🛠️ Error Handling & Retries
+
+The queue is configured with a robust failure strategy:
+
+- **Exponential Backoff:** If a job fails (e.g., API timeout), it automatically retries with an increasing
+  delay ($delay \times 2^{attempts}$).
+- **Failure Details:** Technical stack traces are stored in the `failure_details` JSON column of the `backtest_runs`
+  table, while user-friendly messages are displayed on the frontend.
+- **Graceful Shutdown:** Workers listen for `SIGTERM` signals to ensure they finish the current job before the process
+  exits.
+
+#### Running Workers
+
+To start the background workers independently:
+
+```bash
+yarn start:workers
 ```
 
 ---

@@ -253,7 +253,7 @@ export const backtestStrategyRunConfigSchema = z.object({
  */
 export type BacktestStrategyRunConfig = z.infer<typeof backtestStrategyRunConfigSchema>;
 
-export const backtestRunConfigSchema = backtestStrategyRunConfigSchema
+export const backtestConfigSchema = backtestStrategyRunConfigSchema
     .omit({
         strategy: true,
     })
@@ -269,7 +269,7 @@ export const backtestRunConfigSchema = backtestStrategyRunConfigSchema
             }),
         }),
     );
-export type BacktestRunConfig = z.infer<typeof backtestRunConfigSchema>;
+export type BacktestConfig = z.infer<typeof backtestConfigSchema>;
 
 export type StrategyMintBacktestResult = {
     index: number;

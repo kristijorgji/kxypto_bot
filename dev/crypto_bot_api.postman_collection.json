@@ -1,329 +1,361 @@
 {
-	"info": {
-		"_postman_id": "032eed71-65d8-4f8c-aca8-83fe3ceb2c78",
-		"name": "crypto_bot_api",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "19803572"
-	},
-	"item": [
-		{
-			"name": "auth",
-			"item": [
-				{
-					"name": "login",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"let response = pm.response.json();",
-									"postman.setEnvironmentVariable(\"kxAccessToken\", response.accessToken);",
-									"postman.setEnvironmentVariable(\"kxRefreshToken\", response.refreshToken);"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"email\": \"kristijorgji@hotmail.com\",\n    \"password\": \"test1234\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{kxypto_api_base_path}}/login",
-							"host": [
-								"{{kxypto_api_base_path}}"
-							],
-							"path": [
-								"login"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "renew access token",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"let response = pm.response.json();",
-									"postman.setEnvironmentVariable(\"kxAccessToken\", response.accessToken);",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n         \"refreshToken\": \"{{kxRefreshToken}}\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{kxypto_api_base_path}}/tokens/renew_access",
-							"host": [
-								"{{kxypto_api_base_path}}"
-							],
-							"path": [
-								"tokens",
-								"renew_access"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "logout",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 200) {",
-									"    pm.environment.unset(\"kxAccessToken\");",
-									"}"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n         \"refreshToken\": \"{{kxRefreshToken}}\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{kxypto_api_base_path}}/logout",
-							"host": [
-								"{{kxypto_api_base_path}}"
-							],
-							"path": [
-								"logout"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "user",
-			"item": [
-				{
-					"name": "get logged-in user",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{kxypto_api_base_path}}/user",
-							"host": [
-								"{{kxypto_api_base_path}}"
-							],
-							"path": [
-								"user"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "token-results",
-			"item": [
-				{
-					"name": "get launchpad token results",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{kxypto_api_base_path}}/launchpad-token-results?limit=10",
-							"host": [
-								"{{kxypto_api_base_path}}"
-							],
-							"path": [
-								"launchpad-token-results"
-							],
-							"query": [
-								{
-									"key": "cursor",
-									"value": "eyJsYXN0UHJldmlvdXNJZCI6IjMwNzEyIiwibGFzdERhdGUiOiIyMDI1LTA3LTA5IDE1OjI1OjUwIn0",
-									"disabled": true
-								},
-								{
-									"key": "mode",
-									"value": "real",
-									"disabled": true
-								},
-								{
-									"key": "chain",
-									"value": "solana",
-									"disabled": true
-								},
-								{
-									"key": "platform",
-									"value": "pumpfun",
-									"disabled": true
-								},
-								{
-									"key": "minSchemaVersion",
-									"value": "1.4",
-									"disabled": true
-								},
-								{
-									"key": "tradesOnly",
-									"value": "true",
-									"disabled": true
-								},
-								{
-									"key": "tradeOutcome",
-									"value": "loss",
-									"disabled": true
-								},
-								{
-									"key": "strategyId",
-									"value": "BuyPredictionStrategy_7b6abc35",
-									"disabled": true
-								},
-								{
-									"key": "strategyName",
-									"value": "RiseStrategy",
-									"disabled": true
-								},
-								{
-									"key": "strategyConfigVariant",
-									"value": "b.catboost_best_bp(skf:true_rql:10_upfl:700)_s.catboost_v2_full_horizon_30_percent_sp(skf:true_rql:10_upfl:700)_buy(mpc:0.76)_sell(mpc:0.5_l(slp:15_tpp:10))",
-									"disabled": true
-								},
-								{
-									"key": "exitCodes",
-									"value": "DUMPED,BAD_CREATOR",
-									"disabled": true
-								},
-								{
-									"key": "excludeExitCodes",
-									"value": "BAD_CREATOR",
-									"disabled": true
-								},
-								{
-									"key": "includeTrades",
-									"value": "true",
-									"disabled": true
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "backtests",
-			"item": [
-				{
-					"name": "get backtest runs",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{kxypto_api_base_path}}/backtest-runs?limit=100",
-							"host": [
-								"{{kxypto_api_base_path}}"
-							],
-							"path": [
-								"backtest-runs"
-							],
-							"query": [
-								{
-									"key": "limit",
-									"value": "100"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "get backtest",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{kxypto_api_base_path}}/backtests/59e39e95-570a-408e-9715-ca61525e5e23",
-							"host": [
-								"{{kxypto_api_base_path}}"
-							],
-							"path": [
-								"backtests",
-								"59e39e95-570a-408e-9715-ca61525e5e23"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		}
-	],
-	"auth": {
-		"type": "bearer",
-		"bearer": [
-			{
-				"key": "token",
-				"value": "{{kxAccessToken}}",
-				"type": "string"
-			}
-		]
-	},
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"packages": {},
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"packages": {},
-				"exec": [
-					""
-				]
-			}
-		}
-	]
+  "info": {
+    "_postman_id": "032eed71-65d8-4f8c-aca8-83fe3ceb2c78",
+    "name": "crypto_bot_api",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "19803572"
+  },
+  "item": [
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let response = pm.response.json();",
+                  "postman.setEnvironmentVariable(\"kxAccessToken\", response.accessToken);",
+                  "postman.setEnvironmentVariable(\"kxRefreshToken\", response.refreshToken);"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"kristijorgji@hotmail.com\",\n    \"password\": \"test1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{kxypto_api_base_path}}/login",
+              "host": [
+                "{{kxypto_api_base_path}}"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "renew access token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let response = pm.response.json();",
+                  "postman.setEnvironmentVariable(\"kxAccessToken\", response.accessToken);",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n         \"refreshToken\": \"{{kxRefreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{kxypto_api_base_path}}/tokens/renew_access",
+              "host": [
+                "{{kxypto_api_base_path}}"
+              ],
+              "path": [
+                "tokens",
+                "renew_access"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.unset(\"kxAccessToken\");",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n         \"refreshToken\": \"{{kxRefreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{kxypto_api_base_path}}/logout",
+              "host": [
+                "{{kxypto_api_base_path}}"
+              ],
+              "path": [
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "user",
+      "item": [
+        {
+          "name": "get logged-in user",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{kxypto_api_base_path}}/user",
+              "host": [
+                "{{kxypto_api_base_path}}"
+              ],
+              "path": [
+                "user"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "token-results",
+      "item": [
+        {
+          "name": "get launchpad token results",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{kxypto_api_base_path}}/launchpad-token-results?limit=10",
+              "host": [
+                "{{kxypto_api_base_path}}"
+              ],
+              "path": [
+                "launchpad-token-results"
+              ],
+              "query": [
+                {
+                  "key": "cursor",
+                  "value": "eyJsYXN0UHJldmlvdXNJZCI6IjMwNzEyIiwibGFzdERhdGUiOiIyMDI1LTA3LTA5IDE1OjI1OjUwIn0",
+                  "disabled": true
+                },
+                {
+                  "key": "mode",
+                  "value": "real",
+                  "disabled": true
+                },
+                {
+                  "key": "chain",
+                  "value": "solana",
+                  "disabled": true
+                },
+                {
+                  "key": "platform",
+                  "value": "pumpfun",
+                  "disabled": true
+                },
+                {
+                  "key": "minSchemaVersion",
+                  "value": "1.4",
+                  "disabled": true
+                },
+                {
+                  "key": "tradesOnly",
+                  "value": "true",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "tradeOutcome",
+                  "value": "loss",
+                  "disabled": true
+                },
+                {
+                  "key": "strategyId",
+                  "value": "BuyPredictionStrategy_7b6abc35",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "strategyName",
+                  "value": "RiseStrategy",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "strategyConfigVariant",
+                  "value": "b.catboost_best_bp(skf:true_rql:10_upfl:700)_s.catboost_v2_full_horizon_30_percent_sp(skf:true_rql:10_upfl:700)_buy(mpc:0.76)_sell(mpc:0.5_l(slp:15_tpp:10))",
+                  "disabled": true
+                },
+                {
+                  "key": "exitCodes",
+                  "value": "DUMPED,BAD_CREATOR",
+                  "disabled": true
+                },
+                {
+                  "key": "excludeExitCodes",
+                  "value": "BAD_CREATOR",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "includeTrades",
+                  "value": "true",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "backtests",
+      "item": [
+        {
+          "name": "get backtest runs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{kxypto_api_base_path}}/backtest-runs?limit=100",
+              "host": [
+                "{{kxypto_api_base_path}}"
+              ],
+              "path": [
+                "backtest-runs"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "100",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "schedule run",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"backtestId\": \"6c6109ea-1ecc-42ad-a3e9-9da326b02e59\",\n  \"strategies\": [\n    {\n      \"config\": {\n        \"buy\": {\n          \"minPredictedConfidence\": 0.6,\n          \"minimumRequiredConfirmations\": 1\n        },\n        \"predictionConfig\": {\n          \"cache\": {\n            \"enabled\": true\n          },\n          \"requiredFeaturesLength\": 10,\n          \"skipAllSameFeatures\": true,\n          \"upToFeaturesLength\": 700\n        },\n        \"predictionSource\": {\n          \"algorithm\": \"xgboost\",\n          \"endpoint\": \"http://127.0.0.1:8000/solana/pumpfun/predict/buy/xgboost?model=v1\",\n          \"model\": \"v1\"\n        },\n        \"sell\": {\n          \"stopLossPercentage\": 15,\n          \"takeProfitPercentage\": 10\n        }\n      },\n      \"instanceId\": \"44928322-513c-41d5-b1de-1f38112306c0\",\n      \"type\": \"BuyPredictionStrategy\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{kxypto_api_base_path}}/backtest-runs",
+              "host": [
+                "{{kxypto_api_base_path}}"
+              ],
+              "path": [
+                "backtest-runs"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get backtest",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{kxypto_api_base_path}}/backtests/59e39e95-570a-408e-9715-ca61525e5e23",
+              "host": [
+                "{{kxypto_api_base_path}}"
+              ],
+              "path": [
+                "backtests",
+                "59e39e95-570a-408e-9715-ca61525e5e23"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{kxAccessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
 }

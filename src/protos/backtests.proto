@@ -12,9 +12,11 @@ message BacktestRun {
   string status = 4;
   optional string user_id = 5;
   optional string api_client_id = 6;
-  google.protobuf.Timestamp started_at = 12;
+  optional google.protobuf.Timestamp started_at = 12;
   optional google.protobuf.Timestamp finished_at = 13;
-  google.protobuf.Timestamp created_at = 14;
+  google.protobuf.Struct config = 14;
+  google.protobuf.Struct failure_details = 15;
+  google.protobuf.Timestamp created_at = 16;
 }
 
 message BacktestMintFullResult {

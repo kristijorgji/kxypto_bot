@@ -23,7 +23,7 @@ import {
     runStrategy,
 } from '@src/trading/backtesting/utils';
 import {
-    BacktestRunConfig,
+    BacktestConfig,
     BacktestStrategyRunConfig,
     StrategyBacktestResult,
 } from '@src/trading/bots/blockchains/solana/types';
@@ -92,7 +92,7 @@ async function findBestStrategy() {
         includeIfPathContains: ['no_trade/no_pump', '/trade/'],
     };
     const files = getFiles(dataConfig);
-    const runConfig: BacktestRunConfig = {
+    const runConfig: BacktestConfig = {
         initialBalanceLamports: solToLamports(1),
         buyAmountSol: 0.4,
         jitoConfig: {
@@ -152,6 +152,7 @@ async function findBestStrategy() {
         user_id: '6f5eee63-e50c-4f06-b2d6-6559e15db146',
         api_client_id: null,
         started_at: new Date(),
+        config: {},
     });
 
     let currentStrategyLiveState: StrategyResultLiveState | undefined;

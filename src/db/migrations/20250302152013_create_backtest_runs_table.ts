@@ -39,6 +39,8 @@ export async function up(knex: Knex): Promise<void> {
             .comment('ID of the API Client that made the change.Present only if source is api_client.');
         table.timestamp('started_at', { useTz: true });
         table.timestamp('finished_at', { useTz: true });
+        table.json('config').notNullable();
+        table.json('failure_details').nullable();
         addTableTimestamps(knex, table);
     });
 }

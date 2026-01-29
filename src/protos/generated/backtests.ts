@@ -18,8 +18,10 @@ export interface ProtoBacktestRun {
   status: string;
   user_id?: string | undefined;
   api_client_id?: string | undefined;
-  started_at: Date | undefined;
+  started_at?: Date | undefined;
   finished_at?: Date | undefined;
+  config: { [key: string]: any } | undefined;
+  failure_details: { [key: string]: any } | undefined;
   created_at: Date | undefined;
 }
 
@@ -105,6 +107,8 @@ function createBaseProtoBacktestRun(): ProtoBacktestRun {
     api_client_id: undefined,
     started_at: undefined,
     finished_at: undefined,
+    config: undefined,
+    failure_details: undefined,
     created_at: undefined,
   };
 }
@@ -135,8 +139,14 @@ export const ProtoBacktestRun: MessageFns<ProtoBacktestRun> = {
     if (message.finished_at !== undefined) {
       ProtoTimestamp.encode(toTimestamp(message.finished_at), writer.uint32(106).fork()).join();
     }
+    if (message.config !== undefined) {
+      ProtoStruct.encode(ProtoStruct.wrap(message.config), writer.uint32(114).fork()).join();
+    }
+    if (message.failure_details !== undefined) {
+      ProtoStruct.encode(ProtoStruct.wrap(message.failure_details), writer.uint32(122).fork()).join();
+    }
     if (message.created_at !== undefined) {
-      ProtoTimestamp.encode(toTimestamp(message.created_at), writer.uint32(114).fork()).join();
+      ProtoTimestamp.encode(toTimestamp(message.created_at), writer.uint32(130).fork()).join();
     }
     return writer;
   },
@@ -217,6 +227,22 @@ export const ProtoBacktestRun: MessageFns<ProtoBacktestRun> = {
             break;
           }
 
+          message.config = ProtoStruct.unwrap(ProtoStruct.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 15: {
+          if (tag !== 122) {
+            break;
+          }
+
+          message.failure_details = ProtoStruct.unwrap(ProtoStruct.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 16: {
+          if (tag !== 130) {
+            break;
+          }
+
           message.created_at = fromTimestamp(ProtoTimestamp.decode(reader, reader.uint32()));
           continue;
         }
@@ -239,6 +265,8 @@ export const ProtoBacktestRun: MessageFns<ProtoBacktestRun> = {
       api_client_id: isSet(object.api_client_id) ? globalThis.String(object.api_client_id) : undefined,
       started_at: isSet(object.started_at) ? fromJsonTimestamp(object.started_at) : undefined,
       finished_at: isSet(object.finished_at) ? fromJsonTimestamp(object.finished_at) : undefined,
+      config: isObject(object.config) ? object.config : undefined,
+      failure_details: isObject(object.failure_details) ? object.failure_details : undefined,
       created_at: isSet(object.created_at) ? fromJsonTimestamp(object.created_at) : undefined,
     };
   },
@@ -269,6 +297,12 @@ export const ProtoBacktestRun: MessageFns<ProtoBacktestRun> = {
     if (message.finished_at !== undefined) {
       obj.finished_at = message.finished_at.toISOString();
     }
+    if (message.config !== undefined) {
+      obj.config = message.config;
+    }
+    if (message.failure_details !== undefined) {
+      obj.failure_details = message.failure_details;
+    }
     if (message.created_at !== undefined) {
       obj.created_at = message.created_at.toISOString();
     }
@@ -288,6 +322,8 @@ export const ProtoBacktestRun: MessageFns<ProtoBacktestRun> = {
     message.api_client_id = object.api_client_id ?? undefined;
     message.started_at = object.started_at ?? undefined;
     message.finished_at = object.finished_at ?? undefined;
+    message.config = object.config ?? undefined;
+    message.failure_details = object.failure_details ?? undefined;
     message.created_at = object.created_at ?? undefined;
     return message;
   },

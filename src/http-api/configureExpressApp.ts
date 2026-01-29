@@ -1,16 +1,21 @@
 import compression from 'compression';
 import cors from 'cors';
 import express, { Application, RequestHandler, json, urlencoded } from 'express';
+import basicAuth from 'express-basic-auth';
 import morgan from 'morgan';
 
 import { getBacktestHandler, getBacktestRequestSchema } from '@src/http-api/handlers/backtests/backtests';
 import getBacktestRuns, { getBacktestRunsRequestSchema } from '@src/http-api/handlers/backtests/getBacktestRuns';
+import scheduleBacktestRun, {
+    scheduleBacktestRunRequestSchema,
+} from '@src/http-api/handlers/backtests/scheduleBacktestRun';
 import {
     deleteStrategyResultByIdHandler,
     deleteStrategyResultByIdRequestSchema,
 } from '@src/http-api/handlers/backtests/strategyResults';
 import { getOtherUserHandler, getOtherUserRequestSchema } from '@src/http-api/handlers/users/getOtherUserHandler';
 import { createTypedHandler, validateRequestMiddleware } from '@src/http-api/middlewares/validateRequestMiddleware';
+import { serverAdapter } from '@src/queues/ui';
 
 import loginHandler from './handlers/auth/loginHandler';
 import logoutHandler from './handlers/auth/logoutHandler';
@@ -50,6 +55,21 @@ export default function configureExpressApp(requestHandlers: RequestHandler[] = 
 
     requestHandlers.forEach(requestHandler => app.use(requestHandler));
 
+    /**
+     * 3rd Party Integrations
+     */
+    app.use(
+        '/admin/queues',
+        basicAuth({
+            users: {
+                admin: process.env.BULLBOARD_BASIC_PASSWORD as string,
+            },
+            challenge: true, // This triggers the browser login popup
+            realm: 'BullBoard Dashboard',
+        }),
+        serverAdapter.getRouter(),
+    );
+
     app.post('/login', loginHandler);
     app.post('/tokens/renew_access', renewAccessTokenHandler);
     app.post('/logout', logoutHandler);
@@ -75,6 +95,13 @@ export default function configureExpressApp(requestHandlers: RequestHandler[] = 
         verifyJwtTokenMiddleware,
         validateRequestMiddleware(getBacktestRunsRequestSchema),
         createTypedHandler(getBacktestRuns),
+    );
+
+    app.post(
+        '/backtest-runs',
+        verifyJwtTokenMiddleware,
+        validateRequestMiddleware(scheduleBacktestRunRequestSchema),
+        createTypedHandler(scheduleBacktestRun),
     );
 
     app.get(

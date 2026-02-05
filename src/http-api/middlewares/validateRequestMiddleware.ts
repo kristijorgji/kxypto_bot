@@ -1,5 +1,5 @@
 import { NextFunction, Request, RequestHandler, Response } from 'express';
-import { infer as InferZod, ZodError, ZodTypeAny } from 'zod';
+import { infer as InferZod, ZodError, ZodIssue, ZodTypeAny } from 'zod';
 
 export type RequestSchemaObject = {
     body?: ZodTypeAny;
@@ -40,7 +40,7 @@ export function validateRequestMiddleware<S extends RequestSchemaObject>(schema:
                 validated[schemaKey] = zodSchema.parse((req as any)[reqKey]);
             } catch (err) {
                 if (err instanceof ZodError) {
-                    errors[schemaKey] = err.flatten().fieldErrors;
+                    errors[schemaKey] = formatZodIssues(err.issues);
                 } else {
                     return next(err);
                 }
@@ -54,6 +54,48 @@ export function validateRequestMiddleware<S extends RequestSchemaObject>(schema:
 
         next();
     };
+}
+
+export type ErrorDetail = {
+    message: string;
+    code: string;
+};
+
+export type NestedErrors = {
+    [key: string]: ErrorDetail[] | NestedErrors;
+};
+
+export function formatZodIssues(issues: ZodIssue[]): NestedErrors {
+    const root: NestedErrors = {};
+
+    for (const issue of issues) {
+        let current: Record<string, unknown> = root as Record<string, unknown>;
+
+        for (let i = 0; i < issue.path.length; i++) {
+            const pathPart = issue.path[i].toString();
+            const isLast = i === issue.path.length - 1;
+
+            if (isLast) {
+                const existing = current[pathPart];
+                const newError: ErrorDetail = {
+                    message: issue.message,
+                    code: issue.code, // e.g., 'invalid_type', 'too_small', 'custom'
+                };
+
+                if (!existing) {
+                    current[pathPart] = [newError];
+                } else if (Array.isArray(existing)) {
+                    (existing as ErrorDetail[]).push(newError);
+                }
+            } else {
+                if (!current[pathPart]) {
+                    current[pathPart] = {} as NestedErrors;
+                }
+                current = current[pathPart] as Record<string, unknown>;
+            }
+        }
+    }
+    return root;
 }
 
 export function createTypedHandler<S extends RequestSchemaObject>(

@@ -41,7 +41,7 @@ const baseStrategySchema = z.object({
 });
 
 export const strategyFileConfigSchema = baseStrategySchema.and(
-    z.union([
+    z.discriminatedUnion('type', [
         stupidSniperStrategySchema,
         riseStrategySchema,
         buyPredictionStrategySchema,

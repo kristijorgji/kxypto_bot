@@ -9,6 +9,7 @@ import {
     BotTradeResponse,
     HandlePumpTokenReport,
 } from '../../../../src/trading/bots/blockchains/solana/types';
+import { readLocalFixture } from '../../../__utils/data';
 import { login } from '../../../__utils/integration/login';
 
 const expressApp = configureExpressApp();
@@ -124,6 +125,30 @@ describe('GET /launchpad-token-results ', () => {
         } while (nextCursor !== null && nextCursor !== undefined);
 
         expect(allIds.size).toBe(rowsCountToSeed);
+    });
+
+    it('receives bad request when query parameters are invalid', async () => {
+        const loginResponse = await login(expressApp);
+
+        const qp = new URLSearchParams({
+            mode: 'real',
+            chain: 'banana',
+            platform: 'pumpfun',
+            minSchemaVersion: 'b',
+            tradesOnly: 'true',
+            exitCodes: 'd',
+            excludeExitCodes: 'bbbbbb',
+            includeTrades: 'true',
+            limit: 'a',
+        });
+
+        const res = await request(expressApp)
+            .get(`/launchpad-token-results?${qp.toString()}`)
+            .set('Authorization', `Bearer ${loginResponse.accessToken}`)
+            .send();
+
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual(readLocalFixture('bad-request-query-params-response'));
     });
 });
 

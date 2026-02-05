@@ -1,0 +1,40 @@
+{
+  "errors": {
+    "query": {
+      "chain": [
+        {
+          "code": "invalid_enum_value",
+          "message": "Invalid enum value. Expected 'solana' | 'ethereum', received 'banana'"
+        }
+      ],
+      "excludeExitCodes": {
+        "0": [
+          {
+            "code": "invalid_enum_value",
+            "message": "Invalid enum value. Expected 'NO_PUMP' | 'DUMPED' | 'STOPPED' | 'BAD_CREATOR', received 'bbbbbb'"
+          }
+        ]
+      },
+      "exitCodes": {
+        "0": [
+          {
+            "code": "invalid_enum_value",
+            "message": "Invalid enum value. Expected 'NO_PUMP' | 'DUMPED' | 'STOPPED' | 'BAD_CREATOR', received 'd'"
+          }
+        ]
+      },
+      "limit": [
+        {
+          "code": "invalid_type",
+          "message": "Expected number, received nan"
+        }
+      ],
+      "minSchemaVersion": [
+        {
+          "code": "invalid_type",
+          "message": "Expected number, received nan"
+        }
+      ]
+    }
+  }
+}

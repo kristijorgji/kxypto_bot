@@ -9,7 +9,7 @@ import { forceGetPumpCoinInitialData } from '../../../../src/blockchains/solana/
 import { solToLamports } from '../../../../src/blockchains/utils/amount';
 import { pumpfunRepository } from '../../../../src/db/repositories/PumpfunRepository';
 import ArrayTransport from '../../../../src/logger/transports/ArrayTransport';
-import { createInitialStrategyResultLiveState, runStrategy } from '../../../../src/trading/backtesting/utils';
+import { createInitialStrategyResultLiveState, runStrategy } from '../../../../src/trading/backtesting/runStrategy';
 import PumpfunBacktester from '../../../../src/trading/bots/blockchains/solana/PumpfunBacktester';
 import { BacktestStrategyRunConfig } from '../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry } from '../../../../src/trading/bots/launchpads/types';

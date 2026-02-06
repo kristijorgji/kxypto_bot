@@ -28,8 +28,13 @@ import {
 } from '@src/ws-api/ipc/types';
 import { UpdateItem } from '@src/ws-api/types';
 
-import { RunBacktestFromRunConfigParams, RunBacktestParams } from './types';
-import { StrategyResultLiveState, createInitialStrategyResultLiveState, logStrategyResult, runStrategy } from './utils';
+import {
+    StrategyResultLiveState,
+    createInitialStrategyResultLiveState,
+    logStrategyResult,
+    runStrategy,
+} from './runStrategy';
+import { RunBacktestFromRunConfigParams, RunBacktestParams, isStrategyPermutation } from './types';
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
 import {
@@ -129,12 +134,16 @@ export default async function runBacktest(
         );
     }
 
-    const strategiesCount = config.strategies.length;
+    const strategiesCount = config.strategies.reduce((previousValue, currentValue) => {
+        return previousValue + (isStrategyPermutation(currentValue) ? currentValue.permutationsCount : 1);
+    }, 0);
+
     logger.info(
-        '[%s] Started backtest with id %s%s against %d strategies, config=%o\n',
+        '[%s] Started backtest with id %s%s against %d strategy entries, %d permutations, config=%o\n',
         backtestRun.id,
         backtestId,
         backtest.name ? `, name ${backtest.name}` : '',
+        config.strategies.length,
         strategiesCount,
         backtest.config,
     );
@@ -224,104 +233,116 @@ export default async function runBacktest(
         }
     });
 
-    for (const strategy of config.strategies) {
-        // eslint-disable-next-line no-unmodified-loop-condition
-        while (paused) {
-            await sleep(150);
-        }
+    // 'mainLoop' is a label that allows us to break out of nested loops entirely
+    mainLoop: for (const item of config.strategies) {
+        const isPermutation = item && typeof item === 'object' && 'generator' in item;
+        const strategyIterable = isPermutation ? item.generator : [item];
 
-        if (abortState.aborted || pubsubAborted) {
-            logger.info('[%d] Aborting backtest run', tested);
-            break;
-        }
+        let permutationsTested = 0;
 
-        const backtestStrategyRunConfig: BacktestStrategyRunConfig = {
-            ...backtestConfig,
-            strategy: strategy,
-        };
+        for (const strategy of strategyIterable) {
+            // eslint-disable-next-line no-unmodified-loop-condition
+            while (paused) {
+                await sleep(150);
+            }
 
-        logger.info(
-            '[%s][%d] Will test strategy %s with variant config: %s against %d historical data, config=%o\n%s',
-            backtestRun.id,
-            tested,
-            backtestStrategyRunConfig.strategy.identifier,
-            backtestStrategyRunConfig.strategy.configVariant,
-            totalFiles,
-            backtestStrategyRunConfig.strategy.config,
-            '='.repeat(100),
-        );
+            if (abortState.aborted || pubsubAborted) {
+                logger.info('[%s][%d] Aborting backtest run', backtestRun.id, tested);
+                break mainLoop;
+            }
 
-        const runningPartialStrategyResult = await initBacktestStrategyResult(
-            backtestId,
-            backtestRun.id,
-            backtestStrategyRunConfig.strategy,
-            ProcessingStatus.Running,
-        );
-        backtestPubSub.publishBacktestStrategyResult(backtestId, strategy.identifier, {
-            id: runningPartialStrategyResult.id.toString(),
-            action: 'added',
-            data: runningPartialStrategyResult,
-            version: 1,
-        } satisfies UpdateItem<BacktestStrategyResult>);
+            const backtestStrategyRunConfig: BacktestStrategyRunConfig = {
+                ...backtestConfig,
+                strategy: strategy,
+            };
 
-        const strategyStartTime = process.hrtime();
+            logger.info(
+                '[%s][%d] %sWill test strategy %s with variant config: %s against %d historical data, config=%o\n%s',
+                backtestRun.id,
+                tested,
+                isPermutation ? `[Permutation ${permutationsTested}/${item.permutationsCount}] ` : '',
+                backtestStrategyRunConfig.strategy.identifier,
+                backtestStrategyRunConfig.strategy.configVariant,
+                totalFiles,
+                backtestStrategyRunConfig.strategy.config,
+                '='.repeat(100),
+            );
 
-        currentStrategyResultId = runningPartialStrategyResult.id;
-        currentStrategyLiveState = createInitialStrategyResultLiveState();
-        const sr = await runStrategy(
-            {
-                backtester: backtester,
-                pumpfun: pumpfun,
-                logger: logger,
-            },
-            {
-                pausedRef: () => paused,
-                abortedRef: () => abortState.aborted || pubsubAborted,
-                ls: currentStrategyLiveState,
-            },
-            backtestStrategyRunConfig,
-            files,
-            {
-                verbose: true,
-                onMintResult: bmr => {
-                    backtestPubSub.publishBacktestStrategyMintResult(
-                        backtestId,
-                        strategy.identifier,
-                        strategyMintBacktestResultToDraftMintResult(runningPartialStrategyResult.id, bmr),
-                    );
+            const runningPartialStrategyResult = await initBacktestStrategyResult(
+                backtestId,
+                backtestRun.id,
+                backtestStrategyRunConfig.strategy,
+                ProcessingStatus.Running,
+            );
+            backtestPubSub.publishBacktestStrategyResult(backtestId, strategy.identifier, {
+                id: runningPartialStrategyResult.id.toString(),
+                action: 'added',
+                data: runningPartialStrategyResult,
+                version: 1,
+            } satisfies UpdateItem<BacktestStrategyResult>);
+
+            const strategyStartTime = process.hrtime();
+
+            currentStrategyResultId = runningPartialStrategyResult.id;
+            currentStrategyLiveState = createInitialStrategyResultLiveState();
+            const sr = await runStrategy(
+                {
+                    backtester: backtester,
+                    pumpfun: pumpfun,
+                    logger: logger,
                 },
-            },
-        );
-        const executionTime = process.hrtime(strategyStartTime);
-        const executionTimeInS = (executionTime[0] * 1e9 + executionTime[1]) / 1e9;
+                {
+                    pausedRef: () => paused,
+                    abortedRef: () => abortState.aborted || pubsubAborted,
+                    ls: currentStrategyLiveState,
+                },
+                backtestStrategyRunConfig,
+                files,
+                {
+                    verbose: true,
+                    onMintResult: bmr => {
+                        backtestPubSub.publishBacktestStrategyMintResult(
+                            backtestId,
+                            strategy.identifier,
+                            strategyMintBacktestResultToDraftMintResult(runningPartialStrategyResult.id, bmr),
+                        );
+                    },
+                },
+            );
+            const executionTime = process.hrtime(strategyStartTime);
+            const executionTimeInS = (executionTime[0] * 1e9 + executionTime[1]) / 1e9;
 
-        logStrategyResult(
-            logger,
-            {
-                strategyId: strategy.identifier,
-                tested: tested,
-                total: strategiesCount,
-                executionTimeInS: executionTimeInS,
-            },
-            sr,
-        );
-        const backtestStrategyResult: BacktestStrategyResult = {
-            ...runningPartialStrategyResult,
-            ...(await updateBacktestStrategyResult(
-                runningPartialStrategyResult.id,
-                !(abortState.aborted || pubsubAborted) ? ProcessingStatus.Completed : ProcessingStatus.Aborted,
+            logStrategyResult(
+                logger,
+                {
+                    strategyId: strategy.identifier,
+                    tested: tested,
+                    total: strategiesCount,
+                    executionTimeInS: executionTimeInS,
+                },
                 sr,
-                executionTimeInS,
-            )),
-        };
-        backtestPubSub.publishBacktestStrategyResult(backtestId, strategy.identifier, {
-            id: backtestStrategyResult.id.toString(),
-            action: 'updated',
-            data: backtestStrategyResult,
-            version: 2,
-        } satisfies UpdateItem<BacktestStrategyResult>);
+            );
+            const backtestStrategyResult: BacktestStrategyResult = {
+                ...runningPartialStrategyResult,
+                ...(await updateBacktestStrategyResult(
+                    runningPartialStrategyResult.id,
+                    !(abortState.aborted || pubsubAborted) ? ProcessingStatus.Completed : ProcessingStatus.Aborted,
+                    sr,
+                    executionTimeInS,
+                )),
+            };
+            backtestPubSub.publishBacktestStrategyResult(backtestId, strategy.identifier, {
+                id: backtestStrategyResult.id.toString(),
+                action: 'updated',
+                data: backtestStrategyResult,
+                version: 2,
+            } satisfies UpdateItem<BacktestStrategyResult>);
 
-        tested++;
+            tested++;
+            if (isPermutation) {
+                permutationsTested++;
+            }
+        }
     }
 
     const diff = process.hrtime(start);

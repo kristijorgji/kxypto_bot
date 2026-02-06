@@ -21,7 +21,7 @@ import {
     createInitialStrategyResultLiveState,
     logStrategyResult,
     runStrategy,
-} from '@src/trading/backtesting/utils';
+} from '@src/trading/backtesting/runStrategy';
 import {
     BacktestConfig,
     BacktestStrategyRunConfig,

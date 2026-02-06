@@ -3,11 +3,14 @@ import fs from 'fs';
 import { getBacktestById } from '@src/db/repositories/backtests';
 import { Backtest } from '@src/db/types';
 import { logger, silentLogger } from '@src/logger';
+import { countPermutations } from '@src/trading/backtesting/utils/countPermutations';
+import { generatePermutationsGenerator } from '@src/trading/backtesting/utils/permutationGenerator';
+import { StrategyFileConfig, strategyFileConfigSchema } from '@src/trading/config/types';
 import { strategyFromConfig } from '@src/trading/strategies/launchpads/config-parser';
+import LaunchpadBotStrategy from '@src/trading/strategies/launchpads/LaunchpadBotStrategy';
 
-import { BacktestRunConfig, RunBacktestParams, backtestRunConfigSchema } from './types';
+import { BacktestRunConfig, RunBacktestFromRunConfigParams, RunBacktestParams, backtestRunConfigSchema } from './types';
 import { BacktestConfig } from '../bots/blockchains/solana/types';
-import LaunchpadBotStrategy from '../strategies/launchpads/LaunchpadBotStrategy';
 
 export async function fileConfigToRunBacktestParams(path: string): Promise<RunBacktestParams> {
     return backtestRunToRunBacktestParams(backtestRunConfigSchema.parse(JSON.parse(fs.readFileSync(path).toString())));
@@ -30,8 +33,30 @@ export async function backtestRunToRunBacktestParams(config: BacktestRunConfig):
     }
 }
 
-function formStrategiesFromConfig(config: BacktestRunConfig): LaunchpadBotStrategy[] {
+function formStrategiesFromConfig(config: BacktestRunConfig): RunBacktestFromRunConfigParams['strategies'] {
     const defaultStrategyLogger = config?.strategyLogger === 'silent' ? silentLogger : logger;
 
-    return config.strategies.map(sc => strategyFromConfig(sc, defaultStrategyLogger));
+    return config.strategies.map(sc => {
+        const pCount = countPermutations(sc);
+
+        if (pCount > 1) {
+            const configGenerator = generatePermutationsGenerator<StrategyFileConfig>(
+                sc,
+                strategyFileConfigSchema.parse,
+            );
+
+            const strategyInstanceGenerator = function* (): Generator<LaunchpadBotStrategy> {
+                for (const permutedConfig of configGenerator) {
+                    yield strategyFromConfig(permutedConfig, defaultStrategyLogger);
+                }
+            };
+
+            return {
+                generator: strategyInstanceGenerator(),
+                permutationsCount: pCount,
+            };
+        }
+
+        return strategyFromConfig(sc, defaultStrategyLogger);
+    });
 }

@@ -90,6 +90,49 @@ describe('validateRequestMiddleware', () => {
         });
     });
 
+    it('should prioritize custom error codes provided via Zod params', () => {
+        const rangeSchema = z
+            .object({
+                from: z.number(),
+                to: z.number(),
+            })
+            .refine(data => data.to > data.from, {
+                // eslint-disable-next-line quotes
+                message: "The 'to' value must be greater than 'from'",
+                path: ['to'],
+                params: { code: 'RANGE_TO_GTE_FROM' },
+            });
+
+        const schema = {
+            body: z.object({
+                range: rangeSchema,
+            }),
+        } satisfies RequestSchemaObject;
+
+        const reqMock: DeepPartial<InferReq<typeof schema>> = {
+            body: {
+                range: { from: 100, to: 50 },
+            },
+            params: {},
+            query: {},
+            headers: {},
+            validated: {} as InferReq<typeof schema>['validated'],
+        };
+
+        const middleware = validateRequestMiddleware(schema);
+        middleware(reqMock as Request, mockResponse, nextFunction);
+
+        const responseBody = (mockResponse.json as jest.Mock).mock.calls[0][0];
+
+        expect(responseBody.errors.body.range.to).toEqual([
+            {
+                // eslint-disable-next-line quotes
+                message: "The 'to' value must be greater than 'from'",
+                code: 'RANGE_TO_GTE_FROM',
+            },
+        ]);
+    });
+
     it('should handle complex nested arrays with indices and discriminated unions', () => {
         const strategySchema = z.discriminatedUnion('type', [
             z.object({ type: z.literal('sniper'), speed: z.number() }),

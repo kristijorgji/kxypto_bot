@@ -6,10 +6,10 @@ import { ProcessingStatus } from '@src/db/types';
 import { InferReq, RequestSchemaObject } from '@src/http-api/middlewares/validateRequestMiddleware';
 import { ExtendedRequest } from '@src/http-api/types';
 import { backtestRunQueue } from '@src/queues/backtestRun.queue';
-import { backtestRunConfigSchema } from '@src/trading/backtesting/types';
+import { rangeAwareBacktestRunConfigSchema } from '@src/trading/backtesting/types';
 
 export const scheduleBacktestRunRequestSchema = {
-    body: backtestRunConfigSchema,
+    body: rangeAwareBacktestRunConfigSchema,
 } satisfies RequestSchemaObject;
 
 export default async (req: InferReq<typeof scheduleBacktestRunRequestSchema>, res: ExpressResponse) => {

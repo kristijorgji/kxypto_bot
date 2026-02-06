@@ -79,7 +79,7 @@ export function formatZodIssues(issues: ZodIssue[]): NestedErrors {
                 const existing = current[pathPart];
                 const newError: ErrorDetail = {
                     message: issue.message,
-                    code: issue.code, // e.g., 'invalid_type', 'too_small', 'custom'
+                    code: getCustomCode(issue), // e.g., 'invalid_type', 'too_small', 'custom'
                 };
 
                 if (!existing) {
@@ -96,6 +96,14 @@ export function formatZodIssues(issues: ZodIssue[]): NestedErrors {
         }
     }
     return root;
+}
+
+function getCustomCode(issue: ZodIssue): string {
+    if ('params' in issue && typeof issue.params?.code === 'string') {
+        return issue.params.code;
+    }
+
+    return issue.code; // Fallback to standard Zod code (e.g., 'too_small')
 }
 
 export function createTypedHandler<S extends RequestSchemaObject>(

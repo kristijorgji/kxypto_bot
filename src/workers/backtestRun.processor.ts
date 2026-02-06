@@ -36,6 +36,7 @@ export async function backtestRunProcessor(job: Job) {
     await sleep(100); // for the app to use the first message after created
 
     const backtestRun = await getBacktestRunById(backtestRunId);
+    (backtestRun.config as BacktestRunConfig).strategyLogger ??= 'silent';
 
     try {
         await runBacktest(

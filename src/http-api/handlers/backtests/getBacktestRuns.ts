@@ -27,8 +27,7 @@ export default async (req: InferReq<typeof getBacktestRunsRequestSchema>, res: E
         {},
     );
 
-    const backtestIds = [...new Set(paginatedData.data.map(r => r.backtest_id))];
-    const backtests = await db(Tables.Backtests).whereIn('id', backtestIds).select('*');
+    const backtests = await db(Tables.Backtests).select('*');
 
     const userIds = [...new Set(paginatedData.data.map(r => r.user_id).filter(id => id !== null))];
     const users = await getOtherUsersByIds(userIds);

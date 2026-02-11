@@ -51,7 +51,7 @@ afterAll(() => {
 
 const config: ValidateBacktestFilesConfig = {
     dataSource: {
-        path: './data',
+        path: 'data',
         includeIfPathContains: ['foo', 'bar'],
     },
     rules: {
@@ -72,7 +72,7 @@ const config: ValidateBacktestFilesConfig = {
         },
         noHistory: true,
     },
-    extractTo: './data/invalid',
+    extractTo: 'data/invalid',
 };
 
 const fileToContent: Record<string, object | string> = {
@@ -157,11 +157,11 @@ describe('validateBacktestFilesProgram', () => {
 
         await runCommandAsync(validateBacktestFilesProgram, ['--config', 'config.json']);
 
-        expect(logs).toEqual(readLocalFixture('validate-backtest-files/expected-logs-1.txt'));
+        expect(logs).toEqual(readLocalFixture('validate-backtest-files/expected-logs-1'));
         expect((moveFile as jest.Mock).mock.calls).toEqual([
-            ['data/a.json', './data/invalid/nulls/a.json'],
-            ['data/no-history.json', './data/invalid/without_history/no-history.json'],
-            ['data/bla.txt', './data/invalid/not_json/bla.txt'],
+            ['data/a.json', 'data/invalid/nulls/a.json'],
+            ['data/no-history.json', 'data/invalid/without_history/no-history.json'],
+            ['data/bla.txt', 'data/invalid/not_json/bla.txt'],
         ]);
     });
 });
@@ -213,7 +213,7 @@ describe('validateBacktestFiles', () => {
         } satisfies Awaited<ReturnType<typeof validateBacktestFiles>>);
 
         expect((moveFile as jest.Mock).mock.calls).toEqual([
-            ['data/shorter-history.json', './data/invalid/history_length_less_than_2/shorter-history.json'],
+            ['data/shorter-history.json', 'data/invalid/history_length_less_than_2/shorter-history.json'],
         ]);
     });
 });

@@ -142,7 +142,10 @@ describe('runStrategy', () => {
                 creationTime: new Date(),
             })),
             {
-                verbose: true,
+                logging: {
+                    level: 'verbose',
+                    includeTrades: true,
+                },
             },
         );
 

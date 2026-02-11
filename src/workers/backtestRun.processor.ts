@@ -55,7 +55,7 @@ export async function backtestRunProcessor(job: Job) {
 
         await sleep(100); // for the app to process pending message first, if 2 come at the same time might add 2 entries
 
-        runnerDeps.backtestPubSub.publishBacktestRun({
+        await runnerDeps.backtestPubSub.publishBacktestRun({
             id: backtestRunId.toString(),
             action: 'updated',
             data: {

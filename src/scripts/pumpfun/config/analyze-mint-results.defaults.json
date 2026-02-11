@@ -1,12 +1,15 @@
 {
-  "dataSource": {
-    "path": "data/pumpfun-stats/backtest"
-  },
+  "mode": "PROFIT",
+  "dataSources": [
+    {
+      "path": "data/pumpfun-stats/tmp"
+    }
+  ],
   "checkPriceAfterMs": 5e3,
   "allowedPriceDropInBetweenPercentage": 10,
   "requiredPriceChangeDiffPercentage": 25,
   "requiredMaintainIncreaseMs":  5e3,
   "startFromIndex": 10,
-  "logOnlyProfitable":  true,
+  "onlyLogEvents":  true,
   "reportPath": "data/analyze-mint-results.json"
 }

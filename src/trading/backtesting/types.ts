@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { Backtest } from '@src/db/types';
 import { ProtoBacktestRun } from '@src/protos/generated/backtests';
+import { RunStrategyConfig } from '@src/trading/backtesting/runStrategy';
 import { loggerTypeSchema, strategyFileConfigSchema } from '@src/trading/config/types';
 import { upgradeToRangeAware } from '@src/utils/zod/upgradeToRangeAware';
 
@@ -43,6 +44,31 @@ export function isStrategyPermutation(item: StrategyExecutionItem): item is Stra
 
 type RunBacktestCommonParams = {
     strategies: StrategyExecutionItem[];
+    logging?: {
+        runStrategy?: RunStrategyConfig['logging'];
+    };
+    storage?: {
+        /**
+         * 'all': Store every result.
+         * 'best_only': Only update the DB if the current PnL is higher than previous runs.
+         */
+        strategyPersistence?: 'all' | 'best_only';
+
+        /** Toggle for detailed per-mint data */
+        storeMintResults?: boolean;
+    };
+    pubsub?: {
+        /** Broadcast high-level backtest run creation/completion/updates */
+        notifyRunUpdate?: boolean;
+
+        /** Broadcast high-level strategy creation/ompletion/updates */
+        notifyStrategyUpdate?: boolean;
+
+        /** * Broadcast individual mint completions.
+         * Warning: High frequency can flood WebSockets.
+         */
+        notifyMintResults?: boolean;
+    };
 };
 
 export type RunBacktestFromRunConfigParams = RunBacktestCommonParams & {

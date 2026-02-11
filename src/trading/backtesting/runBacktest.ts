@@ -40,8 +40,11 @@ import PumpfunBacktester from '../bots/blockchains/solana/PumpfunBacktester';
 import {
     BacktestConfig,
     BacktestStrategyRunConfig,
+    StrategyBacktestResult,
     StrategyMintBacktestResult,
 } from '../bots/blockchains/solana/types';
+
+const MAX_STRATEGIES_FOR_MINT_STORAGE = 40;
 
 /**
  * It will run a single Backtest from a
@@ -95,6 +98,32 @@ export default async function runBacktest(
         await storeBacktest(backtest);
     }
 
+    const strategiesCount = config.strategies.reduce((previousValue, currentValue) => {
+        return previousValue + (isStrategyPermutation(currentValue) ? currentValue.permutationsCount : 1);
+    }, 0);
+
+    const isHeavyRun = strategiesCount > MAX_STRATEGIES_FOR_MINT_STORAGE;
+
+    const finalConfig = {
+        storage: {
+            strategyPersistence: config?.storage?.strategyPersistence ?? 'all',
+            storeMintResults: config?.storage?.storeMintResults ?? !isHeavyRun,
+        },
+        pubsub: {
+            notifyRunUpdate: config?.pubsub?.notifyRunUpdate ?? true,
+            notifyStrategyUpdate: config?.pubsub?.notifyStrategyUpdate ?? true,
+            notifyMintResults: config?.pubsub?.notifyMintResults ?? !isHeavyRun, // Auto-mute noise
+        },
+    };
+    const isBestOnly = finalConfig.storage.strategyPersistence === 'best_only';
+    finalConfig.storage.storeMintResults = config?.storage?.storeMintResults ?? !isBestOnly;
+
+    if (config?.storage?.storeMintResults === undefined && isHeavyRun) {
+        logger.info(
+            `Large run detected (${strategiesCount} items). Auto-disabling detailed mint results and pubsub storage to save resources.`,
+        );
+    }
+
     if (!backtestRun) {
         backtestRun = await createBacktestRun({
             backtest_id: backtestId,
@@ -105,24 +134,28 @@ export default async function runBacktest(
             started_at: new Date(),
             config: {},
         });
-        backtestPubSub.publishBacktestRun({
-            id: backtestRun.id.toString(),
-            action: 'added',
-            data: backtestRun,
-            version: 1,
-        });
+        if (finalConfig.pubsub.notifyRunUpdate) {
+            await backtestPubSub.publishBacktestRun({
+                id: backtestRun.id.toString(),
+                action: 'added',
+                data: backtestRun,
+                version: 1,
+            });
+        }
         logger.info('Storing and dispatched backtest run with id %s', backtestRun.id);
     } else {
         if (backtestRun.status === ProcessingStatus.Pending) {
-            backtestPubSub.publishBacktestRun({
-                id: backtestRun.id.toString(),
-                action: 'updated',
-                data: {
-                    ...backtestRun,
-                    ...(await updateBacktestRunStatus(backtestRun.id, ProcessingStatus.Running)),
-                },
-                version: 2,
-            });
+            if (finalConfig.pubsub.notifyRunUpdate) {
+                await backtestPubSub.publishBacktestRun({
+                    id: backtestRun.id.toString(),
+                    action: 'updated',
+                    data: {
+                        ...backtestRun,
+                        ...(await updateBacktestRunStatus(backtestRun.id, ProcessingStatus.Running)),
+                    },
+                    version: 2,
+                });
+            }
         }
     }
 
@@ -133,10 +166,6 @@ export default async function runBacktest(
             `Cannot resume the existing backtest: expected ${backtestConfig.data.filesCount} file(s), but found ${totalFiles} file(s), config.data=${JSON.stringify(backtestConfig.data)}`,
         );
     }
-
-    const strategiesCount = config.strategies.reduce((previousValue, currentValue) => {
-        return previousValue + (isStrategyPermutation(currentValue) ? currentValue.permutationsCount : 1);
-    }, 0);
 
     logger.info(
         '[%s] Started backtest with id %s%s against %d strategy entries, %d permutations, config=%o\n',
@@ -233,6 +262,9 @@ export default async function runBacktest(
         }
     });
 
+    let championRow: BacktestStrategyResult | null = null;
+    let champion: StrategyBacktestResult | null = null;
+
     // 'mainLoop' is a label that allows us to break out of nested loops entirely
     mainLoop: for (const item of config.strategies) {
         const isPermutation = item && typeof item === 'object' && 'generator' in item;
@@ -241,6 +273,8 @@ export default async function runBacktest(
         let permutationsTested = 0;
 
         for (const strategy of strategyIterable) {
+            let runningPartialStrategyResult!: BacktestStrategyResult;
+
             // eslint-disable-next-line no-unmodified-loop-condition
             while (paused) {
                 await sleep(150);
@@ -268,18 +302,35 @@ export default async function runBacktest(
                 '='.repeat(100),
             );
 
-            const runningPartialStrategyResult = await initBacktestStrategyResult(
-                backtestId,
-                backtestRun.id,
-                backtestStrategyRunConfig.strategy,
-                ProcessingStatus.Running,
-            );
-            backtestPubSub.publishBacktestStrategyResult(backtestId, strategy.identifier, {
-                id: runningPartialStrategyResult.id.toString(),
-                action: 'added',
-                data: runningPartialStrategyResult,
-                version: 1,
-            } satisfies UpdateItem<BacktestStrategyResult>);
+            if (isBestOnly) {
+                // Create the "Slot" only once on the first iteration
+                if (!championRow) {
+                    runningPartialStrategyResult = await initBacktestStrategyResult(
+                        backtestId,
+                        backtestRun.id,
+                        backtestStrategyRunConfig.strategy,
+                        ProcessingStatus.Running,
+                    );
+                    championRow = runningPartialStrategyResult;
+
+                    // Broadcast 'added' ONLY ONCE for the champion slot
+                    if (finalConfig.pubsub.notifyStrategyUpdate) {
+                        await publishStrategyResultAdded(backtestPubSub, backtestId, runningPartialStrategyResult);
+                    }
+                }
+            } else {
+                // Mode 'all': Always create a new row
+                runningPartialStrategyResult = await initBacktestStrategyResult(
+                    backtestId,
+                    backtestRun.id,
+                    backtestStrategyRunConfig.strategy,
+                    ProcessingStatus.Running,
+                );
+
+                if (finalConfig.pubsub.notifyStrategyUpdate) {
+                    await publishStrategyResultAdded(backtestPubSub, backtestId, runningPartialStrategyResult);
+                }
+            }
 
             const strategyStartTime = process.hrtime();
 
@@ -299,18 +350,26 @@ export default async function runBacktest(
                 backtestStrategyRunConfig,
                 files,
                 {
-                    verbose: true,
-                    onMintResult: bmr => {
-                        backtestPubSub.publishBacktestStrategyMintResult(
-                            backtestId,
-                            strategy.identifier,
-                            strategyMintBacktestResultToDraftMintResult(runningPartialStrategyResult.id, bmr),
-                        );
+                    logging: config?.logging?.runStrategy ?? {
+                        level: 'verbose',
+                        includeTrades: true,
+                    },
+                    onMintResult: async bmr => {
+                        if (finalConfig.pubsub.notifyMintResults) {
+                            await backtestPubSub.publishBacktestStrategyMintResult(
+                                backtestId,
+                                strategy.identifier,
+                                strategyMintBacktestResultToDraftMintResult(runningPartialStrategyResult.id, bmr),
+                            );
+                        }
                     },
                 },
             );
             const executionTime = process.hrtime(strategyStartTime);
             const executionTimeInS = (executionTime[0] * 1e9 + executionTime[1]) / 1e9;
+
+            // If 'all', we always update. If 'best_only', we check if it's the first run OR a new high score.
+            const isNewWinner = !champion || sr.totalPnlInSol > champion.totalPnlInSol;
 
             logStrategyResult(
                 logger,
@@ -322,21 +381,33 @@ export default async function runBacktest(
                 },
                 sr,
             );
-            const backtestStrategyResult: BacktestStrategyResult = {
-                ...runningPartialStrategyResult,
-                ...(await updateBacktestStrategyResult(
-                    runningPartialStrategyResult.id,
-                    !(abortState.aborted || pubsubAborted) ? ProcessingStatus.Completed : ProcessingStatus.Aborted,
-                    sr,
-                    executionTimeInS,
-                )),
-            };
-            backtestPubSub.publishBacktestStrategyResult(backtestId, strategy.identifier, {
-                id: backtestStrategyResult.id.toString(),
-                action: 'updated',
-                data: backtestStrategyResult,
-                version: 2,
-            } satisfies UpdateItem<BacktestStrategyResult>);
+
+            if (!isBestOnly || isNewWinner) {
+                if (isBestOnly) {
+                    champion = sr;
+                }
+
+                const backtestStrategyResult: BacktestStrategyResult = {
+                    ...runningPartialStrategyResult,
+                    ...(await updateBacktestStrategyResult(
+                        runningPartialStrategyResult.id,
+                        !(abortState.aborted || pubsubAborted) ? ProcessingStatus.Completed : ProcessingStatus.Aborted,
+                        sr,
+                        executionTimeInS,
+                        {
+                            storeMintsResults: finalConfig.storage.storeMintResults,
+                        },
+                    )),
+                };
+                if (finalConfig.pubsub.notifyStrategyUpdate) {
+                    await backtestPubSub.publishBacktestStrategyResult(backtestId, strategy.identifier, {
+                        id: backtestStrategyResult.id.toString(),
+                        action: 'updated',
+                        data: backtestStrategyResult,
+                        version: 2,
+                    } satisfies UpdateItem<BacktestStrategyResult>);
+                }
+            }
 
             tested++;
             if (isPermutation) {
@@ -348,18 +419,34 @@ export default async function runBacktest(
     const diff = process.hrtime(start);
     const timeInNs = diff[0] * 1e9 + diff[1];
 
-    backtestPubSub.publishBacktestRun({
-        id: backtestRun.id.toString(),
-        action: 'updated',
-        data: {
-            ...backtestRun,
-            ...(await updateBacktestRunStatus(
-                backtestRun.id,
-                !(abortState.aborted || pubsubAborted) ? ProcessingStatus.Completed : ProcessingStatus.Aborted,
-            )),
-        },
-        version: 2,
-    });
+    if (finalConfig.pubsub.notifyRunUpdate) {
+        await backtestPubSub.publishBacktestRun({
+            id: backtestRun.id.toString(),
+            action: 'updated',
+            data: {
+                ...backtestRun,
+                ...(await updateBacktestRunStatus(
+                    backtestRun.id,
+                    !(abortState.aborted || pubsubAborted) ? ProcessingStatus.Completed : ProcessingStatus.Aborted,
+                )),
+            },
+            version: 2,
+        });
+    }
+
+    // If we were in best_only mode and didn't store mints during the loop...
+    if (isBestOnly && !finalConfig.storage.storeMintResults && champion) {
+        logger.info('Backtest finished. Saving final champion mints...');
+
+        // Perform one final update to the champion row to save the winning mints
+        await updateBacktestStrategyResult(
+            championRow!.id,
+            ProcessingStatus.Completed,
+            champion,
+            championRow!.execution_time_seconds,
+            { storeMintsResults: true }, // Force save for the final winner
+        );
+    }
 
     if (pubsubAbortRequestContext) {
         await pubsub.publish(
@@ -398,4 +485,19 @@ function strategyMintBacktestResultToDraftMintResult(
         payload: dmr.payload,
         created_at: dmr.created_at,
     };
+}
+
+async function publishStrategyResultAdded(
+    backtestPubSub: BacktestPubSub,
+    backtestId: string,
+    strategyResult: BacktestStrategyResult,
+): Promise<void> {
+    const id = strategyResult.id.toString();
+
+    await backtestPubSub.publishBacktestStrategyResult(backtestId, id, {
+        id: id,
+        action: 'added',
+        data: strategyResult,
+        version: 1,
+    } satisfies UpdateItem<BacktestStrategyResult>);
 }

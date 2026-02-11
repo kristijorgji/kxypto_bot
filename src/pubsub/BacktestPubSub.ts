@@ -24,8 +24,8 @@ export default class BacktestPubSub {
     // SUBSCRIPTIONS
     // -----------------------------
 
-    subscribeAllRuns<T>(handler: Handler<T>): void {
-        this.subscribePattern(this.patterns.allRunsResult, handler);
+    async subscribeAllRuns<T>(handler: Handler<T>): Promise<void> {
+        await this.subscribePattern(this.patterns.allRunsResult, handler);
     }
 
     async unsubscribeAllRuns(): Promise<void> {
@@ -33,20 +33,20 @@ export default class BacktestPubSub {
     }
 
     // Subscribe to a single backtest strategy mint
-    subscribeBacktestStrategyMint<T>(backtestId: string, strategyId: string, handler: Handler<T>): void {
+    async subscribeBacktestStrategyMint<T>(backtestId: string, strategyId: string, handler: Handler<T>): Promise<void> {
         const channel = `backtest:${backtestId}:strategy:${strategyId}:mint`;
-        this.subscribeChannel(channel, handler);
+        await this.subscribeChannel(channel, handler);
     }
 
     // Subscribe to all mints of a single backtest (all strategies)
-    subscribeBacktestAllMints<T>(backtestId: string, handler: Handler<T>): void {
+    async subscribeBacktestAllMints<T>(backtestId: string, handler: Handler<T>): Promise<void> {
         const pattern = `backtest:${backtestId}:strategy:*:mint`;
-        this.subscribePattern(pattern, handler);
+        await this.subscribePattern(pattern, handler);
     }
 
     // Subscribe to all strategy results across all backtests
-    subscribeAllStrategyResults<T>(handler: Handler<T>): void {
-        this.subscribePattern(this.patterns.allStrategyResults, handler);
+    async subscribeAllStrategyResults<T>(handler: Handler<T>): Promise<void> {
+        await this.subscribePattern(this.patterns.allStrategyResults, handler);
     }
 
     async unsubscribeAllStrategyResults(): Promise<void> {
@@ -54,8 +54,8 @@ export default class BacktestPubSub {
     }
 
     // Subscribe to all mints across all backtests
-    subscribeAllMintsResults<T>(handler: Handler<T>): void {
-        this.subscribePattern(this.patterns.allMintResults, handler);
+    async subscribeAllMintsResults<T>(handler: Handler<T>): Promise<void> {
+        await this.subscribePattern(this.patterns.allMintResults, handler);
     }
 
     async unsubscribeAllMintsResults(): Promise<void> {
@@ -63,60 +63,64 @@ export default class BacktestPubSub {
     }
 
     // Subscribe to a single backtest strategy result
-    subscribeBacktestStrategyResult<T>(backtestId: string, strategyId: string, handler: Handler<T>): void {
+    async subscribeBacktestStrategyResult<T>(
+        backtestId: string,
+        strategyId: string,
+        handler: Handler<T>,
+    ): Promise<void> {
         const channel = `backtest:${backtestId}:strategy:${strategyId}:result`;
-        this.subscribeChannel(channel, handler);
+        await this.subscribeChannel(channel, handler);
     }
 
     // Subscribe to all results of a single backtest (all strategies)
-    subscribeBacktestAllStrategyResults<T>(backtestId: string, handler: Handler<T>): void {
+    async subscribeBacktestAllStrategyResults<T>(backtestId: string, handler: Handler<T>): Promise<void> {
         const pattern = `backtest:${backtestId}:strategy:*:result`;
-        this.subscribePattern(pattern, handler);
+        await this.subscribePattern(pattern, handler);
     }
 
     // Subscribe to all results across all backtests
-    subscribeAllBacktestsStrategyResults<T>(handler: Handler<T>): void {
+    async subscribeAllBacktestsStrategyResults<T>(handler: Handler<T>): Promise<void> {
         const pattern = 'backtest:*:strategy:*:result';
-        this.subscribePattern(pattern, handler);
+        await this.subscribePattern(pattern, handler);
     }
 
     // -----------------------------
     // PUBLISHERS
     // -----------------------------
 
-    publishBacktestRun(data: UpdateItem<ProtoBacktestRun>): void {
+    async publishBacktestRun(data: UpdateItem<ProtoBacktestRun>): Promise<void> {
         const channel = `backtestRun:${data.id}`;
-        this.publishChannel(channel, data);
+        await this.publishChannel(channel, data);
     }
 
-    publishBacktestStrategyMintResult<T>(backtestId: string, strategyId: string, data: T): void {
+    async publishBacktestStrategyMintResult<T>(backtestId: string, strategyId: string, data: T): Promise<void> {
         const channel = `backtest:${backtestId}:strategy:${strategyId}:mint`;
-        this.publishChannel(channel, data);
+        await this.publishChannel(channel, data);
     }
 
-    publishBacktestStrategyResult<T>(backtestId: string, strategyId: string, data: T): void {
+    async publishBacktestStrategyResult<T>(backtestId: string, strategyId: string, data: T): Promise<void> {
         const channel = `backtest:${backtestId}:strategy:${strategyId}:result`;
-        this.publishChannel(channel, data);
+        await this.publishChannel(channel, data);
     }
 
     // -----------------------------
     // INTERNAL HELPERS
     // -----------------------------
 
-    private subscribeChannel<T>(channel: string, handler: Handler<T>): void {
-        this.pubsub.subscribe(channel, (message: string) => {
+    private async subscribeChannel<T>(channel: string, handler: Handler<T>): Promise<void> {
+        await this.pubsub.subscribe(channel, (message: string) => {
             handler(JSON.parse(message, reviveDates) as T, channel);
         });
     }
 
-    private subscribePattern<T>(pattern: string, handler: Handler<T>): void {
-        this.pubsub.psubscribe(pattern, (message: string, channel: string) => {
+    private async subscribePattern<T>(pattern: string, handler: Handler<T>): Promise<void> {
+        await this.pubsub.psubscribe(pattern, (message: string, channel: string) => {
             handler(JSON.parse(message, reviveDates) as T, channel);
         });
     }
 
-    private publishChannel<T>(channel: string, data: T): void {
+    private async publishChannel<T>(channel: string, data: T): Promise<void> {
         const message = JSON.stringify(data);
-        this.pubsub.publish(channel, message);
+        await this.pubsub.publish(channel, message);
     }
 }

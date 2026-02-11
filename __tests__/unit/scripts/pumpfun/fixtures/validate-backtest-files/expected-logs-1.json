@@ -1,7 +1,7 @@
 [
   "2021-03-19 10:00:00 [DEBUG]: Running with args { config: 'config.json', path: undefined, extractTo: undefined }",
-  "2021-03-19 10:00:00 [INFO]: Started processing 4 files with config={\n  dataSource: {\n    path: './data',\n    includeIfPathContains: [ 'foo', 'bar', [length]: 2 ]\n  },\n  rules: {\n    notJson: true,\n    nulls: {\n      enabled: true,\n      exclude: {\n        devHoldingPercentageCirculating: { upToIndex: 12 },\n        topTenHoldingPercentageCirculating: { upToIndex: 12 },\n        topHolderCirculatingPercentage: { upToIndex: 12 }\n      }\n    },\n    noHistory: true\n  },\n  extractTo: './data/invalid'\n}\n",
-  "2021-03-19 10:00:00 [INFO]: Will create missing extract-to directory ./data/invalid",
+  "2021-03-19 10:00:00 [INFO]: Started processing 4 files with config={\n  dataSource: {\n    path: 'data',\n    includeIfPathContains: [ 'foo', 'bar', [length]: 2 ]\n  },\n  rules: {\n    notJson: true,\n    nulls: {\n      enabled: true,\n      exclude: {\n        devHoldingPercentageCirculating: { upToIndex: 12 },\n        topTenHoldingPercentageCirculating: { upToIndex: 12 },\n        topHolderCirculatingPercentage: { upToIndex: 12 }\n      }\n    },\n    noHistory: true\n  },\n  extractTo: 'data/invalid'\n}\n",
+  "2021-03-19 10:00:00 [INFO]: Will create missing extract-to directory data/invalid",
   "2021-03-19 10:00:00 [INFO]: 4 files were processed",
   "2021-03-19 10:00:00 [INFO]: 1 files were found to be valid",
   "2021-03-19 10:00:00 [INFO]: 3 files were found to be invalid",

@@ -1,0 +1,13 @@
+[
+  "2021-03-19 10:00:00 [INFO]: Started processing 2 files with config={\n  mode: 'PROFIT',\n  dataSources: [ { path: 'data' }, { path: 'data-2' }, [length]: 2 ],\n  checkPriceAfterMs: 2000,\n  allowedPriceDropInBetweenPercentage: 25,\n  requiredPriceChangeDiffPercentage: 25,\n  requiredMaintainIncreaseMs: 2000,\n  startFromIndex: 2,\n  onlyLogEvents: false\n}\n",
+  "2021-03-19 10:00:00 [DEBUG]: [0] Processing file data/a.json",
+  "2021-03-19 10:00:00 [DEBUG]: [0] Found 5 PROFIT events in data/a.json",
+  "2021-03-19 10:00:00 [DEBUG]: [1] Skipping file data-2/k.json (No History)",
+  "2021-03-19 10:00:00 [INFO]: ------------------------------------------------",
+  "2021-03-19 10:00:00 [INFO]: Processing Complete",
+  "2021-03-19 10:00:00 [INFO]: Mode: PROFIT",
+  "2021-03-19 10:00:00 [INFO]: Files Processed: 2",
+  "2021-03-19 10:00:00 [INFO]: Valid Files (with events): 1",
+  "2021-03-19 10:00:00 [INFO]: Total Events Found: 5",
+  "2021-03-19 10:00:00 [INFO]: ------------------------------------------------"
+]

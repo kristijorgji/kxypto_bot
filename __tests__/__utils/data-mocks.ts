@@ -1,18 +1,22 @@
 import fs from 'fs';
-import { basename } from 'path';
+import { basename, dirname } from 'path';
+
+import { getFiles as getFilesOriginal } from '@src/data/getFiles';
 
 import { FileInfo } from '../../src/utils/files';
 
 export function mockGetFiles(getFiles: jest.Mock, fileToContent: Record<string, object | string>) {
-    getFiles.mockReturnValue(
-        Object.keys(fileToContent)
-            .filter(fullPath => fullPath.includes('data/'))
+    getFiles.mockImplementation((...args: Parameters<typeof getFilesOriginal>) => {
+        const [dataSource] = args;
+
+        return Object.keys(fileToContent)
+            .filter(fullPath => dirname(fullPath) === dataSource.path)
             .map(fullPath => ({
                 name: basename(fullPath),
                 fullPath: fullPath,
                 creationTime: new Date(),
-            })) satisfies FileInfo[],
-    );
+            })) satisfies FileInfo[];
+    });
 }
 
 export function mockFsReadFileSync(

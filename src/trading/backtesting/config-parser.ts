@@ -9,11 +9,18 @@ import { StrategyFileConfig, strategyFileConfigSchema } from '@src/trading/confi
 import { strategyFromConfig } from '@src/trading/strategies/launchpads/config-parser';
 import LaunchpadBotStrategy from '@src/trading/strategies/launchpads/LaunchpadBotStrategy';
 
-import { BacktestRunConfig, RunBacktestFromRunConfigParams, RunBacktestParams, backtestRunConfigSchema } from './types';
+import {
+    BacktestRunConfig,
+    RunBacktestFromRunConfigParams,
+    RunBacktestParams,
+    rangeAwareBacktestRunConfigSchema,
+} from './types';
 import { BacktestConfig } from '../bots/blockchains/solana/types';
 
 export async function fileConfigToRunBacktestParams(path: string): Promise<RunBacktestParams> {
-    return backtestRunToRunBacktestParams(backtestRunConfigSchema.parse(JSON.parse(fs.readFileSync(path).toString())));
+    return backtestRunToRunBacktestParams(
+        rangeAwareBacktestRunConfigSchema.parse(JSON.parse(fs.readFileSync(path).toString())),
+    );
 }
 
 export async function backtestRunToRunBacktestParams(config: BacktestRunConfig): Promise<RunBacktestParams> {

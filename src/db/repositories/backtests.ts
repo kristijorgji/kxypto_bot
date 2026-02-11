@@ -216,6 +216,7 @@ export async function updateBacktestStrategyResult(
     status: ProcessingStatus.Completed | ProcessingStatus.Aborted,
     sr: StrategyBacktestResult,
     executionTimeSeconds: number,
+    { storeMintsResults }: { storeMintsResults: boolean },
 ): Promise<PartialBacktestStrategyResultUpdateResponse> {
     return await db.transaction<PartialBacktestStrategyResultUpdateResponse>(async trx => {
         const update: PartialBacktestStrategyResultUpdateResponse = {
@@ -238,9 +239,13 @@ export async function updateBacktestStrategyResult(
         };
         await trx(Tables.BacktestStrategyResults).where('id', strategyResultId).update(update);
 
-        await trx(Tables.BacktestStrategyMintResults).insert(
-            Object.values(sr.mintResults).map(bmr => formDraftMintResultFromBacktestMintResult(strategyResultId, bmr)),
-        );
+        if (storeMintsResults) {
+            await trx(Tables.BacktestStrategyMintResults).insert(
+                Object.values(sr.mintResults).map(bmr =>
+                    formDraftMintResultFromBacktestMintResult(strategyResultId, bmr),
+                ),
+            );
+        }
 
         return update;
     });

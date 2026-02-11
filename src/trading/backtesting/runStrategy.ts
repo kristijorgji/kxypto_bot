@@ -64,6 +64,14 @@ export function createInitialStrategyResultLiveState(): StrategyResultLiveState 
 
 const cache: Record<string, HandlePumpTokenBotReport> = {};
 
+export type RunStrategyConfig = {
+    logging?: {
+        level?: 'none' | 'info' | 'verbose';
+        includeTrades?: boolean;
+    };
+    onMintResult?: (mr: StrategyMintBacktestResult) => void | Promise<void>;
+};
+
 export async function runStrategy(
     {
         backtester,
@@ -85,12 +93,12 @@ export async function runStrategy(
     },
     runConfig: BacktestStrategyRunConfig,
     files: FileInfo[],
-    config?: {
-        verbose?: boolean;
-        onMintResult?: (mr: StrategyMintBacktestResult) => void;
-    },
+    config?: RunStrategyConfig,
 ): Promise<StrategyBacktestResult> {
-    const verbose = config?.verbose ?? false;
+    const logLevel = config?.logging?.level ?? 'info';
+    const showTrades = config?.logging?.includeTrades ?? false;
+    const isVerbose = logLevel === 'verbose';
+    const isInfo = logLevel === 'info' || isVerbose;
 
     const buyAmountLamports = solToLamports(runConfig.buyAmountSol);
 
@@ -124,7 +132,7 @@ export async function runStrategy(
         }
 
         if (abortedRef()) {
-            if (verbose) {
+            if (isVerbose) {
                 logger.info('[%d] Aborting runStrategy', i);
             }
             break;
@@ -164,7 +172,7 @@ export async function runStrategy(
                 config.onMintResult(mintResults[content.mint]);
             }
 
-            if (verbose) {
+            if (isVerbose) {
                 logger.info(
                     '[%d] Results for mint: %s, %s, %s',
                     i,
@@ -204,8 +212,7 @@ export async function runStrategy(
                         }
                     }
 
-                    if (verbose) {
-                        const isSingleFullTrade = runConfig.onlyOneFullTrade && pr.tradeHistory.length === 2;
+                    if (isVerbose) {
                         logger.info(
                             '[%d] Final balance: %s SOL and holdings %s',
                             i,
@@ -221,13 +228,8 @@ export async function runStrategy(
                         );
                         logger.info('[%d] Trades count %d', i, pr.tradeHistory.length);
                         logger.info('[%d] ROI %s%%', i, pr.roi);
-                        logger.info(
-                            '[%d] Max Drawdown: %s%%%s',
-                            i,
-                            pr.maxDrawdownPercentage,
-                            isSingleFullTrade ? '' : '\n',
-                        );
-                        if (isSingleFullTrade) {
+                        logger.info('[%d] Max Drawdown: %s%%%s', i, pr.maxDrawdownPercentage, showTrades ? '' : '\n');
+                        if (showTrades) {
                             logger.info(
                                 '[%d] Trades=%o\n',
                                 i,
@@ -253,7 +255,7 @@ export async function runStrategy(
                         }
                     }
                 } else {
-                    if (verbose) {
+                    if (isVerbose) {
                         logger.info(
                             '[%d] Completed full simulation — no trades executed across %d history entries\n',
                             i,
@@ -285,26 +287,28 @@ export async function runStrategy(
                 }
 
                 if (ls.balanceLamports <= 0) {
-                    logger.info(
-                        '[%d] Stopping because reached <=0 balance: %s SOL',
-                        i,
-                        lamportsToSol(ls.balanceLamports),
-                    );
+                    isInfo &&
+                        logger.info(
+                            '[%d] Stopping because reached <=0 balance: %s SOL',
+                            i,
+                            lamportsToSol(ls.balanceLamports),
+                        );
                     break;
                 }
 
                 if (ls.balanceLamports <= buyAmountLamports) {
-                    logger.info(
-                        '[%d] Stopping because reached balance (%s SOL) <= buyAmount (%s SOL)',
-                        i,
-                        lamportsToSol(ls.balanceLamports),
-                        runConfig.buyAmountSol,
-                    );
+                    isInfo &&
+                        logger.info(
+                            '[%d] Stopping because reached balance (%s SOL) <= buyAmount (%s SOL)',
+                            i,
+                            lamportsToSol(ls.balanceLamports),
+                            runConfig.buyAmountSol,
+                        );
                     break;
                 }
             } else {
                 const pr = r as BacktestMintExitResponse;
-                if (verbose) {
+                if (isVerbose) {
                     logger.info('[%d] Exited monitoring with code: %s, reason: %s\n', i, pr.exitCode, pr.exitReason);
                 }
             }

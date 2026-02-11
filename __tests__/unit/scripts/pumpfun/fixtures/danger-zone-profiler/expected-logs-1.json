@@ -1,0 +1,15 @@
+[
+  "2026-02-10 17:49:37 [INFO]: === Starting Danger Zone Profiling ===",
+  "2026-02-10 17:49:37 [INFO]: Source Report: report.json",
+  "2026-02-10 17:49:37 [INFO]: Files Processed in Report: 1",
+  "2026-02-10 17:49:37 [INFO]: --------------------------------------------------",
+  "2026-02-10 17:49:37 [INFO]: FILE: mint123.json (1 unique crash/profit events)",
+  "2026-02-10 17:49:37 [INFO]:   [EVENT @ 1700000000000] Type: RUG",
+  "2026-02-10 17:49:37 [INFO]:   ├── Horizon Index (Earliest Warning): 10",
+  "2026-02-10 17:49:37 [INFO]:   ├── Exit Window (Time to Impact):   5000ms",
+  "2026-02-10 17:49:37 [INFO]:   ├── Intensity:                      2 ticks flagged this event",
+  "2026-02-10 17:49:37 [INFO]:   ├── Detection Span:                 1 indices",
+  "2026-02-10 17:49:37 [INFO]:   └── Final Delta:                    -95.00%",
+  "2026-02-10 17:49:37 [INFO]: --------------------------------------------------",
+  "2026-02-10 17:49:37 [INFO]: Profiling Complete."
+]

@@ -13,6 +13,7 @@ import {
     ProtoDeleteBacktestStrategyResultsResponseMessage,
 } from '@src/protos/generated/backtests';
 import { normalizeOptionalFields, normalizeOptionalFieldsInArray } from '@src/protos/mappers/normalizeOptionalFields';
+import { BacktestRunCheckpoint } from '@src/trading/backtesting/types';
 import {
     BacktestMintExitResponse,
     BacktestMintTradeResponse,
@@ -60,7 +61,7 @@ export async function storeBacktest(backtest: Backtest) {
 }
 
 export async function createBacktestRun(
-    data: Omit<BacktestRun, 'id' | 'finished_at' | 'failure_details' | 'created_at' | 'updated_at'>,
+    data: Omit<BacktestRun, 'id' | 'finished_at' | 'checkpoint' | 'failure_details' | 'created_at' | 'updated_at'>,
 ): Promise<ProtoBacktestRun> {
     const now = new Date();
 
@@ -68,6 +69,7 @@ export async function createBacktestRun(
         ...data,
         started_at: data.started_at === null ? null : now,
         finished_at: null,
+        checkpoint: null,
         failure_details: null,
         created_at: now,
         updated_at: now,
@@ -121,6 +123,7 @@ type PartialBacktestRunUpdateResponse = Pick<ProtoBacktestRun, 'status' | 'finis
 export async function updateBacktestRunStatus(
     id: number,
     status: ProcessingStatus.Completed | ProcessingStatus.Aborted | ProcessingStatus.Running,
+    checkpoint?: BacktestRunCheckpoint,
 ): Promise<PartialBacktestRunUpdateResponse> {
     const update: PartialBacktestRunUpdateResponse = {
         status: status,
@@ -130,9 +133,28 @@ export async function updateBacktestRunStatus(
         update.finished_at = new Date();
     }
 
-    await db.table(Tables.BacktestRuns).where('id', id).update(update);
+    await db
+        .table(Tables.BacktestRuns)
+        .where('id', id)
+        .update({
+            ...update,
+            ...(checkpoint
+                ? {
+                      checkpoint: JSON.stringify(checkpoint),
+                  }
+                : {}),
+        });
 
     return normalizeOptionalFields(update, ['finished_at']);
+}
+
+export async function updateBacktestRunCheckpoint(id: number, checkpoint: BacktestRunCheckpoint): Promise<void> {
+    await db
+        .table(Tables.BacktestRuns)
+        .where('id', id)
+        .update({
+            checkpoint: JSON.stringify(checkpoint),
+        });
 }
 
 export async function markBacktestRunAsFailed(
@@ -319,6 +341,10 @@ export async function fetchBacktestsStrategyResultsCursorPaginated(
     return fetchCursorPaginatedData(getBacktestsStrategyResults, params.pagination, params.filters);
 }
 
+export async function getBacktestStrategyResultsByIds(ids: number[]): Promise<BacktestStrategyResult[]> {
+    return db.table(Tables.BacktestStrategyResults).select().whereIn('id', ids);
+}
+
 export async function deleteBacktestStrategyById(
     id: number,
 ): Promise<{ deletedStrategy: number; deletedMints: number }> {
@@ -328,6 +354,20 @@ export async function deleteBacktestStrategyById(
 
         // delete parent
         const deletedStrategy = await trx(Tables.BacktestStrategyResults).where({ id }).del();
+
+        return { deletedStrategy, deletedMints };
+    });
+}
+
+export async function deleteBacktestStrategyResultsByIds(
+    ids: number[],
+): Promise<{ deletedStrategy: number; deletedMints: number }> {
+    return await db.transaction(async trx => {
+        // delete children first
+        const deletedMints = await trx(Tables.BacktestStrategyMintResults).whereIn('strategy_result_id', ids).del();
+
+        // delete parent
+        const deletedStrategy = await trx(Tables.BacktestStrategyResults).whereIn('id', ids).del();
 
         return { deletedStrategy, deletedMints };
     });

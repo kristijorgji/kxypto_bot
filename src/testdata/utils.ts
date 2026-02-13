@@ -1,9 +1,11 @@
 import { deepEqual } from '../utils/data/equals';
 
 export function make<T>(nr: number, factory: () => T): T[] {
-    return Array(nr)
-        .fill(0)
-        .map(() => factory());
+    return Array.from({ length: nr }, () => factory());
+}
+
+export function makeIndexed<T>(nr: number, factory: (index: number) => T): T[] {
+    return Array.from({ length: nr }, (_, index) => factory(index));
 }
 
 export function makeUnique<T>(nr: number, factory: () => T, initialBatch: T[] | null = null): T[] {
@@ -59,3 +61,20 @@ export function makeUnique<T>(nr: number, factory: () => T, initialBatch: T[] | 
 
     return batch;
 }
+
+/**
+ * Returns source[key] if the key exists (even if set to undefined).
+ * Otherwise, returns defaultValue. This preserves "intentional undefined"
+ * passed by the user, which nullish coalescing (??) would overwrite.
+ */
+export const withDefault = <T, K extends keyof T, D>(source: T | undefined, key: K, defaultValue: D): T[K] | D => {
+    if (!source) return defaultValue;
+
+    // If the key exists in the object (even if it is undefined),
+    // we return the value from the object.
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
+        return source[key];
+    }
+
+    return defaultValue;
+};

@@ -8,6 +8,7 @@ import {
     ProtoBacktestStrategyFullResult,
 } from '@src/protos/generated/backtests';
 import { fakeMint } from '@src/testdata/factories/pumpfun';
+import { withDefault } from '@src/testdata/utils';
 import { exitMonitoringReasonEnum } from '@src/trading/bots/types';
 import { pickRandomItem, randomInt } from '@src/utils/data/data';
 import { getRandomEnumValue, mapStringToEnum } from '@src/utils/data/enum';
@@ -22,10 +23,18 @@ export function ProtoBacktestRunFactory(copy?: Partial<ProtoBacktestRun>): Proto
     } else if (
         [ProcessingStatus.Completed, ProcessingStatus.Failed].includes(mapStringToEnum(status, ProcessingStatus))
     ) {
-        finishedAt = faker.date.past();
+        finishedAt = withDefault(copy, 'finished_at', faker.date.past());
     }
 
-    const userId = copy?.user_id ?? faker.string.alpha();
+    const source = copy?.source ?? getRandomEnumValue(ActionSource);
+
+    let apiClientId = undefined;
+    let userId = undefined;
+    if (source === ActionSource.App) {
+        userId = copy?.user_id ?? faker.string.alpha();
+    } else if (source === ActionSource.ApiClient) {
+        apiClientId = (copy?.api_client_id ?? faker.datatype.boolean()) ? faker.string.alpha() : undefined;
+    }
 
     return {
         id: copy?.id ?? faker.number.int({ min: 0 }),
@@ -33,14 +42,15 @@ export function ProtoBacktestRunFactory(copy?: Partial<ProtoBacktestRun>): Proto
         source: copy?.source ?? getRandomEnumValue(ActionSource),
         status: status,
         user_id: userId,
-        api_client_id: (copy?.api_client_id ?? faker.datatype.boolean()) ? faker.string.alpha() : undefined,
-        started_at: copy?.started_at ?? faker.date.past(),
+        api_client_id: apiClientId,
+        started_at: withDefault(copy, 'started_at', faker.date.past()),
         finished_at: finishedAt,
         config: {
             factoryGenerated: true,
         },
+        checkpoint: undefined,
         failure_details: undefined,
-        created_at: copy?.created_at ?? faker.date.past(),
+        created_at: withDefault(copy, 'created_at', faker.date.past()),
     };
 }
 

@@ -4,7 +4,7 @@ import Pumpfun from '@src/blockchains/solana/dex/pumpfun/Pumpfun';
 import { ActionSource, ActorContext } from '@src/core/types';
 import { getBacktestRunById, markBacktestRunAsFailed } from '@src/db/repositories/backtests';
 import { BacktestRun } from '@src/db/types';
-import { logger } from '@src/logger';
+import { logger, silentLogger } from '@src/logger';
 import { ProtoBacktestRun } from '@src/protos/generated/backtests';
 import { createPubSub } from '@src/pubsub';
 import BacktestPubSub from '@src/pubsub/BacktestPubSub';
@@ -13,6 +13,7 @@ import runBacktest from '@src/trading/backtesting/runBacktest';
 import { BacktestRunConfig } from '@src/trading/backtesting/types';
 import PumpfunBacktester from '@src/trading/bots/blockchains/solana/PumpfunBacktester';
 import { sleep } from '@src/utils/functions';
+import { FirstArg } from '@src/utils/types';
 import { loggerWorkerPrefix } from '@src/workers/backtestRun.worker';
 
 export async function backtestRunProcessor(job: Job) {
@@ -20,7 +21,7 @@ export async function backtestRunProcessor(job: Job) {
     const { backtestRunId } = job.data;
 
     const pubsub = createPubSub();
-    const runnerDeps = {
+    const runnerDeps: FirstArg<typeof runBacktest> = {
         logger: logger,
         pubsub: pubsub,
         backtestPubSub: new BacktestPubSub(pubsub),
@@ -28,7 +29,7 @@ export async function backtestRunProcessor(job: Job) {
             rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
             wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
         }),
-        backtester: new PumpfunBacktester(logger),
+        backtester: new PumpfunBacktester(silentLogger),
     };
 
     logger.info(`${loggerWorkerPrefix} Starting backtest run with id ${backtestRunId}`);

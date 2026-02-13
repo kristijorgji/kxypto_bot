@@ -3,13 +3,18 @@ import { basename } from 'path';
 
 import { LogEntry, createLogger, format } from 'winston';
 
+import { randomizationNoneConfig } from './data';
 import Pumpfun from '../../../../src/blockchains/solana/dex/pumpfun/Pumpfun';
 import { PumpfunInitialCoinData } from '../../../../src/blockchains/solana/dex/pumpfun/types';
 import { forceGetPumpCoinInitialData } from '../../../../src/blockchains/solana/dex/pumpfun/utils';
 import { solToLamports } from '../../../../src/blockchains/utils/amount';
 import { pumpfunRepository } from '../../../../src/db/repositories/PumpfunRepository';
 import ArrayTransport from '../../../../src/logger/transports/ArrayTransport';
-import { createInitialStrategyResultLiveState, runStrategy } from '../../../../src/trading/backtesting/runStrategy';
+import {
+    RunStrategyConfig,
+    createInitialStrategyResultLiveState,
+    runStrategy,
+} from '../../../../src/trading/backtesting/runStrategy';
 import PumpfunBacktester from '../../../../src/trading/bots/blockchains/solana/PumpfunBacktester';
 import { BacktestStrategyRunConfig } from '../../../../src/trading/bots/blockchains/solana/types';
 import { HistoryEntry } from '../../../../src/trading/bots/launchpads/types';
@@ -61,13 +66,16 @@ describe('runStrategy', () => {
         jitoConfig: {
             jitoEnabled: true,
         },
-        randomization: {
-            priorityFees: false,
-            slippages: 'off',
-            execution: false,
-        },
+        randomization: randomizationNoneConfig,
         onlyOneFullTrade: true,
         sellUnclosedPositionsAtEnd: false,
+    };
+
+    const noMintsLogConfig: RunStrategyConfig = {
+        logging: {
+            level: 'info',
+            logInterval: 0,
+        },
     };
 
     let paused = false;
@@ -149,7 +157,7 @@ describe('runStrategy', () => {
             },
         );
 
-        const expectedData = readLocalFixture<FullTestExpectation>('utils/1.json');
+        const expectedData = readLocalFixture<FullTestExpectation>('runStrategy/1.json');
 
         expect(actual).toEqual(expectedData.result);
 
@@ -182,7 +190,7 @@ describe('runStrategy', () => {
             })),
         );
 
-        expect(actual).toEqual(readLocalFixture<FullTestExpectation>('utils/2.json').result);
+        expect(actual).toEqual(readLocalFixture<FullTestExpectation>('runStrategy/2.json').result);
     });
 
     const historiesThatResultInLoss: Record<string, HistoryEntry[]> = {
@@ -244,9 +252,10 @@ describe('runStrategy', () => {
                 name: `${key}.json`,
                 creationTime: new Date(),
             })),
+            noMintsLogConfig,
         );
 
-        const expectedData = readLocalFixture<FullTestExpectation>('utils/3.json');
+        const expectedData = readLocalFixture<FullTestExpectation>('runStrategy/3.json');
 
         expect(actual).toEqual(expectedData.result);
         expect(logs).toEqual(expectedData.logs);
@@ -288,7 +297,7 @@ describe('runStrategy', () => {
             })),
         );
 
-        expect(actual).toEqual(readLocalFixture<FullTestExpectation>('utils/4.json').result);
+        expect(actual).toEqual(readLocalFixture<FullTestExpectation>('runStrategy/4.json').result);
     });
 
     it('5 - should stop checking next mints if remaining balance is less than buy amount', async () => {
@@ -332,9 +341,10 @@ describe('runStrategy', () => {
                 name: `${key}.json`,
                 creationTime: new Date(),
             })),
+            noMintsLogConfig,
         );
 
-        const expectedData = readLocalFixture<FullTestExpectation>('utils/5.json');
+        const expectedData = readLocalFixture<FullTestExpectation>('runStrategy/5.json');
 
         expect(actual).toEqual(expectedData.result);
         expect(logs).toEqual(expectedData.logs);

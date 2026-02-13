@@ -5,6 +5,7 @@ import { Logger } from 'winston';
 import { forceGetPumpCoinInitialData } from '@src/blockchains/solana/dex/pumpfun/utils';
 import { lamportsToSol, solToLamports } from '@src/blockchains/utils/amount';
 import { pumpfunRepository } from '@src/db/repositories/PumpfunRepository';
+import { RunStrategyLoggingConfig } from '@src/trading/backtesting/types';
 import { FileInfo } from '@src/utils/files';
 import { sleep } from '@src/utils/functions';
 import { formatElapsedTime } from '@src/utils/time';
@@ -65,10 +66,7 @@ export function createInitialStrategyResultLiveState(): StrategyResultLiveState 
 const cache: Record<string, HandlePumpTokenBotReport> = {};
 
 export type RunStrategyConfig = {
-    logging?: {
-        level?: 'none' | 'info' | 'verbose';
-        includeTrades?: boolean;
-    };
+    logging?: RunStrategyLoggingConfig;
     onMintResult?: (mr: StrategyMintBacktestResult) => void | Promise<void>;
 };
 
@@ -95,10 +93,11 @@ export async function runStrategy(
     files: FileInfo[],
     config?: RunStrategyConfig,
 ): Promise<StrategyBacktestResult> {
-    const logLevel = config?.logging?.level ?? 'info';
-    const showTrades = config?.logging?.includeTrades ?? false;
+    const logLevel = config?.logging?.level ?? 'none';
+    const showTrades = logLevel !== 'none' && (config?.logging?.includeTrades ?? false);
     const isVerbose = logLevel === 'verbose';
     const isInfo = logLevel === 'info' || isVerbose;
+    const logInterval = config?.logging?.logInterval ?? 1;
 
     const buyAmountLamports = solToLamports(runConfig.buyAmountSol);
 
@@ -125,6 +124,8 @@ export async function runStrategy(
     const mintResults: Record<string, StrategyMintBacktestResult> = {};
 
     for (let i = 0; i < files.length; i++) {
+        const shouldLogMintResult = isInfo && logInterval > 0 && i % logInterval === 0;
+
         ls.currentIndex = i;
 
         while (pausedRef()) {
@@ -132,7 +133,7 @@ export async function runStrategy(
         }
 
         if (abortedRef()) {
-            if (isVerbose) {
+            if (isInfo) {
                 logger.info('[%d] Aborting runStrategy', i);
             }
             break;
@@ -172,7 +173,7 @@ export async function runStrategy(
                 config.onMintResult(mintResults[content.mint]);
             }
 
-            if (isVerbose) {
+            if (shouldLogMintResult) {
                 logger.info(
                     '[%d] Results for mint: %s, %s, %s',
                     i,
@@ -212,7 +213,7 @@ export async function runStrategy(
                         }
                     }
 
-                    if (isVerbose) {
+                    if (shouldLogMintResult) {
                         logger.info(
                             '[%d] Final balance: %s SOL and holdings %s',
                             i,
@@ -255,7 +256,7 @@ export async function runStrategy(
                         }
                     }
                 } else {
-                    if (isVerbose) {
+                    if (shouldLogMintResult) {
                         logger.info(
                             '[%d] Completed full simulation — no trades executed across %d history entries\n',
                             i,
@@ -308,13 +309,13 @@ export async function runStrategy(
                 }
             } else {
                 const pr = r as BacktestMintExitResponse;
-                if (isVerbose) {
+                if (shouldLogMintResult) {
                     logger.info('[%d] Exited monitoring with code: %s, reason: %s\n', i, pr.exitCode, pr.exitReason);
                 }
             }
         } catch (e) {
             logger.error('[%d] Error handling mint %s', i, initialCoinData.mint);
-            logger.info(e);
+            logger.error(e);
         }
     }
 

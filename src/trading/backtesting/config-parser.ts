@@ -26,16 +26,25 @@ export async function fileConfigToRunBacktestParams(path: string): Promise<RunBa
 export async function backtestRunToRunBacktestParams(config: BacktestRunConfig): Promise<RunBacktestParams> {
     let backtest: Backtest | undefined;
 
+    const common = {
+        checkpoint: config.checkpoint,
+        storage: config.storage,
+        logging: config.logging,
+        pubsub: config.pubsub,
+    };
+
     if ((config as { backtestId?: string })?.backtestId) {
         backtest = await getBacktestById((config as { backtestId: string }).backtestId);
         return {
             backtest: backtest,
             strategies: formStrategiesFromConfig(config),
+            ...common,
         };
     } else {
         return {
             backtestConfig: (config as { config: BacktestConfig }).config,
             strategies: formStrategiesFromConfig(config),
+            ...common,
         };
     }
 }

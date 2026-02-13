@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from 'uuid';
-import { createLogger } from 'winston';
 
 import { solToLamports } from '@src/blockchains/utils/amount';
 import { redis } from '@src/cache/cache';
@@ -14,7 +13,7 @@ import {
     updateBacktestStrategyResult,
 } from '@src/db/repositories/backtests';
 import { ProcessingStatus } from '@src/db/types';
-import { logger } from '@src/logger';
+import { logger, silentLogger } from '@src/logger';
 import { formPumpfunBacktestStatsDir } from '@src/trading/backtesting/data/pumpfun/utils';
 import {
     StrategyResultLiveState,
@@ -81,11 +80,7 @@ async function findBestStrategy() {
         rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
         wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
     });
-    const silentLogger = createLogger({
-        silent: true,
-        transports: [],
-    });
-    const backtester = new PumpfunBacktester(logger);
+    const backtester = new PumpfunBacktester(silentLogger);
 
     const dataConfig = {
         path: formPumpfunBacktestStatsDir(),
@@ -219,6 +214,7 @@ async function findBestStrategy() {
             ProcessingStatus.Completed,
             sr,
             executionTimeInS,
+            { storeMintsResults: false },
         );
 
         tested++;

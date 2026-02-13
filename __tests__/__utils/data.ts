@@ -10,8 +10,8 @@ const fixturesPath = (name: string, ext = '.json'): string => {
     return path.resolve(__dirname, `../data/fixtures/${name}${_ext.length !== 0 ? '' : ext}`);
 };
 
-export const rawFixture = (name: string): string => {
-    return fs.readFileSync(fixturesPath(name)).toString();
+export const rawFixture = (name: string, readFileSync?: typeof fs.readFileSync): string => {
+    return (readFileSync ?? fs.readFileSync)(fixturesPath(name)).toString();
 };
 
 export const localFixturesPath = (folder?: string): string => {

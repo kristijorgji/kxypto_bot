@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { BacktestRunCheckpoint } from '@src/trading/backtesting/types';
+
 import { ActionSource, FileStorageType } from '../core/types';
 import { BacktestConfig } from '../trading/bots/blockchains/solana/types';
 import { ExitMonitoringReason, SellReason } from '../trading/bots/types';
@@ -79,6 +81,7 @@ export type BacktestRun = {
     started_at: Date | null;
     finished_at: Date | null;
     config: Record<string, unknown>;
+    checkpoint: BacktestRunCheckpoint | null;
     failure_details: Record<string, unknown> | null;
     created_at: Date;
     updated_at: Date;

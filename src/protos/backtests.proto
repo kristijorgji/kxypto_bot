@@ -15,8 +15,9 @@ message BacktestRun {
   optional google.protobuf.Timestamp started_at = 12;
   optional google.protobuf.Timestamp finished_at = 13;
   google.protobuf.Struct config = 14;
-  google.protobuf.Struct failure_details = 15;
-  google.protobuf.Timestamp created_at = 16;
+  google.protobuf.Struct checkpoint = 15;
+  google.protobuf.Struct failure_details = 16;
+  google.protobuf.Timestamp created_at = 17;
 }
 
 message BacktestMintFullResult {

@@ -8,7 +8,7 @@ import { ActionSource, ActorContext } from '@src/core/types';
 import { getFiles } from '@src/data/getFiles';
 import { db } from '@src/db/knex';
 import { getBacktestById } from '@src/db/repositories/backtests';
-import { logger } from '@src/logger';
+import { logger, silentLogger } from '@src/logger';
 import { createPubSub } from '@src/pubsub';
 import BacktestPubSub from '@src/pubsub/BacktestPubSub';
 import { fileConfigToRunBacktestParams } from '@src/trading/backtesting/config-parser';
@@ -16,6 +16,7 @@ import { formPumpfunBacktestStatsDir } from '@src/trading/backtesting/data/pumpf
 import PumpfunBacktester from '@src/trading/bots/blockchains/solana/PumpfunBacktester';
 import { BacktestConfig } from '@src/trading/bots/blockchains/solana/types';
 import { PredictionSource } from '@src/trading/strategies/types';
+import { FirstArg } from '@src/utils/types';
 
 import runBacktest from '../../trading/backtesting/runBacktest';
 import BuyPredictionStrategy, {
@@ -82,7 +83,7 @@ async function start(args: {
         throw new Error('Invalid configuration. You can either provide backtestId or config as an argument');
     }
 
-    const runnerDeps = {
+    const runnerDeps: FirstArg<typeof runBacktest> = {
         logger: logger,
         pubsub: pubsub,
         backtestPubSub: new BacktestPubSub(pubsub),
@@ -90,7 +91,7 @@ async function start(args: {
             rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
             wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
         }),
-        backtester: new PumpfunBacktester(logger),
+        backtester: new PumpfunBacktester(silentLogger),
     };
 
     /**

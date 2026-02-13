@@ -20,6 +20,7 @@ import RiseStrategy, { RiseStrategyConfig } from '../../../../../../src/trading/
 import { formHistoryEntry } from '../../../../../__utils/blockchains/solana';
 import { readLocalFixture } from '../../../../../__utils/data';
 import { dummyPumpfunTokenInfo } from '../../../../../data/vars/blockchains/solana/pumpfun';
+import { randomizationNoneConfig } from '../../../backtesting/data';
 
 const originalDateNow = Date.now;
 
@@ -79,11 +80,7 @@ describe(PumpfunBacktester.name, () => {
 
     const runConfigWithoutRandomization: BacktestStrategyRunConfig = {
         ...runConfig,
-        randomization: {
-            priorityFees: false,
-            slippages: 'off',
-            execution: false,
-        },
+        randomization: randomizationNoneConfig,
     };
 
     const monitorConfig: HandlePumpTokenBotReport['monitor'] = {

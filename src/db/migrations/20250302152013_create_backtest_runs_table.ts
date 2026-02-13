@@ -40,6 +40,7 @@ export async function up(knex: Knex): Promise<void> {
         table.timestamp('started_at', { useTz: true });
         table.timestamp('finished_at', { useTz: true });
         table.json('config').notNullable();
+        table.json('checkpoint').nullable();
         table.json('failure_details').nullable();
         addTableTimestamps(knex, table);
     });

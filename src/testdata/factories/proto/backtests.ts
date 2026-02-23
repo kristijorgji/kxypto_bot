@@ -36,6 +36,9 @@ export function ProtoBacktestRunFactory(copy?: Partial<ProtoBacktestRun>): Proto
         apiClientId = (copy?.api_client_id ?? faker.datatype.boolean()) ? faker.string.alpha() : undefined;
     }
 
+    const totalIterations = copy?.total_iterations ?? faker.number.int({ min: 0 });
+    const totalPermutations = copy?.total_permutations ?? totalIterations;
+
     return {
         id: copy?.id ?? faker.number.int({ min: 0 }),
         backtest_id: backtestId,
@@ -48,6 +51,8 @@ export function ProtoBacktestRunFactory(copy?: Partial<ProtoBacktestRun>): Proto
         config: {
             factoryGenerated: true,
         },
+        total_iterations: totalIterations,
+        total_permutations: totalPermutations,
         checkpoint: undefined,
         failure_details: undefined,
         created_at: withDefault(copy, 'created_at', faker.date.past()),

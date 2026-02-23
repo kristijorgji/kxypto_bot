@@ -21,6 +21,8 @@ export interface ProtoBacktestRun {
   started_at?: Date | undefined;
   finished_at?: Date | undefined;
   config: { [key: string]: any } | undefined;
+  total_iterations: number;
+  total_permutations: number;
   checkpoint: { [key: string]: any } | undefined;
   failure_details: { [key: string]: any } | undefined;
   created_at: Date | undefined;
@@ -109,6 +111,8 @@ function createBaseProtoBacktestRun(): ProtoBacktestRun {
     started_at: undefined,
     finished_at: undefined,
     config: undefined,
+    total_iterations: 0,
+    total_permutations: 0,
     checkpoint: undefined,
     failure_details: undefined,
     created_at: undefined,
@@ -144,14 +148,20 @@ export const ProtoBacktestRun: MessageFns<ProtoBacktestRun> = {
     if (message.config !== undefined) {
       ProtoStruct.encode(ProtoStruct.wrap(message.config), writer.uint32(114).fork()).join();
     }
+    if (message.total_iterations !== 0) {
+      writer.uint32(120).uint64(message.total_iterations);
+    }
+    if (message.total_permutations !== 0) {
+      writer.uint32(128).uint64(message.total_permutations);
+    }
     if (message.checkpoint !== undefined) {
-      ProtoStruct.encode(ProtoStruct.wrap(message.checkpoint), writer.uint32(122).fork()).join();
+      ProtoStruct.encode(ProtoStruct.wrap(message.checkpoint), writer.uint32(138).fork()).join();
     }
     if (message.failure_details !== undefined) {
-      ProtoStruct.encode(ProtoStruct.wrap(message.failure_details), writer.uint32(130).fork()).join();
+      ProtoStruct.encode(ProtoStruct.wrap(message.failure_details), writer.uint32(146).fork()).join();
     }
     if (message.created_at !== undefined) {
-      ProtoTimestamp.encode(toTimestamp(message.created_at), writer.uint32(138).fork()).join();
+      ProtoTimestamp.encode(toTimestamp(message.created_at), writer.uint32(154).fork()).join();
     }
     return writer;
   },
@@ -236,23 +246,39 @@ export const ProtoBacktestRun: MessageFns<ProtoBacktestRun> = {
           continue;
         }
         case 15: {
-          if (tag !== 122) {
+          if (tag !== 120) {
+            break;
+          }
+
+          message.total_iterations = longToNumber(reader.uint64());
+          continue;
+        }
+        case 16: {
+          if (tag !== 128) {
+            break;
+          }
+
+          message.total_permutations = longToNumber(reader.uint64());
+          continue;
+        }
+        case 17: {
+          if (tag !== 138) {
             break;
           }
 
           message.checkpoint = ProtoStruct.unwrap(ProtoStruct.decode(reader, reader.uint32()));
           continue;
         }
-        case 16: {
-          if (tag !== 130) {
+        case 18: {
+          if (tag !== 146) {
             break;
           }
 
           message.failure_details = ProtoStruct.unwrap(ProtoStruct.decode(reader, reader.uint32()));
           continue;
         }
-        case 17: {
-          if (tag !== 138) {
+        case 19: {
+          if (tag !== 154) {
             break;
           }
 
@@ -279,6 +305,8 @@ export const ProtoBacktestRun: MessageFns<ProtoBacktestRun> = {
       started_at: isSet(object.started_at) ? fromJsonTimestamp(object.started_at) : undefined,
       finished_at: isSet(object.finished_at) ? fromJsonTimestamp(object.finished_at) : undefined,
       config: isObject(object.config) ? object.config : undefined,
+      total_iterations: isSet(object.total_iterations) ? globalThis.Number(object.total_iterations) : 0,
+      total_permutations: isSet(object.total_permutations) ? globalThis.Number(object.total_permutations) : 0,
       checkpoint: isObject(object.checkpoint) ? object.checkpoint : undefined,
       failure_details: isObject(object.failure_details) ? object.failure_details : undefined,
       created_at: isSet(object.created_at) ? fromJsonTimestamp(object.created_at) : undefined,
@@ -314,6 +342,12 @@ export const ProtoBacktestRun: MessageFns<ProtoBacktestRun> = {
     if (message.config !== undefined) {
       obj.config = message.config;
     }
+    if (message.total_iterations !== 0) {
+      obj.total_iterations = Math.round(message.total_iterations);
+    }
+    if (message.total_permutations !== 0) {
+      obj.total_permutations = Math.round(message.total_permutations);
+    }
     if (message.checkpoint !== undefined) {
       obj.checkpoint = message.checkpoint;
     }
@@ -340,6 +374,8 @@ export const ProtoBacktestRun: MessageFns<ProtoBacktestRun> = {
     message.started_at = object.started_at ?? undefined;
     message.finished_at = object.finished_at ?? undefined;
     message.config = object.config ?? undefined;
+    message.total_iterations = object.total_iterations ?? 0;
+    message.total_permutations = object.total_permutations ?? 0;
     message.checkpoint = object.checkpoint ?? undefined;
     message.failure_details = object.failure_details ?? undefined;
     message.created_at = object.created_at ?? undefined;

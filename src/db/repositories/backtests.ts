@@ -82,7 +82,7 @@ export async function createBacktestRun(
             id: id,
             ...draftInsert,
         },
-        ['user_id', 'api_client_id', 'failure_details', 'finished_at'],
+        ['user_id', 'api_client_id', 'failure_details', 'checkpoint', 'finished_at'],
     ) as ProtoBacktestRun;
 }
 
@@ -97,6 +97,7 @@ export async function getBacktestRunById(id: number): Promise<ProtoBacktestRun &
         'api_client_id',
         'started_at',
         'failure_details',
+        'checkpoint',
         'finished_at',
     ]) as ProtoBacktestRun & Pick<BacktestRun, 'config'>;
 }
@@ -220,6 +221,11 @@ export async function initBacktestStrategyResult(
     };
 }
 
+type ChampionStrategyResultUpdate = Pick<
+    BacktestStrategyResult,
+    'strategy' | 'strategy_id' | 'config_variant' | 'config'
+>;
+
 type PartialBacktestStrategyResultUpdateResponse = Omit<
     BacktestStrategyResult,
     | 'id'
@@ -231,14 +237,18 @@ type PartialBacktestStrategyResultUpdateResponse = Omit<
     | 'config'
     | 'created_at'
     | 'updated_at'
->;
+> &
+    (ChampionStrategyResultUpdate | {});
 
 export async function updateBacktestStrategyResult(
     strategyResultId: number,
     status: ProcessingStatus.Completed | ProcessingStatus.Aborted,
     sr: StrategyBacktestResult,
     executionTimeSeconds: number,
-    { storeMintsResults }: { storeMintsResults: boolean },
+    {
+        storeMintsResults,
+        championFields,
+    }: { storeMintsResults: boolean; championFields?: ChampionStrategyResultUpdate },
 ): Promise<PartialBacktestStrategyResultUpdateResponse> {
     return await db.transaction<PartialBacktestStrategyResultUpdateResponse>(async trx => {
         const update: PartialBacktestStrategyResultUpdateResponse = {
@@ -258,6 +268,12 @@ export async function updateBacktestStrategyResult(
             lowest_trough_sol: lamportsToSol(sr.lowestTroughLamports),
             max_drawdown_percentage: sr.maxDrawdownPercentage,
             execution_time_seconds: executionTimeSeconds,
+            ...(championFields
+                ? {
+                      ...championFields,
+                      config: JSON.stringify(championFields.config),
+                  }
+                : {}),
         };
         await trx(Tables.BacktestStrategyResults).where('id', strategyResultId).update(update);
 

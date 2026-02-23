@@ -108,6 +108,8 @@ describe('runBacktest', () => {
         user_id: actorContext.userId,
         api_client_id: undefined,
         started_at: undefined,
+        total_iterations: 100,
+        total_permutations: 100,
         finished_at: undefined,
         failure_details: undefined,
         created_at: dummyDate,

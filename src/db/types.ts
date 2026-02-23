@@ -81,6 +81,8 @@ export type BacktestRun = {
     started_at: Date | null;
     finished_at: Date | null;
     config: Record<string, unknown>;
+    total_iterations: number;
+    total_permutations: number;
     checkpoint: BacktestRunCheckpoint | null;
     failure_details: Record<string, unknown> | null;
     created_at: Date;

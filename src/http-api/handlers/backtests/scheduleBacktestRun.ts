@@ -7,6 +7,7 @@ import { InferReq, RequestSchemaObject } from '@src/http-api/middlewares/validat
 import { ExtendedRequest } from '@src/http-api/types';
 import { backtestRunQueue } from '@src/queues/backtestRun.queue';
 import { rangeAwareBacktestRunConfigSchema } from '@src/trading/backtesting/types';
+import { countPermutations } from '@src/trading/backtesting/utils/countPermutations';
 
 export const scheduleBacktestRunRequestSchema = {
     body: rangeAwareBacktestRunConfigSchema,
@@ -18,6 +19,13 @@ export default async (req: InferReq<typeof scheduleBacktestRunRequestSchema>, re
         userId: (req as ExtendedRequest).jwtPayload!.userId,
     };
 
+    const totalPermutations = (req.validated.body.strategies as unknown[]).reduce<number>(
+        (previousValue, currentValue) => {
+            return previousValue + countPermutations(currentValue);
+        },
+        0,
+    );
+
     const backtestRun = await createBacktestRun({
         backtest_id: (req.validated.body as { backtestId: string }).backtestId,
         source: actorContext.source,
@@ -26,6 +34,8 @@ export default async (req: InferReq<typeof scheduleBacktestRunRequestSchema>, re
         api_client_id: actorContext?.apiClientId ?? null,
         started_at: null, // this will be set once started and updated status to RUNNING
         config: req.validated.body,
+        total_iterations: req.validated.body.strategies.length,
+        total_permutations: totalPermutations,
     });
 
     await backtestRunQueue.add('execute-backtest-run', {

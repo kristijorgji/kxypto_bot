@@ -148,6 +148,8 @@ async function findBestStrategy() {
         api_client_id: null,
         started_at: new Date(),
         config: {},
+        total_iterations: total,
+        total_permutations: total,
     });
 
     let currentStrategyLiveState: StrategyResultLiveState | undefined;

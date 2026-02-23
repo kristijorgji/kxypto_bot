@@ -54,7 +54,7 @@ import {
     StrategyMintBacktestResult,
 } from '../bots/blockchains/solana/types';
 
-const MAX_STRATEGIES_FOR_MINT_STORAGE = 40;
+const MAX_STRATEGIES_FOR_MINT_STORAGE = 77;
 
 type RankingMetric = keyof Pick<StrategyBacktestResult, 'totalRoi' | 'winRatePercentage'>;
 
@@ -156,6 +156,8 @@ export default async function runBacktest(
             api_client_id: actorContext?.apiClientId ?? null,
             started_at: new Date(),
             config: {},
+            total_iterations: config.strategies.length,
+            total_permutations: strategiesCount,
         });
         logger.info('Stored backtest run with id %s', backtestRun.id);
         if (finalConfig.pubsub.notifyRunUpdate) {
@@ -202,6 +204,7 @@ export default async function runBacktest(
         backtest.config,
     );
 
+    let strategiesTested = 0; // index of main strategies only, excluding permutations
     let tested = 0;
     let permutationsTested = 0;
 
@@ -542,7 +545,19 @@ export default async function runBacktest(
                         !(abortState.aborted || pubsubAborted) ? ProcessingStatus.Completed : ProcessingStatus.Aborted,
                         sr,
                         executionTimeInS,
-                        { storeMintsResults: finalConfig.storage.storeMintResults },
+                        {
+                            storeMintsResults: finalConfig.storage.storeMintResults,
+                            ...(isBestOnly
+                                ? {
+                                      championFields: {
+                                          strategy: strategy.name,
+                                          strategy_id: strategy.identifier,
+                                          config_variant: strategy.configVariant,
+                                          config: strategy.config,
+                                      },
+                                  }
+                                : {}),
+                        },
                     )),
                 };
 
@@ -575,7 +590,13 @@ export default async function runBacktest(
                 const foundNewWinner = metricsWon.length > 0;
 
                 if (foundNewWinner || isTimeForHeartbeat) {
-                    const checkpoint = createCheckpoint(tested, permutationsTested, champions, championsRows);
+                    const checkpoint = createCheckpoint(
+                        tested,
+                        strategiesTested,
+                        permutationsTested,
+                        champions,
+                        championsRows,
+                    );
                     await updateBacktestRunCheckpoint(backtestRunId, checkpoint);
                     if (finalConfig.pubsub.notifyRunUpdate) {
                         await backtestPubSub.publishBacktestRun({
@@ -604,6 +625,8 @@ export default async function runBacktest(
                 }
             }
         }
+
+        strategiesTested++;
     }
 
     const diff = process.hrtime(start);
@@ -613,7 +636,7 @@ export default async function runBacktest(
 
     // --- Update Backtest Run Final Status And Save Final Checkpoint For BestOnly Mode ---
     let finalCheckpoint = isBestOnly
-        ? createCheckpoint(tested, permutationsTested, champions, championsRows)
+        ? createCheckpoint(tested, strategiesTested, permutationsTested, champions, championsRows)
         : undefined;
     backtestRun = {
         ...backtestRun!,
@@ -790,6 +813,7 @@ async function initializeRunState(config: RunBacktestParams): Promise<{
  */
 function createCheckpoint(
     tested: number,
+    strategiesTested: number,
     permutationsTested: number,
     champions: Champions,
     championsRows: ChampionsRows,
@@ -802,13 +826,17 @@ function createCheckpoint(
         if (row && state) {
             checkpointChampions[metric] = {
                 id: row.id,
-                state: state.result,
+                state: {
+                    totalRoi: state.result.totalRoi,
+                    winRatePercentage: state.result.winRatePercentage,
+                },
             };
         }
     }
 
     return {
         lastIterationIndex: tested,
+        lastStrategyIndex: strategiesTested,
         lastPermutationIterationIndex: permutationsTested,
         champions: checkpointChampions,
     };

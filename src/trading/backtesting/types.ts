@@ -43,22 +43,32 @@ const backtestRunBaseConfigSchema = z.object({
      */
     checkpoint: z
         .object({
-            /** * The global index of the strategy currently being tested.
-             * Represents progress through the main RANKING_METRICS / strategies loop (e.g., 5 of 100).
+            /**
+             * The global count of all permutations tested across the entire backtest run.
+             * Used for overall progress bars and ETA calculations (e.g., 50,000 of 1,000,000).
              */
             lastIterationIndex: z.number().nonnegative(),
 
-            /** * The index of the specific permutation/variant within the current strategy.
+            /**
+             * The specific index of the strategy currently being processed.
+             * Represents progress through the strategies list (e.g., Strategy 5 of 100).
+             */
+            lastStrategyIndex: z.number().nonnegative(),
+
+            /**
+             * The index of the specific permutation/variant within the current strategy.
              * Used to resume deep within a large permutation set (e.g., variant 500 of 2000).
              */
             lastPermutationIterationIndex: z.number().nonnegative().optional(),
 
-            /** * A unique hash or ID of the specific configuration variant.
+            /**
+             * A unique hash or ID of the specific configuration variant.
              * Acts as a safety check to ensure we are resuming the exact same parameter set.
              */
             lastPermutationId: z.string().optional(),
 
-            /** * Re-hydrates the "Champions" leaderboard.
+            /**
+             *  Re-hydrates the "Champions" leaderboard.
              * Mapping: { [MetricName]: { id: DB_ID, score: LAST_BEST_SCORE } }
              */
             champions: z
@@ -66,8 +76,11 @@ const backtestRunBaseConfigSchema = z.object({
                     z.string(), // RankingMetric (e.g., 'roi', 'winRate')
                     z.object({
                         id: z.number(),
-                        // This holds the full 'sr' `StrategyBacktestResult` object: { roi: 1.2, winRate: 0.8, ... }
-                        state: z.record(z.string(), z.any()),
+                        // This holds the partial 'sr' `StrategyBacktestResult` object: { roi: 1.2, winRate: 0.8, ... }
+                        state: z.object({
+                            totalRoi: z.number().positive().max(100),
+                            winRatePercentage: z.number().positive().max(100),
+                        }),
                     }),
                 )
                 .optional(),

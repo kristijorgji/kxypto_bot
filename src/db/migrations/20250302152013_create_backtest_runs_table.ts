@@ -40,6 +40,16 @@ export async function up(knex: Knex): Promise<void> {
         table.timestamp('started_at', { useTz: true });
         table.timestamp('finished_at', { useTz: true });
         table.json('config').notNullable();
+        table
+            .bigInteger('total_iterations')
+            .unsigned()
+            .notNullable()
+            .comment('Total number of strategies/iterations to be processed.');
+        table
+            .integer('total_permutations')
+            .unsigned()
+            .notNullable()
+            .comment('Total combined permutations, total of all iteration permutations (the "real" total work).');
         table.json('checkpoint').nullable();
         table.json('failure_details').nullable();
         addTableTimestamps(knex, table);

@@ -3,10 +3,11 @@ import fs from 'fs';
 import redisMock from 'ioredis-mock';
 import { LogEntry, format } from 'winston';
 
+import { forceGetPumpCoinInitialData } from '@src/blockchains/solana/dex/pumpfun/utils/forceGetPumpCoinInitialData';
+
 import { randomizationNoneConfig } from './data';
 import Pumpfun from '../../../../src/blockchains/solana/dex/pumpfun/Pumpfun';
 import { PumpfunInitialCoinData } from '../../../../src/blockchains/solana/dex/pumpfun/types';
-import { forceGetPumpCoinInitialData } from '../../../../src/blockchains/solana/dex/pumpfun/utils';
 import { ActionSource, ActorContext } from '../../../../src/core/types';
 import { getFiles } from '../../../../src/data/getFiles';
 import {
@@ -51,8 +52,7 @@ jest.mock('@src/db/repositories/backtests', () => ({
     updateBacktestRunStatus: jest.fn(),
 }));
 
-jest.mock('@src/blockchains/solana/dex/pumpfun/utils', () => ({
-    ...jest.requireActual('@src/blockchains/solana/dex/pumpfun/utils'),
+jest.mock('@src/blockchains/solana/dex/pumpfun/utils/forceGetPumpCoinInitialData', () => ({
     forceGetPumpCoinInitialData: jest.fn(),
 }));
 

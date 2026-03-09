@@ -1,6 +1,6 @@
-import MockPumpfunListener from './dex/pumpfun/mocks/MockPumpfunListener';
-import { NewPumpFunTokenData } from './dex/pumpfun/types';
-import PumpfunQueuedListener from './dex/PumpfunQueuedListener';
+import MockPumpfunListener from './MockPumpfunListener';
+import PumpfunQueuedListener from '../PumpfunQueuedListener';
+import { NewPumpFunTokenData } from '../types';
 
 export default function mockPumpfunQueuedListener(
     args: ConstructorParameters<typeof PumpfunQueuedListener>,

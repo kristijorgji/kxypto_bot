@@ -1,14 +1,35 @@
+import { Buffer } from 'buffer';
+
+import { AccountInfo } from '@solana/web3.js';
+
 import { PumpfunPositionMeta } from '@src/trading/bots/blockchains/solana/types';
 
 import { SolFullTransactionDetails } from '../../types';
 
 export type NewPumpFunTokenData = {
+    mint: string;
+    tokenProgramId: string;
     name: string;
     symbol: string;
     uri: string;
-    mint: string;
     bondingCurve: string;
     user: string;
+};
+
+export type BondingCurveState = {
+    dev: string;
+    bondingCurve: string;
+    virtualSolReserves: number;
+    virtualTokenReserves: number;
+    realTokenReserves: number;
+    realSolReserves: number;
+    tokenTotalSupply: number;
+    complete: boolean;
+};
+
+export type BondingCurveFullState = {
+    accountInfo: AccountInfo<Buffer<ArrayBufferLike>>;
+    state: BondingCurveState;
 };
 
 export type PumpfunTokenBcStats = {
@@ -21,6 +42,7 @@ export type PumpfunTokenBcStats = {
 
 export type PumpfunInitialCoinData = {
     mint: string;
+    tokenProgramId: string;
     creator: string;
     createdTimestamp: number;
     bondingCurve: string;
@@ -100,7 +122,7 @@ export type PumpfunSellResponse = {
     metadata: PumpfunPositionMeta;
 };
 
-export interface PumpfunListener {
+export interface PumpfunListenerInterface {
     listenForPumpFunTokens(onNewToken: (data: NewPumpFunTokenData) => Promise<void>): Promise<void>;
 
     stopListeningToNewTokens(): void;

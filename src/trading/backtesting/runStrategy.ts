@@ -2,7 +2,7 @@ import fs from 'fs';
 
 import { Logger } from 'winston';
 
-import { forceGetPumpCoinInitialData } from '@src/blockchains/solana/dex/pumpfun/utils';
+import { forceGetPumpCoinInitialData } from '@src/blockchains/solana/dex/pumpfun/utils/forceGetPumpCoinInitialData';
 import { lamportsToSol, solToLamports } from '@src/blockchains/utils/amount';
 import { pumpfunRepository } from '@src/db/repositories/PumpfunRepository';
 import { RunStrategyLoggingConfig } from '@src/trading/backtesting/types';

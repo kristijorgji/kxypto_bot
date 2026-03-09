@@ -1,11 +1,15 @@
-import { ParsedTransactionWithMeta } from '@solana/web3.js';
-import WS from 'jest-websocket-mock';
+import { BONDING_CURVE_NEW_SIZE } from '@pump-fun/pump-sdk';
+import { AccountInfo, ParsedTransactionWithMeta } from '@solana/web3.js';
 
-import * as pumpBase from '../../../../../../src/blockchains/solana/dex/pumpfun/pump-base';
-import { BondingCurveState } from '../../../../../../src/blockchains/solana/dex/pumpfun/pump-base';
+import { startActionBondingCurveState, tokenInfo } from './data';
+import { getTokenBondingCurveState } from '../../../../../../src/blockchains/solana/dex/pumpfun/pump-bonding-curve';
 import * as pumpSimulation from '../../../../../../src/blockchains/solana/dex/pumpfun/pump-simulation';
 import Pumpfun from '../../../../../../src/blockchains/solana/dex/pumpfun/Pumpfun';
-import { PumpfunBuyResponse, PumpfunSellResponse } from '../../../../../../src/blockchains/solana/dex/pumpfun/types';
+import {
+    BondingCurveFullState,
+    PumpfunBuyResponse,
+    PumpfunSellResponse,
+} from '../../../../../../src/blockchains/solana/dex/pumpfun/types';
 import { TIP_LAMPORTS } from '../../../../../../src/blockchains/solana/Jito';
 import {
     SolFullTransactionDetails,
@@ -21,9 +25,8 @@ import {
 import { PumpfunPositionMeta } from '../../../../../../src/trading/bots/blockchains/solana/types';
 import { sleep } from '../../../../../../src/utils/functions';
 import { FirstArg } from '../../../../../../src/utils/types';
-import CustomMockWebSocket from '../../../../../__mocks__/ws';
 import { objToParsedTransactionWithMeta } from '../../../../../__utils/blockchains/solana';
-import { rawFixture, readLocalFixture } from '../../../../../__utils/data';
+import { readLocalFixture } from '../../../../../__utils/data';
 
 jest.mock('@solana/web3.js', () => {
     const actualWeb3 = jest.requireActual('@solana/web3.js');
@@ -42,8 +45,8 @@ jest.mock('../../../../../../src/utils/functions', () => ({
     sleep: jest.fn(),
 }));
 
-jest.mock('../../../../../../src/blockchains/solana/dex/pumpfun/pump-base', () => ({
-    ...jest.requireActual('../../../../../../src/blockchains/solana/dex/pumpfun/pump-base'),
+jest.mock('../../../../../../src/blockchains/solana/dex/pumpfun/pump-bonding-curve', () => ({
+    ...jest.requireActual('../../../../../../src/blockchains/solana/dex/pumpfun/pump-bonding-curve'),
     getTokenBondingCurveState: jest.fn(),
 }));
 
@@ -69,7 +72,6 @@ jest.mock('../../../../../../src/blockchains/solana/utils/simulations', () => ({
 
 describe(Pumpfun.name, () => {
     let pumpfun: Pumpfun;
-    let server: WS;
 
     let simulatePumpBuyLatencyMsSpy: jest.SpyInstance;
     let simulatePumpSellLatencyMsSpy: jest.SpyInstance;
@@ -77,23 +79,6 @@ describe(Pumpfun.name, () => {
     const wallet: WalletInfo = {
         privateKey: 'o8ba2p2ZX2eTsDKenr6rGXtepAiz81U3d5SGftgMU8dP8P5nwvKjuLZDHwmNahz2RvnhbZ4DMK7FQUSpaUkG6g1',
         address: 'BLWTHvhQn4nxzsDow5YoX48Qc2vvwefHYHxfHXNpiA5F',
-    };
-    // the values here should match the ones of the transaction otherwise the actual buy and sell price can't be calculated
-    const tokenInfo = {
-        mint: 'E5DoNiJ7KsqYgirbPJCD35XUMXzo83aYYzqayMjZpump',
-        bondingCurve: '6vmaRCvgHGbLfjk7TxrdsUkxgNiyPenbDSbnkvctGhvq',
-        associatedBondingCurve: 'D8EMS9E1HKGVzhrPvFYsww4LfmpaWsgQbH9uXhyyChGN',
-        creator: 'DNkrh5SBLrwUKyqhW96t7H3cfNtFGL1bQtKZMiDz5jxV',
-    };
-    const startActionBondingCurveState: BondingCurveState = {
-        dev: tokenInfo.creator,
-        bondingCurve: tokenInfo.bondingCurve,
-        virtualSolReserves: 58569661730,
-        virtualTokenReserves: 1043137958064512,
-        realTokenReserves: 766800000000000,
-        realSolReserves: 753797654,
-        tokenTotalSupply: 1000000000000000,
-        complete: false,
     };
     const pumpSimMetadata: PumpfunPositionMeta = {
         startActionBondingCurveState: startActionBondingCurveState,
@@ -103,13 +88,17 @@ describe(Pumpfun.name, () => {
     };
 
     beforeEach(async () => {
-        server = new WS(process.env.SOLANA_WSS_ENDPOINT as string);
         pumpfun = new Pumpfun({
             rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT as string,
             wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
         });
 
-        (pumpBase.getTokenBondingCurveState as jest.Mock).mockResolvedValue(startActionBondingCurveState);
+        (getTokenBondingCurveState as jest.Mock).mockResolvedValue({
+            state: startActionBondingCurveState,
+            accountInfo: {
+                data: Array.from({ length: BONDING_CURVE_NEW_SIZE + 1 }),
+            } as unknown as AccountInfo<Buffer>,
+        } satisfies BondingCurveFullState);
 
         simulatePumpBuyLatencyMsSpy = jest.spyOn(pumpSimulation, 'simulatePumpBuyLatencyMs').mockImplementation(() => {
             return 1;
@@ -122,46 +111,8 @@ describe(Pumpfun.name, () => {
     });
 
     afterEach(() => {
-        WS.clean();
         jest.clearAllMocks();
         pumpfun && pumpfun.stopListeningToNewTokens();
-    });
-
-    it('should monitor new tokens and notify with correctly parsed token data', async () => {
-        const onNewTokenFn = jest.fn();
-
-        await pumpfun.listenForPumpFunTokens(onNewTokenFn);
-        await server.connected;
-
-        server.send(rawFixture('dex/pumpfun/wss-on-message-logsSubscribe-logsNotification-create-0.json'));
-        server.send(rawFixture('dex/pumpfun/wss-on-message-logsSubscribe-logsNotification-create-1.json'));
-
-        expect(CustomMockWebSocket.sendMockFn).toHaveBeenCalledTimes(1);
-        expect(CustomMockWebSocket.sendMockFn.mock.calls[0]).toEqual([
-            '{"jsonrpc":"2.0","id":1,"method":"logsSubscribe","params":[{"mentions":["6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P"]},{"commitment":"processed"}]}',
-        ]);
-
-        expect(onNewTokenFn).toHaveBeenCalledTimes(2);
-        expect(onNewTokenFn.mock.calls[0]).toEqual([
-            {
-                bondingCurve: '62pDpy9wCn4dyk2Y32mkGSPVzYUsNE6Dyb2GvAq5RXdk',
-                mint: '9pSA9tgqgV8AUq7EFEXjHCrr7q6zmf9pxHkpbMDypump',
-                name: 'Grammarlzy AI',
-                symbol: 'Grammarly',
-                uri: 'https://ipfs.io/ipfs/QmPULbJjjzEesD7Tc56H5j5sYGHG6d5uRzKjsZqHS9ud81',
-                user: '931KZ79266ZsQVfbfvseWwQvCGLSVEDbyhXTKaQdGh9X',
-            },
-        ]);
-        expect(onNewTokenFn.mock.calls[1]).toEqual([
-            {
-                name: 'Customer Dog',
-                symbol: 'CDOG',
-                uri: 'https://ipfs.io/ipfs/QmQ8YtukoR1K1WR5N3x5bNARkHdZ2EYbqcYkQ9aXogKeRr',
-                mint: '2iZNDJ5Rwct7nThrtSAkJeEut5LxMrjZd6MRf3dWpump',
-                bondingCurve: 'AHFj2ZfBd5Z1cRTk3oYXAgXFyDZ9kGHVCpHEBdvyEGKV',
-                user: '6hPPEBvDgpWiwPRzB3jN7C7YVnHxZG1d3XE4reVaXA3k',
-            },
-        ]);
     });
 
     describe('buy', () => {
@@ -178,6 +129,7 @@ describe(Pumpfun.name, () => {
             transactionMode: TransactionMode.Execution,
             wallet: wallet,
             tokenMint: tokenInfo.mint,
+            tokenProgramId: tokenInfo.tokenProgramId,
             tokenBondingCurve: tokenInfo.bondingCurve,
             tokenAssociatedBondingCurve: tokenInfo.associatedBondingCurve,
             solIn: 0.2,
@@ -274,6 +226,7 @@ describe(Pumpfun.name, () => {
             transactionMode: TransactionMode.Execution,
             wallet: wallet,
             tokenMint: tokenInfo.mint,
+            tokenProgramId: tokenInfo.tokenProgramId,
             tokenBondingCurve: tokenInfo.bondingCurve,
             tokenAssociatedBondingCurve: tokenInfo.associatedBondingCurve,
             tokenBalance: 3562041942032,

@@ -1,15 +1,14 @@
 import '@src/core/loadEnv';
 
+import { sellPumpfunTokens } from '@src/blockchains/solana/dex/pumpfun/utils/sellPumpfunTokens';
+import { randomInt } from '@src/utils/data/data';
+
 import { measureExecutionTime } from '../apm/apm';
 import { SolanaWalletProviders } from '../blockchains/solana/constants/walletProviders';
 import { pumpCoinDataToInitialCoinData } from '../blockchains/solana/dex/pumpfun/mappers/mappers';
 import Pumpfun from '../blockchains/solana/dex/pumpfun/Pumpfun';
-import {
-    PumpfunBuyResponse,
-    PumpfunInitialCoinData,
-    PumpfunSellResponse,
-} from '../blockchains/solana/dex/pumpfun/types';
-import { formPumpfunTokenUrl, sellPumpfunTokens } from '../blockchains/solana/dex/pumpfun/utils';
+import { PumpfunBuyResponse, PumpfunSellResponse } from '../blockchains/solana/dex/pumpfun/types';
+import { formPumpfunTokenUrl } from '../blockchains/solana/dex/pumpfun/utils/data';
 import SolanaAdapter from '../blockchains/solana/SolanaAdapter';
 import { TransactionMode } from '../blockchains/solana/types';
 import { solanaConnection } from '../blockchains/solana/utils/connection';
@@ -64,18 +63,13 @@ async function start() {
 
         logger.info('Will snipe new pumpfun token %s %s', data.name, formPumpfunTokenUrl(tokenMint));
 
-        let initialCoinData: PumpfunInitialCoinData;
-        try {
-            initialCoinData = pumpCoinDataToInitialCoinData(
-                await pumpfun.getCoinDataWithRetries(tokenMint, {
-                    maxRetries: 4,
-                    sleepMs: 250,
-                }),
-            );
-        } catch (_) {
-            logger.warn('Failed to fetch full token initial data, will use our own fallback');
-            initialCoinData = await pumpfun.getInitialCoinBaseData(tokenMint);
-        }
+        const initialCoinData = pumpCoinDataToInitialCoinData(
+            await pumpfun.getCoinDataWithRetries(tokenMint, {
+                maxRetries: 10,
+                sleepMs: retryCount => (retryCount <= 5 ? randomInt(250, 1000) : retryCount * randomInt(500, 2500)),
+            }),
+            data,
+        );
 
         try {
             const beforeBuyMsSleep = 5e3;
@@ -88,7 +82,8 @@ async function start() {
                         transactionMode: TransactionMode.Execution,
                         wallet: wallet,
                         tokenMint: tokenMint,
-                        tokenBondingCurve: initialCoinData.bondingCurve,
+                        tokenProgramId: data.tokenProgramId,
+                        tokenBondingCurve: data.bondingCurve,
                         tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
                         solIn: inSol,
                         slippageDecimal: 0.5,
@@ -117,6 +112,7 @@ async function start() {
                         transactionMode: TransactionMode.Execution,
                         wallet: wallet,
                         tokenMint: tokenMint,
+                        tokenProgramId: data.tokenProgramId,
                         tokenBondingCurve: initialCoinData.bondingCurve,
                         tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
                         slippageDecimal: 0.5,

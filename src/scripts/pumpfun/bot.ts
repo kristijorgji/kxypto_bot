@@ -9,7 +9,7 @@ import { startApm } from '@src/apm/apm';
 import { SolanaWalletProviders } from '@src/blockchains/solana/constants/walletProviders';
 import { pumpCoinDataToInitialCoinData } from '@src/blockchains/solana/dex/pumpfun/mappers/mappers';
 import { NewPumpFunTokenData } from '@src/blockchains/solana/dex/pumpfun/types';
-import { formPumpfunTokenUrl } from '@src/blockchains/solana/dex/pumpfun/utils';
+import { formPumpfunTokenUrl } from '@src/blockchains/solana/dex/pumpfun/utils/data';
 import { solanaConnection } from '@src/blockchains/solana/utils/connection';
 import { lamportsToSol } from '@src/blockchains/utils/amount';
 import { redis } from '@src/cache/cache';
@@ -37,7 +37,7 @@ import { getSecondsDifference } from '@src/utils/time';
 
 import Pumpfun from '../../blockchains/solana/dex/pumpfun/Pumpfun';
 import PumpfunMarketContextProvider from '../../blockchains/solana/dex/pumpfun/PumpfunMarketContextProvider';
-import PumpfunQueuedListener from '../../blockchains/solana/dex/PumpfunQueuedListener';
+import PumpfunQueuedListener from '../../blockchains/solana/dex/pumpfun/PumpfunQueuedListener';
 import SolanaAdapter from '../../blockchains/solana/SolanaAdapter';
 import Wallet from '../../blockchains/solana/Wallet';
 import isTokenCreatorSafe from '../../trading/bots/blockchains/solana/isTokenCreatorSafe';
@@ -297,6 +297,7 @@ async function handlePumpToken(
             maxRetries: 10,
             sleepMs: retryCount => (retryCount <= 5 ? randomInt(250, 1000) : retryCount * randomInt(500, 2500)),
         }),
+        tokenData,
     );
     await pumpfunRepository.insertToken(initialCoinData);
 

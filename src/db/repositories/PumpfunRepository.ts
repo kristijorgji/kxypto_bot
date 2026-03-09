@@ -1,6 +1,8 @@
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { Knex } from 'knex';
 
-import { PumpfunInitialCoinData } from '../../blockchains/solana/dex/pumpfun/types';
+import { PumpfunInitialCoinData } from '@src/blockchains/solana/dex/pumpfun/types';
+
 import { db } from '../knex';
 import { Tables } from '../tables';
 import { Token } from '../types';
@@ -8,6 +10,7 @@ import { Token } from '../types';
 export const CreatedOnPumpfun = 'https://pump.fun';
 
 type PumpTokenOther = {
+    tokenProgramId?: string;
     creator: string;
     bondingCurve: string;
     associatedBondingCurve: string;
@@ -63,6 +66,7 @@ export default class PumpfunRepository {
     private mapTokenToPumpfunInitialCoinData(e: Token<PumpTokenOther>): PumpfunInitialCoinData {
         return {
             mint: e.mint,
+            tokenProgramId: e.other?.tokenProgramId ?? TOKEN_PROGRAM_ID.toBase58(),
             creator: e.other.creator,
             createdTimestamp: e.token_created_at.getTime(),
             bondingCurve: e.other.bondingCurve,

@@ -1,16 +1,17 @@
 import fs from 'fs';
 
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { LogEntry, Logger, createLogger, format } from 'winston';
 
 import { pumpCoinDataToInitialCoinData } from '../../../../src/blockchains/solana/dex/pumpfun/mappers/mappers';
+import mockPumpfunQueuedListener from '../../../../src/blockchains/solana/dex/pumpfun/mocks/mockPumpfunQueuedListener';
 import Pumpfun from '../../../../src/blockchains/solana/dex/pumpfun/Pumpfun';
+import PumpfunQueuedListener from '../../../../src/blockchains/solana/dex/pumpfun/PumpfunQueuedListener';
 import {
     NewPumpFunTokenData,
     PumpFunCoinData,
     PumpfunInitialCoinData,
 } from '../../../../src/blockchains/solana/dex/pumpfun/types';
-import PumpfunQueuedListener from '../../../../src/blockchains/solana/dex/PumpfunQueuedListener';
-import mockPumpfunQueuedListener from '../../../../src/blockchains/solana/mockPumpfunQueuedListener';
 import { solanaConnection } from '../../../../src/blockchains/solana/utils/connection';
 import { solToLamports } from '../../../../src/blockchains/utils/amount';
 import { db } from '../../../../src/db/knex';
@@ -73,7 +74,7 @@ jest.mock('../../../../src/blockchains/solana/utils/connection', () => ({
 
 jest.mock('../../../../src/blockchains/solana/dex/pumpfun/Pumpfun');
 
-jest.mock('../../../../src/blockchains/solana/dex/PumpfunQueuedListener');
+jest.mock('../../../../src/blockchains/solana/dex/pumpfun/PumpfunQueuedListener');
 
 jest.mock('../../../../src/db/repositories/PumpfunRepository', () => ({
     ...jest.requireActual('../../../../src/db/repositories/PumpfunRepository'),
@@ -262,6 +263,10 @@ describe('bot', () => {
             sellSlippageDecimal: 0.25,
         });
 
+    const pumpCoinDataToInitialCoinDataExtra = {
+        tokenProgramId: TOKEN_PROGRAM_ID.toBase58(),
+    };
+
     it('1 - should receive tokens, create bots for each of them and store the results', async () => {
         pumpfunBotMock.run.mockImplementation(
             async (identifier: string, initialCoinData: PumpfunInitialCoinData): Promise<BotResponse> => {
@@ -320,9 +325,24 @@ describe('bot', () => {
 
         expect(pumpfunRepository.insertToken as jest.Mock).toHaveBeenCalledTimes(3);
         expect((pumpfunRepository.insertToken as jest.Mock).mock.calls).toEqual([
-            [pumpCoinDataToInitialCoinData(mockReturnsState.returnedCoinDataWithRetries[0])],
-            [pumpCoinDataToInitialCoinData(mockReturnsState.returnedCoinDataWithRetries[1])],
-            [pumpCoinDataToInitialCoinData(mockReturnsState.returnedCoinDataWithRetries[2])],
+            [
+                pumpCoinDataToInitialCoinData(
+                    mockReturnsState.returnedCoinDataWithRetries[0],
+                    pumpCoinDataToInitialCoinDataExtra,
+                ),
+            ],
+            [
+                pumpCoinDataToInitialCoinData(
+                    mockReturnsState.returnedCoinDataWithRetries[1],
+                    pumpCoinDataToInitialCoinDataExtra,
+                ),
+            ],
+            [
+                pumpCoinDataToInitialCoinData(
+                    mockReturnsState.returnedCoinDataWithRetries[2],
+                    pumpCoinDataToInitialCoinDataExtra,
+                ),
+            ],
         ]);
 
         expect(isTokenCreatorSafe as jest.Mock).toHaveBeenCalledTimes(3);

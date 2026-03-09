@@ -1,76 +1,73 @@
-import { clearTimeout } from 'node:timers';
-
-import { deserializeMetadata } from '@metaplex-foundation/mpl-token-metadata';
-import { RpcAccount } from '@metaplex-foundation/umi';
-import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } from '@solana/spl-token';
+import { BONDING_CURVE_NEW_SIZE, PUMP_SDK, userVolumeAccumulatorPda } from '@pump-fun/pump-sdk';
+import {
+    ASSOCIATED_TOKEN_PROGRAM_ID,
+    TOKEN_2022_PROGRAM_ID,
+    createAssociatedTokenAccountIdempotentInstruction,
+    getAssociatedTokenAddress,
+} from '@solana/spl-token';
 import { AccountMeta, Connection, Keypair, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
-import axios, { AxiosError } from 'axios';
-import bs58 from 'bs58';
-import WebSocket, { MessageEvent } from 'ws';
 
 import {
     calculatePriceInLamports,
     calculatePumpTokenLamportsValue,
-    computeBondingCurveMetrics,
-    extractBuyResultsFromTx,
-    extractPossibleErrorFromTx,
-    extractSellResultsFromTx,
-    getAssociatedBondingCurveAddress,
-    getCreatorVaultAddress,
-    getTokenBondingCurveState,
 } from '@src/blockchains/solana/dex/pumpfun/pump-base';
+import {
+    computeBondingCurveMetrics,
+    getTokenBondingCurveState,
+} from '@src/blockchains/solana/dex/pumpfun/pump-bonding-curve';
+import { getPumpCoinDataWithRetriesFromFrontendApi } from '@src/blockchains/solana/dex/pumpfun/pump-fe-api';
+import { getCreatorVaultAddress } from '@src/blockchains/solana/dex/pumpfun/pump-pda';
 import {
     simulatePumpAccountCreationFeeLamports,
     simulatePumpBuyLatencyMs,
     simulatePumpSellLatencyMs,
 } from '@src/blockchains/solana/dex/pumpfun/pump-simulation';
+import PumpfunListener from '@src/blockchains/solana/dex/pumpfun/PumpfunListener';
 import { RetryConfig } from '@src/core/types';
 import { logger } from '@src/logger';
 import { getJitoTipLamports } from '@src/trading/bots/blockchains/solana/PumpfunBacktester';
 import { TransactionType } from '@src/trading/bots/types';
-import { bufferFromUInt64, randomInt } from '@src/utils/data/data';
+import { bufferFromUInt64 } from '@src/utils/data/data';
 import { sleep } from '@src/utils/functions';
 
 import {
     PUMP_BUY_BUFFER,
     PUMP_FEE_CONFIG,
     PUMP_FEE_PROGRAM,
-    PUMP_FEE_RECIPIENT,
+    PUMP_FEE_RECIPIENT_6,
     PUMP_FUN_ACCOUNT,
     PUMP_FUN_PROGRAM,
     PUMP_GLOBAL,
     PUMP_GLOBAL_VOLUME_ACCUMULATOR,
     PUMP_SELL_BUFFER,
-    PUMP_USER_VOLUME_ACCUMULATOR,
     SYSTEM_PROGRAM_ID,
-    TOKEN_PROGRAM_ID,
 } from './constants';
 import {
+    BondingCurveFullState,
     NewPumpFunTokenData,
     PumpFunCoinData,
     PumpfunBuyResponse,
-    PumpfunInitialCoinData,
-    PumpfunListener,
+    PumpfunListenerInterface,
     PumpfunSellResponse,
     PumpfunTokenBcStats,
 } from './types';
 import { lamportsToSol, solToLamports } from '../../../utils/amount';
 import { JitoConfig } from '../../Jito';
-import { getMetadataPDA } from '../../SolanaAdapter';
-import { TransactionMode, WalletInfo, WssMessage } from '../../types';
+import { TransactionMode, WalletInfo } from '../../types';
+import { extractBuyResultsFromTx, extractPossibleErrorFromTx, extractSellResultsFromTx } from './utils/tx-parser';
 import { DEFAULT_COMMITMENT, DEFAULT_FINALITY, getKeyPairFromPrivateKey, sendTx } from '../../utils/helpers';
 import {
     simulatePriceWithHigherSlippage,
     simulatePriceWithLowerSlippage,
     simulateSolTransactionDetails,
 } from '../../utils/simulations';
-import { getTokenIfpsMetadata } from '../../utils/tokens';
 import { getSolTransactionDetails } from '../../utils/transactions';
 
 type SwapBaseParams = {
     transactionMode: TransactionMode;
     wallet: WalletInfo;
     tokenMint: string;
+    tokenProgramId: string;
     tokenBondingCurve: string;
     tokenAssociatedBondingCurve: string;
     priorityFeeInSol?: number;
@@ -79,6 +76,7 @@ type SwapBaseParams = {
 };
 
 /**
+ * @see https://github.com/nirholas/pump-fun-sdk
  * @see https://github.dev/bilix-software/solana-pump-fun
  * If the transactions fail with weird error 'Program Error: "Instruction #4 Failed - Program failed to complete"' like this one
  * https://solscan.io/tx/3jkrwjvPYGcmkqRZYDST7suaqYdtr5qJC9rXKWhSo6pq3SA6zCJ2QRQP5T6FDNiZXh9dnFYADpCuCB4JKvouKaLC
@@ -86,15 +84,12 @@ type SwapBaseParams = {
  *
  * If confirmation of transactions fails, might need to increase priority fee
  */
-export default class Pumpfun implements PumpfunListener {
+export default class Pumpfun implements PumpfunListenerInterface {
     private static readonly defaultPriorityInSol = 0;
     private static readonly defaultSlippageDecimal = 0.25;
 
     readonly connection: Connection;
-
-    private listeningToNewTokens = false;
-    private ws: WebSocket | undefined;
-    private relistenTimeout: ReturnType<typeof setTimeout> | undefined;
+    readonly listener: PumpfunListenerInterface;
 
     private static readonly getTxDetailsRetryConfig: RetryConfig = {
         maxRetries: 10,
@@ -103,125 +98,15 @@ export default class Pumpfun implements PumpfunListener {
 
     constructor(private readonly config: { rpcEndpoint: string; wsEndpoint: string }) {
         this.connection = new Connection(this.config.rpcEndpoint, 'confirmed');
+        this.listener = new PumpfunListener(this.config, this.connection);
     }
 
-    async listenForPumpFunTokens(onNewToken: (data: NewPumpFunTokenData) => void): Promise<void> {
-        this.listeningToNewTokens = true;
-
-        try {
-            this.ws = new WebSocket(this.config.wsEndpoint);
-
-            this.ws!.on('open', () => {
-                const subscriptionMessage = JSON.stringify({
-                    jsonrpc: '2.0',
-                    id: 1,
-                    method: 'logsSubscribe',
-                    params: [{ mentions: [PUMP_FUN_PROGRAM] }, { commitment: 'processed' }],
-                });
-                this.ws!.send(subscriptionMessage);
-                logger.info(`Listening for new token creations from program: ${PUMP_FUN_PROGRAM}`);
-            });
-
-            this.ws!.on('message', message => {
-                const data = (message as unknown as MessageEvent).type
-                    ? JSON.parse(<string>(message as unknown as MessageEvent).data)
-                    : (JSON.parse(message.toString()) as WssMessage);
-
-                if (data.method !== 'logsNotification') {
-                    return;
-                }
-
-                const logData = data.params.result.value;
-                const logs = logData.logs || [];
-
-                if (logs.some((log: string) => log.includes('Program log: Instruction: Create'))) {
-                    for (const log of logs) {
-                        if (log.startsWith('Program data:')) {
-                            try {
-                                const encodedData = log.split(': ')[1];
-                                const decodedData = Buffer.from(encodedData, 'base64');
-                                const parsedData = parseCreateInstruction(decodedData);
-
-                                if (parsedData && parsedData.name) {
-                                    onNewToken(parsedData);
-                                }
-                            } catch (error) {
-                                logger.error(`Failed to decode: ${log}`);
-                                logger.error(`Error: ${error}`);
-                            }
-                        }
-                    }
-                }
-            });
-
-            this.ws!.on('error', error => {
-                logger.error(`WebSocket error: ${error}`);
-            });
-
-            this.ws!.on('close', async (code, reason) => {
-                if (this.listeningToNewTokens) {
-                    logger.debug(`Connection closed, code ${code}, reason ${reason}. Reconnecting in 5 seconds...`);
-                    this.relistenTimeout = setTimeout(() => {
-                        this.listenForPumpFunTokens(onNewToken);
-                    }, 5000);
-                } else {
-                    logger.info('Will not retry connecting because we set listeningToNewTokens=false');
-                }
-            });
-        } catch (error) {
-            logger.error(`Connection error: ${error}`);
-
-            if (this.listeningToNewTokens) {
-                logger.debug('Reconnecting in 5 seconds...');
-                this.relistenTimeout = setTimeout(() => {
-                    this.listenForPumpFunTokens(onNewToken);
-                }, 5000);
-            } else {
-                logger.info('Will not retry connecting because we set listeningToNewTokens=false');
-            }
-        }
+    async listenForPumpFunTokens(onNewToken: (data: NewPumpFunTokenData) => Promise<void>): Promise<void> {
+        return this.listener.listenForPumpFunTokens(onNewToken);
     }
 
-    stopListeningToNewTokens(): void {
-        clearTimeout(this.relistenTimeout);
-        this.listeningToNewTokens = false;
-        if (this.ws) {
-            this.ws?.removeAllListeners && this.ws?.removeAllListeners();
-            if (this.ws?.readyState === WebSocket.OPEN) {
-                this.ws?.close();
-            }
-            this.ws = undefined;
-        }
-    }
-
-    async getInitialCoinBaseData(mint: string): Promise<PumpfunInitialCoinData> {
-        const mintKey = new PublicKey(mint);
-        const bcState = await getTokenBondingCurveState(this.connection, { mint: mint });
-
-        const metadataPDA = await getMetadataPDA(mintKey);
-        const metaDataAccountInfo = await this.connection.getAccountInfo(metadataPDA);
-        const metadata = deserializeMetadata(metaDataAccountInfo! as unknown as RpcAccount);
-
-        const ipfsMetadata = await getTokenIfpsMetadata(metadata.uri);
-
-        return {
-            mint: mint,
-            creator: bcState.dev,
-            // TODO find a way to fetch createdTimestamp via Pumpfun.getInitialCoinBaseData
-            createdTimestamp: Date.now(),
-            bondingCurve: bcState.bondingCurve,
-            associatedBondingCurve: getAssociatedBondingCurveAddress(
-                new PublicKey(bcState.bondingCurve),
-                mintKey,
-            ).toBase58(),
-            name: ipfsMetadata.name,
-            symbol: ipfsMetadata.symbol,
-            description: ipfsMetadata.description,
-            image: ipfsMetadata.image,
-            twitter: ipfsMetadata.twitter,
-            telegram: ipfsMetadata.telegram,
-            website: ipfsMetadata.website,
-        };
+    async stopListeningToNewTokens(): Promise<void> {
+        return this.listener.stopListeningToNewTokens();
     }
 
     async buy(
@@ -229,19 +114,32 @@ export default class Pumpfun implements PumpfunListener {
             solIn: number;
         } & SwapBaseParams,
     ): Promise<PumpfunBuyResponse> {
+        const tokenProgram = p.tokenProgramId ? new PublicKey(p.tokenProgramId) : TOKEN_2022_PROGRAM_ID;
         const priorityFeeInSol = p.priorityFeeInSol ?? Pumpfun.defaultPriorityInSol;
         const slippageDecimal = p.slippageDecimal ?? Pumpfun.defaultSlippageDecimal;
 
-        const bcs = await getTokenBondingCurveState(this.connection, {
+        const bcFullState = await getTokenBondingCurveState(this.connection, {
             bondingCurve: new PublicKey(p.tokenBondingCurve),
         });
-        const { payer, txBuilder, keys, willCreateTokenAccount } = await this.buildTxCommon(p, 'buy', bcs.dev);
+        const { state: bcs } = bcFullState;
+        const { payer, txBuilder, keys, willCreateTokenAccount } = await this.buildTxCommon(
+            p,
+            'buy',
+            tokenProgram,
+            bcFullState,
+        );
 
         const solInLamports = solToLamports(p.solIn);
         const tokenOut = Math.floor((solInLamports * bcs.virtualTokenReserves) / bcs.virtualSolReserves);
         const solInWithSlippage = p.solIn * (1 + slippageDecimal);
         const maxSolCost = Math.floor(solToLamports(solInWithSlippage));
-        const data: Buffer = Buffer.concat([PUMP_BUY_BUFFER, bufferFromUInt64(tokenOut), bufferFromUInt64(maxSolCost)]);
+        const trackVolume = Buffer.from([1]); // 1 to enable volume tracking/cashback, 0 to disable
+        const data: Buffer = Buffer.concat([
+            PUMP_BUY_BUFFER,
+            bufferFromUInt64(tokenOut),
+            bufferFromUInt64(maxSolCost),
+            trackVolume,
+        ]);
 
         const instruction = new TransactionInstruction({
             keys: keys,
@@ -367,14 +265,16 @@ export default class Pumpfun implements PumpfunListener {
             tokenBalance: number;
         } & SwapBaseParams,
     ): Promise<PumpfunSellResponse> {
+        const tokenProgram = p.tokenProgramId ? new PublicKey(p.tokenProgramId) : TOKEN_2022_PROGRAM_ID;
         const priorityFeeInSol = p.priorityFeeInSol ?? Pumpfun.defaultPriorityInSol;
         const slippageDecimal = p.slippageDecimal ?? Pumpfun.defaultSlippageDecimal;
 
-        const bcs = await getTokenBondingCurveState(this.connection, {
+        const bcFullState = await getTokenBondingCurveState(this.connection, {
             bondingCurve: new PublicKey(p.tokenBondingCurve),
         });
+        const { state: bcs } = bcFullState;
         const { priceInSol } = computeBondingCurveMetrics(bcs);
-        const { payer, txBuilder, keys } = await this.buildTxCommon(p, 'sell', bcs.dev);
+        const { payer, txBuilder, keys } = await this.buildTxCommon(p, 'sell', tokenProgram, bcFullState);
 
         const minLamportsOutput = Math.floor(
             (p.tokenBalance! * (1 - slippageDecimal) * bcs.virtualSolReserves) / bcs.virtualTokenReserves,
@@ -503,57 +403,15 @@ export default class Pumpfun implements PumpfunListener {
         }
     }
 
-    /**
-     * A helper function to retry as needed because this frontend api is
-     * buggy and fails with 500 status code often
-     * Use only for the initial data and optional data, can't rely on for realtime info
-     */
     async getCoinDataWithRetries(
         tokenMint: string,
-        { maxRetries = 3, sleepMs = 0 }: RetryConfig,
+        retryConfig: RetryConfig = { maxRetries: 3, sleepMs: 0 },
     ): Promise<PumpFunCoinData> {
-        let coinData: PumpFunCoinData | undefined;
-        let retries = 0;
-        let error: Error | AxiosError | undefined;
-
-        do {
-            try {
-                coinData = await this.getCoinData(tokenMint);
-            } catch (e) {
-                error = e as Error | AxiosError;
-                if (e instanceof AxiosError && e.response?.status === 429) {
-                    const retryInMs = randomInt(5000, 20000);
-                    logger.info(
-                        'failed to fetch coin data on retry %d, we got back response 429, will retry in %ds',
-                        retries,
-                        retryInMs / 1000,
-                    );
-                    await sleep(retryInMs);
-                    retries--;
-                } else {
-                    sleepMs = typeof sleepMs === 'function' ? sleepMs(retries + 1) : sleepMs;
-                    logger.error(
-                        `failed to fetch coin data on retry ${retries}, error: %s. Will retry after sleeping ${sleepMs}`,
-                        (e as Error).message,
-                    );
-                    if (sleepMs > 0) {
-                        await sleep(sleepMs);
-                    }
-                }
-            }
-        } while (!coinData && retries++ < maxRetries);
-
-        if (!coinData) {
-            throw new Error(
-                `Could not fetch coinData for mint ${tokenMint} after ${retries - 1} retries, err: ${error?.message}`,
-            );
-        }
-
-        return coinData;
+        return getPumpCoinDataWithRetriesFromFrontendApi(logger, tokenMint, retryConfig);
     }
 
     async getTokenBondingCurveStats(tokenBondingCurve: string): Promise<PumpfunTokenBcStats> {
-        const bcState = await getTokenBondingCurveState(this.connection, {
+        const { state: bcState } = await getTokenBondingCurveState(this.connection, {
             bondingCurve: new PublicKey(tokenBondingCurve),
         });
         const bcMetrics = computeBondingCurveMetrics(bcState);
@@ -567,35 +425,11 @@ export default class Pumpfun implements PumpfunListener {
         };
     }
 
-    async getCoinData(tokenMint: string): Promise<PumpFunCoinData> {
-        const url = `https://frontend-api-v3.pump.fun/coins/${tokenMint}`;
-        const response = await axios.get(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0',
-                Accept: '*/*',
-                'Accept-Language': 'en-US,en;q=0.5',
-                'Accept-Encoding': 'gzip, deflate, br',
-                Referer: 'https://www.pump.fun/',
-                Origin: 'https://www.pump.fun',
-                Connection: 'keep-alive',
-                'Sec-Fetch-Dest': 'empty',
-                'Sec-Fetch-Mode': 'cors',
-                'Sec-Fetch-Site': 'cross-site',
-                'If-None-Match': 'W/"43a-tWaCcS4XujSi30IFlxDCJYxkMKg"',
-            },
-        });
-
-        if (response.status === 200) {
-            return response.data;
-        }
-
-        throw new Error(`Error fetching coinData ${response.status}`);
-    }
-
     async buildTxCommon(
         p: SwapBaseParams,
         transactionType: TransactionType,
-        dev: string,
+        tokenProgram: PublicKey,
+        bondingCurveFullState: BondingCurveFullState,
     ): Promise<{
         payer: Keypair;
         txBuilder: Transaction;
@@ -607,13 +441,29 @@ export default class Pumpfun implements PumpfunListener {
         const mintKey = new PublicKey(p.tokenMint);
         const txBuilder = new Transaction();
 
-        const tokenAccountAddress = await getAssociatedTokenAddress(mintKey, payer.publicKey, false);
+        if (bondingCurveFullState.accountInfo.data.length < BONDING_CURVE_NEW_SIZE) {
+            txBuilder.instructions.push(
+                await PUMP_SDK.extendAccountInstruction({
+                    account: new PublicKey(p.tokenBondingCurve),
+                    user: payer.publicKey,
+                }),
+            );
+        }
+
+        const tokenAccountAddress = await getAssociatedTokenAddress(mintKey, payer.publicKey, false, tokenProgram);
         const tokenAccountInfo = await this.connection.getAccountInfo(tokenAccountAddress);
 
         let tokenAccount: PublicKey;
         if (!tokenAccountInfo) {
             txBuilder.add(
-                createAssociatedTokenAccountInstruction(payer.publicKey, tokenAccountAddress, payer.publicKey, mintKey),
+                createAssociatedTokenAccountIdempotentInstruction(
+                    payer.publicKey,
+                    tokenAccountAddress,
+                    payer.publicKey,
+                    mintKey,
+                    tokenProgram,
+                    ASSOCIATED_TOKEN_PROGRAM_ID,
+                ),
             );
             tokenAccount = tokenAccountAddress;
             willCreateTokenAccount = true;
@@ -621,80 +471,50 @@ export default class Pumpfun implements PumpfunListener {
             tokenAccount = tokenAccountAddress;
         }
 
-        const creatorFeeVault = getCreatorVaultAddress(dev);
+        const creatorFeeVault = getCreatorVaultAddress(bondingCurveFullState.state.dev);
+        const userVolumeAccumulator = userVolumeAccumulatorPda(payer.publicKey);
+
+        const keys: AccountMeta[] = [
+            { pubkey: PUMP_GLOBAL, isSigner: false, isWritable: false },
+            { pubkey: PUMP_FEE_RECIPIENT_6, isSigner: false, isWritable: true },
+            { pubkey: mintKey, isSigner: false, isWritable: false },
+            { pubkey: new PublicKey(p.tokenBondingCurve), isSigner: false, isWritable: true },
+            { pubkey: new PublicKey(p.tokenAssociatedBondingCurve), isSigner: false, isWritable: true },
+            { pubkey: tokenAccount, isSigner: false, isWritable: true },
+            { pubkey: payer.publicKey, isSigner: true, isWritable: true },
+            { pubkey: SYSTEM_PROGRAM_ID, isSigner: false, isWritable: false },
+        ];
+
+        if (transactionType === 'buy') {
+            keys.push(
+                { pubkey: tokenProgram, isSigner: false, isWritable: false },
+                { pubkey: creatorFeeVault, isSigner: false, isWritable: true },
+                { pubkey: PUMP_FUN_ACCOUNT, isSigner: false, isWritable: false }, // Event Authority
+                { pubkey: PUMP_FUN_PROGRAM, isSigner: false, isWritable: false },
+                { pubkey: PUMP_GLOBAL_VOLUME_ACCUMULATOR, isSigner: false, isWritable: false },
+                { pubkey: userVolumeAccumulator, isSigner: false, isWritable: true },
+                { pubkey: PUMP_FEE_CONFIG, isSigner: false, isWritable: false },
+                { pubkey: PUMP_FEE_PROGRAM, isSigner: false, isWritable: false },
+            );
+        } else {
+            // Sell instruction
+            keys.push(
+                { pubkey: creatorFeeVault, isSigner: false, isWritable: true },
+                { pubkey: tokenProgram, isSigner: false, isWritable: false },
+                { pubkey: PUMP_FUN_ACCOUNT, isSigner: false, isWritable: false }, // Event Authority
+                { pubkey: PUMP_FUN_PROGRAM, isSigner: false, isWritable: false },
+                { pubkey: PUMP_FEE_CONFIG, isSigner: false, isWritable: false },
+                { pubkey: PUMP_FEE_PROGRAM, isSigner: false, isWritable: false },
+                { pubkey: userVolumeAccumulator, isSigner: false, isWritable: true },
+            );
+        }
 
         return {
             payer: payer,
             txBuilder: txBuilder,
-            keys: [
-                { pubkey: PUMP_GLOBAL, isSigner: false, isWritable: false },
-                { pubkey: PUMP_FEE_RECIPIENT, isSigner: false, isWritable: true },
-                { pubkey: mintKey, isSigner: false, isWritable: false },
-                { pubkey: new PublicKey(p.tokenBondingCurve), isSigner: false, isWritable: true },
-                { pubkey: new PublicKey(p.tokenAssociatedBondingCurve), isSigner: false, isWritable: true },
-                { pubkey: tokenAccount, isSigner: false, isWritable: true },
-                { pubkey: payer.publicKey, isSigner: false, isWritable: true },
-                { pubkey: SYSTEM_PROGRAM_ID, isSigner: false, isWritable: false },
-                {
-                    pubkey: transactionType === 'buy' ? TOKEN_PROGRAM_ID : creatorFeeVault,
-                    isSigner: false,
-                    isWritable: true,
-                },
-                {
-                    pubkey: transactionType === 'buy' ? creatorFeeVault : TOKEN_PROGRAM_ID,
-                    isSigner: false,
-                    isWritable: true,
-                },
-                { pubkey: PUMP_FUN_ACCOUNT, isSigner: false, isWritable: false },
-                { pubkey: PUMP_FUN_PROGRAM, isSigner: false, isWritable: false },
-                ...(transactionType === 'buy'
-                    ? [
-                          { pubkey: PUMP_GLOBAL_VOLUME_ACCUMULATOR, isSigner: false, isWritable: true },
-                          { pubkey: PUMP_USER_VOLUME_ACCUMULATOR, isSigner: false, isWritable: true },
-                      ]
-                    : []),
-                { pubkey: PUMP_FEE_CONFIG, isSigner: false, isWritable: false },
-                { pubkey: PUMP_FEE_PROGRAM, isSigner: false, isWritable: false },
-            ],
+            keys: keys,
             willCreateTokenAccount: willCreateTokenAccount,
         };
-    }
-}
-
-function parseCreateInstruction(data: Buffer): NewPumpFunTokenData | null {
-    if (data.length < 8) {
-        return null;
-    }
-
-    let offset = 8;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const parsedData: Record<string, any> = {};
-
-    const fields: [string, 'string' | 'publicKey'][] = [
-        ['name', 'string'],
-        ['symbol', 'string'],
-        ['uri', 'string'],
-        ['mint', 'publicKey'],
-        ['bondingCurve', 'publicKey'],
-        ['user', 'publicKey'],
-    ];
-
-    try {
-        for (const [fieldName, fieldType] of fields) {
-            if (fieldType === 'string') {
-                const length = data.readUInt32LE(offset);
-                offset += 4;
-                parsedData[fieldName] = data.subarray(offset, offset + length).toString('utf-8');
-                offset += length;
-            } else if (fieldType === 'publicKey') {
-                parsedData[fieldName] = bs58.encode(data.subarray(offset, offset + 32));
-                offset += 32;
-            }
-        }
-
-        return parsedData as NewPumpFunTokenData;
-    } catch {
-        return null;
     }
 }
 

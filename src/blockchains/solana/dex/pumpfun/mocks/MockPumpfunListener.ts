@@ -1,8 +1,9 @@
-import { NewPumpFunTokenDataFactory } from '../../../../../testdata/factories/pumpfun';
-import { sleep } from '../../../../../utils/functions';
-import { NewPumpFunTokenData, PumpfunListener } from '../types';
+import { NewPumpFunTokenDataFactory } from '@src/testdata/factories/pumpfun';
+import { sleep } from '@src/utils/functions';
 
-export default class MockPumpfunListener implements PumpfunListener {
+import { NewPumpFunTokenData, PumpfunListenerInterface } from '../types';
+
+export default class MockPumpfunListener implements PumpfunListenerInterface {
     private readonly sleepTime: number | (() => number);
     private readonly maxTokens: number;
     private readonly tokensToReturn: NewPumpFunTokenData[] | null;

@@ -1,13 +1,13 @@
 import { Logger } from 'winston';
 
-import { PumpfunListener } from '../../../../../../src/blockchains/solana/dex/pumpfun/types';
-import PumpfunQueuedListener from '../../../../../../src/blockchains/solana/dex/PumpfunQueuedListener';
+import PumpfunQueuedListener from '../../../../../../src/blockchains/solana/dex/pumpfun/PumpfunQueuedListener';
+import { PumpfunListenerInterface } from '../../../../../../src/blockchains/solana/dex/pumpfun/types';
 import { NewPumpFunTokenDataFactory } from '../../../../../../src/testdata/factories/pumpfun';
 import { waitForVariable } from '../../../../../__utils/jest';
 
 describe(PumpfunQueuedListener.name, () => {
     let logger: Logger;
-    let pumpfunListener: jest.Mocked<PumpfunListener>;
+    let pumpfunListener: jest.Mocked<PumpfunListenerInterface>;
     let processTokenMock: jest.Mock;
     let pumpfunQueuedListener: PumpfunQueuedListener;
 

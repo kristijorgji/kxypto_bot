@@ -3,6 +3,7 @@ import { PumpfunPositionMeta } from '../../../../../src/trading/bots/blockchains
 
 export const dummyPumpfunTokenInfo: PumpfunInitialCoinData = {
     mint: '5xNMMoEQcQiJQURE6DEwvHVt1jJsMTLrFmBHZoqpump',
+    tokenProgramId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
     creator: '5toWw4R3RPV8KuA4VF4R153yJbwqrvqtU2cNzesiHjKW',
     createdTimestamp: 1740056496720,
     bondingCurve: 'BGrF4MKYiy5WnodhReU1ThqxkpFJfvqSGfVAkgFcTqaq',

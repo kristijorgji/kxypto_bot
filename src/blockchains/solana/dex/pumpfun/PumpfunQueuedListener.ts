@@ -1,6 +1,6 @@
 import { Logger } from 'winston';
 
-import { NewPumpFunTokenData, PumpfunListener } from './pumpfun/types';
+import { NewPumpFunTokenData, PumpfunListenerInterface } from './types';
 
 export default class PumpfunQueuedListener {
     private isListening = false;
@@ -10,7 +10,7 @@ export default class PumpfunQueuedListener {
 
     constructor(
         private readonly logger: Logger,
-        private readonly pumpfun: PumpfunListener,
+        private readonly pumpfun: PumpfunListenerInterface,
         private readonly maxConcurrent: number | null,
         private readonly processToken: (identifier: number, data: NewPumpFunTokenData) => Promise<void>,
     ) {}

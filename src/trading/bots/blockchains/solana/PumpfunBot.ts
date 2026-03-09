@@ -4,7 +4,7 @@ import { measureExecutionTime } from '@src/apm/apm';
 import { SolanaTokenMints } from '@src/blockchains/solana/constants/SolanaTokenMints';
 import { calculatePumpTokenLamportsValue } from '@src/blockchains/solana/dex/pumpfun/pump-base';
 import { PumpfunInitialCoinData, SolPumpfunTransactionDetails } from '@src/blockchains/solana/dex/pumpfun/types';
-import { sellPumpfunTokensWithRetries } from '@src/blockchains/solana/dex/pumpfun/utils';
+import { sellPumpfunTokensWithRetries } from '@src/blockchains/solana/dex/pumpfun/utils/sellPumpfunTokens';
 import { JitoConfig, TIP_LAMPORTS } from '@src/blockchains/solana/Jito';
 import { TransactionMode } from '@src/blockchains/solana/types';
 import { lamportsToSol, solToLamports } from '@src/blockchains/utils/amount';
@@ -420,6 +420,7 @@ export default class PumpfunBot {
                                 : TransactionMode.Execution,
                             wallet: this.wallet.toObject(),
                             tokenMint: tokenMint,
+                            tokenProgramId: tokenInfo.tokenProgramId,
                             tokenBondingCurve: tokenInfo.bondingCurve,
                             tokenAssociatedBondingCurve: tokenInfo.associatedBondingCurve,
                             solIn: buyInSol,
@@ -624,6 +625,7 @@ export default class PumpfunBot {
                                 : TransactionMode.Execution,
                             wallet: this.wallet.toObject(),
                             tokenMint: tokenMint,
+                            tokenProgramId: tokenInfo.tokenProgramId,
                             tokenBondingCurve: tokenInfo.bondingCurve,
                             tokenAssociatedBondingCurve: tokenInfo.associatedBondingCurve,
                             tokenBalance: strategy.buyPosition!.transaction.amountRaw,

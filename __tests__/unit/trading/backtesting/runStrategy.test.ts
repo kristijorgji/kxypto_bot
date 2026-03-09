@@ -6,7 +6,7 @@ import { LogEntry, createLogger, format } from 'winston';
 import { randomizationNoneConfig } from './data';
 import Pumpfun from '../../../../src/blockchains/solana/dex/pumpfun/Pumpfun';
 import { PumpfunInitialCoinData } from '../../../../src/blockchains/solana/dex/pumpfun/types';
-import { forceGetPumpCoinInitialData } from '../../../../src/blockchains/solana/dex/pumpfun/utils';
+import { forceGetPumpCoinInitialData } from '../../../../src/blockchains/solana/dex/pumpfun/utils/forceGetPumpCoinInitialData';
 import { solToLamports } from '../../../../src/blockchains/utils/amount';
 import { pumpfunRepository } from '../../../../src/db/repositories/PumpfunRepository';
 import ArrayTransport from '../../../../src/logger/transports/ArrayTransport';
@@ -24,8 +24,7 @@ import { formHistoryEntry } from '../../../__utils/blockchains/solana';
 import { readFixture, readLocalFixture } from '../../../__utils/data';
 import { FullTestExpectation } from '../../../__utils/types';
 
-jest.mock('../../../../src/blockchains/solana/dex/pumpfun/utils', () => ({
-    ...jest.requireActual('../../../../src/blockchains/solana/dex/pumpfun/utils'),
+jest.mock('../../../../src/blockchains/solana/dex/pumpfun/utils/forceGetPumpCoinInitialData', () => ({
     forceGetPumpCoinInitialData: jest.fn(),
 }));
 

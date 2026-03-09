@@ -1,8 +1,8 @@
 import { faker } from '@faker-js/faker';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 import { PUMPFUN_TOKEN_SUPPLY } from '@src/blockchains/solana/dex/pumpfun/constants';
-import { BondingCurveState } from '@src/blockchains/solana/dex/pumpfun/pump-base';
-import { NewPumpFunTokenData, PumpFunCoinData } from '@src/blockchains/solana/dex/pumpfun/types';
+import { BondingCurveState, NewPumpFunTokenData, PumpFunCoinData } from '@src/blockchains/solana/dex/pumpfun/types';
 import { trimEllip } from '@src/utils/text';
 
 export const NewBondingCurveStateFactory = (copy?: Partial<BondingCurveState>): BondingCurveState => {
@@ -32,6 +32,7 @@ export const NewPumpFunTokenDataFactory = (copy?: Partial<NewPumpFunTokenData>):
     const p = faker.animal.petName();
 
     return {
+        tokenProgramId: TOKEN_PROGRAM_ID.toString(),
         name: copy?.name ?? p,
         symbol: copy?.symbol ?? trimEllip(p, 3),
         uri: copy?.uri ?? faker.internet.url(),

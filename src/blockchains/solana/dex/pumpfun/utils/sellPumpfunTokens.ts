@@ -1,51 +1,17 @@
+import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
 import { PublicKey } from '@solana/web3.js';
 
 import { measureExecutionTime } from '@src/apm/apm';
+import { getAssociatedBondingCurveAddress, getBondingCurveAddress } from '@src/blockchains/solana/dex/pumpfun/pump-pda';
+import Pumpfun from '@src/blockchains/solana/dex/pumpfun/Pumpfun';
+import { PumpfunSellResponse } from '@src/blockchains/solana/dex/pumpfun/types';
+import { formPumpfunTokenUrl } from '@src/blockchains/solana/dex/pumpfun/utils/data';
+import SolanaAdapter from '@src/blockchains/solana/SolanaAdapter';
+import { TransactionMode } from '@src/blockchains/solana/types';
+import Wallet from '@src/blockchains/solana/Wallet';
 import { RetryConfig } from '@src/core/types';
 import { logger } from '@src/logger';
 import { sleep } from '@src/utils/functions';
-
-import { pumpCoinDataToInitialCoinData } from './mappers/mappers';
-import { getAssociatedBondingCurveAddress, getBondingCurveAddress } from './pump-base';
-import Pumpfun from './Pumpfun';
-import { PumpfunInitialCoinData, PumpfunSellResponse } from './types';
-import PumpfunRepository, { pumpfunRepository } from '../../../../db/repositories/PumpfunRepository';
-import SolanaAdapter from '../../SolanaAdapter';
-import { TransactionMode } from '../../types';
-import Wallet from '../../Wallet';
-
-export function formPumpfunTokenUrl(mint: string): string {
-    return `https://pump.fun/coin/${mint}`;
-}
-
-/**
- * Retrieves the initial pump coin data.
- *
- * This function first attempts to fetch the data from the local database to minimize unnecessary API calls.
- * If the data is not found in the database, it will fallback to calling the pump API.
- * The function will continue to make API requests until the data is successfully retrieved.
- * Once the data is successfully fetched from the pump API, it will be stored in the local database for future use.
- *
- */
-export async function forceGetPumpCoinInitialData(
-    pumpfun: Pumpfun,
-    _repository: PumpfunRepository,
-    mint: string,
-): Promise<PumpfunInitialCoinData> {
-    let initialCoinData = await pumpfunRepository.getToken(mint);
-
-    if (!initialCoinData) {
-        initialCoinData = pumpCoinDataToInitialCoinData(
-            await pumpfun.getCoinDataWithRetries(mint, {
-                maxRetries: 10,
-                sleepMs: retryCount => (retryCount <= 5 ? 250 : 500),
-            }),
-        );
-        await pumpfunRepository.insertToken(initialCoinData);
-    }
-
-    return initialCoinData;
-}
 
 /**
  * Just a utility function to sell automatically the specified pumpfun token or all if not specified from your wallet
@@ -61,6 +27,7 @@ export async function sellPumpfunTokens({
     solanaAdapter: SolanaAdapter;
     mint?: string;
 }) {
+    const tokenProgramId = TOKEN_2022_PROGRAM_ID.toBase58();
     for (const token of await solanaAdapter.getAccountTokens(wallet.address)) {
         if (!token.mint.endsWith('pump') && token.ifpsMetadata?.createdOn !== 'https://pump.fun') {
             continue;
@@ -78,7 +45,11 @@ export async function sellPumpfunTokens({
 
         const mintAddress = new PublicKey(token.mint);
         const bondingCurve = getBondingCurveAddress(mintAddress);
-        const associatedBondingCurve = getAssociatedBondingCurveAddress(bondingCurve, mintAddress);
+        const associatedBondingCurve = getAssociatedBondingCurveAddress(
+            bondingCurve,
+            mintAddress,
+            TOKEN_2022_PROGRAM_ID,
+        );
 
         const sellRes = (await measureExecutionTime(
             () =>
@@ -86,6 +57,7 @@ export async function sellPumpfunTokens({
                     transactionMode: TransactionMode.Execution,
                     wallet: wallet.toObject(),
                     tokenMint: token.mint,
+                    tokenProgramId: tokenProgramId,
                     tokenBondingCurve: bondingCurve.toBase58(),
                     tokenAssociatedBondingCurve: associatedBondingCurve.toBase58(),
                     tokenBalance: token.amountRaw,

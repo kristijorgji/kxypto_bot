@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { BondingCurveState } from '@src/blockchains/solana/dex/pumpfun/pump-base';
+import { BondingCurveState } from '@src/blockchains/solana/dex/pumpfun/types';
 import { jitoConfigSchema } from '@src/blockchains/solana/Jito';
 import { FileStorageType } from '@src/core/types';
 import { strategyFileConfigSchema } from '@src/trading/config/types';

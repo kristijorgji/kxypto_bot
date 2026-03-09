@@ -1,3 +1,4 @@
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { LogEntry, createLogger, format } from 'winston';
 
 import { FirstArg } from '@src/utils/types';
@@ -16,7 +17,7 @@ import {
     PumpfunSellResponse,
     SolPumpfunTransactionDetails,
 } from '../../../../../../src/blockchains/solana/dex/pumpfun/types';
-import { sellPumpfunTokensWithRetries } from '../../../../../../src/blockchains/solana/dex/pumpfun/utils';
+import { sellPumpfunTokensWithRetries } from '../../../../../../src/blockchains/solana/dex/pumpfun/utils/sellPumpfunTokens';
 import SolanaAdapter from '../../../../../../src/blockchains/solana/SolanaAdapter';
 import { solanaConnection } from '../../../../../../src/blockchains/solana/utils/connection';
 import { simulateSolTransactionDetails } from '../../../../../../src/blockchains/solana/utils/simulations';
@@ -64,8 +65,8 @@ jest.mock('../../../../../../src/utils/functions', () => ({
 
 jest.mock('../../../../../../src/trading/utils/generateTradeId');
 
-jest.mock('../../../../../../src/blockchains/solana/dex/pumpfun/utils', () => ({
-    ...jest.requireActual('../../../../../../src/blockchains/solana/dex/pumpfun/utils'),
+jest.mock('../../../../../../src/blockchains/solana/dex/pumpfun/utils/sellPumpfunTokens', () => ({
+    ...jest.requireActual('../../../../../../src/blockchains/solana/dex/pumpfun/utils/sellPumpfunTokens'),
     sellPumpfunTokensWithRetries: jest.fn(),
 }));
 
@@ -156,7 +157,9 @@ describe(PumpfunBot.name, () => {
         }).toThrow(new Error('buyMonitorWaitPeriodMs must be a multiple of sellMonitorWaitPeriodMs.'));
     });
 
-    const initialCoinData = pumpCoinDataToInitialCoinData(readFixture<PumpFunCoinData>('dex/pumpfun/get-coin-data'));
+    const initialCoinData = pumpCoinDataToInitialCoinData(readFixture<PumpFunCoinData>('dex/pumpfun/get-coin-data'), {
+        tokenProgramId: TOKEN_PROGRAM_ID.toBase58(),
+    });
 
     const dummyPositionMetadata = dummyPumpfunPositionMetadata(initialCoinData.creator, initialCoinData.bondingCurve);
     const dummyPumpfunBuyResponse: PumpfunBuyResponse = (() => {
@@ -304,6 +307,7 @@ describe(PumpfunBot.name, () => {
             transactionMode: 0,
             wallet: wallet.toObject(),
             tokenMint: initialCoinData.mint,
+            tokenProgramId: initialCoinData.tokenProgramId,
             tokenBondingCurve: initialCoinData.bondingCurve,
             tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
             solIn: botConfig.buyInSol!,
@@ -350,6 +354,7 @@ describe(PumpfunBot.name, () => {
             transactionMode: 0,
             wallet: wallet.toObject(),
             tokenMint: initialCoinData.mint,
+            tokenProgramId: initialCoinData.tokenProgramId,
             tokenBondingCurve: initialCoinData.bondingCurve,
             tokenAssociatedBondingCurve: initialCoinData.associatedBondingCurve,
             tokenBalance: 14193548387097,

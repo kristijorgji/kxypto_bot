@@ -1,8 +1,14 @@
 import { PumpFunCoinData, PumpfunInitialCoinData } from '../types';
 
-export function pumpCoinDataToInitialCoinData(coinData: PumpFunCoinData): PumpfunInitialCoinData {
+export function pumpCoinDataToInitialCoinData(
+    coinData: PumpFunCoinData,
+    extra: {
+        tokenProgramId: string;
+    },
+): PumpfunInitialCoinData {
     return {
         mint: coinData.mint,
+        tokenProgramId: extra.tokenProgramId,
         creator: coinData.creator,
         createdTimestamp: coinData.created_timestamp,
         bondingCurve: coinData.bonding_curve,

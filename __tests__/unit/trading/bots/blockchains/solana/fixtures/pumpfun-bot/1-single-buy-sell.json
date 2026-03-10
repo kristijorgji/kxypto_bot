@@ -51,7 +51,9 @@
               "realTokenReserves": 766800000000000,
               "tokenTotalSupply": 1000000000000000,
               "virtualSolReserves": 58569661730,
-              "virtualTokenReserves": 1043137958064512
+              "virtualTokenReserves": 1043137958064512,
+              "isMayhemMode": false,
+              "isCashbackCoin": false
             }
           },
           "buyRes": {
@@ -120,7 +122,9 @@
               "realTokenReserves": 766800000000000,
               "tokenTotalSupply": 1000000000000000,
               "virtualSolReserves": 58569661730,
-              "virtualTokenReserves": 1043137958064512
+              "virtualTokenReserves": 1043137958064512,
+              "isMayhemMode": false,
+              "isCashbackCoin": false
             }
           },
           "sellRes": {
@@ -383,7 +387,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "info",
-      "message": "Bought successfully 14193548387097 amountRaw for 0.4 sol. buyRes={\n  signature: '_test_1741177688106',\n  boughtAmountRaw: 14193548387097,\n  pumpTokenOut: 11496621999445,\n  pumpMaxSolCost: 0.5,\n  actualBuyPriceSol: 3.0999999999999517e-8,\n  txDetails: {\n    grossTransferredLamports: -440000000.00000006,\n    netTransferredLamports: -445005000.00000006,\n    baseFeeLamports: 5000,\n    priorityFeeLamports: 5000000,\n    totalFeeLamports: 5005000\n  },\n  metadata: {\n    startActionBondingCurveState: {\n      dev: '6FjRL4iqjc7tpMr7rsNz3mz4nPSXBhGQtFRa5fJLapzZ',\n      bondingCurve: 'HkpnGZCoVwWfTV8wM7od7tH3HHesT8te9Mu4XFyqtooB',\n      virtualSolReserves: 58569661730,\n      virtualTokenReserves: 1043137958064512,\n      realTokenReserves: 766800000000000,\n      realSolReserves: 753797654,\n      tokenTotalSupply: 1000000000000000,\n      complete: false\n    },\n    price: { calculationMode: 'simulation' }\n  }\n}"
+      "message": "Bought successfully 14193548387097 amountRaw for 0.4 sol. buyRes={\n  signature: '_test_1741177688106',\n  boughtAmountRaw: 14193548387097,\n  pumpTokenOut: 11496621999445,\n  pumpMaxSolCost: 0.5,\n  actualBuyPriceSol: 3.0999999999999517e-8,\n  txDetails: {\n    grossTransferredLamports: -440000000.00000006,\n    netTransferredLamports: -445005000.00000006,\n    baseFeeLamports: 5000,\n    priorityFeeLamports: 5000000,\n    totalFeeLamports: 5005000\n  },\n  metadata: {\n    startActionBondingCurveState: {\n      dev: '6FjRL4iqjc7tpMr7rsNz3mz4nPSXBhGQtFRa5fJLapzZ',\n      bondingCurve: 'HkpnGZCoVwWfTV8wM7od7tH3HHesT8te9Mu4XFyqtooB',\n      virtualSolReserves: 58569661730,\n      virtualTokenReserves: 1043137958064512,\n      realTokenReserves: 766800000000000,\n      realSolReserves: 753797654,\n      tokenTotalSupply: 1000000000000000,\n      complete: false,\n      isMayhemMode: false,\n      isCashbackCoin: false\n    },\n    price: { calculationMode: 'simulation' }\n  }\n}"
     },
     {
       "contextMap": {
@@ -547,7 +551,7 @@
         "tokenMint": "3sjp1tih7e7pc1ehvxBDzpYiymGcwpBGi2XRb1EWpump"
       },
       "level": "info",
-      "message": "We sold successfully 11496621999445 amountRaw with reason TAKE_PROFIT and received net 0.39202981018007454 sol. sellRes={\n  signature: '_test_1742211111111',\n  soldRawAmount: 11496621999445,\n  minLamportsOutput: 620000000,\n  actualSellPriceSol: 3.41e-8,\n  txDetails: {\n    grossTransferredLamports: 392034810.18107456,\n    netTransferredLamports: 392029810.1800746,\n    baseFeeLamports: 5000,\n    priorityFeeLamports: 0.001,\n    totalFeeLamports: 5000.001\n  },\n  metadata: {\n    startActionBondingCurveState: {\n      dev: '6FjRL4iqjc7tpMr7rsNz3mz4nPSXBhGQtFRa5fJLapzZ',\n      bondingCurve: 'HkpnGZCoVwWfTV8wM7od7tH3HHesT8te9Mu4XFyqtooB',\n      virtualSolReserves: 58569661730,\n      virtualTokenReserves: 1043137958064512,\n      realTokenReserves: 766800000000000,\n      realSolReserves: 753797654,\n      tokenTotalSupply: 1000000000000000,\n      complete: false\n    },\n    price: { calculationMode: 'simulation' }\n  }\n}"
+      "message": "We sold successfully 11496621999445 amountRaw with reason TAKE_PROFIT and received net 0.39202981018007454 sol. sellRes={\n  signature: '_test_1742211111111',\n  soldRawAmount: 11496621999445,\n  minLamportsOutput: 620000000,\n  actualSellPriceSol: 3.41e-8,\n  txDetails: {\n    grossTransferredLamports: 392034810.18107456,\n    netTransferredLamports: 392029810.1800746,\n    baseFeeLamports: 5000,\n    priorityFeeLamports: 0.001,\n    totalFeeLamports: 5000.001\n  },\n  metadata: {\n    startActionBondingCurveState: {\n      dev: '6FjRL4iqjc7tpMr7rsNz3mz4nPSXBhGQtFRa5fJLapzZ',\n      bondingCurve: 'HkpnGZCoVwWfTV8wM7od7tH3HHesT8te9Mu4XFyqtooB',\n      virtualSolReserves: 58569661730,\n      virtualTokenReserves: 1043137958064512,\n      realTokenReserves: 766800000000000,\n      realSolReserves: 753797654,\n      tokenTotalSupply: 1000000000000000,\n      complete: false,\n      isMayhemMode: false,\n      isCashbackCoin: false\n    },\n    price: { calculationMode: 'simulation' }\n  }\n}"
     },
     {
       "contextMap": {

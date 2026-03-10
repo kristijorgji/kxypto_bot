@@ -28,6 +28,8 @@ export const dummyPumpfunPositionMetadata = (creator: string, bondingCurve: stri
             realSolReserves: 753797654,
             tokenTotalSupply: 1000000000000000,
             complete: false,
+            isMayhemMode: false,
+            isCashbackCoin: false,
         },
         price: {
             calculationMode: 'simulation',

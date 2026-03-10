@@ -25,6 +25,8 @@ export type BondingCurveState = {
     realSolReserves: number;
     tokenTotalSupply: number;
     complete: boolean;
+    isMayhemMode: boolean;
+    isCashbackCoin: boolean;
 };
 
 export type BondingCurveFullState = {

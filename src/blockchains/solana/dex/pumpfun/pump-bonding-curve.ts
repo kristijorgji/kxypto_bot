@@ -1,10 +1,10 @@
-import { bool, publicKey, struct, u64 } from '@raydium-io/raydium-sdk';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { BondingCurve, PUMP_SDK } from '@pump-fun/pump-sdk';
+import { Connection, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import BN from 'bn.js';
 
 import { PUMPFUN_TOKEN_DECIMALS } from '@src/blockchains/solana/dex/pumpfun/constants';
 import { getBondingCurveAddress } from '@src/blockchains/solana/dex/pumpfun/pump-pda';
-import { BondingCurveFullState } from '@src/blockchains/solana/dex/pumpfun/types';
+import { BondingCurveFullState, BondingCurveState } from '@src/blockchains/solana/dex/pumpfun/types';
 import { lamportsToSol } from '@src/blockchains/utils/amount';
 
 export async function getTokenBondingCurveState(
@@ -21,30 +21,9 @@ export async function getTokenBondingCurveState(
         throw new Error(`Could not find bondingCurve accountInfo ${bondingCurve}`);
     }
 
-    const structure = struct([
-        u64('discriminator'),
-        u64('virtualTokenReserves'),
-        u64('virtualSolReserves'),
-        u64('realTokenReserves'),
-        u64('realSolReserves'),
-        u64('tokenTotalSupply'),
-        bool('complete'),
-        publicKey('creator'),
-    ]);
-    const decoded = structure.decode(bcAccountInfo.data);
-
     return {
         accountInfo: bcAccountInfo,
-        state: {
-            dev: decoded.creator.toString(),
-            bondingCurve: bondingCurve.toBase58(),
-            virtualSolReserves: decoded.virtualSolReserves.toNumber(),
-            virtualTokenReserves: decoded.virtualTokenReserves.toNumber(),
-            realTokenReserves: decoded.realTokenReserves.toNumber(),
-            realSolReserves: decoded.realSolReserves.toNumber(),
-            tokenTotalSupply: decoded.tokenTotalSupply.toNumber(),
-            complete: decoded.complete,
-        },
+        state: fromSdkBondingCurve(bondingCurve.toBase58(), PUMP_SDK.decodeBondingCurve(bcAccountInfo)),
     };
 }
 
@@ -79,5 +58,41 @@ export function computeBondingCurveMetrics({
         marketCapInSol: marketCap,
         priceInSol: price,
         bondingCurveProgress: bondingCurveProgress.toNumber(),
+    };
+}
+
+export function computePriceInSol(bc: BondingCurve): number {
+    const marketCap = bc.virtualSolReserves.div(new BN(LAMPORTS_PER_SOL));
+    const totalCoins = bc.virtualTokenReserves.div(new BN(10 ** PUMPFUN_TOKEN_DECIMALS));
+
+    return marketCap.div(totalCoins).toNumber();
+}
+
+export function fromSdkBondingCurve(bcAddress: string, bc: BondingCurve): BondingCurveState {
+    return {
+        dev: bc.creator.toBase58(),
+        bondingCurve: bcAddress,
+        virtualSolReserves: bc.virtualSolReserves.toNumber(),
+        virtualTokenReserves: bc.virtualTokenReserves.toNumber(),
+        realTokenReserves: bc.realTokenReserves.toNumber(),
+        realSolReserves: bc.realSolReserves.toNumber(),
+        tokenTotalSupply: bc.tokenTotalSupply.toNumber(),
+        complete: bc.complete,
+        isMayhemMode: bc.isMayhemMode,
+        isCashbackCoin: bc.isCashbackCoin,
+    };
+}
+
+export function toSdkBondingCurve(bc: BondingCurveState): BondingCurve {
+    return {
+        virtualTokenReserves: new BN(bc.virtualTokenReserves),
+        virtualSolReserves: new BN(bc.virtualSolReserves),
+        realTokenReserves: new BN(bc.realTokenReserves),
+        realSolReserves: new BN(bc.realSolReserves),
+        tokenTotalSupply: new BN(bc.tokenTotalSupply),
+        complete: bc.complete,
+        creator: new PublicKey(bc.dev),
+        isMayhemMode: bc.isMayhemMode,
+        isCashbackCoin: bc.isCashbackCoin,
     };
 }

@@ -25,6 +25,8 @@ export const NewBondingCurveStateFactory = (copy?: Partial<BondingCurveState>): 
         realSolReserves: copy?.realSolReserves ?? faker.number.int(),
         tokenTotalSupply: PUMPFUN_TOKEN_SUPPLY,
         complete: copy?.complete ?? faker.datatype.boolean(),
+        isMayhemMode: false,
+        isCashbackCoin: false,
     };
 };
 

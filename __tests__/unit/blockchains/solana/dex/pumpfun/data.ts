@@ -29,6 +29,8 @@ export const startActionBondingCurveState: BondingCurveState = {
     realSolReserves: 753797654,
     tokenTotalSupply: 1000000000000000,
     complete: false,
+    isCashbackCoin: false,
+    isMayhemMode: false,
 };
 
 export const TxWithIllegalOwnerError = {

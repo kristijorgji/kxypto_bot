@@ -1,15 +1,19 @@
-import { BONDING_CURVE_NEW_SIZE } from '@pump-fun/pump-sdk';
-import { AccountInfo, ParsedTransactionWithMeta } from '@solana/web3.js';
+import {
+    BondingCurve,
+    OnlinePumpSdk,
+    PUMP_SDK,
+    getBuyTokenAmountFromSolAmount,
+    getSellSolAmountFromTokenAmount,
+} from '@pump-fun/pump-sdk';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { AccountInfo, ParsedTransactionWithMeta, TransactionInstruction } from '@solana/web3.js';
+import BN from 'bn.js';
 
 import { startActionBondingCurveState, tokenInfo } from './data';
-import { getTokenBondingCurveState } from '../../../../../../src/blockchains/solana/dex/pumpfun/pump-bonding-curve';
+import { toSdkBondingCurve } from '../../../../../../src/blockchains/solana/dex/pumpfun/pump-bonding-curve';
 import * as pumpSimulation from '../../../../../../src/blockchains/solana/dex/pumpfun/pump-simulation';
 import Pumpfun from '../../../../../../src/blockchains/solana/dex/pumpfun/Pumpfun';
-import {
-    BondingCurveFullState,
-    PumpfunBuyResponse,
-    PumpfunSellResponse,
-} from '../../../../../../src/blockchains/solana/dex/pumpfun/types';
+import { PumpfunBuyResponse, PumpfunSellResponse } from '../../../../../../src/blockchains/solana/dex/pumpfun/types';
 import { TIP_LAMPORTS } from '../../../../../../src/blockchains/solana/Jito';
 import {
     SolFullTransactionDetails,
@@ -39,6 +43,24 @@ jest.mock('@solana/web3.js', () => {
         })),
     };
 });
+
+const MockOnlinePumpSdkInstance = {
+    fetchGlobal: jest.fn(),
+    fetchBuyState: jest.fn(),
+    fetchFeeConfig: jest.fn(),
+    fetchSellState: jest.fn(),
+} satisfies Partial<InstanceType<typeof OnlinePumpSdk>>;
+
+jest.mock('@pump-fun/pump-sdk', () => ({
+    ...jest.requireActual('@pump-fun/pump-sdk'),
+    OnlinePumpSdk: jest.fn().mockImplementation(() => MockOnlinePumpSdkInstance),
+    PUMP_SDK: {
+        buyInstructions: jest.fn(),
+        sellInstructions: jest.fn(),
+    } satisfies Partial<typeof PUMP_SDK>,
+    getBuyTokenAmountFromSolAmount: jest.fn(),
+    getSellSolAmountFromTokenAmount: jest.fn(),
+}));
 
 jest.mock('../../../../../../src/utils/functions', () => ({
     ...jest.requireActual('../../../../../../src/utils/functions'),
@@ -93,12 +115,22 @@ describe(Pumpfun.name, () => {
             wsEndpoint: process.env.SOLANA_WSS_ENDPOINT as string,
         });
 
-        (getTokenBondingCurveState as jest.Mock).mockResolvedValue({
-            state: startActionBondingCurveState,
-            accountInfo: {
-                data: Array.from({ length: BONDING_CURVE_NEW_SIZE + 1 }),
+        MockOnlinePumpSdkInstance.fetchBuyState.mockResolvedValue({
+            bondingCurve: toSdkBondingCurve(startActionBondingCurveState) satisfies BondingCurve,
+            bondingCurveAccountInfo: {
+                data: [],
             } as unknown as AccountInfo<Buffer>,
-        } satisfies BondingCurveFullState);
+            associatedUserAccountInfo: {
+                data: [],
+            } as unknown as AccountInfo<Buffer>,
+        } satisfies Awaited<ReturnType<InstanceType<typeof OnlinePumpSdk>['fetchBuyState']>>);
+
+        MockOnlinePumpSdkInstance.fetchSellState.mockResolvedValue({
+            bondingCurve: toSdkBondingCurve(startActionBondingCurveState) satisfies BondingCurve,
+            bondingCurveAccountInfo: {
+                data: [],
+            } as unknown as AccountInfo<Buffer>,
+        } satisfies Awaited<ReturnType<InstanceType<typeof OnlinePumpSdk>['fetchSellState']>>);
 
         simulatePumpBuyLatencyMsSpy = jest.spyOn(pumpSimulation, 'simulatePumpBuyLatencyMs').mockImplementation(() => {
             return 1;
@@ -142,7 +174,14 @@ describe(Pumpfun.name, () => {
         };
 
         it('in execution mode using jito and return correct actualPrice and values', async () => {
-            (pumpfun.connection.getAccountInfo as jest.Mock).mockResolvedValue({});
+            (getBuyTokenAmountFromSolAmount as jest.Mock).mockReturnValue(new BN(3562041942032));
+            (PUMP_SDK.buyInstructions as jest.Mock).mockResolvedValue([
+                {
+                    data: new Buffer(''),
+                    programId: TOKEN_PROGRAM_ID,
+                    keys: [],
+                },
+            ] satisfies TransactionInstruction[]);
             (sendTx as jest.Mock).mockResolvedValue({
                 success: true,
                 signature: 'test_signature',
@@ -182,7 +221,6 @@ describe(Pumpfun.name, () => {
         });
 
         it('in simulation mode using jito and return correct actualPrice and values', async () => {
-            (pumpfun.connection.getAccountInfo as jest.Mock).mockResolvedValue({});
             simulatePumpBuyLatencyMsSpy.mockImplementation(() => {
                 return 17783;
             });
@@ -200,8 +238,8 @@ describe(Pumpfun.name, () => {
                 signature: '_simulation_1738425840000',
                 txDetails: {
                     baseFeeLamports: 5000,
-                    grossTransferredLamports: -250150000,
-                    netTransferredLamports: -255155000,
+                    grossTransferredLamports: -254195000,
+                    netTransferredLamports: -259200000,
                     priorityFeeLamports: 5000000,
                     totalFeeLamports: 5005000,
                 },
@@ -239,7 +277,14 @@ describe(Pumpfun.name, () => {
         };
 
         it('in execution mode using jito and return correct actualPrice and values', async () => {
-            (pumpfun.connection.getAccountInfo as jest.Mock).mockResolvedValue({});
+            (getSellSolAmountFromTokenAmount as jest.Mock).mockReturnValue(new BN(149999999));
+            (PUMP_SDK.sellInstructions as jest.Mock).mockResolvedValue([
+                {
+                    data: new Buffer(''),
+                    programId: TOKEN_PROGRAM_ID,
+                    keys: [],
+                },
+            ] satisfies TransactionInstruction[]);
             (sendTx as jest.Mock).mockResolvedValue({
                 success: true,
                 signature: 'test_signature',
@@ -278,7 +323,6 @@ describe(Pumpfun.name, () => {
         });
 
         it('in simulation mode using jito and return correct actualPrice and values', async () => {
-            (pumpfun.connection.getAccountInfo as jest.Mock).mockResolvedValue({});
             simulatePumpSellLatencyMsSpy.mockImplementation(() => {
                 return 7123;
             });
@@ -289,14 +333,14 @@ describe(Pumpfun.name, () => {
             } satisfies FirstArg<typeof pumpfun.sell>);
 
             expect(actual).toEqual({
-                actualSellPriceSol: 0.1499999999999886,
+                actualSellPriceSol: 0.149999999,
                 minLamportsOutput: 149999999,
                 signature: '_simulation_1738425840000',
                 soldRawAmount: 3562041942032,
                 txDetails: {
                     baseFeeLamports: 5000,
-                    grossTransferredLamports: 149849999.9999886,
-                    netTransferredLamports: 144844999.9999886,
+                    grossTransferredLamports: 149849999,
+                    netTransferredLamports: 144844999,
                     priorityFeeLamports: 5000000,
                     totalFeeLamports: 5005000,
                 },

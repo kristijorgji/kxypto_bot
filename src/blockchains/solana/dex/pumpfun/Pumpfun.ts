@@ -1,11 +1,12 @@
-import { BONDING_CURVE_NEW_SIZE, PUMP_SDK, userVolumeAccumulatorPda } from '@pump-fun/pump-sdk';
 import {
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-    TOKEN_2022_PROGRAM_ID,
-    createAssociatedTokenAccountIdempotentInstruction,
-    getAssociatedTokenAddress,
-} from '@solana/spl-token';
-import { AccountMeta, Connection, Keypair, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
+    OnlinePumpSdk,
+    PUMP_SDK,
+    getBuyTokenAmountFromSolAmount,
+    getSellSolAmountFromTokenAmount,
+} from '@pump-fun/pump-sdk';
+import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
+import { Connection, PublicKey, Transaction } from '@solana/web3.js';
+import BN from 'bn.js';
 
 import {
     calculatePriceInLamports,
@@ -13,10 +14,11 @@ import {
 } from '@src/blockchains/solana/dex/pumpfun/pump-base';
 import {
     computeBondingCurveMetrics,
+    computePriceInSol,
+    fromSdkBondingCurve,
     getTokenBondingCurveState,
 } from '@src/blockchains/solana/dex/pumpfun/pump-bonding-curve';
 import { getPumpCoinDataWithRetriesFromFrontendApi } from '@src/blockchains/solana/dex/pumpfun/pump-fe-api';
-import { getCreatorVaultAddress } from '@src/blockchains/solana/dex/pumpfun/pump-pda';
 import {
     simulatePumpAccountCreationFeeLamports,
     simulatePumpBuyLatencyMs,
@@ -27,23 +29,9 @@ import { RetryConfig } from '@src/core/types';
 import { logger } from '@src/logger';
 import { getJitoTipLamports } from '@src/trading/bots/blockchains/solana/PumpfunBacktester';
 import { TransactionType } from '@src/trading/bots/types';
-import { bufferFromUInt64 } from '@src/utils/data/data';
 import { sleep } from '@src/utils/functions';
 
 import {
-    PUMP_BUY_BUFFER,
-    PUMP_FEE_CONFIG,
-    PUMP_FEE_PROGRAM,
-    PUMP_FEE_RECIPIENT_6,
-    PUMP_FUN_ACCOUNT,
-    PUMP_FUN_PROGRAM,
-    PUMP_GLOBAL,
-    PUMP_GLOBAL_VOLUME_ACCUMULATOR,
-    PUMP_SELL_BUFFER,
-    SYSTEM_PROGRAM_ID,
-} from './constants';
-import {
-    BondingCurveFullState,
     NewPumpFunTokenData,
     PumpFunCoinData,
     PumpfunBuyResponse,
@@ -90,6 +78,7 @@ export default class Pumpfun implements PumpfunListenerInterface {
 
     readonly connection: Connection;
     readonly listener: PumpfunListenerInterface;
+    readonly sdk: OnlinePumpSdk;
 
     private static readonly getTxDetailsRetryConfig: RetryConfig = {
         maxRetries: 10,
@@ -99,6 +88,7 @@ export default class Pumpfun implements PumpfunListenerInterface {
     constructor(private readonly config: { rpcEndpoint: string; wsEndpoint: string }) {
         this.connection = new Connection(this.config.rpcEndpoint, 'confirmed');
         this.listener = new PumpfunListener(this.config, this.connection);
+        this.sdk = new OnlinePumpSdk(this.connection);
     }
 
     async listenForPumpFunTokens(onNewToken: (data: NewPumpFunTokenData) => Promise<void>): Promise<void> {
@@ -114,39 +104,40 @@ export default class Pumpfun implements PumpfunListenerInterface {
             solIn: number;
         } & SwapBaseParams,
     ): Promise<PumpfunBuyResponse> {
-        const tokenProgram = p.tokenProgramId ? new PublicKey(p.tokenProgramId) : TOKEN_2022_PROGRAM_ID;
-        const priorityFeeInSol = p.priorityFeeInSol ?? Pumpfun.defaultPriorityInSol;
-        const slippageDecimal = p.slippageDecimal ?? Pumpfun.defaultSlippageDecimal;
-
-        const bcFullState = await getTokenBondingCurveState(this.connection, {
-            bondingCurve: new PublicKey(p.tokenBondingCurve),
-        });
-        const { state: bcs } = bcFullState;
-        const { payer, txBuilder, keys, willCreateTokenAccount } = await this.buildTxCommon(
+        const { mint, user, tokenProgramId, slippageDecimal, priorityFeeInSol, payer } = await this.parseArgsCommon(
             p,
             'buy',
-            tokenProgram,
-            bcFullState,
         );
 
-        const solInLamports = solToLamports(p.solIn);
-        const tokenOut = Math.floor((solInLamports * bcs.virtualTokenReserves) / bcs.virtualSolReserves);
+        const [buyState, global, feeConfig] = await Promise.all([
+            this.sdk.fetchBuyState(mint, user, tokenProgramId),
+            this.sdk.fetchGlobal(),
+            this.sdk.fetchFeeConfig(),
+        ]);
+        const lamportsAmount = new BN(solToLamports(p.solIn));
+        const expectedTokens = getBuyTokenAmountFromSolAmount({
+            global,
+            feeConfig,
+            mintSupply: buyState.bondingCurve.tokenTotalSupply,
+            bondingCurve: buyState.bondingCurve,
+            amount: lamportsAmount,
+        });
+        const buyIxs = await PUMP_SDK.buyInstructions({
+            global,
+            ...buyState,
+            mint: mint,
+            user: user,
+            amount: expectedTokens,
+            solAmount: new BN(solToLamports(p.solIn)),
+            slippage: slippageDecimal,
+            tokenProgram: tokenProgramId,
+        });
+
+        const txBuilder = new Transaction().add(...buyIxs);
+
+        const tokenOutNum = expectedTokens.toNumber();
         const solInWithSlippage = p.solIn * (1 + slippageDecimal);
         const maxSolCost = Math.floor(solToLamports(solInWithSlippage));
-        const trackVolume = Buffer.from([1]); // 1 to enable volume tracking/cashback, 0 to disable
-        const data: Buffer = Buffer.concat([
-            PUMP_BUY_BUFFER,
-            bufferFromUInt64(tokenOut),
-            bufferFromUInt64(maxSolCost),
-            trackVolume,
-        ]);
-
-        const instruction = new TransactionInstruction({
-            keys: keys,
-            programId: PUMP_FUN_PROGRAM,
-            data: data,
-        });
-        txBuilder.add(instruction);
 
         if (p.transactionMode === TransactionMode.Execution) {
             const buyResult = await sendTx(
@@ -189,9 +180,9 @@ export default class Pumpfun implements PumpfunListenerInterface {
                 p.tokenMint,
                 p.tokenBondingCurve,
             );
-            if (tradeResultFromTx.amountRaw !== tokenOut) {
+            if (tradeResultFromTx.amountRaw !== tokenOutNum) {
                 throw new Error(
-                    `${tradeResultFromTx.amountRaw}(actualDetails.amountRaw) is different than ${tokenOut}(tokenOut)`,
+                    `${tradeResultFromTx.amountRaw}(actualDetails.amountRaw) is different than ${tokenOutNum}(tokenOut)`,
                 );
             }
 
@@ -199,19 +190,19 @@ export default class Pumpfun implements PumpfunListenerInterface {
 
             return {
                 signature: signature!,
-                boughtAmountRaw: tokenOut,
-                pumpTokenOut: tokenOut,
+                boughtAmountRaw: tokenOutNum,
+                pumpTokenOut: tokenOutNum,
                 pumpMaxSolCost: maxSolCost,
                 actualBuyPriceSol: actualBuyPriceInSol,
                 txDetails: txDetails,
                 metadata: {
-                    startActionBondingCurveState: bcs,
+                    startActionBondingCurveState: fromSdkBondingCurve(p.tokenBondingCurve, buyState.bondingCurve),
                     price: {
                         calculationMode: 'bondingCurveTransferred',
                         fromBondingCurveTransferredInSol: actualBuyPriceInSol,
                         fromTxGrossTransferredInSol: lamportsToSol(
                             calculatePriceInLamports({
-                                amountRaw: tokenOut,
+                                amountRaw: tokenOutNum,
                                 lamports: txDetails.grossTransferredLamports,
                             }),
                         ),
@@ -234,14 +225,15 @@ export default class Pumpfun implements PumpfunListenerInterface {
             );
 
             const simActualBuyPriceLamports = Math.min(
-                simulatePriceWithHigherSlippage(solInLamports, slippageDecimal),
+                simulatePriceWithHigherSlippage(solToLamports(p.solIn), slippageDecimal),
                 solToLamports(maxSolCost),
             );
+            let willCreateTokenAccount = true; // after 1st time this is should be false for sim, but atm we trade only 1 time per token so it is ok
 
             return {
                 signature: _generateFakeSimulationTransactionHash(),
-                boughtAmountRaw: tokenOut,
-                pumpTokenOut: tokenOut,
+                boughtAmountRaw: tokenOutNum,
+                pumpTokenOut: tokenOutNum,
                 pumpMaxSolCost: maxSolCost,
                 actualBuyPriceSol: lamportsToSol(simActualBuyPriceLamports),
                 txDetails: simulateSolTransactionDetails(
@@ -251,7 +243,7 @@ export default class Pumpfun implements PumpfunListenerInterface {
                     solToLamports(priorityFeeInSol),
                 ),
                 metadata: {
-                    startActionBondingCurveState: bcs,
+                    startActionBondingCurveState: fromSdkBondingCurve(p.tokenBondingCurve, buyState.bondingCurve),
                     price: {
                         calculationMode: 'simulation',
                     },
@@ -265,32 +257,40 @@ export default class Pumpfun implements PumpfunListenerInterface {
             tokenBalance: number;
         } & SwapBaseParams,
     ): Promise<PumpfunSellResponse> {
-        const tokenProgram = p.tokenProgramId ? new PublicKey(p.tokenProgramId) : TOKEN_2022_PROGRAM_ID;
-        const priorityFeeInSol = p.priorityFeeInSol ?? Pumpfun.defaultPriorityInSol;
-        const slippageDecimal = p.slippageDecimal ?? Pumpfun.defaultSlippageDecimal;
-
-        const bcFullState = await getTokenBondingCurveState(this.connection, {
-            bondingCurve: new PublicKey(p.tokenBondingCurve),
-        });
-        const { state: bcs } = bcFullState;
-        const { priceInSol } = computeBondingCurveMetrics(bcs);
-        const { payer, txBuilder, keys } = await this.buildTxCommon(p, 'sell', tokenProgram, bcFullState);
-
-        const minLamportsOutput = Math.floor(
-            (p.tokenBalance! * (1 - slippageDecimal) * bcs.virtualSolReserves) / bcs.virtualTokenReserves,
+        const { mint, user, tokenProgramId, slippageDecimal, priorityFeeInSol, payer } = await this.parseArgsCommon(
+            p,
+            'sell',
         );
-        const data = Buffer.concat([
-            PUMP_SELL_BUFFER,
-            bufferFromUInt64(p.tokenBalance),
-            bufferFromUInt64(minLamportsOutput),
+
+        const [sellState, global, feeConfig] = await Promise.all([
+            this.sdk.fetchSellState(mint, user, tokenProgramId),
+            this.sdk.fetchGlobal(),
+            this.sdk.fetchFeeConfig(),
         ]);
 
-        const instruction = new TransactionInstruction({
-            keys: keys,
-            programId: PUMP_FUN_PROGRAM,
-            data: data,
+        const tokenAmount = new BN(p.tokenBalance); // amount in raw units (6 decimals)
+        const expectedSol = getSellSolAmountFromTokenAmount({
+            global,
+            feeConfig,
+            mintSupply: sellState.bondingCurve.tokenTotalSupply,
+            bondingCurve: sellState.bondingCurve,
+            amount: tokenAmount,
         });
-        txBuilder.add(instruction);
+        const minLamportsOutput = expectedSol.toNumber();
+
+        const sellIxs = await PUMP_SDK.sellInstructions({
+            global,
+            ...sellState,
+            mint: mint,
+            user: user,
+            amount: tokenAmount,
+            solAmount: expectedSol,
+            slippage: slippageDecimal,
+            mayhemMode: sellState.bondingCurve.isMayhemMode,
+            tokenProgram: tokenProgramId,
+        });
+
+        const txBuilder = new Transaction().add(...sellIxs);
 
         if (p.transactionMode === TransactionMode.Execution) {
             const sellResult = await sendTx(
@@ -348,7 +348,7 @@ export default class Pumpfun implements PumpfunListenerInterface {
                 actualSellPriceSol: actualSellPriceInSol,
                 txDetails: txDetails,
                 metadata: {
-                    startActionBondingCurveState: bcs,
+                    startActionBondingCurveState: fromSdkBondingCurve(p.tokenBondingCurve, sellState.bondingCurve),
                     price: {
                         calculationMode: 'bondingCurveTransferred',
                         fromBondingCurveTransferredInSol: actualSellPriceInSol,
@@ -379,7 +379,7 @@ export default class Pumpfun implements PumpfunListenerInterface {
             const simActualSellPriceLamports = Math.max(
                 minLamportsOutput,
                 simulatePriceWithLowerSlippage(
-                    calculatePumpTokenLamportsValue(p.tokenBalance, priceInSol),
+                    calculatePumpTokenLamportsValue(p.tokenBalance, computePriceInSol(sellState.bondingCurve)),
                     slippageDecimal,
                 ),
             );
@@ -394,13 +394,24 @@ export default class Pumpfun implements PumpfunListenerInterface {
                     solToLamports(priorityFeeInSol),
                 ),
                 metadata: {
-                    startActionBondingCurveState: bcs,
+                    startActionBondingCurveState: fromSdkBondingCurve(p.tokenBondingCurve, sellState.bondingCurve),
                     price: {
                         calculationMode: 'simulation',
                     },
                 },
             };
         }
+    }
+
+    async parseArgsCommon(p: SwapBaseParams, _transactionType: TransactionType) {
+        return {
+            tokenProgramId: p.tokenProgramId ? new PublicKey(p.tokenProgramId) : TOKEN_2022_PROGRAM_ID,
+            mint: new PublicKey(p.tokenMint),
+            user: new PublicKey(p.wallet.address),
+            payer: getKeyPairFromPrivateKey(p.wallet.privateKey),
+            priorityFeeInSol: p.priorityFeeInSol ?? Pumpfun.defaultPriorityInSol,
+            slippageDecimal: p.slippageDecimal ?? Pumpfun.defaultSlippageDecimal,
+        };
     }
 
     async getCoinDataWithRetries(
@@ -422,98 +433,6 @@ export default class Pumpfun implements PumpfunListenerInterface {
             bondingCurveProgress: bcMetrics.bondingCurveProgress,
             virtualSolReserves: bcState.virtualSolReserves,
             virtualTokenReserves: bcState.virtualTokenReserves,
-        };
-    }
-
-    async buildTxCommon(
-        p: SwapBaseParams,
-        transactionType: TransactionType,
-        tokenProgram: PublicKey,
-        bondingCurveFullState: BondingCurveFullState,
-    ): Promise<{
-        payer: Keypair;
-        txBuilder: Transaction;
-        keys: Array<AccountMeta>;
-        willCreateTokenAccount: boolean;
-    }> {
-        let willCreateTokenAccount = false;
-        const payer = getKeyPairFromPrivateKey(p.wallet.privateKey);
-        const mintKey = new PublicKey(p.tokenMint);
-        const txBuilder = new Transaction();
-
-        if (bondingCurveFullState.accountInfo.data.length < BONDING_CURVE_NEW_SIZE) {
-            txBuilder.instructions.push(
-                await PUMP_SDK.extendAccountInstruction({
-                    account: new PublicKey(p.tokenBondingCurve),
-                    user: payer.publicKey,
-                }),
-            );
-        }
-
-        const tokenAccountAddress = await getAssociatedTokenAddress(mintKey, payer.publicKey, false, tokenProgram);
-        const tokenAccountInfo = await this.connection.getAccountInfo(tokenAccountAddress);
-
-        let tokenAccount: PublicKey;
-        if (!tokenAccountInfo) {
-            txBuilder.add(
-                createAssociatedTokenAccountIdempotentInstruction(
-                    payer.publicKey,
-                    tokenAccountAddress,
-                    payer.publicKey,
-                    mintKey,
-                    tokenProgram,
-                    ASSOCIATED_TOKEN_PROGRAM_ID,
-                ),
-            );
-            tokenAccount = tokenAccountAddress;
-            willCreateTokenAccount = true;
-        } else {
-            tokenAccount = tokenAccountAddress;
-        }
-
-        const creatorFeeVault = getCreatorVaultAddress(bondingCurveFullState.state.dev);
-        const userVolumeAccumulator = userVolumeAccumulatorPda(payer.publicKey);
-
-        const keys: AccountMeta[] = [
-            { pubkey: PUMP_GLOBAL, isSigner: false, isWritable: false },
-            { pubkey: PUMP_FEE_RECIPIENT_6, isSigner: false, isWritable: true },
-            { pubkey: mintKey, isSigner: false, isWritable: false },
-            { pubkey: new PublicKey(p.tokenBondingCurve), isSigner: false, isWritable: true },
-            { pubkey: new PublicKey(p.tokenAssociatedBondingCurve), isSigner: false, isWritable: true },
-            { pubkey: tokenAccount, isSigner: false, isWritable: true },
-            { pubkey: payer.publicKey, isSigner: true, isWritable: true },
-            { pubkey: SYSTEM_PROGRAM_ID, isSigner: false, isWritable: false },
-        ];
-
-        if (transactionType === 'buy') {
-            keys.push(
-                { pubkey: tokenProgram, isSigner: false, isWritable: false },
-                { pubkey: creatorFeeVault, isSigner: false, isWritable: true },
-                { pubkey: PUMP_FUN_ACCOUNT, isSigner: false, isWritable: false }, // Event Authority
-                { pubkey: PUMP_FUN_PROGRAM, isSigner: false, isWritable: false },
-                { pubkey: PUMP_GLOBAL_VOLUME_ACCUMULATOR, isSigner: false, isWritable: false },
-                { pubkey: userVolumeAccumulator, isSigner: false, isWritable: true },
-                { pubkey: PUMP_FEE_CONFIG, isSigner: false, isWritable: false },
-                { pubkey: PUMP_FEE_PROGRAM, isSigner: false, isWritable: false },
-            );
-        } else {
-            // Sell instruction
-            keys.push(
-                { pubkey: creatorFeeVault, isSigner: false, isWritable: true },
-                { pubkey: tokenProgram, isSigner: false, isWritable: false },
-                { pubkey: PUMP_FUN_ACCOUNT, isSigner: false, isWritable: false }, // Event Authority
-                { pubkey: PUMP_FUN_PROGRAM, isSigner: false, isWritable: false },
-                { pubkey: PUMP_FEE_CONFIG, isSigner: false, isWritable: false },
-                { pubkey: PUMP_FEE_PROGRAM, isSigner: false, isWritable: false },
-                { pubkey: userVolumeAccumulator, isSigner: false, isWritable: true },
-            );
-        }
-
-        return {
-            payer: payer,
-            txBuilder: txBuilder,
-            keys: keys,
-            willCreateTokenAccount: willCreateTokenAccount,
         };
     }
 }

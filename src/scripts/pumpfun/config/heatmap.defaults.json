@@ -1,0 +1,7 @@
+{
+  "analyzeResultPath": "./data/analyze-mint-profit-results.json",
+  "reportPath": "./data/profits-heatmap.json",
+  "ignoreNulls": false,
+  "makeNullsZero": false,
+  "ignoreZeros": false
+}

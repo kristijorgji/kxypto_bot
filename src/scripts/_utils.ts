@@ -3,6 +3,11 @@ import path from 'path';
 
 const scriptsDir = __dirname;
 
+/**
+ * Use a specific configuration json in 'config/' folder relative to the script
+ * Use {scriptName}.json if available or fallback to {scriptName}.default.json
+ * @param scriptPath
+ */
 export function getScriptEnvConfig(scriptPath: string): Record<string, unknown> {
     const relPath = scriptPath.replace(scriptsDir, '');
     const scriptFileName = path.basename(relPath);
@@ -10,7 +15,7 @@ export function getScriptEnvConfig(scriptPath: string): Record<string, unknown> 
     const relScriptDir = relPath.replace(scriptFileName, '');
 
     const file = path.join(__dirname, relScriptDir, `config/${scriptName}.json`);
-    const defaultsFile = path.join(__dirname, `config/${scriptName}.defaults.json`);
+    const defaultsFile = path.join(__dirname, relScriptDir, `config/${scriptName}.defaults.json`);
 
     if (fs.existsSync(file)) {
         return JSON.parse(fs.readFileSync(file, 'utf-8').toString());

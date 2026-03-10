@@ -1,5 +1,6 @@
 import { ParsedTransactionWithMeta, PublicKey } from '@solana/web3.js';
 
+import { withDefault } from '../../../src/testdata/utils';
 import { HistoryEntry, MarketContext } from '../../../src/trading/bots/launchpads/types';
 import { readFixture } from '../data';
 
@@ -32,22 +33,19 @@ export function formMarketContext(data: Partial<MarketContext>, copy?: MarketCon
     };
 }
 
-export function formHistoryEntry(data?: Partial<HistoryEntry>, copy?: HistoryEntry): HistoryEntry {
+export function formHistoryEntry(copy?: Partial<HistoryEntry>): HistoryEntry {
     return {
-        timestamp: data?.timestamp ?? copy?.timestamp ?? 1,
+        timestamp: copy?.timestamp ?? 1,
         // eslint-disable-next-line no-loss-of-precision
-        price: data?.price ?? copy?.price ?? 3.0355480118319034e-8,
-        marketCap: data?.marketCap ?? copy?.marketCap ?? 31.770000079,
-        bondingCurveProgress: data?.bondingCurveProgress ?? copy?.bondingCurveProgress ?? 25,
-        holdersCount: data?.holdersCount ?? copy?.holdersCount ?? 15,
-        devHoldingPercentage: data?.devHoldingPercentage ?? copy?.devHoldingPercentage ?? 10,
-        topTenHoldingPercentage: data?.topTenHoldingPercentage ?? copy?.topTenHoldingPercentage ?? 35,
-        devHoldingPercentageCirculating:
-            data?.devHoldingPercentageCirculating ?? copy?.devHoldingPercentageCirculating ?? 20,
-        topTenHoldingPercentageCirculating:
-            data?.topTenHoldingPercentageCirculating ?? copy?.topTenHoldingPercentageCirculating ?? 70,
-        topHolderCirculatingPercentage:
-            data?.topHolderCirculatingPercentage ?? copy?.topHolderCirculatingPercentage ?? 12,
-        _metadata: data?._metadata ?? copy?._metadata ?? undefined,
+        price: withDefault(copy, 'price', 3.0355480118319034e-8)!,
+        marketCap: copy?.marketCap ?? 31.770000079,
+        bondingCurveProgress: copy?.bondingCurveProgress ?? 25,
+        holdersCount: copy?.holdersCount ?? 15,
+        devHoldingPercentage: copy?.devHoldingPercentage ?? 10,
+        topTenHoldingPercentage: copy?.topTenHoldingPercentage ?? 35,
+        devHoldingPercentageCirculating: withDefault(copy, 'devHoldingPercentageCirculating', 20)!,
+        topTenHoldingPercentageCirculating: withDefault(copy, 'topTenHoldingPercentageCirculating', 70)!,
+        topHolderCirculatingPercentage: withDefault(copy, 'topHolderCirculatingPercentage', 12)!,
+        _metadata: copy?._metadata ?? undefined,
     };
 }

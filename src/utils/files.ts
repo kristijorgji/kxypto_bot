@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import { createHash } from 'node:crypto';
 import * as os from 'os';
 import path from 'path';
 
@@ -125,4 +126,45 @@ export function comparePaths(path1: string, path2: string): boolean {
     }
 
     return normalizedPath1 === normalizedPath2;
+}
+
+/**
+ * Ensures a file path is safe for the operating system (macOS/Windows/Linux).
+ * If any directory segment exceeds 255 bytes or the total path length
+ * exceeds OS limits, it hashes the offending parts to prevent ENAMETOOLONG.
+ */
+export function getSafePath(fullPath: string): string {
+    const isWindows = process.platform === 'win32';
+    const MAX_SEGMENT_BYTES = 255;
+    const MAX_TOTAL_LENGTH = isWindows ? 250 : 4000;
+
+    // 1. Resolve to absolute so we handle ./ relative paths
+    let absolutePath = path.resolve(fullPath);
+
+    // 2. Split path into segments (works for both / and \)
+    const parts = absolutePath.split(path.sep);
+
+    // 3. Process each segment individually
+    const safeParts = parts.map(part => {
+        if (Buffer.byteLength(part, 'utf8') > MAX_SEGMENT_BYTES) {
+            const hash = createHash('md5').update(part).digest('hex').slice(0, 10);
+            const prefix = part.substring(0, 30).replace(/[^a-z0-9]/gi, '_');
+            return `${prefix}_${hash}`;
+        }
+        return part;
+    });
+
+    // Reconstruct the path
+    let resultPath = safeParts.join(path.sep);
+
+    // 4. Final check: Is the TOTAL path still too long? (Windows Specific)
+    if (resultPath.length > MAX_TOTAL_LENGTH) {
+        // If still too long, we hash the last few segments to force it under limit
+        const dir = path.dirname(resultPath);
+        const base = path.basename(resultPath);
+        const hash = createHash('md5').update(base).digest('hex').slice(0, 10);
+        resultPath = path.join(dir, hash);
+    }
+
+    return resultPath;
 }

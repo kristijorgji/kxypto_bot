@@ -8,7 +8,7 @@ import {
     HandlePumpTokenReport,
 } from '@src/trading/bots/blockchains/solana/types';
 import { ExitMonitoringReason } from '@src/trading/bots/types';
-import { comparePaths, moveFile, walkDirFilesSyncRecursive } from '@src/utils/files';
+import { comparePaths, getSafePath, moveFile, walkDirFilesSyncRecursive } from '@src/utils/files';
 
 type ModeStats = {
     trade?: {
@@ -161,7 +161,7 @@ export function determineReportPath(
     }
 
     return {
-        destFullPath: path,
+        destFullPath: getSafePath(path),
         moveCategory: moveCategory!,
     };
 }
